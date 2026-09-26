@@ -1,0 +1,49 @@
+## Acceptance Scenarios
+
+A product capability's spec gets acceptance scenarios in Gherkin form, co-located inside that capability's own section, never in a separate scenarios file. This applies to any product capability with its own section in a product spec file, not only to those that already have a scenario block; having one today is not a precondition for the rule applying.
+
+| Rule | Form |
+|---|---|
+| Where they live | under a child heading titled `Test Scenarios`, one level below the capability's own heading, whatever level that is |
+| What the section holds | a single fenced code block tagged `gherkin`, containing every scenario for that capability |
+| Syntax | literal Gherkin: `Scenario:`, `Given`, `When`, `Then`, `And`, not prose formatted to resemble it |
+| Individual scenarios | not their own headings; a citation names the whole `Test Scenarios` section |
+
+The title is the same every time and does not restate the capability, because the capability's own heading is already the parent every citation carries. A repeated title lets a reader or a search recognize the pattern once and rely on it everywhere.
+
+**Why a fenced block.** These specifications are the authoritative source a later code-generation and test-generation effort is written against and checked back against. A fenced block is what such an effort parses, rather than transcribes by hand from prose, the same reason a JSON payload or a config file would be fenced rather than described in sentences. Fencing makes a scenario precise and stable to cite; it does not make it executable on its own. If an executable copy is ever generated into application code, that copy cites back to the scenario here as its source rather than drifting into a separately maintained one.
+
+**Concrete values, not categories.** A scenario's `Given` and `When` steps use a named entity, a real geography, a stated horizon. A scenario proves one specific case actually produces the promised outcome; a step written in the abstract proves nothing a reader could check.
+
+**Actors are named by role.** A `Given` names its actor by the exact role name the product spec's role table defines, never an informal stand-in. That table already distinguishes populations precisely for this reason. If a scenario needs an actor no row names, the table is what is incomplete: add the role there first, as a real decision about the access model, then write the scenario against the corrected table.
+
+## Deciding What to Write
+
+A capability's own section is the only source for its scenarios: never another file's prose about the same subject, and never a case invented from imagination.
+
+| Write one scenario for | Proving |
+|---|---|
+| Each promise the section states the capability delivers | that one concrete case reaches the promised outcome |
+| Each guardrail or exception the same section states | that the guardrail actually triggers in place of the promise |
+
+A promise is a claim of the form "the answer includes X" or "the system does Y." A guardrail is a stated boundary, a stated fallback, or a stated "instead of" clause.
+
+If a scenario would need a case the section's own prose does not already assert, the prose is what is incomplete: fix that first, in whichever section governs the behavior, then write the scenario against the corrected prose.
+
+A capability whose own section states no guardrail gets only its promise scenarios, and owes no happy-path-plus-guardrail pair.
+
+A guarantee stated only in a cross-cutting file, rather than in one capability's own section, does not get a scenario under that capability. It gets one under that file's own scenarios, if and when it has them.
+
+**A cross-cutting lens** needs no different scenario shape, only more scenarios: each axis's own stated promise and each axis's own stated boundary gets the same treatment as any other capability. Where such a lens acts on an answer that already exists rather than producing a first one, its `Given` states that prior answer as a precondition before the `When` acts on it.
+
+## Keeping a Scenario and Its Prose in Step
+
+Editing a capability's stated promises or guardrails and editing that capability's scenarios happen in the same pass. A promise that changes without its scenario changing, or a scenario left behind after the promise it tested was removed, is exactly the drift this convention prevents.
+
+## Why a Scenario Is Not a Modeling Construct
+
+A Gherkin scenario is not one of the approved constructs (`specs/methodology/modeling-constructs.md`) and does not belong there.
+
+Those constructs check completeness over a state space: every branch, row, or state a rule can produce, often combinatorial or unbounded until the construct enumerates it. A scenario checks something narrower, a coverage checklist against one section's own already-finite, already-written list of promises and guardrails, not a proof that no branch of some larger space was missed.
+
+A scenario is closer in spirit to a white-box harness that exercises one internal mechanism, but the two are parallel, independent verification layers rather than a hierarchy. Such a harness checks that one internal mechanism fires correctly; a scenario checks that a capability delivers what it promises, regardless of which mechanism produced it. Neither cites the other, and keeping the two in agreement when a mechanism changes is a discipline this convention assumes rather than enforces.

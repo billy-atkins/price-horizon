@@ -1,0 +1,5 @@
+.ai/tmp/
+.ai/designs.md
+.ai/follow-ups.md
+.ai/skills/*/scripts/__pycache__/
+.claude/skills
