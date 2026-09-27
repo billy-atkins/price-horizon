@@ -45,6 +45,12 @@ Mac or Linux, using a symbolic link:
 sh scripts/setup-claude-skills.sh
 ```
 
+## License
+
+The specifications, methodology and documentation are licensed under [CC BY 4.0](LICENSE). The scripts under `.ai/skills/*/scripts/` and `scripts/` are licensed under the [MIT License](LICENSE-CODE).
+
+Attribution: "PriceHorizon by Billy Atkins, https://github.com/billy-atkins/price-horizon"
+
 ## Author
 
 Written by Billy Atkins as an applied exercise in spec-driven system design.
