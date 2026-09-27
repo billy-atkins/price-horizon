@@ -1,6 +1,6 @@
 # PriceHorizon
 
-A portfolio project, not a real product or company. PriceHorizon does not exist, and neither does Acme AI. At this stage it is a design project, not an implementation: there is no application code. It is an exercise in spec-driven system design: a product and technical specification for an AI capability that answers a real class of hard business question, written the way a real engagement would need it written, then hardened over many rounds of review for consistency and precision, and against internal contradiction. The spec-driven development methodology behind it was created by the author, Billy Atkins, for this project.
+A portfolio project, not a real product or company. PriceHorizon does not exist, and neither does Acme AI. At this stage it is a design project, not an implementation: there is no application code. It is an exercise in spec-driven system design: a product and technical specification for an AI capability that answers a real class of hard business question, written the way a real engagement would need it written, then hardened over many rounds of review for consistency and precision, and against internal contradiction. The methodology behind it, Spec of Record, was created by the author, Billy Atkins, for this project.
 
 ## What PriceHorizon is
 
@@ -10,9 +10,9 @@ Every answer is built to meet guarantees that make it trustworthy enough to act 
 
 PriceHorizon runs as a self-hosted installation inside each customer's own environment, co-located with their data. It needs no connection outside that environment, so an installation can run air-gapped, and nothing from one customer's installation is ever combined with another's.
 
-## Spec-driven Development Methodology
+## Spec of Record
 
-The interesting part of this exercise was not just the pricing domain but also the methodology: the discipline of keeping a specification honest as it grows. Specifications drift: a product promise and the mechanism meant to deliver it stop agreeing, a rule stated in two places changes in one, and prose reads as complete while silently leaving cases out. When AI agents write and maintain the specs, those failures arrive faster and read more confidently. The methodology is built to prevent them:
+The interesting part of this exercise was not just the pricing domain but also the methodology, **Spec of Record**, a governed spec-as-source approach for the agentic SDLC: the discipline of keeping a specification honest as it grows. Specifications drift: a product promise and the mechanism meant to deliver it stop agreeing, a rule stated in two places changes in one, and prose reads as complete while silently leaving cases out. When AI agents write and maintain the specs, those failures arrive faster and read more confidently. The methodology is built to prevent them:
 
 - **Two layers that answer to each other.** `specs/application/product/` states what a user can rely on, and `specs/application/technical/` states how it is made true. Each names the other, so the two cannot drift apart silently, and the technical overview maps each layer of the answer to the mechanism that produces it.
 - **One home per fact.** Everywhere else cites that home, down to the section, so a change lands in one place and everything that depends on it can be found.
