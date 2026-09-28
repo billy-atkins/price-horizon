@@ -23,6 +23,8 @@ PriceHorizon is a proposed technical approach to a Revenue Growth Management (RG
 | Writing a citation, or deciding whether one may be written | `specs/methodology/sourcing-and-citation.md § Writing a Citation`, `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` |
 | Adding or retitling a heading | `specs/methodology/sourcing-and-citation.md § Titling a Heading` |
 | Describing a rule, a process, or an entity's behavior | `specs/methodology/modeling-constructs.md` |
+| Recording a decision the specs rely on but have not made | `specs/methodology/spec-placement.md § An Open Question` |
+| Writing a field, a bold lead-in, or an entry of a repeated kind | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Constructs § Record Form` |
 | Writing or updating acceptance scenarios | `specs/methodology/acceptance-scenarios.md § Acceptance Scenarios` |
 | Removing drafting residue and hedged framing | `specs/methodology/spec-style.md § What a Finished Spec Reads Like` |
 | Recording a proposed change, or work to take up later | `specs/methodology/working-files.md § A Design Entry`, `specs/methodology/working-files.md § A Follow-up` |

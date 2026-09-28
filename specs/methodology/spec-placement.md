@@ -1,4 +1,4 @@
-Which spec a fact belongs in, which altitude, which file, and how a product capability names the technical files that build it.
+Which spec a fact belongs in, which altitude, which file, how a product capability names the technical files that build it, and where and in what form a decision the specs rely on but have not made is recorded.
 
 ## Product or Technical
 

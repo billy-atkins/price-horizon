@@ -42,9 +42,9 @@ An Algorithm, applied after the simulation engine (below) has produced an outcom
 |---|---|
 | 1 | Sort seeded candidates by price gap, ascending |
 | 2 | Walk adjacent pairs. For each pair, compute the delta across every decision-facing field of that candidate's Positioning Candidate (`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Positioning Candidate`) and Simulated Outcome (`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Simulated Outcome`), price_gap, relative_price_index, share, volume, category_growth, revenue, and margin; each structure's own rationale field, and the confidence and retrieval-trace data it carries, is never part of this comparison |
-| 3 | If every one of those deltas falls under its own materiality threshold (values to be calibrated against real data during the exploration phase, configurable per business unit thereafter), consolidate the pair into a single displayed option, labeled with both archetype names |
+| 3 | If every one of those deltas falls at or under its own materiality threshold, whose default is `§ Open Questions [Name: Default Materiality Thresholds]`, consolidate the pair into a single displayed option, labeled with both archetype names |
 | 4 | If any single metric exceeds its threshold, the pair stays separate even if the rest agree, a real difference on one dimension is still a real choice |
-| 5 | Repeat from step 2 until no adjacent pair is below threshold, or the set reaches a floor of two options, whichever comes first |
+| 5 | Repeat from step 2 until no adjacent pair is at or under threshold, or the set reaches a floor of two options, whichever comes first |
 
 A Constraint on this Algorithm's output: the floor is two, not one. Consolidation can thin the set, it can never reduce Position to a single recommendation, that would violate the guarantee that Position stays framed as a choice. Enforced by step 5's floor, and by the API and UI contract, listed as its own Constraint in `specs/application/technical/risks-and-mitigations.md § Risks and Mitigations`, never exposing a single-option response.
 
@@ -97,3 +97,15 @@ Independent axes, the ones `specs/application/product/answer-engine/drill-down.m
 - *Metric pivot* re-projects the existing output onto a different metric field (price to volume to margin to share). If that metric was already computed as part of the Simulated Outcome, this is a display-only operation with no new model call; if it was not, it triggers a new call against the cached question intent rather than a fresh retrieval.
 
 `specs/application/technical/architecture.md § Architecture Overview § Diagrams § Layer Composition` renders this.
+
+## Open Questions
+
+**Records:**
+
+- **Name:** Default Materiality Thresholds
+
+  **Open Question:** What default materiality threshold, and what bounds, does Acme AI provide for each decision-facing field of a positioning option, until real data calibrates them?
+
+  **Provisional Answer:** The default threshold is 1 point for share and for relative_price_index, and, for every other decision-facing field, price_gap, volume, category_growth, revenue and margin, 1% of the larger magnitude of the two values compared. A Control plane admin may set each anywhere from zero to twice its default. A field whose two values are identical never keeps a pair apart, since its delta of zero is at or under any threshold.
+
+  **Impacts:** step 3 of the Algorithm in `§ Layered Output Synthesis (producing the answer) § Option Consolidation`, and the false-choice failure mode that section avoids; options with essentially the same outcome shown as one (`specs/application/product/answer-engine/position.md § Position — where Brand A should sit`); the bounds a Control plane admin sets each threshold within (`specs/application/product/tenant-administration/business-unit-settings.md § Business Unit Settings`); and the control plane's self-service bounds for materiality thresholds (`specs/application/technical/control-plane-service/control-plane.md § Control Plane`).

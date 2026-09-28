@@ -29,6 +29,8 @@ This skill does not restate the repo's conventions, which would be the same defe
 | Taking work through Design, Refactor, Refine | `AGENTS.md § Design, Refactor, Refine (DRR)` |
 | Recording a proposed change, or work to take up later | `specs/methodology/working-files.md § A Design Entry`, `specs/methodology/working-files.md § A Follow-up` |
 | Describing a rule, a process, or an entity's behavior | `specs/methodology/modeling-constructs.md` |
+| Recording a decision the specs rely on but have not made | `specs/methodology/spec-placement.md § An Open Question` |
+| Writing a field, a bold lead-in, or an entry of a repeated kind | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Constructs § Record Form` |
 | Keeping a companion spec or an `architecture.md` in step | `specs/methodology/sourcing-and-citation.md § Keeping Companions in Step` |
 | Adding, changing, or re-checking a diagram | `specs/methodology/modeling-constructs.md § Diagrams` for where it goes, its form, what it may show and how it and its sources cite each other, then `.ai/skills/author-mermaid-diagram/` |
 

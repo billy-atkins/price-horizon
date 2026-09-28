@@ -11,7 +11,7 @@
 | `predict-computation.md` | The shared signal routing, forecasting, triangulation, driver attribution, and confidence mechanism the query and materialization services both invoke |
 | `guarantees-mechanics.md` | How each product guarantee is actually built |
 | `evaluation-and-monitoring.md` | The golden-question harness that checks the design's own declared rules |
-| `engineering-and-production-considerations.md` | Data pipeline cadence, the latency and cost budget, orchestration, service boundaries, API shape, deployment and versioning, and security and governance, including the audit log's mechanics and application telemetry |
+| `engineering-and-production-considerations.md` | Data pipeline cadence, the latency and cost budget, orchestration, service boundaries, API shape, deployment and versioning, and security and governance, including the audit log's mechanics and application telemetry, and its open questions |
 | `delivery-approach.md` | The staged delivery plan |
 | `risks-and-mitigations.md` | Every safeguard in the design, gathered into one Constraint table |
 | `query-service/` | The query-service-only parts of the live path, from intent parsing and retrieval to layered output synthesis, plus the bulk evidence and accuracy report it also serves. See `query-service/index.md`. |
