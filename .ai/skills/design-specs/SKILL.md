@@ -31,6 +31,7 @@ This skill does not restate the repo's conventions, which would be the same defe
 | Linking a product file to its technical files | `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` |
 | Removing drafting residue and hedged framing | `specs/methodology/spec-style.md § What a Finished Spec Reads Like` |
 | Taking work through Design, Refactor, Refine | `specs/AGENTS.md § Design, Refactor, Refine (DRR)` |
+| Giving a rule its check | `specs/methodology/scope.md § Rules and Skills` |
 | Recording a proposed change, or work to take up later | `specs/methodology/working-files.md § A Design Entry`, `specs/methodology/working-files.md § A Follow-up` |
 | Describing a rule, a process, or an entity's behavior | `specs/methodology/modeling-constructs.md` |
 | Recording a decision the specs rely on but have not made | `specs/methodology/spec-placement.md § An Open Question` |
@@ -42,11 +43,13 @@ This skill does not restate the repo's conventions, which would be the same defe
 
 The rule for each step is named at the step, because that is where it is needed. Finding the fact's existing home, synchronizing whatever restates what you changed, and verifying anchors and citations mechanically are where the defects below actually get caught.
 
+**Start from the entry point —** `specs/AGENTS.md`, then `specs/methodology/glossary.md`, and a directory's `index.md` before working in it, per `specs/methodology/scope.md § Progressive Disclosure`.
+
 **Scope the change —** per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, and draft it as a design entry, per `specs/methodology/working-files.md § A Design Entry`.
 
 **Find the fact's existing home —** grep before drafting, per `specs/methodology/sourcing-and-citation.md § One Home Per Fact`. If it has one, the work is a citation plus whatever delta is specific to the new location, and most of the steps below do not apply.
 
-**Decide which spec it belongs to —** `specs/methodology/spec-placement.md § Product or Technical`.
+**Decide which spec it belongs to —** `specs/methodology/spec-placement.md § Product or Technical`. Before editing a technical file, read the product files whose `technical-specs` name it, per `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability`.
 
 **Decide its altitude, and its file —** `specs/methodology/spec-placement.md § Index, Architecture, Detail` for index versus architecture versus detail. For a product capability, `specs/methodology/spec-placement.md § Naming a Capability Domain` first, then `specs/methodology/spec-placement.md § Where a File Goes`'s test for subfolder versus root file.
 
@@ -57,6 +60,8 @@ The rule for each step is named at the step, because that is where it is needed.
 **Write the references —** `specs/methodology/sourcing-and-citation.md § Writing a Citation` for citing a section, `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` for whether it may point where it does, `specs/methodology/sourcing-and-citation.md § Titling a Heading` for any heading added or retitled, `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` when a technical file now fulfills a product file's capability.
 
 **Update the scenarios in the same pass —** `specs/methodology/acceptance-scenarios.md § Keeping a Scenario and Its Prose in Step`.
+
+**Give a changed rule its check —** `specs/methodology/scope.md § Rules and Skills`.
 
 **Synchronize whatever restates what you changed —** `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`. A section you changed that a diagram renders cites that diagram, wherever it sits, so the diagram to re-check is named in the text you just edited.
 

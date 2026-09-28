@@ -1,6 +1,6 @@
 ---
 name: audit-specs
-description: Audit the project against the rules that govern it by reading it. Use when a directory's summary may have fallen behind its files, when a capability's scenarios may not cover what it promises, when a rule may be stated twice or in the wrong file, when something may cite a section for a rule that section does not state, when a number or a positional reference may be restating a list, when a term may be defined outside the glossary or used against its sense there, when a diagram may no longer match what it renders, or after any change large enough that something restating it has gone stale. Reading audits, with a script that clears the mechanically decidable failures first.
+description: Audit the project against the rules that govern it by reading it. Use when a directory's summary may have fallen behind its files, when a capability's scenarios may not cover what it promises, when a rule may be stated twice or in the wrong file, when something may cite a section for a rule that section does not state, when a number or a positional reference may be restating a list, when a term may be defined outside the glossary or used against its sense there, when a diagram may no longer match what it renders, when a spec may describe in prose what a construct should hold, when a file may sit in the wrong place, when drafting residue may remain, when an instruction may assume a particular agent, when a skill may not meet the authoring rules, when a working file's entry may have lost its form, when a rule may have no check, or after any change large enough that something restating it has gone stale. Reading audits, with a script that clears the mechanically decidable failures first.
 ---
 
 # Auditing the specifications
@@ -25,6 +25,8 @@ Each one requires a judgment the files do not encode, often across a whole direc
 
 Every audit is governed by the rules below.
 
+**Start from the entry point —** `specs/AGENTS.md`, then `specs/methodology/glossary.md`, and a directory's `index.md` before working in it, per `specs/methodology/scope.md § Progressive Disclosure`.
+
 **Read the files in full —** not headings, not a previous read, not recall, per `specs/methodology/scope.md § Progressive Disclosure`. The one time a directory summary was built from headings and memory, it missed the largest gap in the directory.
 
 **Compare against the open source, not against the summary —** re-reading a summary confirms it reads well, which it always does. The defect is only visible with the source beside it.
@@ -35,15 +37,23 @@ Where an audit compares one passage against what it restates, the ways a compres
 
 | Audit | Enforces |
 |---|---|
-| Directory summary currency | `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`, `specs/methodology/spec-placement.md § Index, Architecture, Detail`, `specs/methodology/spec-placement.md § Where a File Goes` |
-| Counterpart currency | `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step` |
-| Scenario coverage | `specs/methodology/acceptance-scenarios.md § Acceptance Scenarios`, `specs/methodology/acceptance-scenarios.md § Deciding What to Write` |
-| Where a rule lives | `specs/methodology/sourcing-and-citation.md § One Home Per Fact`, `specs/AGENTS.md § Authoring Skills` |
+| Directory summary currency | `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`, `specs/methodology/spec-placement.md § Index, Architecture, Detail`, `specs/methodology/scope.md § The Shape of the Scope` |
+| Counterpart currency | `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`, `specs/methodology/spec-placement.md § Product or Technical`, `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` |
+| Scenario coverage | `specs/methodology/acceptance-scenarios.md § Acceptance Scenarios`, `specs/methodology/acceptance-scenarios.md § Deciding What to Write`, `specs/methodology/acceptance-scenarios.md § Keeping a Scenario and Its Prose in Step` |
+| Where a rule lives | `specs/methodology/sourcing-and-citation.md § One Home Per Fact`, `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`, `specs/methodology/scope.md § What Spec of Record Governs`, `specs/methodology/scope.md § The Methodology Governs Itself` |
 | Whether the home holds the fact | `specs/methodology/sourcing-and-citation.md § One Home Per Fact`, `specs/methodology/sourcing-and-citation.md § Writing a Citation` |
 | Ordinals and counts | `specs/AGENTS.md § Ordinals and Counts` |
-| Literal text and emphasis | `specs/methodology/modeling-constructs.md § Emphasis`, `specs/methodology/modeling-constructs.md § Literal Text` |
+| Markup | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Emphasis`, `specs/methodology/modeling-constructs.md § Literal Text`, `specs/methodology/sourcing-and-citation.md § Titling a Heading` |
 | Glossary terms | `specs/methodology/glossary.md § Glossary`, `specs/methodology/glossary.md § Writing an Entry` |
+| Construct choice and form | `specs/methodology/modeling-constructs.md § Purpose`, `specs/methodology/modeling-constructs.md § Constructs`, `specs/methodology/modeling-constructs.md § When to Use Which`, `specs/methodology/acceptance-scenarios.md § Why a Scenario Is Not a Modeling Construct` |
+| Placement | `specs/methodology/spec-placement.md § Where a File Goes`, `specs/methodology/spec-placement.md § Naming a Capability Domain`, `specs/methodology/spec-placement.md § An Open Question` |
+| Finished style | `specs/methodology/spec-style.md § What a Finished Spec Reads Like`, `specs/methodology/spec-style.md § Trade-offs Are Not Journey Language` |
+| Agent agnostic | `specs/AGENTS.md § Agent Agnostic` |
+| Skill form | `specs/AGENTS.md § Authoring Skills`, `specs/methodology/scope.md § Rules and Skills`, `specs/methodology/skills.md § Registered Skills` |
+| Working-file form | `specs/methodology/working-files.md § The Working Files`, `specs/methodology/working-files.md § A Design Entry`, `specs/methodology/working-files.md § A Follow-up`, `specs/AGENTS.md § Design, Refactor, Refine (DRR)` |
 | Diagram currency | `specs/methodology/modeling-constructs.md § Diagrams` |
+
+Each audit reads its unit against every rule the sections in its Enforces column state; what an audit's own text adds is how to read and what is easy to miss (`specs/AGENTS.md § Authoring Skills`).
 
 ### Directory summary currency
 
@@ -67,7 +77,7 @@ Then, for those that have one: does it cover every promise and guardrail that se
 
 ### Where a rule lives
 
-One pass per unit, asking these questions of every normative statement: is this file the most specific home for this rule, or does a narrower file already own its subject; and does this rule already have a home elsewhere, in the unit or in the files that state the rules, `specs/AGENTS.md` and `specs/methodology/`. One question catches a rule in the wrong file, the other catches it in two. Both need the same sweep, so they are one audit. A pass over `.ai/skills/` asks only whether a skill restates a rule from the files that state the rules, per `specs/AGENTS.md § Authoring Skills`. Naming a construct is not restating a rule; reaching into the methodology for its own claims is, per `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`.
+One pass per unit, asking these questions of every normative statement: is this file the most specific home for this rule, or does a narrower file already own its subject; and does this rule already have a home elsewhere, in the unit or in the files that state the rules, `specs/AGENTS.md` and `specs/methodology/`. One question catches a rule in the wrong file, the other catches it in two. Both need the same sweep, so they are one audit.
 
 Inventory first, then compare. Collect every normative statement in the unit, and in the files that state the rules, before judging any of them — whether a rule already has a home cannot be answered about the first file until the last one has been read, and a pass that judges as it goes degrades into sampling.
 
@@ -76,6 +86,8 @@ Inventory within a file and within a section too, not only across files. A dupli
 One signal is worth naming, because it looks like the opposite of a defect: a passage that cites another file's rule and then extends it. A citation followed by application is correct. A citation followed by further rules about the cited subject is a second home with a citation attached, reading as deference precisely because the citation is there.
 
 Product and technical are never compared with each other, for the reason `specs/methodology/spec-placement.md § Product or Technical` gives.
+
+Of `specs/methodology/scope.md § The Methodology Governs Itself`, this audit reads whether a rule's reach over the methodology is narrowed only in the rule's own text; the methodology's style, markup, constructs and summaries are read by the audits of those families.
 
 **An `architecture.md` restates its own directory by design, and those restatements are not findings —** this is a false-positive trap the audit sets, and it is expensive: an overview names every major piece in its own words rather than leaning on citations to carry its meaning, per `specs/methodology/spec-placement.md § Index, Architecture, Detail`, so it restates constantly and by instruction. `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step` is what resolves it — a rendering is not a second home. A diagram, wherever it sits, is a rendering too. An auditor who has not read that sentence finds the overview restating half the directory and reports it as the most drifted file present, confidently and at length. What is still a finding is an `architecture.md` duplicating *itself*, holding a detail no detail file states, or restating anything from outside its own directory, which no rule licenses, and which is easy to miss while discounting everything else it restates.
 
@@ -109,13 +121,37 @@ The evidence for needing both is one pass in this repo where a change widened a 
 
 Does any number break `specs/AGENTS.md § Ordinals and Counts`. Run the script with `--candidates`, then read the files in scope in full, using the candidates as a guide to where numbers are likely rather than as the boundary of the search. Judge every number against the rule as written: a violation gets a proposed rewrite, and a decline names the rule's reason for keeping the number. A violation the patterns missed is reported like any other, and its phrasing is a candidate for a new pattern.
 
-### Literal text and emphasis
+### Markup
 
-Does every backtick span hold text written exactly so elsewhere, and does every italic span stress a word or a short phrase whose stress changes what its sentence means. The script checks only where bold and italic may appear; this is the judgment it cannot make. Run it with `--candidates`, which lists each backtick span holding a capital letter and no punctuation that matches no heading, field key, or text a fenced example in the tree holds, and each italic span of more than a few words, then read the files in scope in full, using the candidates as a guide rather than as the boundary. A name in backticks is written plain; an italic span stressing nothing loses its italic, and one carrying a point that needs more is given the structure `specs/methodology/modeling-constructs.md § Emphasis` names.
+Does every backtick span hold text written exactly so elsewhere, and does every italic span stress a word or a short phrase whose stress changes what its sentence means. The script checks only where bold and italic may appear; this is the judgment it cannot make. Run it with `--candidates`, which lists each backtick span holding a capital letter and no punctuation that matches no heading, field key, or text a fenced example in the tree holds, and each italic span of more than a few words, then read the files in scope in full, using the candidates as a guide rather than as the boundary. A name in backticks is written plain; an italic span stressing nothing loses its italic, and one carrying a point that needs more is given the structure `specs/methodology/modeling-constructs.md § Emphasis` names. Among bold lead-ins and headings, the case to look for is a lead-in a citation needs.
 
 ### Glossary terms
 
 Is each glossary term defined there and nowhere else, does its definition open with its genus, a glossary term wherever one fits, and does a use meaning the method's concept match the glossary's sense. A use in a file's own ordinary sense, an application spec's product record or data field among them, is outside this audit unless it could be misread as the method's. Run the script with `--candidates`, which lists each line outside the glossary where a glossary term or one of its other names seems to be defined, then read the files in scope in full, using the candidates as a guide rather than as the boundary. A second definition is cut back to the rules its file states about the term, and a term used in the method's sense but differently is reworded or, where the sense recurs, the glossary is corrected.
+
+### Construct choice and form
+
+What reading passage by passage misses: prose that reads complete but that a construct would show has a gap, and a construct's own cross-references, a jump to a step or a transition to a state, which only reading its tables together catches. A Record Form of a type the script does not know is read here alone.
+
+### Placement
+
+What is easy to miss: a file named by a bare filename another directory shares, and an open question recorded in a file that cannot cite everything it impacts.
+
+### Finished style
+
+Run the script with `--candidates`, which lists each line holding a phrase the Example column of `specs/methodology/spec-style.md § What a Finished Spec Reads Like`'s table quotes, and use the list as a guide rather than as the boundary. A trade-off that passes its section's test is declined with the reason.
+
+### Agent agnostic
+
+Run the script with `--candidates`, which lists each line naming a vendor, a model or a tool-specific path. A helper is named for the tool it serves, so the root `AGENTS.md` naming its helpers names that tool, which the section's exception allows: the usual candidate to decline.
+
+### Skill form
+
+The script decides a registered skill's front matter and script names; the rest is read here, with each unregistered skill `--candidates` lists read against the registry's test and the import candidates guiding the standard-library rule. What is easy to miss: a skill restating a rule rather than citing it, where naming a construct is no restatement but reaching into the methodology for its own claims is; and a row of the operating table naming a step its skill no longer has.
+
+### Working-file form
+
+What is easy to miss: an applied design entry whose Status names no adversarial DRR, and work an entry defers with no follow-up recording it.
 
 ### Diagram currency
 
@@ -148,13 +184,19 @@ What is worth adding is what auditing your own work costs here: a confident swee
 | Audit | Unit |
 |---|---|
 | Directory summary currency | the tree rooted at a directory owning an `architecture.md`, plus each `index.md` beneath it |
-| Counterpart currency | per product file |
+| Counterpart currency | per product file, and each technical file no product file's `technical-specs` names |
 | Scenario coverage | per product file |
-| Where a rule lives | per unit: `AGENTS.md`, `specs/AGENTS.md`, `specs/methodology/`, `specs/application/product/`, `specs/application/technical/`, `.ai/skills/` |
+| Where a rule lives | per unit: `AGENTS.md`, `specs/AGENTS.md`, `specs/methodology/`, `specs/application/product/`, `specs/application/technical/` |
 | Whether the home holds the fact | per cited section, taking every citation into it in one pass |
 | Ordinals and counts | the files a change touched, or everything in the script's scope for a full run |
-| Literal text and emphasis | the files a change touched, or everything in the script's scope for a full run |
+| Markup | the files a change touched, or everything in the script's scope for a full run |
 | Glossary terms | the glossary and the files a change touched, or everything in the script's scope for a full run |
+| Construct choice and form | the specs a change touched, or every spec for a full run |
+| Placement | per directory, its `index.md` and every file in it, with the product `architecture.md` for the product side |
+| Finished style | the specs a change touched, or every spec for a full run |
+| Agent agnostic | both `AGENTS.md` files, each registered skill, the project's `.gitignore`, and the helpers the root `AGENTS.md` names |
+| Skill form | `specs/methodology/skills.md`, each registered skill, and each unregistered one `--candidates` lists |
+| Working-file form | `.ai/designs.md` and `.ai/follow-ups.md` |
 | Diagram currency | per diagram, with every section its Sources list names |
 
 `specs/index.md` and `specs/application/index.md` sit above every architecture-rooted tree, so a directory summary run names them explicitly or nothing covers them.
@@ -175,6 +217,9 @@ What is worth adding is what auditing your own work costs here: a confident swee
 | Every `gherkin` block parses: each `Scenario:` followed by at least one `Given`, `When`, and `Then` | `specs/methodology/acceptance-scenarios.md § Acceptance Scenarios` |
 | Every `technical-specs` list is alphabetically sorted, appears only in a product file, and every path in it resolves under the technical directory | `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` |
 | `specs/methodology/glossary.md` holds no citation and one table, headed Term and Definition, whose Term cells are bare terms, unique and sorted, each with a definition; each definition ends with its other names in the fixed form, and no other name is shared by two terms or equals a term | `specs/methodology/glossary.md § Writing an Entry` |
+| Every section of `specs/AGENTS.md` and of each file in `specs/methodology/` but its `architecture.md` and `index.md` is named, itself or through a section it sits under, in the Enforces column of `§ The audits` or the Operating rule column of `§ Operating rules carried out by a step` | `specs/methodology/scope.md § Rules and Skills` |
+| No spec embeds an image | `specs/methodology/modeling-constructs.md § Diagrams` |
+| Each working file `specs/methodology/working-files.md § The Working Files` names is ignored by a line of the project's `.gitignore` naming it or a directory holding it, and no negating line un-ignores it | `specs/methodology/working-files.md § The Working Files` |
 | Every directory under `specs/` has an `index.md`, naming each file and subdirectory it holds, each row naming one that exists | `specs/methodology/spec-placement.md § Where a File Goes` |
 | The script's scope is read from `specs/methodology/skills.md` and the files `specs/methodology/scope.md § What Spec of Record Governs` names; a missing or empty registry is a finding, never an empty scope | `specs/methodology/scope.md § What Spec of Record Governs` |
 | The tree in `specs/methodology/scope.md § The Shape of the Scope` names exactly the files in `specs/methodology/`, and every path it names exists | `specs/methodology/scope.md § The Shape of the Scope` |
@@ -192,17 +237,27 @@ What is worth adding is what auditing your own work costs here: a confident swee
 | Under `specs/`, an `Open Questions` section is its file's last top-level section and holds an optional `**Diagrams:**` field, then a `**Records:**` field of at least one record, one list item each, and nothing else; a blank line precedes each field; each record is its `**Name:**`, `**Open Question:**`, `**Provisional Answer:**` and `**Impacts:**` fields in that order, the later ones indented two spaces, its Impacts carrying at least one section citation, and no two records share a Name | `specs/methodology/modeling-constructs.md § Constructs § Record Form`, `specs/methodology/spec-placement.md § An Open Question` |
 | Under `specs/`, every line opening with a bold phrase ending in a colon inside the bold carries a key a form declares, where that form places it | `specs/methodology/modeling-constructs.md § Fields` |
 
-**Scope —** the files `specs/methodology/scope.md § What Spec of Record Governs` names, the working files aside: the root `AGENTS.md`, every file under `specs/`, and each skill `specs/methodology/skills.md` registers, its `SKILL.md` and its scripts. The working files legitimately carry citations to things since moved or pruned: `.ai/designs.md` and `.ai/follow-ups.md` are reached once their forms are record forms, and the skills' output under `.ai/tmp/` stays outside the checks, being reports rather than rules. `--candidates` lists places for the Ordinals and counts audit, the Literal text and emphasis audit and the Glossary terms audit to read, and, for a reader to judge, an unregistered skill whose `SKILL.md` cites the method's rules and a registered skill's script importing from outside the standard library. The audits above set their own scope, except Ordinals and counts, which uses this one.
+**Scope —** the files `specs/methodology/scope.md § What Spec of Record Governs` names, the working files aside: the root `AGENTS.md`, every file under `specs/`, and each skill `specs/methodology/skills.md` registers, its `SKILL.md` and its scripts. The working files legitimately carry citations to things since moved or pruned: `.ai/designs.md` and `.ai/follow-ups.md` are reached once their forms are record forms, and the skills' output under `.ai/tmp/` stays outside the checks, being reports rather than rules. `--candidates` lists places for the Ordinals and counts audit, the Markup audit, the Glossary terms audit, the Finished style audit and the Agent agnostic audit to read, and, for the Skill form audit, an unregistered skill whose `SKILL.md` cites the method's rules and a registered skill's script importing from outside the standard library. The audits above set their own scope, except Ordinals and counts, which uses this one.
+
+## Operating rules carried out by a step
+
+The steps carrying out the operating rules that leave no trace in the files (`specs/methodology/scope.md § Rules and Skills`):
+
+| Operating rule | Carried out by | A skipped step leaves |
+|---|---|---|
+| `specs/AGENTS.md § Writing specs`, `specs/AGENTS.md § Authoring Skills` | `specs/AGENTS.md`, whose routing table sends each task to the rule governing it and whose Writing specs section names the skills that sequence and check the work; `design-specs`, whose Workflow names the governing rule at each step | a fact placed, cited or formed against its rule, which the audit reading that rule finds |
+| `specs/AGENTS.md § Design, Refactor, Refine (DRR)` | `design-specs`' Workflow, which scopes a change and takes it through the adversarial DRR, and this skill's audit once the change is applied | an applied design entry whose Status names no adversarial DRR, which Working-file form finds while the entry stands, a trace that goes when the entry is pruned; a direct edit made without the user's approval leaves nothing in the files, and the user who approves is its check |
+| `specs/methodology/scope.md § Progressive Disclosure`, `specs/methodology/scope.md § The Shape of the Scope` | the Start from the entry point step of `design-specs` and of this skill; this skill's method, reading the files in full; `design-specs`' section on recall and the file, and its step deciding a fact's altitude and file | a citation naming a heading that does not exist, which the script finds; a fact given a second home, which Where a rule lives finds; a term used against its sense, which Glossary terms finds |
+| `specs/methodology/sourcing-and-citation.md § One Home Per Fact` | `design-specs`' step finding the fact's existing home, and its section on searching before drafting | a fact given a second home, which Where a rule lives finds |
+| `specs/methodology/spec-placement.md § Where a File Goes`, `specs/methodology/spec-placement.md § Naming a Capability Domain` | `design-specs`' step deciding a fact's altitude and file | a file or a domain placed against its test, which Placement finds |
+| `specs/methodology/scope.md § Rules and Skills` | `design-specs`' step giving a changed rule its check | a rule section no audit names, which the script finds |
+| `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` | `design-specs`' step deciding which spec a fact belongs to, which reads the product files naming a technical file before it is edited | a technical change breaking a promise its product file makes, which Counterpart currency finds |
 
 ## What is deliberately not audited
 
 **Nothing the script cannot decide moves into the script —** now or later. Listing candidates for a reading audit is not deciding: `--candidates` reports places to read, never a finding or a clear, and its output is kept apart from the findings for that reason. One claiming to judge whether a compression stayed faithful would produce a confident false clear over the findings that cost the most. What is possible later is more mechanical checks and more audits, never the conversion of one into the other.
 
 **Script checks were built and removed —** because a check that cannot decide is worse than no check. "Every product capability section has a `Test Scenarios` child" — "is this a capability" is a judgment the files do not encode, and most of its findings were overview or definitional headings. "Every `Given` names a role the role table defines" — the rule is real, but absence does not decide a violation: a scenario about system state has no actor, and one may name its role in the `Then`. Scenario coverage now covers both by reading.
-
-**Drafting residue gets no audit of its own —** the `design-specs` skill applies `specs/methodology/spec-style.md` at authoring time.
-
-**File placement and altitude get no audit —** whether a file sits at the right altitude, whether a domain earned its subfolder, whether an overview restates more of its detail files than it needs: all real, all governed by `specs/methodology/spec-placement.md § Index, Architecture, Detail` and `specs/methodology/spec-placement.md § Where a File Goes`, and none of it checked here. Directory summary currency reaches an overview holding a detail no detail file states (`specs/methodology/spec-placement.md § Index, Architecture, Detail`), and an overview that has thinned into pointers, which shows up as a fact its reader cannot learn. What it does not reach, an overview restating more than it needs, is a known gap, accepted rather than overlooked.
 
 **Migration fidelity gets no audit —** though comparing a migration's source statements against their rewritten destinations is exactly this kind of work. Migrations are rare enough that a written method would be exercised about once, and one exercise is not enough to generalize a method from. Brief it directly when a migration happens.
 

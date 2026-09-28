@@ -7,5 +7,3 @@ A skill is part of Spec of Record when it is registered here, and only then; a s
 | `audit-specs` | `specs/AGENTS.md`, `specs/methodology/` |
 | `author-mermaid-diagram` | `specs/methodology/modeling-constructs.md § Diagrams` |
 | `design-specs` | `specs/AGENTS.md`, `specs/methodology/` |
-
-The registry is checked: every registered skill has a `SKILL.md` in the form `specs/AGENTS.md § Authoring Skills` sets, and a skill whose `SKILL.md` cites the method's rules without being registered is listed for a reader to judge.
