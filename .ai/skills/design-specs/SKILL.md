@@ -21,12 +21,14 @@ This skill does not restate the repo's conventions, which would be the same defe
 | Deciding whether a rule may be restated | `specs/methodology/sourcing-and-citation.md § One Home Per Fact` |
 | Writing a citation, or naming a section | `specs/methodology/sourcing-and-citation.md § Writing a Citation` |
 | Deciding whether a citation may be written here | `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` |
-| Writing a number, a count, or a reference to an item's position | `AGENTS.md § Ordinals and Counts` |
+| Finding which files Spec of Record governs | `specs/methodology/scope.md` |
+| Deciding whether a skill is part of the method | `specs/methodology/skills.md` |
+| Writing a number, a count, or a reference to an item's position | `specs/AGENTS.md § Ordinals and Counts` |
 | Adding or retitling a heading | `specs/methodology/sourcing-and-citation.md § Titling a Heading` |
 | Writing or updating acceptance scenarios | `specs/methodology/acceptance-scenarios.md § Acceptance Scenarios` |
 | Linking a product file to its technical files | `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` |
 | Removing drafting residue and hedged framing | `specs/methodology/spec-style.md § What a Finished Spec Reads Like` |
-| Taking work through Design, Refactor, Refine | `AGENTS.md § Design, Refactor, Refine (DRR)` |
+| Taking work through Design, Refactor, Refine | `specs/AGENTS.md § Design, Refactor, Refine (DRR)` |
 | Recording a proposed change, or work to take up later | `specs/methodology/working-files.md § A Design Entry`, `specs/methodology/working-files.md § A Follow-up` |
 | Describing a rule, a process, or an entity's behavior | `specs/methodology/modeling-constructs.md` |
 | Recording a decision the specs rely on but have not made | `specs/methodology/spec-placement.md § An Open Question` |
@@ -38,7 +40,7 @@ This skill does not restate the repo's conventions, which would be the same defe
 
 The rule for each step is named at the step, because that is where it is needed. Finding the fact's existing home, synchronizing whatever restates what you changed, and verifying anchors and citations mechanically are where the defects below actually get caught.
 
-**Scope the change —** per `AGENTS.md § Design, Refactor, Refine (DRR)`, and draft it as a design entry, per `specs/methodology/working-files.md § A Design Entry`.
+**Scope the change —** per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, and draft it as a design entry, per `specs/methodology/working-files.md § A Design Entry`.
 
 **Find the fact's existing home —** grep before drafting, per `specs/methodology/sourcing-and-citation.md § One Home Per Fact`. If it has one, the work is a citation plus whatever delta is specific to the new location, and most of the steps below do not apply.
 
@@ -62,7 +64,7 @@ A diagram is the easiest rendering to leave stale and the hardest to notice, bec
 
 **Verify every anchor and every citation mechanically —** `.ai/skills/design-specs/scripts/design-specs.py`, both modes, below. A proposal whose quoted text or cited heading does not exist cannot be applied, however sound its reasoning. Anything the script cannot decide goes to a cold subagent, per `§ Recall picks the direction; the file supplies the words`.
 
-**Refactor and refine, then the adversarial DRR, then apply and audit —** per `AGENTS.md § Design, Refactor, Refine (DRR)`, rerunning the steps above for whatever each pass changes. In the brief, name the failure patterns this skill's sections record. The audit is `.ai/skills/audit-specs/`, whose script catches a citation left pointing at a heading that moved, and whose audits catch a summary that no longer describes what it summarizes.
+**Refactor and refine, then the adversarial DRR, then apply and audit —** per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, rerunning the steps above for whatever each pass changes. In the brief, name the failure patterns this skill's sections record. The audit is `.ai/skills/audit-specs/`, whose script catches a citation left pointing at a heading that moved, and whose audits catch a summary that no longer describes what it summarizes.
 
 ## Search for the fact before drafting the sentence
 
@@ -107,7 +109,7 @@ Recall is the right instrument for deciding where to go. Which file probably hol
 
 It is never the source for anything written down. A quotation, a heading path, a count, a claim that a file does or does not say something: each of those is read from the file at the moment of writing it, not recalled from having read it.
 
-The reason is `AGENTS.md § Design, Refactor, Refine (DRR)`'s for reading fresh before any work.
+The reason is `specs/AGENTS.md § Design, Refactor, Refine (DRR)`'s for reading fresh before any work.
 
 The tell, when this has gone wrong, is that the *direction* was right and the *text* was not: the correct file, named with a heading it does not have. That pattern is the signature, and it means a proposal can be wholly sound in substance and entirely unapplicable.
 
@@ -115,7 +117,7 @@ The tell, when this has gone wrong, is that the *direction* was right and the *t
 
 **What is mechanically decidable goes to the script —** `.ai/skills/design-specs/scripts/design-specs.py` verifies quoted text with `anchors` and cited heading paths with `citations`, per `§ Verifying anchors and citations`. They are separate modes because a proposal makes both kinds of claim, and a checker covering only quotations lets every wrong heading through — which is exactly how several of them once reached a reviewer in a single revision, in a proposal whose every quotation passed.
 
-**What needs judgment goes to a cold subagent —** whether a section actually states the rule being attributed to it, whether a count holds, whether "nothing in the repo says X" is true: no script decides these, and re-reading your own work does not either, for the reason `AGENTS.md § Design, Refactor, Refine (DRR)` gives. The cold subagent runs the adversarial DRR before a change lands and the post-apply audit after it.
+**What needs judgment goes to a cold subagent —** whether a section actually states the rule being attributed to it, whether a count holds, whether "nothing in the repo says X" is true: no script decides these, and re-reading your own work does not either, for the reason `specs/AGENTS.md § Design, Refactor, Refine (DRR)` gives. The cold subagent runs the adversarial DRR before a change lands and the post-apply audit after it.
 
 ## Names carry claims
 

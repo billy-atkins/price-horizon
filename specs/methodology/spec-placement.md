@@ -30,7 +30,7 @@ Every directory under `specs/` organizes its files by altitude. New content belo
 | Altitude | File | Holds |
 |---|---|---|
 | Navigation | `index.md` | a file-name-to-description table and front matter, no content of its own |
-| Overview | `architecture.md` | a self-contained description of the whole directory's shape, naming every major piece and how they relate, in its own words |
+| Overview | `architecture.md` | where a directory's shape is worth describing as a whole, which not every directory's is: a self-contained description of the whole directory's shape, naming every major piece and how they relate, in its own words |
 | Detail | everything else | one file per functional area, holding the actual mechanism, schema, or experience, at whatever depth the subject needs |
 
 **The test for new content —** does it explain how pieces fit together, in prose rich enough to stand on its own? That is overview. Does it specify what one piece does or shows, precisely enough to need citation-grade traceability? That is detail.

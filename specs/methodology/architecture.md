@@ -4,6 +4,7 @@ The specifications are layered by what governs what. Each layer is governed by t
 
 ```
 specs/
+├── AGENTS.md             the entry point to Spec of Record
 ├── index.md
 ├── methodology/          the rules for writing specs
 │   ├── index.md
@@ -14,9 +15,9 @@ specs/
     └── technical/
 ```
 
-Above them sits `AGENTS.md`, which holds operational facts about this repo and the rules that apply to the whole project, not only to specs: what the project is, how the product is positioned, that this is a proposal repo rather than a codebase, how work is designed and reviewed, how a skill is written, how a list is numbered or counted, that its own instructions and everything under `.ai/` stay agnostic of which agent reads them, and where to find the rules below.
+At the top of `specs/` sits `specs/AGENTS.md`, Spec of Record's entry point: where to find each rule, and the rules that reach the method's whole scope, how work is designed and reviewed, how a skill is written, how a list is numbered or counted, and how the method's instructions stay agnostic of which agent reads them. The project's own `AGENTS.md`, at its root, holds what the project is, how its product is positioned, and its conventions, and points to `specs/AGENTS.md`.
 
-The tree is deliberately not exhaustive. Only `index.md` is fixed at every level; an `architecture.md` sits wherever a directory's shape is worth describing as a whole, which is not every directory. The detail files and subfolders that grow over time are each directory's own `index.md`'s job to list, recursively, so this tree never needs updating because a file was added.
+`specs/methodology/scope.md § The Shape of the Scope` draws the whole scope, down to each methodology file, and each directory's own `index.md` lists what it holds, so this tree names the layers and the files that fix them.
 
 **`specs/methodology/` —** the rules for writing a specification here: which spec a fact belongs in, which altitude, where a decision the specs rely on but have not made is recorded, how a section is titled and cited, when a structured construct is required instead of prose, when a capability owes acceptance scenarios, what a finished spec reads like, and the working files that writing specs leaves behind.
 
@@ -24,13 +25,13 @@ The tree is deliberately not exhaustive. Only `index.md` is fixed at every level
 
 ## Spec-Driven for Itself
 
-`AGENTS.md § Writing specs` extends the methodology to its own files. That is why this directory has an `index.md` and an `architecture.md` like any other, why a rule that is a lookup here is authored as a table, and why these files are held to the same style rules they state.
-
-A rule reaches a methodology file unless it scopes itself, in its own text rather than through an exemption granted here, to something a methodology file is not. The rules on acceptance scenarios and on `technical-specs` frontmatter are among them: each scopes itself to product specs, and a methodology file has no product capability to prove and no technical counterpart to name.
+The methodology is held to the rules it states, and a rule reaches a methodology file unless the rule itself scopes it away, as the rules on acceptance scenarios and `technical-specs` frontmatter do (`specs/methodology/scope.md § The Methodology Governs Itself`).
 
 ## How the Rules Relate
 
-The detail files that govern what a spec says are not independent. Each answers a question the previous one leaves open, and they apply to different subsets of what is written here. `index.md` lists what each contains; what follows is how they fit together.
+The detail files that govern what a spec says are not independent. Each answers a question another leaves open, and they apply to different subsets of what is written here. `index.md` lists what each contains; what follows is how they fit together.
+
+**The scope frames all of them —** `scope.md` states which files these rules reach, how the methodology governs itself, and how rules and skills relate, and `skills.md` which skills belong to the method; every rule here applies within that scope.
 
 **Placement comes first and constrains everything after it —** `spec-placement.md` settles which spec a fact belongs in, at which altitude, in which file. Nothing downstream can be decided before that: a citation cannot be written until there is a file to cite, and a capability cannot owe scenarios until it is known to be a product capability.
 
@@ -48,16 +49,14 @@ What happens after a fact changes outlives the writing. A fact stated once is of
 
 ## How the Rules Are Applied
 
-These files state the rules. They do not sequence the work, record what goes wrong while following them, check whether a result conforms, or teach the craft a rule assumes. The skills under `.ai/skills/` described below do those things, and a cold agent needs each of them to follow this methodology in practice.
-
-None is a rule. Where a skill and one of these files disagree, the file governs and the skill is what needs correcting.
+These files state the rules, and the skills `specs/methodology/skills.md` registers apply them: they sequence the work, record what goes wrong, check the result, and teach the craft a rule assumes. No skill is a rule's home, and where one disagrees with a rule the rule governs (`specs/methodology/scope.md § Rules and Skills`).
 
 **`design-specs` sequences these rules and carries what they cannot —** it names the governing file at each step of a change rather than restating any of it, which is the only way it can stay correct as these rules are amended. What it adds is the part no rule can hold: the failures that recur while applying them, a fact written before checking whether it already had a home, a qualifier lost while compressing one file into another, an edit anchored to text that does not exist. Its script checks that a proposal's quoted text and cited headings exist in the files before the proposal is reviewed. A rule states what correct looks like; that skill records how people miss it.
 
-**`audit-specs` checks whether these rules, and the `AGENTS.md` rules its audits name, actually held —** its audits are performed by reading: whether a directory's summary still describes what it contains, whether a product fact and its technical mechanism still describe one system, whether a capability's scenarios cover what it promises, whether a diagram still agrees with the sources it lists, whether a rule is stated twice or in the wrong file, whether a section cited as a rule's home actually states the rule attributed to it, whether a number or a positional reference restates a list, and whether backticks hold only literal text and italic only real stress. Each names the rule it enforces, so a rule that changes takes its check with it and a finding points at the rule rather than only at a line. Underneath them a script decides what can be decided from the files alone, citation resolution and form, the layering directions, heading hygiene, scenario and diagram shape, a diagram's sources citing it back, frontmatter, index coverage, numbered lead-ins and list items, a working file named in a spec, a field's key and where it sits, an Open Questions section's shape and its records' fields, a record citation, where bold and italic appear, and it runs first so a reading pass is never spent on a broken citation.
+**`audit-specs` checks whether these rules, and the `specs/AGENTS.md` rules its audits name, actually held —** its audits are performed by reading: whether a directory's summary still describes what it contains, whether a product fact and its technical mechanism still describe one system, whether a capability's scenarios cover what it promises, whether a diagram still agrees with the sources it lists, whether a rule is stated twice or in the wrong file, whether a section cited as a rule's home actually states the rule attributed to it, whether a number or a positional reference restates a list, and whether backticks hold only literal text and italic only real stress. Each names the rule it enforces, so a rule that changes takes its check with it and a finding points at the rule rather than only at a line. Underneath them a script decides what can be decided from the files alone, citation resolution and form, the layering directions, heading hygiene, scenario and diagram shape, a diagram's sources citing it back, frontmatter, index coverage, numbered lead-ins and list items, a working file named in a spec, a field's key and where it sits, an Open Questions section's shape and its records' fields, a record citation, where bold and italic appear, the scope's tree, the skills registry and each registered skill's form, and it runs first so a reading pass is never spent on a broken citation.
 
 What the skill deliberately leaves unaudited, drafting residue or a file's altitude among it, it declines by name rather than by silence.
 
 **`author-mermaid-diagram` serves the diagram rules —** `specs/methodology/modeling-constructs.md § Diagrams` licenses exactly one kind of rendering for a human reader and leaves where it goes to the reader's need, and bounds its form, what it may show, and how it and its sources cite each other; that skill is how one gets authored, rendered, and checked, and that section points at it directly. It differs from `design-specs` and `audit-specs` in its subject, not in how it is governed: drawing a good diagram is craft, so the skill cites these files only where they govern a diagram, while `design-specs` and `audit-specs` exist to serve these rules and cite them throughout.
 
-Being useful while writing specifications is not what makes a skill part of this methodology; having these rules as its subject is. Other skills under `.ai/skills/` will have nothing to do with specifications at all.
+A skill belongs to the method by being registered in `specs/methodology/skills.md`, which is also the boundary between the method's skills and any other skill under `.ai/skills/`.
