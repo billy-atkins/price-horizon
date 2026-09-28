@@ -2,6 +2,7 @@
 technical-specs:
   - specs/application/technical/control-plane-service/control-plane.md
   - specs/application/technical/data-model.md
+  - specs/application/technical/engineering-and-production-considerations.md
   - specs/application/technical/identity-and-access.md
 ---
 
@@ -17,6 +18,32 @@ PriceHorizon defines these roles, distinguishing everyday use from administratio
 | Platform admin | Acme AI's own staff, onboarding an installation, executing an Acme AI-managed upgrade for a customer (a self-managed upgrade's own execution is described in `specs/application/product/platform-and-compliance-operations/versioned-upgrades.md § Versioned Upgrades` instead), diagnostic support access, seeing which application and model versions an installation currently runs (`specs/application/product/platform-and-compliance-operations/versioned-upgrades.md § Versioned Upgrades`), and reviewing evidence and forecast accuracy in bulk across every business unit an installation hosts to tune the platform, never the client's business configuration itself |
 
 `specs/application/product/architecture.md § Diagrams § Using and Administering` renders this.
+
+### Using and Administering Kept Apart
+
+PriceHorizon keeps using it and administering it on architecturally separate paths, rather than relying on a permissions setting alone: the path that answers questions never holds the credentials to change configuration, so a problem in the far more widely used query path has no way to reach the far more sensitive administrative one. A security-conscious buyer can know not just who can ask a pricing question, but who can change what a competitor's code means or edit a threshold, and that those two are never the same path by accident, even for a person holding both the Query user and Control plane admin roles. Every role, and every technical service boundary built to enforce it, holds to this.
+
+`specs/application/product/architecture.md § Diagrams § Using and Administering` renders this.
+
+#### Test Scenarios
+
+```gherkin
+Scenario: The path that answers a question cannot change configuration.
+  Given a Query user in North America Snacks
+  When they ask where Competitor Brand's effective price will be in Texas in 6 months
+  Then the path that answers them holds no credential to change North America Snacks' thresholds or reference data
+
+Scenario: Holding both roles does not join the two paths.
+  Given a person holds both the Query user and Control plane admin roles in North America Snacks
+  When they ask where Competitor Brand's effective price will be in Texas in 6 months
+  Then the path that answers them holds no credential to change North America Snacks' thresholds or reference data
+
+Scenario: A person holding both roles changes configuration only on the administrative path.
+  Given a person holds both the Query user and Control plane admin roles in North America Snacks
+  When they raise North America Snacks' stable-price threshold from 1% to 2% of today's price
+  Then the change is made on the administrative path
+  And not on the path that answers their questions
+```
 
 ### Identity Federation
 

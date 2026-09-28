@@ -14,9 +14,20 @@ import re
 import sys
 from pathlib import Path
 
-SCOPE = ["specs", "AGENTS.md", ".ai/skills", "README.md"]
-# Scripts are read only for candidates: the findings are Markdown forms.
-SCRIPT_SCOPE = [".ai/skills", "scripts"]
+# specs/methodology/scope.md § What Spec of Record Governs names where each kind is named:
+# specs by their place under specs/, the agent instructions by the root AGENTS.md and
+# specs/AGENTS.md, and skills by the registry, read at run time. The places and names below
+# are the ones scope.md's table gives, and scope_findings checks the table still says so;
+# the working files are outside the script until their forms are record forms.
+SCOPE_HOME = "scope.md § What Spec of Record Governs"
+SCOPE_KINDS = {"Agent instructions", "Specs", "Skills", "Working files"}
+REGISTRY = "specs/methodology/skills.md"
+REGISTRY_RULE = "skills.md § Registered Skills"
+AUTHORING = "specs/AGENTS.md § Authoring Skills"
+SCOPE_TREE = "specs/methodology/scope.md"
+SPECS_AGENTS = "specs/AGENTS.md"
+GLOSSARY = "specs/methodology/glossary.md"
+GLOSSARY_RULE = "glossary.md § Writing an Entry"
 SCRIPT_SUFFIXES = {".py", ".ps1", ".sh"}
 LAYER = {"methodology": "specs/methodology/", "product": "specs/application/product/",
          "technical": "specs/application/technical/"}
@@ -35,7 +46,7 @@ LOOSE_SECTION = re.compile(r'(?<!`)§')
 HEADING = re.compile(r'^(#{1,6})\s+(.*?)\s*$', re.M)
 FENCE = re.compile(r'^```', re.M)
 
-# AGENTS.md § Ordinals and Counts. The findings are the forms a pattern decides alone.
+# specs/AGENTS.md § Ordinals and Counts. The findings are the forms a pattern decides alone.
 NUMBERED_LEAD_IN = re.compile(r'^\*\*\d+[.)]\s')
 NUMBERED_ITEM = re.compile(r'^\s*\d+[.)]\s')
 WORKING_FILE = re.compile(r'\.ai/(?:designs\.md|follow-ups\.md|tmp\b)')
@@ -112,9 +123,44 @@ CANDIDATE = [
 NUMBERED_COMMENT = re.compile(r'^\s*(?:#\s*)?\d+[.)]\s')
 
 
+def registry(root):
+    """-> (skill names, problems): the skills specs/methodology/skills.md registers.
+
+    A missing registry, a table naming no skill, or a row not naming one in backticks is a
+    problem, so a broken registry is reported rather than read as an empty scope.
+    """
+    p = root / REGISTRY
+    if not p.exists():
+        return [], [(SCOPE_HOME, REGISTRY, 0, "the skills registry is missing, so the scope cannot be read")]
+    names, problems, inside = [], [], False
+    for n, line in enumerate(p.read_text(encoding="utf-8").split("\n"), 1):
+        if line.startswith("| Skill |"):
+            inside = True
+            continue
+        if not inside or line.startswith("|---"):
+            continue
+        if not line.startswith("|"):
+            if names or problems:
+                break
+            continue
+        m = re.match(r'\|\s*`([a-z0-9-]+)`\s*\|', line)
+        if m:
+            names.append(m.group(1))
+        else:
+            problems.append((REGISTRY_RULE, REGISTRY, n, "a registry row does not name a skill in backticks"))
+    if not names:
+        problems.append((SCOPE_HOME, REGISTRY, 0, "the skills registry names no skill, so the scope cannot be read"))
+    return names, problems
+
+
+def scope_paths(root):
+    """The files in scope: the root AGENTS.md, specs/, and each registered skill."""
+    return ["AGENTS.md", "specs"] + [".ai/skills/" + n for n in registry(root)[0]]
+
+
 def md_files(root):
     out = []
-    for s in SCOPE:
+    for s in scope_paths(root):
         p = root / s
         if p.is_file() and p.suffix == ".md":
             out.append(p)
@@ -443,20 +489,25 @@ def layer_of(rel):
     for name, prefix in LAYER.items():
         if rel.startswith(prefix):
             return name
-    return "agents" if rel == "AGENTS.md" else None
+    if rel == SPECS_AGENTS:
+        return "agents"
+    return "project" if rel == "AGENTS.md" else None
 
 
-def direction(src_layer, path, rel, line, found):
-    """A citation never points down a layer except from AGENTS.md, and application
-    and methodology never cite each other in either direction. Shared by both
-    citation forms."""
+def direction(src_layer, path, rel, line, found, section=True):
+    """A citation never points down a layer except from specs/AGENTS.md; application and
+    methodology never cite each other in either direction; an application spec never
+    cites specs/AGENTS.md; and no spec cites a section of the project's root AGENTS.md,
+    though a plain mention of it is no citation of its content. Shared by both forms."""
     dst_layer = layer_of(path)
     if not (src_layer and dst_layer and src_layer != dst_layer):
         return
+    specs = ("methodology", "product", "technical")
     bad = (
         (src_layer == "methodology" and dst_layer in ("product", "technical"))
-        or (src_layer in ("product", "technical") and dst_layer == "methodology")
+        or (src_layer in ("product", "technical") and dst_layer in ("methodology", "agents"))
         or (src_layer == "product" and dst_layer == "technical")
+        or (section and src_layer in specs and dst_layer == "project")
     )
     if bad:
         found.append(("sourcing-and-citation.md § Which Citations Are Allowed",
@@ -502,16 +553,16 @@ def check(root):
             if ODD_EMPHASIS.search(prose):
                 found.append((EMPHASIS, r, i, "bold italic or underscore bold"))
             if NUMBERED_LEAD_IN.match(line):
-                found.append(("AGENTS.md § Ordinals and Counts", r, i, "bold lead-in carries a number"))
+                found.append(("specs/AGENTS.md § Ordinals and Counts", r, i, "bold lead-in carries a number"))
             elif NUMBERED_ITEM.match(line):
-                found.append(("AGENTS.md § Ordinals and Counts", r, i, "list item carries a number"))
-            if r.startswith("specs/") and r != WORKING_FILES_HOME:
+                found.append(("specs/AGENTS.md § Ordinals and Counts", r, i, "list item carries a number"))
+            if r.startswith("specs/") and r not in (WORKING_FILES_HOME, SPECS_AGENTS):
                 for m in WORKING_FILE.finditer(line):
                     found.append(("sourcing-and-citation.md § Which Citations Are Allowed", r, i,
                                   f"names a working file: {m.group(0)}"))
             for m in WHOLE_FILE.finditer(line):
                 if m.group(1) in known:
-                    direction(src_layer, m.group(1), r, i, found)
+                    direction(src_layer, m.group(1), r, i, found, section=False)
 
             for m in CITATION.finditer(line):
                 cite = m.group(1).strip()
@@ -644,12 +695,193 @@ def check(root):
                         found.append(("spec-placement.md § Naming the Technical Files Behind a Capability",
                                       r, 0, f"technical-specs names a missing file: {p}"))
 
-    # every directory has an index.md
-    for d in sorted({f.parent for f in files if "specs" in f.parts}):
-        if not (d / "index.md").exists():
-            found.append(("spec-placement.md § Where a File Goes",
-                          d.relative_to(root).as_posix(), 0, "directory has no index.md"))
+    # every directory has an index.md, naming each file and subdirectory beside it
+    for d in sorted({root / "specs"} | {p for p in (root / "specs").rglob("*") if p.is_dir()}):
+        rel_d = d.relative_to(root).as_posix()
+        idx = d / "index.md"
+        if not idx.exists():
+            found.append(("spec-placement.md § Where a File Goes", rel_d, 0, "directory has no index.md"))
+            continue
+        named = set(re.findall(r'^\|\s*`([^`]+)`', idx.read_text(encoding="utf-8"), re.M))
+        present = {c.name + ("/" if c.is_dir() else "") for c in d.iterdir()
+                   if c.name != "index.md" and (c.is_dir() or c.suffix == ".md")}
+        for missing in sorted(present - named):
+            found.append(("spec-placement.md § Where a File Goes", rel_d + "/index.md", 0, f"no row names {missing}"))
+        for extra in sorted(named - present):
+            found.append(("spec-placement.md § Where a File Goes", rel_d + "/index.md", 0, f"a row names {extra}, which is not here"))
 
+    found += scope_findings(root)
+    found += glossary_findings(root)
+    return found
+
+
+# A definition's other names are its trailing sentences: "Abbreviated X." with one name,
+# then "Also called X." or "Also called X, Y.", each optional.
+OTHER_NAMES = re.compile(r'(?:\s*Abbreviated ([^.,]+)\.)?(?:\s*Also called ([^.]+)\.)?\s*$')
+BARE_TERM = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ,'-]*$")
+TABLE_RULE = re.compile(r'^\|[\s|:-]+\|$', re.M)
+
+
+def glossary_terms(root):
+    """-> (header, [(line, term, other names, definition, where the other names start)]),
+    or None when there is no glossary."""
+    g = root / GLOSSARY
+    if not g.exists():
+        return None
+    rows, header = [], None
+    for n, line in enumerate(g.read_text(encoding="utf-8").split("\n"), 1):
+        if not line.startswith("|") or TABLE_RULE.match(line):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if header is None:
+            header = cells
+            continue
+        term, definition = cells[0], "|".join(cells[1:])
+        m = OTHER_NAMES.search(definition)
+        others = ([m.group(1).strip()] if m.group(1) else []) + \
+                 ([x.strip() for x in m.group(2).split(",")] if m.group(2) else [])
+        rows.append((n, term, others, definition, m.start(), len(cells)))
+    return header, rows
+
+
+def glossary_findings(root):
+    """The glossary cites nothing and holds one table of bare terms, unique and sorted, each
+    definition ending with its other names in the fixed form, none shared or equal to a term."""
+    got = glossary_terms(root)
+    if got is None:
+        return [(GLOSSARY_RULE, GLOSSARY, 0, "the glossary is missing")]
+    header, rows = got
+    found, text = [], (root / GLOSSARY).read_text(encoding="utf-8")
+    for n, line in enumerate(strip_fences(text).split("\n"), 1):
+        if CITATION.search(line) or WHOLE_FILE.search(line):
+            found.append((GLOSSARY_RULE, GLOSSARY, n, "the glossary cites nothing"))
+    if header != ["Term", "Definition"]:
+        found.append((GLOSSARY_RULE, GLOSSARY, 0, "the table's header is not | Term | Definition |"))
+    if len(TABLE_RULE.findall(text)) != 1:
+        found.append((GLOSSARY_RULE, GLOSSARY, 0, "the glossary does not hold exactly one table"))
+    folded = [t.casefold() for _, t, _, _, _, _ in rows]
+    if folded != sorted(folded):
+        found.append((GLOSSARY_RULE, GLOSSARY, 0, "the terms are not in sorted order"))
+    owner = {}
+    for n, term, others, definition, trail, width in rows:
+        if width != 2:
+            found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: a row holds a term and a definition, nothing else"))
+        if not definition:
+            found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: no definition"))
+        if not BARE_TERM.match(term):
+            found.append((GLOSSARY_RULE, GLOSSARY, n, f"not a bare term: {term}"))
+        if folded.count(term.casefold()) > 1:
+            found.append((GLOSSARY_RULE, GLOSSARY, n, f"the term is listed twice: {term}"))
+        if re.search(r'\b(?:Abbreviated|Also called)\b', definition[:trail]):
+            found.append((GLOSSARY_RULE, GLOSSARY, n,
+                          f"{term}: other names are the trailing sentences, Abbreviated with one name, then Also called"))
+        for o in others:
+            k = o.casefold()
+            if k in folded:
+                found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: the other name {o} is a term"))
+            elif owner.setdefault(k, term) != term:
+                found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: the other name {o} also belongs to {owner[k]}"))
+    return found
+
+
+def glossary_candidates(root):
+    """-> list of (path, line, kind, context), for the Glossary terms audit: a line outside the
+    glossary where a term or one of its other names seems to be defined. Places to read."""
+    got, out = glossary_terms(root), []
+    if got is None:
+        return out
+    names = set()
+    for _, term, others, _, _, _ in got[1]:
+        names.update([term] + others)
+    alt = "|".join(sorted((r'\s+'.join(map(re.escape, x.split())) for x in names), key=len, reverse=True))
+    name = rf"(?:{alt})s?"
+    # A definition equates the term with a kind, "A field is a key-value pair", or glosses it
+    # in apposition, "Spec of Record, the method"; "is written" or "is missing" states a rule
+    # about the term instead, and a term after an article or a comma is an item in a list.
+    defining = re.compile(
+        rf"(?:(?:^|[.!?:]\s+|\|\s*|—\s*)|\b(?:a|an|the)\s+){name}\b(?:\s*\([^)]*\)|\s*`[^`]*`)?"
+        rf"\s+(?:(?:is|are)\s+(?:a|an|the|one|what|where|how)\b|means\b|names\s+\w)"
+        rf"|(?<!\ba\s)(?<!\ban\s)(?<!\bthe\s)(?<!,\s)\b{name},\s+(?:a|an|the)\b", re.I)
+    for f in md_files(root):
+        rel = f.relative_to(root).as_posix()
+        if rel == GLOSSARY:
+            continue
+        for n, line in enumerate(strip_fences(f.read_text(encoding="utf-8")).split("\n"), 1):
+            m = defining.search(line)
+            if m:
+                a, b = max(0, m.start() - 40), min(len(line), m.end() + 60)
+                out.append((rel, n, "a glossary term that may be defined here", line[a:b].strip()))
+    return out
+
+
+def scope_findings(root):
+    """scope.md, the skills registry, and each registered skill's form."""
+    found = []
+    names, problems = registry(root)
+    found += problems
+    scope = root / SCOPE_TREE
+    if not scope.exists():
+        return found + [(SCOPE_HOME, SCOPE_TREE, 0, "the scope file is missing")]
+    text = scope.read_text(encoding="utf-8")
+    section = re.search(r'^## What Spec of Record Governs\n(.*?)(?=^## )', text, re.S | re.M)
+    rows = re.findall(r'^\|\s*([A-Z][^|]*?)\s*\|[^|]*\|([^|]*)\|', section.group(1) if section else "", re.M)
+    rows = [(k, named) for k, named in rows if k != "Kind"]
+    kinds = {k for k, _ in rows}
+    if kinds != SCOPE_KINDS:
+        found.append((SCOPE_HOME, SCOPE_TREE, 0, f"the kinds are {sorted(kinds)}, not the ones the script reads, {sorted(SCOPE_KINDS)}"))
+    for kind, named in rows:
+        for home in re.findall(r'`([^`]+)`', named):
+            path = home.split(" § ")[0].strip()
+            if path.endswith((".md", "/")) and not (root / path.rstrip("/")).exists():
+                found.append((SCOPE_HOME, SCOPE_TREE, 0, f"the {kind} row names {path}, which does not exist"))
+    # the tree names exactly the methodology's files, and every path it names exists
+    tree = re.search(r'^## The Shape of the Scope\n.*?^```\n(.*?)^```', text, re.S | re.M)
+    rule = "scope.md § The Shape of the Scope"
+    if not tree:
+        found.append((rule, SCOPE_TREE, 0, "the scope's tree is missing"))
+        return found + skill_findings(root, names)
+    stack, listed = [], set()
+    for line in tree.group(1).split("\n"):
+        m = re.match(r'^([│ ├└─]*)(\S+)', line)
+        if not m or not m.group(2).strip("…"):
+            continue
+        depth, name = len(m.group(1)) // 4, m.group(2)
+        stack = stack[:depth] + [name]
+        path = "".join(s if s.endswith("/") else s + "/" for s in stack[:-1]) + name
+        if "<" in path:
+            continue
+        full = path
+        if not (root / full.rstrip("/")).exists():
+            found.append((rule, SCOPE_TREE, 0, f"the tree names {full}, which does not exist"))
+        if full.startswith("specs/methodology/") and full.count("/") == 2 and not name.endswith("/"):
+            listed.add(name)
+    actual = {p.name for p in (root / "specs/methodology").glob("*.md")}
+    for n in sorted(actual - listed):
+        found.append((rule, SCOPE_TREE, 0, f"the tree does not name specs/methodology/{n}"))
+    for n in sorted(listed - actual):
+        found.append((rule, SCOPE_TREE, 0, f"the tree names specs/methodology/{n}, which is not there"))
+    return found + skill_findings(root, names)
+
+
+def skill_findings(root, names):
+    """specs/AGENTS.md § Authoring Skills, for each registered skill."""
+    found = []
+    for n in names:
+        d = root / ".ai/skills" / n
+        rel = f".ai/skills/{n}/SKILL.md"
+        if not (d / "SKILL.md").exists():
+            found.append((REGISTRY_RULE, REGISTRY, 0, f"the registered skill {n} has no SKILL.md"))
+            continue
+        fm = re.match(r'^---\n(.*?)\n---', (d / "SKILL.md").read_text(encoding="utf-8").replace("\r\n", "\n"), re.S)
+        meta = dict(re.findall(r'^(\w+):\s*(.*)$', fm.group(1), re.M)) if fm else {}
+        if not fm:
+            found.append((AUTHORING, rel, 1, "SKILL.md does not open with YAML front matter"))
+        if meta.get("name", "").strip() != n or not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)+', n):
+            found.append((AUTHORING, rel, 1, f"front matter name is not the kebab-case directory name {n}"))
+        if not meta.get("description", "").strip():
+            found.append((AUTHORING, rel, 1, "front matter has no description"))
+        if (d / "scripts").is_dir() and not (d / "scripts" / (n + ".py")).exists():
+            found.append((AUTHORING, f".ai/skills/{n}/scripts", 0, f"no entry-point script named {n}.py"))
     return found
 
 
@@ -687,7 +919,7 @@ def candidates(root):
             patterns = CANDIDATE + ([("count in a heading", re.compile(rf"\b{_NUM}\b|\d", re.I))]
                                     if HEADING.match(line) else [])
             scan(rel, n, line, patterns)
-    for s in SCRIPT_SCOPE:
+    for s in [".ai/skills/" + n for n in registry(root)[0]]:
         base = root / s
         if not base.is_dir():
             continue
@@ -700,6 +932,31 @@ def candidates(root):
                 # a count wrapped onto the next line, "three" then "architecture.md files"
                 nxt = " " + lines[k + 1][1].strip() if k + 1 < len(lines) else ""
                 scan(rel, n, line + nxt, CANDIDATE + [("numbered comment", NUMBERED_COMMENT)])
+    return out
+
+
+def skill_candidates(root):
+    """An unregistered skill whose SKILL.md cites the method's rules, which may belong to the
+    method or may simply follow Authoring Skills; and a registered skill's script importing
+    from outside the standard library, which the rule allows where the standard library
+    cannot serve. Places to read, never findings."""
+    out, names = [], set(registry(root)[0])
+    base = root / ".ai/skills"
+    if base.is_dir():
+        for d in sorted(p for p in base.iterdir() if p.is_dir()):
+            sk = d / "SKILL.md"
+            if d.name not in names and sk.exists() and re.search(r'specs/(?:methodology/|AGENTS\.md)', sk.read_text(encoding="utf-8")):
+                out.append((f".ai/skills/{d.name}/SKILL.md", 0, "unregistered skill citing the method's rules", d.name))
+    stdlib = set(getattr(sys, "stdlib_module_names", ()))
+    if not stdlib:
+        out.append(("(this Python)", 0, "imports not checked", "sys.stdlib_module_names needs Python 3.10 or later"))
+    for n in sorted(names):
+        for py in sorted((base / n).rglob("*.py")):
+            for k, line in enumerate(py.read_text(encoding="utf-8").split("\n"), 1):
+                m = re.match(r'^\s*(?:import\s+([A-Za-z_]\w*)|from\s+([A-Za-z_]\w*)[\w.]*\s+import\b)', line)
+                mod = m and (m.group(1) or m.group(2))
+                if mod and stdlib and mod not in stdlib:
+                    out.append((py.relative_to(root).as_posix(), k, "import from outside the standard library", line.strip()))
     return out
 
 
@@ -757,11 +1014,17 @@ def main(argv):
     print(f"\n{n} finding{'' if n == 1 else 's'} across {len(md_files(root))} files")
 
     if "--candidates" in argv:
-        print("\nCandidates for AGENTS.md § Ordinals and Counts: places to read, not findings")
+        print("\nCandidates for specs/AGENTS.md § Ordinals and Counts: places to read, not findings")
         for path, line, name, context in candidates(root):
             print(f"  {path}:{line}  [{name}]\n    {context}")
         print("\nCandidates for the Literal text and emphasis audit: places to read, not findings")
         for path, line, name, context in literal_candidates(root):
+            print(f"  {path}:{line}  [{name}]\n    {context}")
+        print("\nCandidates for the Glossary terms audit: places to read, not findings")
+        for path, line, name, context in glossary_candidates(root):
+            print(f"  {path}:{line}  [{name}]\n    {context}")
+        print("\nCandidates about skills: places to read, not findings")
+        for path, line, name, context in skill_candidates(root):
             print(f"  {path}:{line}  [{name}]\n    {context}")
     return 1 if n else 0
 

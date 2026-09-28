@@ -17,29 +17,29 @@ Before adding a paragraph that states a general rule, check whether that rule al
 The specifications are layered by what governs what:
 
 ```
-AGENTS.md
+specs/AGENTS.md
   └ specs/methodology/
       └ specs/application/
           └ product/
               └ technical/
 ```
 
-`AGENTS.md`'s rules apply to the whole project and the methodology's to every spec (`AGENTS.md § Writing specs`); a product spec states what a user can rely on and a technical spec how it is made true (`specs/methodology/spec-placement.md § Product or Technical`).
+`specs/AGENTS.md`'s rules and the methodology's reach every file in Spec of Record's scope (`specs/methodology/scope.md § What Spec of Record Governs`); a product spec states what a user can rely on and a technical spec how it is made true (`specs/methodology/spec-placement.md § Product or Technical`).
 
-A citation names where a fact lives. Cited down a layer, it directs the reader where to look for a specific reason. Cited up a layer, it gives background that benefits the local text.
+Cited down a layer, a citation directs the reader where to look for a specific reason. Cited up a layer, it gives background that benefits the local text.
 
 | From | May cite |
 |---|---|
-| A product spec | another product spec; `AGENTS.md` |
-| A technical spec | another technical spec, a product spec; `AGENTS.md` |
-| A methodology spec | another methodology spec; `AGENTS.md` |
-| `AGENTS.md` | any spec |
+| A product spec | another product spec |
+| A technical spec | another technical spec, a product spec |
+| A methodology spec | another methodology spec; `specs/AGENTS.md` |
+| `specs/AGENTS.md` | any spec |
 
-The table is the whole permission for citations among these specs and `AGENTS.md`. Files outside that set cite these specs under their own rules. No spec other than `specs/methodology/working-files.md` names a working file (`specs/methodology/working-files.md § The Working Files`): none is committed, so the name would point a reader at nothing.
+The table is the whole permission for citations among these specs and `specs/AGENTS.md`. Files outside that set, the project's own root `AGENTS.md` among them, cite these specs under their own rules, and no spec cites a section of the root `AGENTS.md`, whose instructions are the project's rather than the method's. No spec other than `specs/methodology/working-files.md` names a working file (`specs/methodology/working-files.md § The Working Files`): none is committed, so the name would point a reader at nothing. `specs/AGENTS.md` is agent instructions rather than a spec, and names the working files its procedures act on.
 
-A product spec citing a technical spec would make a promise depend on its own implementation; that direction is served instead by the `technical-specs` frontmatter field (`specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability`), deliberately file-level and coarse so it cannot carry a dependency at heading precision. A methodology spec citing an application spec would make a rule depend on the document it governs.
+A product spec citing a technical spec would make a promise depend on its own implementation; that direction is served instead by the `technical-specs` frontmatter key (`specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability`), deliberately file-level and coarse so it cannot carry a dependency at heading precision. A methodology spec citing an application spec would make a rule depend on the document it governs.
 
-An application spec does not cite a methodology spec. Direction is not the reason, since that citation would point up; subject is. An application spec's subject is the product, and how a spec here is authored is no part of it, so a reader of the product has no use for the authoring rule behind a sentence. An application spec may still name a construct, because a construct is what its own content is authored as; what it does not do is reach into the methodology for the methodology's own claims. `AGENTS.md` is different in scope: its rules apply to the whole project, not only to specs (`AGENTS.md § Writing specs`), so a spec depending on one depends on it like any other file here.
+An application spec does not cite a methodology spec. Direction is not the reason, since that citation would point up; subject is. An application spec's subject is the product, and how a spec here is authored is no part of it, so a reader of the product has no use for the authoring rule behind a sentence. An application spec may still name a construct, because a construct is what its own content is authored as; what it does not do is reach into the methodology for the methodology's own claims. Nor does it cite `specs/AGENTS.md`, which holds the method's own rules, for the same reason.
 
 ## Titling a Heading
 
@@ -52,7 +52,7 @@ A heading's title is a stable slug for whatever the section covers, not prose to
 | Unique among headings sharing its parent | two headings under different parents may share a title |
 | A file's top-level headings unique across the file | they have no parent but the file |
 
-A numbered heading, or one counting its children, is the heading case of `AGENTS.md § Ordinals and Counts`. A heading pays for it twice, since its title is also the text of every citation naming it: renumbering sections, or retitling one whose count went stale, changes those citations as well.
+A numbered heading, or one counting its children, is the heading case of `specs/AGENTS.md § Ordinals and Counts`. A heading pays for it twice, since its title is also the text of every citation naming it: renumbering sections, or retitling one whose count went stale, changes those citations as well.
 
 **Bold lead-ins are not headings —** a bold lead-in (`specs/methodology/modeling-constructs.md § Bold Lead-ins`) has none of the guarantees a heading carries, starting with enforced uniqueness. It has no citation form either, per `§ Writing a Citation`, so a paragraph that is or needs to be a citation's target is authored as a child heading instead, which gets every rule above rather than needing a workaround. A record (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) is the one exception, cited by the form of its own `§ Writing a Citation` gives. Do not promote one pre-emptively on the chance it might be cited; only once it actually is, or once its section states that its entries exist to be cited.
 
@@ -82,12 +82,12 @@ A record (`specs/methodology/modeling-constructs.md § Constructs § Record Form
 
 **A title that names a kind of section rather than one particular section —** it resolves to no single heading anywhere, so it is not a citation and takes no `§`. A rule referring to `Test Scenarios` generally, where the level varies by context, names a kind; a rule referring to one file's own `## Diagrams` names a section.
 
-## Keeping Companions in Step
+## Keeping Renderings in Step
 
 Some facts are stated once and rendered in more than one place. Those renderings are not second homes, and they do not keep themselves current.
 
 **A product spec and its technical counterpart —** when a fact changes in one, check whether the other needs a matching update. That the two name each other at all is `specs/methodology/spec-placement.md § Product or Technical`'s requirement; what it does not do is keep them current, which is this duty.
 
-**A directory's own `architecture.md` —** it is a synchronization target, not a first-written source. Its prose, its citations, and its mapping tables each restate or render a fact whose real home is elsewhere. When that fact changes, check whether `architecture.md` needs a matching update too.
+**A directory's own `architecture.md` —** what it restates of its detail files, in its prose, its citations and its mapping tables, and what it connects among them, is a synchronization target (`specs/methodology/spec-placement.md § Index, Architecture, Detail`). When a fact in one of its detail files changes, check whether `architecture.md` needs a matching update too.
 
 **A diagram, wherever it sits —** it renders the sections and records its Sources list names, each of which names it back (`specs/methodology/modeling-constructs.md § Diagrams`). When one of them changes, check whether the diagram needs a matching update too.

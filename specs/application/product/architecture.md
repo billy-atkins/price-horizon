@@ -1,10 +1,3 @@
----
-technical-specs:
-  - specs/application/technical/architecture.md
-  - specs/application/technical/engineering-and-production-considerations.md
-  - specs/application/technical/identity-and-access.md
----
-
 A single PriceHorizon installation can host several business units side by side, each with its own brand, competitor set, category, and geography, and each with its own glossary terms and thresholds. Business unit is the unit almost everything below is scoped to, the answers a person may ask for, the configuration they may change, and the records they may see.
 
 ## Answer Engine
@@ -45,7 +38,7 @@ PriceHorizon's roles distinguish everyday use from administration. A Query user 
 
 The customer's own people sign in through their own identity provider, over OIDC or SAML, so there is no separate PriceHorizon login to learn or run. The identity provider asserts which business units each of them may query and which role they hold, and a claim grants nothing until an Identity admin maps it. How Acme AI's own staff reach an installation is `§ Platform & Compliance Operations`.
 
-PriceHorizon keeps using it and administering it on architecturally separate paths, rather than relying on a permissions setting alone. A security-conscious buyer should be able to know not just who can ask a pricing question, but who can change what a competitor's code means or edit a threshold, and whether those two populations are ever the same path by accident. They are not: the service that answers questions never holds the credentials to change configuration, so a problem in the far more widely used query path has no way to reach the far more sensitive administrative one. This is a principle every role, and every technical service boundary built to enforce it, has to hold to, not a fact specific to any one of them. `§ Diagrams § Using and Administering` below renders this. Full detail, the roles, how access federates to the customer's own identity provider, and how an Identity admin actually grants it, is `specs/application/product/roles.md § Roles`.
+PriceHorizon keeps using it and administering it on architecturally separate paths, rather than relying on a permissions setting alone. A security-conscious buyer should be able to know not just who can ask a pricing question, but who can change what a competitor's code means or edit a threshold, and whether those two populations are ever the same path by accident, even for a person holding both the Query user and Control plane admin roles. They are not: the path that answers questions never holds the credentials to change configuration, so a problem in the far more widely used query path has no way to reach the far more sensitive administrative one. This is a principle every role, and every technical service boundary built to enforce it, has to hold to, not a fact specific to any one of them. `§ Diagrams § Using and Administering` below pictures this. Full detail, the roles, how using and administering are kept apart, how access federates to the customer's own identity provider, and how an Identity admin actually grants it, is `specs/application/product/roles.md § Roles`.
 
 ## Platform & Compliance Operations
 
@@ -153,7 +146,7 @@ flowchart TD
 - `specs/application/product/roles.md § Roles`
 - `specs/application/product/roles.md § Roles § Identity Administration`
 - `specs/application/product/roles.md § Roles § Identity Federation`
-- `§ Identity & Access`
+- `specs/application/product/roles.md § Roles § Using and Administering Kept Apart`
 
 ### When an Answer Falls Short
 
