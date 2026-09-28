@@ -25,6 +25,7 @@ The entry point to Spec of Record for these specifications. Read it before any w
 | Writing a field, a bold lead-in, emphasis, literal text, or an entry of a repeated kind | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Emphasis`, `specs/methodology/modeling-constructs.md § Literal Text`, `specs/methodology/modeling-constructs.md § Constructs § Record Form` |
 | Writing or updating acceptance scenarios | `specs/methodology/acceptance-scenarios.md § Acceptance Scenarios` |
 | Removing drafting residue and hedged framing | `specs/methodology/spec-style.md § What a Finished Spec Reads Like` |
+| Giving a rule its check | `specs/methodology/scope.md § Rules and Skills` |
 | Recording a proposed change, or work to take up later | `specs/methodology/working-files.md § A Design Entry`, `specs/methodology/working-files.md § A Follow-up` |
 
 `.ai/skills/design-specs/` sequences this work and names the governing rule at each step; `.ai/skills/audit-specs/` checks the result, by reading and by script.
@@ -38,8 +39,6 @@ Avoid numbers that add nothing a reader cannot already see but create friction w
 - Nothing says how many things a list or the repo holds. Name them, describe them, or point to them.
 
 Numbers that carry value stay. Algorithm and Decision Tree tables keep their numbered steps, and references to those steps, because that numbering is an industry standard a cold agent reads without further instruction, as a software engineer would (`specs/methodology/modeling-constructs.md`). A Gherkin scenario states its own test case in full, and its numbers are that case's data. A value is not a count: a two-week window, a floor of two options, exactly one home. Neither is naming a pair, "both", "either" or "the two", nor where something sits on the page, "the table above" or "below".
-
-`.ai/skills/audit-specs/` enforces this rule.
 
 ## Authoring Skills
 

@@ -17,6 +17,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Key | The name of a field. Not a database key, and not a key in a file's frontmatter. |
 | Layer | A level in the order of what governs what among the specifications, each governed by those above it. Not a layer of the product's answer. |
 | Open question | A decision the specs rely on but have not made, recorded with the answer in use until it is settled. Not a question merely unanswered in conversation. |
+| Operating rule | A rule about operating Spec of Record: how work on the specifications is done, reviewed, recorded and tooled, rather than what the specifications hold. Not a rule about how the product operates. |
 | Potemkin village | A front built to look complete with nothing behind it, as the painted village facades of the legend: a guarantee, rule or enforcement mechanism relied on as real that is stated but not specified or not checked. |
 | Progressive disclosure | A way of reading in which what a step needs is loaded at the step that needs it, rather than everything at once. |
 | Record | An entry of a record type, written in the Record Form. Not the product's stored data. |
@@ -24,6 +25,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Rube Goldberg machine | A mechanism far more elaborate than the task it performs, as the cartoonist's contraptions chain many steps to do something simple: a mechanism, role or safeguard whose complexity no stated need justifies, where a light switch would do. |
 | Spec of Record | A methodology for the agentic SDLC, governed and spec-as-source, in which the specifications are the durable source a system is built from, and a human designs and steers while an AI agent assists. |
 | Spec of Record scope | The set of files Spec of Record governs, and nothing else. |
+| Specification rule | A rule governing what the specifications hold and how they are written. Not a rule a specification states about the product. |
 | Working file | A file that writing the specs leaves behind, serving whoever writes them. |
 
 ## Writing an Entry

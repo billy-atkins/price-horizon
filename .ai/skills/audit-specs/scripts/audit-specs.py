@@ -28,6 +28,15 @@ SCOPE_TREE = "specs/methodology/scope.md"
 SPECS_AGENTS = "specs/AGENTS.md"
 GLOSSARY = "specs/methodology/glossary.md"
 GLOSSARY_RULE = "glossary.md § Writing an Entry"
+AUDIT_SKILL = ".ai/skills/audit-specs/SKILL.md"
+COVERAGE_RULE = "scope.md § Rules and Skills"
+# The tables in the audit skill naming what reads or carries out each rule section:
+# (section heading, rule column header)
+COVERAGE_TABLES = (("The audits", "Enforces"), ("Operating rules carried out by a step", "Operating rule"))
+DIAGRAMS_RULE = "modeling-constructs.md § Diagrams"
+IMAGE = re.compile(r"!\[[^\]]*\][(\[]|<img\b", re.I)
+WORKING_FILES = "specs/methodology/working-files.md"
+WORKING_FILES_RULE = "working-files.md § The Working Files"
 SCRIPT_SUFFIXES = {".py", ".ps1", ".sh"}
 LAYER = {"methodology": "specs/methodology/", "product": "specs/application/product/",
          "technical": "specs/application/technical/"}
@@ -712,7 +721,155 @@ def check(root):
 
     found += scope_findings(root)
     found += glossary_findings(root)
+    found += coverage_findings(root)
+    found += ignored_findings(root)
+    found += image_findings(root)
     return found
+
+
+def image_findings(root):
+    """No spec embeds an image: a diagram is checked in as source."""
+    found = []
+    for f in md_files(root):
+        rel = f.relative_to(root).as_posix()
+        if not rel.startswith("specs/"):
+            continue
+        for n, line in enumerate(strip_fences(f.read_text(encoding="utf-8")).split("\n"), 1):
+            if IMAGE.search(re.sub(r'`[^`]*`', "", line)):
+                found.append((DIAGRAMS_RULE, rel, n, "embeds an image rather than a diagram's source"))
+    return found
+
+
+def first_table(text, title, column=None):
+    """-> (header cells, rows of cells) of the first table in the level-2 section titled
+    `title` whose header holds `column`, or of its first table where no column is given; or None."""
+    m = re.search(r'^## ' + re.escape(title) + r'\s*$', text, re.M)
+    if not m:
+        return None
+    body = text[m.end():]
+    nxt = re.search(r'^## ', body, re.M)
+    body = body[:nxt.start()] if nxt else body
+    cells = lambda l: [c.strip() for c in l.strip().strip("|").split("|")]
+    tables, cur = [], []
+    for l in body.split("\n") + [""]:
+        if l.startswith("|"):
+            cur.append(l)
+        elif cur:
+            tables.append(cur)
+            cur = []
+    for t in tables:
+        if len(t) >= 2 and (column is None or column in cells(t[0])):
+            return cells(t[0]), [cells(l) for l in t[2:]]
+    return None
+
+
+def coverage_findings(root):
+    """Every section of specs/AGENTS.md and of the methodology's files, its overview aside, is
+    named, itself or through a section it sits under, in the rule column of one of the audit
+    skill's coverage tables."""
+    sk = root / AUDIT_SKILL
+    if not sk.exists():
+        return [(COVERAGE_RULE, AUDIT_SKILL, 0, "the audit skill is missing, so no rule's check is named")]
+    text, named, found = sk.read_text(encoding="utf-8"), set(), []
+    for title, column in COVERAGE_TABLES:
+        table = first_table(text, title, column)
+        if table is None:
+            found.append((COVERAGE_RULE, AUDIT_SKILL, 0, f"no {column} column in a table under ## {title}"))
+            continue
+        k = table[0].index(column)
+        for row in table[1]:
+            for m in CITATION.finditer(row[k] if k < len(row) else ""):
+                path, _, target = m.group(1).partition(" § ")
+                if target:
+                    named.add((path.strip(), target.strip()))
+    for f in [root / SPECS_AGENTS] + sorted((root / "specs/methodology").glob("*.md")):
+        rel = f.relative_to(root).as_posix()
+        if not f.exists() or f.name in ("architecture.md", "index.md"):
+            continue
+        for lin in sections(f.read_text(encoding="utf-8")):
+            parts = lin.split(" § ")
+            if not any((rel, " § ".join(parts[:k])) in named for k in range(1, len(parts) + 1)):
+                found.append((COVERAGE_RULE, rel, 0, f"no check or step names § {lin}"))
+    return found
+
+
+def ignored_findings(root):
+    """Each working file the working-files table names is ignored by a line of .gitignore
+    naming it or a directory holding it, and un-ignored by none. A line ending in a slash
+    names a directory only, as git reads it."""
+    wf = root / WORKING_FILES
+    table = first_table(wf.read_text(encoding="utf-8"), "The Working Files") if wf.exists() else None
+    if table is None:
+        return [(WORKING_FILES_RULE, WORKING_FILES, 0, "no table of working files to check")]
+    gi = root / ".gitignore"
+    ignored, negated = set(), set()
+    if gi.exists():
+        for line in gi.read_text(encoding="utf-8").split("\n"):
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            body = line.lstrip("!").lstrip("/")
+            (negated if line.startswith("!") else ignored).add((body.rstrip("/"), body.endswith("/")))
+    found = []
+    for row in table[1]:
+        m = re.match(r'`([^`]+)`', row[0]) if row else None
+        if not m:
+            continue
+        is_dir = m.group(1).endswith("/")
+        parts = m.group(1).rstrip("/").split("/")
+        dirs = {"/".join(parts[:k]) for k in range(1, len(parts))}
+        full = "/".join(parts)
+        hit = lambda entries: any(n in dirs or (n == full and (is_dir or not d)) for n, d in entries)
+        if not hit(ignored) or hit(negated):
+            found.append((WORKING_FILES_RULE, ".gitignore", 0, f"a working file is not ignored: {m.group(1)}"))
+    return found
+
+
+STYLE_RULE_FILE = "specs/methodology/spec-style.md"
+
+
+def style_phrases(root):
+    """-> a pattern of the phrases the Example column of spec-style.md's table quotes, the one
+    list of them, or None where it cannot be read."""
+    f = root / STYLE_RULE_FILE
+    table = first_table(f.read_text(encoding="utf-8"), "What a Finished Spec Reads Like", "Example") if f.exists() else None
+    if table is None:
+        return None
+    k = table[0].index("Example")
+    phrases = {q.strip(" ,.") for row in table[1] if k < len(row) for q in re.findall(r'"([^"]+)"', row[k])}
+    phrases = sorted((p for p in phrases if p), key=len, reverse=True)
+    return re.compile(r"\b(" + "|".join(map(re.escape, phrases)) + r")\b", re.I) if phrases else None
+VENDOR_NAMES = re.compile(r"\b(Claude|Anthropic|OpenAI|Codex|GPT|Copilot|Cursor|Gemini)\b|CLAUDE\.md|\.claude/|\.cursor/")
+
+
+def style_and_agent_candidates(root):
+    """-> list of (path, line, kind, context), for the Finished style and Agent agnostic audits.
+    Places to read, never findings."""
+    out, style = [], style_phrases(root)
+    for f in md_files(root) if style else []:
+        rel = f.relative_to(root).as_posix()
+        if not rel.startswith("specs/") or rel in (SPECS_AGENTS, STYLE_RULE_FILE):
+            continue
+        for n, line in enumerate(strip_fences(f.read_text(encoding="utf-8")).split("\n"), 1):
+            m = style.search(line)
+            if m:
+                a, b = max(0, m.start() - 60), min(len(line), m.end() + 60)
+                out.append((rel, n, "a phrase that may be drafting residue", line[a:b].strip()))
+    instructions = [root / "AGENTS.md", root / SPECS_AGENTS]
+    for name in registry(root)[0]:
+        base = root / ".ai/skills" / name
+        if base.is_dir():
+            instructions += sorted(p for p in base.rglob("*") if p.suffix in {".md"} | SCRIPT_SUFFIXES)
+    for f in instructions:
+        if not f.exists():
+            continue
+        rel = f.relative_to(root).as_posix()
+        for n, line in enumerate(f.read_text(encoding="utf-8").split("\n"), 1):
+            m = VENDOR_NAMES.search(line)
+            if m and not line.startswith("VENDOR_NAMES"):
+                a, b = max(0, m.start() - 60), min(len(line), m.end() + 60)
+                out.append((rel, n, "a line naming a vendor, model or tool", line[a:b].strip()))
+    return out
 
 
 # A definition's other names are its trailing sentences: "Abbreviated X." with one name,
@@ -961,7 +1118,7 @@ def skill_candidates(root):
 
 
 def literal_candidates(root):
-    """-> list of (path, line, kind, context), for the Literal text and emphasis audit.
+    """-> list of (path, line, kind, context), for the Markup audit.
 
     A backtick span naming no heading, field key, path, citation, identifier or markup
     the tree holds may be a name; an italic span of more than a few words may be stress
@@ -1017,13 +1174,16 @@ def main(argv):
         print("\nCandidates for specs/AGENTS.md § Ordinals and Counts: places to read, not findings")
         for path, line, name, context in candidates(root):
             print(f"  {path}:{line}  [{name}]\n    {context}")
-        print("\nCandidates for the Literal text and emphasis audit: places to read, not findings")
+        print("\nCandidates for the Markup audit: places to read, not findings")
         for path, line, name, context in literal_candidates(root):
             print(f"  {path}:{line}  [{name}]\n    {context}")
         print("\nCandidates for the Glossary terms audit: places to read, not findings")
         for path, line, name, context in glossary_candidates(root):
             print(f"  {path}:{line}  [{name}]\n    {context}")
-        print("\nCandidates about skills: places to read, not findings")
+        print("\nCandidates for the Finished style and Agent agnostic audits: places to read, not findings")
+        for path, line, name, context in style_and_agent_candidates(root):
+            print(f"  {path}:{line}  [{name}]\n    {context}")
+        print("\nCandidates for the Skill form audit: places to read, not findings")
         for path, line, name, context in skill_candidates(root):
             print(f"  {path}:{line}  [{name}]\n    {context}")
     return 1 if n else 0

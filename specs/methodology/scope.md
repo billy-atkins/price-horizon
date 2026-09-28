@@ -46,7 +46,7 @@ An agent loads what its current step needs, when the step needs it, descending o
 
 The glossary is the one methodology file loaded ahead of need, read with `specs/AGENTS.md` before any step, since an agent cannot know a word is one of its terms without having read it.
 
-Progressive disclosure governs when to read, not how much. Whatever is loaded is read in full and never skimmed, and read fresh rather than recalled (`specs/AGENTS.md § Design, Refactor, Refine (DRR)`), and a task whose unit is a whole directory, an audit among them, loads the whole directory. The path it relies on is checked: every directory under `specs/` has an `index.md` naming each of its files, and `§ The Shape of the Scope` names what exists.
+Progressive disclosure governs when to read, not how much. Whatever is loaded is read in full and never skimmed, and read fresh rather than recalled (`specs/AGENTS.md § Design, Refactor, Refine (DRR)`), and a task whose unit is a whole directory, an audit among them, loads the whole directory.
 
 ## The Methodology Governs Itself
 
@@ -55,3 +55,5 @@ The methodology is held to the rules it states: it has an `index.md`, and an `ar
 ## Rules and Skills
 
 The methodology's files state rules. They do not sequence the work, record what goes wrong while following it, check whether a result conforms, or teach the craft a rule assumes; the skills `specs/methodology/skills.md` registers do, and a cold agent needs them to follow the method in practice. `specs/AGENTS.md` states rules too, and sequences the work through Design, Refactor, Refine. No skill is a rule's home: where a skill and a rule disagree, the rule governs and the skill is what needs correcting.
+
+A rule without a check is a suggestion, so every rule of Spec of Record is enforced. A specification rule is checked against the files it governs by one of the audit skill's reading audits, its script first deciding whatever the files alone can. An operating rule is checked where it leaves a trace in the files, the scope's tree, the skills registry, a skill's form, a working file's entries; where it leaves none, as reading fresh, it is carried out as a named step of `specs/AGENTS.md` or a registered skill, and a skipped step is found by what it leaves wrong in the files. `.ai/skills/audit-specs/` names the reading audit or the step enforcing every section of `specs/AGENTS.md` and of the methodology's files, the methodology's `architecture.md` and `index.md` aside, since neither holds a rule of its own. A rule added or changed takes its check with it, in the same change.
