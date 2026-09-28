@@ -48,12 +48,13 @@ A heading's title is a stable slug for whatever the section covers, not prose to
 | Rule | Form |
 |---|---|
 | No `§` in the heading itself | `## Vision`, never `## § Vision` |
+| No `[` in the heading itself, which opens a record's identifying values in a citation | `## Retry Policy`, never `## Retry Policy [draft]` |
 | Unique among headings sharing its parent | two headings under different parents may share a title |
 | A file's top-level headings unique across the file | they have no parent but the file |
 
 A numbered heading, or one counting its children, is the heading case of `AGENTS.md § Ordinals and Counts`. A heading pays for it twice, since its title is also the text of every citation naming it: renumbering sections, or retitling one whose count went stale, changes those citations as well.
 
-**Bold lead-ins are not headings.** A bold lead-in is a scannable label for a paragraph, with none of the guarantees a heading carries, starting with enforced uniqueness. It has no citation form either, per `§ Writing a Citation`, so a paragraph that is or needs to be a citation's target is authored as a child heading instead, which gets every rule above rather than needing a workaround. Do not promote one pre-emptively on the chance it might be cited; only once it actually is, or once its section states that its entries exist to be cited.
+**Bold lead-ins are not headings.** A bold lead-in (`specs/methodology/modeling-constructs.md § Bold Lead-ins`) has none of the guarantees a heading carries, starting with enforced uniqueness. It has no citation form either, per `§ Writing a Citation`, so a paragraph that is or needs to be a citation's target is authored as a child heading instead, which gets every rule above rather than needing a workaround. A record (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) is the one exception, cited by the form of its own `§ Writing a Citation` gives. Do not promote one pre-emptively on the chance it might be cited; only once it actually is, or once its section states that its entries exist to be cited.
 
 ## Writing a Citation
 
@@ -64,6 +65,8 @@ The token for referencing a section is `§`, with a space on each side. Each for
 ```
 A section in the same file           § Title
 A nested section in the same file    § Parent § Child
+A record                             § Type [Key: value]
+A record in another file             path/from/root.md § Type [Key: value; Key: value]
 A section in another file            path/from/root.md § Parent § Child
 A whole file                         path/from/root.md
 An index.md                          never a citation target
@@ -73,7 +76,9 @@ A cross-file citation gives the path from the project root, exactly as it would 
 
 A section is named by its full lineage of heading titles, one segment per level from the top of the file down to the target. A level-1 heading is the file's own title rather than a section, so a lineage starts below it; a top-level section is one segment on its own. A child heading is only guaranteed unique within its own parent's scope, so its citation carries every ancestor's title down to it.
 
-**What cannot be cited.** There is no form for citing a bold lead-in or any other non-heading content; `§ Titling a Heading` says when such content becomes a heading. A directory's `index.md` carries no heading lineage of its own, and it is not a place a citation is written either.
+A record (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) is named by the citation of the record section holding it, then a space and, in square brackets inside the same span, each of its identifying fields as `Key: value`, in the order its type's table gives them, separated by a semicolon and a space, like a query parameter selecting one record from the section: `[Name: Retry Policy]` after an Open Questions section's citation, or `[Region: Texas; Horizon: 6 Months]` for a type identified by two fields. An identifying value holds no semicolon (`specs/methodology/modeling-constructs.md § Constructs § Record Form`), so each pair is split at `; `, and each value is compared with the record's after trimming the space around it, and must match exactly, as a title does.
+
+**What cannot be cited.** There is no form for citing a bold lead-in or any other non-heading content but a record; `§ Titling a Heading` says when such content becomes a heading. A directory's `index.md` carries no heading lineage of its own, and it is not a place a citation is written either.
 
 **A title that names a kind of section rather than one particular section** resolves to no single heading anywhere, so it is not a citation and takes no `§`. A rule referring to `Test Scenarios` generally, where the level varies by context, names a kind; a rule referring to one file's own `## Diagrams` names a section.
 
@@ -85,4 +90,4 @@ Some facts are stated once and rendered in more than one place. Those renderings
 
 **A directory's own `architecture.md`.** It is a synchronization target, not a first-written source. Its prose, its citations, and its mapping tables each restate or render a fact whose real home is elsewhere. When that fact changes, check whether `architecture.md` needs a matching update too.
 
-**A diagram, wherever it sits.** It renders the sections its Sources list names, each of which names it back (`specs/methodology/modeling-constructs.md § Diagrams`). When one of them changes, check whether the diagram needs a matching update too.
+**A diagram, wherever it sits.** It renders the sections and records its Sources list names, each of which names it back (`specs/methodology/modeling-constructs.md § Diagrams`). When one of them changes, check whether the diagram needs a matching update too.

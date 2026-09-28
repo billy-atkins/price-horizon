@@ -15,7 +15,7 @@ Content that only makes sense to someone present for the discussion that produce
 
 This is not a rule against explaining trade-offs. A genuine engineering trade-off belongs in the spec with its reasoning, because it teaches a reader how to make the same kind of call correctly in a new situation.
 
-**The test:** does the comparison state a timeless design principle a cold reader can apply elsewhere, or does it only make sense to someone who watched the alternative get proposed and rejected?
+**The test —** does the comparison state a timeless design principle a cold reader can apply elsewhere, or does it only make sense to someone who watched the alternative get proposed and rejected?
 
 Choosing a star schema over a snowflake schema passes: the reasoning transfers to the next schema decision. Choosing a DAG over a state machine for an acyclic process passes for the same reason. Ruling out a technology the document never otherwise mentions fails: nothing in the document gave a cold reader anything to reject.
 

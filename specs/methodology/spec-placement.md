@@ -49,9 +49,7 @@ A directory's own mapping table, where it has one, is the exception that proves 
 
 **Check the directory's `index.md` before adding a file.** Prefer extending an existing spec over creating a new one that duplicates its content.
 
-**When a subject earns its own file, and when a directory earns a subfolder:**
-
-A subject area here means a product capability domain on the product side and a service on the technical side; the test is the same for both.
+**When a subject earns its own file, and when a directory earns a subfolder —** a subject area here means a product capability domain on the product side and a service on the technical side; the test is the same for both.
 
 | Situation | Placement |
 |---|---|
@@ -108,3 +106,18 @@ This is a label, not a citation. It names files, never headings, and is never wr
 **Reading it.** Before working on a technical file, check whether a product file's `technical-specs` names it. If so, that product file's capabilities are what the technical file already fulfills, and what an edit has to keep true.
 
 **Writing it.** A product spec is usually written before any technical content implementing it exists: state the capability in prose with no technical reference of any kind, and leave the field omitted. Naming a file before real technical work exists to name would be a guess dressed as a fact. When technical content is later written to fulfill a capability, add that file to the product file's list in its correct alphabetical place, and separately cite the specific product section from the technical prose itself. The field is the coarse pointer; that citation is the precise proof; both stay in place together.
+
+## An Open Question
+
+A decision the specs rely on but have not made is recorded as an open question, in the spec whose area it applies to, methodology, product or technical, in the file whose scope covers everything the question impacts, which must also be able to cite every section its Impacts names (`specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`). Its records sit in a record section titled Open Questions, the file's last top-level section, so a reader finds every question a file holds in one place, after the settled content it qualifies. It is a Record Form (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) whose type is named Open Questions:
+
+| Field | Identifies | Holds |
+|---|---|---|
+| Name | yes | a short name for what is undecided |
+| Open Question | no | what is undecided, asked as a question |
+| Provisional Answer | no | what the specs rely on until it is settled, stated as settled prose would state it |
+| Impacts | no | prose naming what relies on the provisional answer, each with a citation of the section holding it, and, where that section holds more, the step, row or data field that relies on it, named by what it says, or, for an Algorithm's or a Decision Tree's step, by its number |
+
+A sentence relying on the provisional answer cites the record where it would otherwise read as settled and `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` lets it, so a reader meets the question from the text that depends on it.
+
+The provisional answer is stated in the record alone, and the text relying on it states only what does not depend on it. Settling one is a change like any other: the settled answer is written where each section its Impacts names, or that cites it, needs it, in place of that citation, and the record is removed, along with its record section once that holds no record.

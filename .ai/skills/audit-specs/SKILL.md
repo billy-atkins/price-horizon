@@ -163,10 +163,14 @@ What is worth adding is what auditing your own work costs here: a confident swee
 | Every `gherkin` block parses: each `Scenario:` followed by at least one `Given`, `When`, and `Then` | `specs/methodology/acceptance-scenarios.md § Acceptance Scenarios` |
 | Every `technical-specs` list is alphabetically sorted, appears only in a product file, and every path in it resolves under the technical directory | `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` |
 | Every directory under `specs/` has an `index.md` | `specs/methodology/spec-placement.md § Where a File Goes` |
-| Every diagram in `specs/` sits directly under a heading of its own whose section holds, in this order and nothing else, the diagram, a single `**Caption:**` paragraph citing no section and no file, and a `**Sources:**` line followed by one citation per bullet, sorted, each resolving to a section other than the diagram's own; and every listed section carries a citation of that diagram's heading in its own text | `specs/methodology/modeling-constructs.md § Diagrams` |
+| Every diagram in `specs/` sits directly under a heading of its own whose section holds, in this order and nothing else, the diagram, a single `**Caption:**` paragraph citing no section and no file, and a `**Sources:**` line followed by one citation per bullet, sorted, each resolving to a section or a record other than the diagram's own; and every listed section carries a citation of that diagram's heading in its own text, or, for a record section or a record, in that record section's `**Diagrams:**` field | `specs/methodology/modeling-constructs.md § Diagrams` |
 | Every fenced `mermaid` block declares `flowchart` | `specs/methodology/modeling-constructs.md § Diagrams` |
 | No bold lead-in or list item carries a number | `AGENTS.md § Ordinals and Counts` |
 | No file under `specs/` other than `specs/methodology/working-files.md` names a working file | `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` |
+| Every record citation resolves to a record section, names each of its type's identifying fields in the type's order and no other, separated by `; `, and matches exactly one record; brackets on a section that is not a record section are a malformed record citation; and an identifying value holds no `;` | `specs/methodology/sourcing-and-citation.md § Writing a Citation` |
+| No heading title contains `[` | `specs/methodology/sourcing-and-citation.md § Titling a Heading` |
+| Under `specs/`, an `Open Questions` section is its file's last top-level section and holds an optional `**Diagrams:**` field, then a `**Records:**` field of at least one record, one list item each, and nothing else; a blank line precedes each field; each record is its `**Name:**`, `**Open Question:**`, `**Provisional Answer:**` and `**Impacts:**` fields in that order, the later ones indented two spaces, its Impacts carrying at least one section citation, and no two records share a Name | `specs/methodology/modeling-constructs.md § Constructs § Record Form`, `specs/methodology/spec-placement.md § An Open Question` |
+| Under `specs/`, every line opening with a bold phrase ending in a colon inside the bold carries a key a form declares, where that form places it | `specs/methodology/modeling-constructs.md § Fields` |
 
 **Scope** is `specs/`, `AGENTS.md`, `.ai/skills/`, `README.md`, and the scripts under `scripts/`. `--candidates` lists places for the Ordinals and counts audit to read. Deliberately excluded: the working files, per `specs/methodology/working-files.md § The Working Files`, which legitimately carry citations to things since moved or pruned, and whose content is scanned wherever it lands. The audits above set their own scope, except Ordinals and counts, which uses this one.
 
@@ -191,6 +195,8 @@ What is worth adding is what auditing your own work costs here: a confident swee
 ```
 § Title
 path/to/file.md § Title
+§ Title [Key: value]
+path/to/file.md § Title [Key: value; Key: value]
 ```
 
 Everything else is left alone, and every inline span is stripped before looking for a token outside one. This skill's own documentation tripped that check on its first run, which is the most direct evidence available that the distinction is needed.
