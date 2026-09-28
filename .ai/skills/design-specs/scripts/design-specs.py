@@ -95,6 +95,8 @@ def check_citations(proposal, root):
     seen, results = set(), []
     for m in CITATION.finditer(text):
         path, target = m.group(1), " ".join(m.group(2).split())
+        # a record citation's [...] selector names a record; only its section resolves here
+        target = re.sub(r'\s+\[[^\]]*\]$', '', target)
         if (path, target) in seen:
             continue
         seen.add((path, target))

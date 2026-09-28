@@ -29,6 +29,8 @@ This skill does not restate the repo's conventions, which would be the same defe
 | Taking work through Design, Refactor, Refine | `AGENTS.md § Design, Refactor, Refine (DRR)` |
 | Recording a proposed change, or work to take up later | `specs/methodology/working-files.md § A Design Entry`, `specs/methodology/working-files.md § A Follow-up` |
 | Describing a rule, a process, or an entity's behavior | `specs/methodology/modeling-constructs.md` |
+| Recording a decision the specs rely on but have not made | `specs/methodology/spec-placement.md § An Open Question` |
+| Writing a field, a bold lead-in, emphasis, literal text, or an entry of a repeated kind | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Emphasis`, `specs/methodology/modeling-constructs.md § Literal Text`, `specs/methodology/modeling-constructs.md § Constructs § Record Form` |
 | Keeping a companion spec or an `architecture.md` in step | `specs/methodology/sourcing-and-citation.md § Keeping Companions in Step` |
 | Adding, changing, or re-checking a diagram | `specs/methodology/modeling-constructs.md § Diagrams` for where it goes, its form, what it may show and how it and its sources cite each other, then `.ai/skills/author-mermaid-diagram/` |
 
@@ -36,31 +38,31 @@ This skill does not restate the repo's conventions, which would be the same defe
 
 The rule for each step is named at the step, because that is where it is needed. Finding the fact's existing home, synchronizing whatever restates what you changed, and verifying anchors and citations mechanically are where the defects below actually get caught.
 
-**Scope the change**, per `AGENTS.md § Design, Refactor, Refine (DRR)`, and draft it as a design entry, per `specs/methodology/working-files.md § A Design Entry`.
+**Scope the change —** per `AGENTS.md § Design, Refactor, Refine (DRR)`, and draft it as a design entry, per `specs/methodology/working-files.md § A Design Entry`.
 
-**Find the fact's existing home.** Grep before drafting, per `specs/methodology/sourcing-and-citation.md § One Home Per Fact`. If it has one, the work is a citation plus whatever delta is specific to the new location, and most of the steps below do not apply.
+**Find the fact's existing home —** grep before drafting, per `specs/methodology/sourcing-and-citation.md § One Home Per Fact`. If it has one, the work is a citation plus whatever delta is specific to the new location, and most of the steps below do not apply.
 
-**Decide which spec it belongs to.** `specs/methodology/spec-placement.md § Product or Technical`.
+**Decide which spec it belongs to —** `specs/methodology/spec-placement.md § Product or Technical`.
 
-**Decide its altitude, and its file.** `specs/methodology/spec-placement.md § Index, Architecture, Detail` for index versus architecture versus detail. For a product capability, `specs/methodology/spec-placement.md § Naming a Capability Domain` first, then `specs/methodology/spec-placement.md § Where a File Goes`'s test for subfolder versus root file.
+**Decide its altitude, and its file —** `specs/methodology/spec-placement.md § Index, Architecture, Detail` for index versus architecture versus detail. For a product capability, `specs/methodology/spec-placement.md § Naming a Capability Domain` first, then `specs/methodology/spec-placement.md § Where a File Goes`'s test for subfolder versus root file.
 
-**Check whether a construct applies before writing prose.** `specs/methodology/modeling-constructs.md § Purpose` decides whether a passage is a construct or prose, and `specs/methodology/modeling-constructs.md § When to Use Which` which construct it is.
+**Check whether a construct applies before writing prose —** `specs/methodology/modeling-constructs.md § Purpose` decides whether a passage is a construct or prose, and `specs/methodology/modeling-constructs.md § When to Use Which` which construct it is.
 
-**Draft with the source file open.** Anything compressed from another file is compared against it clause by clause, not re-read in isolation.
+**Draft with the source file open —** anything compressed from another file is compared against it clause by clause, not re-read in isolation.
 
-**Write the references.** `specs/methodology/sourcing-and-citation.md § Writing a Citation` for citing a section, `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` for whether it may point where it does, `specs/methodology/sourcing-and-citation.md § Titling a Heading` for any heading added or retitled, `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` when a technical file now fulfills a product file's capability.
+**Write the references —** `specs/methodology/sourcing-and-citation.md § Writing a Citation` for citing a section, `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` for whether it may point where it does, `specs/methodology/sourcing-and-citation.md § Titling a Heading` for any heading added or retitled, `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` when a technical file now fulfills a product file's capability.
 
-**Update the scenarios in the same pass.** `specs/methodology/acceptance-scenarios.md § Keeping a Scenario and Its Prose in Step`.
+**Update the scenarios in the same pass —** `specs/methodology/acceptance-scenarios.md § Keeping a Scenario and Its Prose in Step`.
 
-**Synchronize whatever restates what you changed.** `specs/methodology/sourcing-and-citation.md § Keeping Companions in Step`. A section you changed that a diagram renders cites that diagram, wherever it sits, so the diagram to re-check is named in the text you just edited.
+**Synchronize whatever restates what you changed —** `specs/methodology/sourcing-and-citation.md § Keeping Companions in Step`. A section you changed that a diagram renders cites that diagram, wherever it sits, so the diagram to re-check is named in the text you just edited.
 
 A diagram is the easiest rendering to leave stale and the hardest to notice, because a wrong one is invisible in source and obvious only once rendered. Authoring or re-checking one goes through `.ai/skills/author-mermaid-diagram/`, which covers the altitude check that keeps a label inside what its host file actually states, and the render step that catches what reading the source will not.
 
-**Strip drafting residue.** `specs/methodology/spec-style.md § What a Finished Spec Reads Like`.
+**Strip drafting residue —** `specs/methodology/spec-style.md § What a Finished Spec Reads Like`.
 
-**Verify every anchor and every citation mechanically.** `.ai/skills/design-specs/scripts/design-specs.py`, both modes, below. A proposal whose quoted text or cited heading does not exist cannot be applied, however sound its reasoning. Anything the script cannot decide goes to a cold subagent, per `§ Recall picks the direction; the file supplies the words`.
+**Verify every anchor and every citation mechanically —** `.ai/skills/design-specs/scripts/design-specs.py`, both modes, below. A proposal whose quoted text or cited heading does not exist cannot be applied, however sound its reasoning. Anything the script cannot decide goes to a cold subagent, per `§ Recall picks the direction; the file supplies the words`.
 
-**Refactor and refine, then the adversarial DRR, then apply and audit**, per `AGENTS.md § Design, Refactor, Refine (DRR)`, rerunning the steps above for whatever each pass changes. In the brief, name the failure patterns this skill's sections record. The audit is `.ai/skills/audit-specs/`, whose script catches a citation left pointing at a heading that moved, and whose audits catch a summary that no longer describes what it summarizes.
+**Refactor and refine, then the adversarial DRR, then apply and audit —** per `AGENTS.md § Design, Refactor, Refine (DRR)`, rerunning the steps above for whatever each pass changes. In the brief, name the failure patterns this skill's sections record. The audit is `.ai/skills/audit-specs/`, whose script catches a citation left pointing at a heading that moved, and whose audits catch a summary that no longer describes what it summarizes.
 
 ## Search for the fact before drafting the sentence
 
@@ -70,7 +72,7 @@ The search is cheap and mechanical. Take the fact's distinctive nouns and grep f
 
 What to do when you find one is not a judgment call: `specs/methodology/sourcing-and-citation.md § One Home Per Fact` says cite the home and write only the delta specific to the new location, never re-derive or re-explain the rule. Deciding a home for the first time is the same section, and it turns on whose subject the rule is, not which file happened to need it first.
 
-**Your own recent work is not exempt.** A document you edited earlier in the session is searched and read like any other, per `§ Recall picks the direction; the file supplies the words`.
+**Your own recent work is not exempt —** a document you edited earlier in the session is searched and read like any other, per `§ Recall picks the direction; the file supplies the words`.
 
 ## Compression distortion
 
@@ -78,10 +80,10 @@ What to do when you find one is not a judgment call: `specs/methodology/sourcing
 
 The ways it goes wrong, in rough order of frequency:
 
-- **A dropped qualifier that was load-bearing.** The source says a capability works "though never carrying X"; the summary says it works. The exception was the protection, and the overview now promises something broader than the system does.
-- **A default promoted to a universal.** The source says a path is "the default" among several; the summary says it is how the thing works.
-- **A count asserted where the source enumerates.** The source names two behaviors and points at a third elsewhere; the summary says "two ways," which reads as closed and is not.
-- **A referent stranded by the cut.** The summary keeps "than that window allows" after deleting the clause naming the window.
+- **A dropped qualifier that was load-bearing —** the source says a capability works "though never carrying X"; the summary says it works. The exception was the protection, and the overview now promises something broader than the system does.
+- **A default promoted to a universal —** the source says a path is "the default" among several; the summary says it is how the thing works.
+- **A count asserted where the source enumerates —** the source names two behaviors and points at a third elsewhere; the summary says "two ways," which reads as closed and is not.
+- **A referent stranded by the cut —** the summary keeps "than that window allows" after deleting the clause naming the window.
 
 Re-reading your own summary will not catch these; it will read fine. Open the source beside the clause and compare directly, asking what the source said that this does not, and whether the omission changes what a reader concludes.
 
@@ -109,11 +111,11 @@ The reason is `AGENTS.md § Design, Refactor, Refine (DRR)`'s for reading fresh 
 
 The tell, when this has gone wrong, is that the *direction* was right and the *text* was not: the correct file, named with a heading it does not have. That pattern is the signature, and it means a proposal can be wholly sound in substance and entirely unapplicable.
 
-**One instrument for each half.**
+**One instrument for each half —**
 
-*What is mechanically decidable goes to the script*: `.ai/skills/design-specs/scripts/design-specs.py` verifies quoted text with `anchors` and cited heading paths with `citations`, per `§ Verifying anchors and citations`. They are separate modes because a proposal makes both kinds of claim, and a checker covering only quotations lets every wrong heading through — which is exactly how several of them once reached a reviewer in a single revision, in a proposal whose every quotation passed.
+**What is mechanically decidable goes to the script —** `.ai/skills/design-specs/scripts/design-specs.py` verifies quoted text with `anchors` and cited heading paths with `citations`, per `§ Verifying anchors and citations`. They are separate modes because a proposal makes both kinds of claim, and a checker covering only quotations lets every wrong heading through — which is exactly how several of them once reached a reviewer in a single revision, in a proposal whose every quotation passed.
 
-*What needs judgment goes to a cold subagent.* Whether a section actually states the rule being attributed to it, whether a count holds, whether "nothing in the repo says X" is true: no script decides these, and re-reading your own work does not either, for the reason `AGENTS.md § Design, Refactor, Refine (DRR)` gives. The cold subagent runs the adversarial DRR before a change lands and the post-apply audit after it.
+**What needs judgment goes to a cold subagent —** whether a section actually states the rule being attributed to it, whether a count holds, whether "nothing in the repo says X" is true: no script decides these, and re-reading your own work does not either, for the reason `AGENTS.md § Design, Refactor, Refine (DRR)` gives. The cold subagent runs the adversarial DRR before a change lands and the post-apply audit after it.
 
 ## Names carry claims
 

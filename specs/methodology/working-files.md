@@ -10,7 +10,7 @@ Writing the specs leaves working files beside them. They serve the engineer writ
 
 `.ai/designs.md` and `.ai/follow-ups.md` each open with a short header naming what the file holds and citing this file, and the file's entries follow that header.
 
-An open question about what is specified is not a working file's to hold. It belongs in the spec whose area it applies to, product or technical, where a reader relying on that area sees it.
+An open question about what is specified is not a working file's to hold; it is recorded in a spec, per `specs/methodology/spec-placement.md § An Open Question`.
 
 ## A Design Entry
 

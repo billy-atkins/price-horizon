@@ -41,6 +41,46 @@ NUMBERED_ITEM = re.compile(r'^\s*\d+[.)]\s')
 WORKING_FILE = re.compile(r'\.ai/(?:designs\.md|follow-ups\.md|tmp\b)')
 WORKING_FILES_HOME = "specs/methodology/working-files.md"
 
+# modeling-constructs.md § Constructs § Record Form. The record-type registry: each type's
+# name, which titles its record sections, its record fields in order, and which of them
+# identify a record, and any section fields of its own beyond Diagrams. Adding a type
+# means adding it here; FIELD_KEYS takes its keys from this registry.
+RECORD_FORM = "modeling-constructs.md § Constructs § Record Form"
+RECORD_TYPES = {
+    "Open Questions": {
+        "fields": ["Name", "Open Question", "Provisional Answer", "Impacts"],
+        "identifying": ["Name"],
+        "section_fields": [],
+        "home": "spec-placement.md § An Open Question",
+        "last_top_level": True,
+    },
+}
+# modeling-constructs.md § Fields: every key a form declares, and where that form places it.
+FIELDS = "modeling-constructs.md § Fields"
+FIELD_KEYS = {"Caption": "diagram", "Sources": "diagram",
+              "Diagrams": "record section", "Records": "record section"}
+for _type, _spec in RECORD_TYPES.items():
+    for _key in _spec["fields"]:
+        FIELD_KEYS[_key] = "record"
+    for _key in _spec["section_fields"]:
+        FIELD_KEYS[_key] = "record section"
+# A field opens a line with its key in bold, the colon inside the bold; a list marker and
+# indentation before the key are no part of it.
+FIELD_LINE = re.compile(r'^(\s*)(-\s+)?\*\*([^*`]+?):\*\*(?:\s|$)')
+RECORD_SELECTOR = re.compile(r'^(.*?)\s+\[(.*)\]$')
+# modeling-constructs.md § Bold Lead-ins and § Emphasis: bold marks only a field or a dash
+# label, both opening a line, and italic, the one emphasis, never opens one.
+BOLD_SPAN = re.compile(r'\*\*(.+?)\*\*')
+# a line's opening skips indentation, a quote marker, and a list marker: -, *, + or a number
+LIST_OR_QUOTE = r'\s*(?:>\s*)*(?:(?:[-*+]|\d+[.)])\s+)?'
+LINE_OPENING = re.compile(r'^' + LIST_OR_QUOTE + r'$')
+ITALIC_OPENING = re.compile(r'^' + LIST_OR_QUOTE + r'\*(?!\*)\S')
+ODD_EMPHASIS = re.compile(r'\*\*\*|__[^_\s][^_]*__')
+BOLD_LEAD_INS = "modeling-constructs.md § Bold Lead-ins"
+EMPHASIS = "modeling-constructs.md § Emphasis"
+KEY_VALUE = re.compile(r'^([A-Z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*(?: [A-Z0-9][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*)*): (.+)$')
+UNPLAIN = re.compile(r'[*_`§;\]\[]')
+
 # The candidates are likely places, not decisions: a reading audit judges each one.
 _NUM = (r"(?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|"
         r"fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|"
@@ -130,12 +170,175 @@ def sections(text):
 
 
 def resolve(cite, host):
-    """A citation's (file, lineage); a same-file form resolves to its host."""
+    """A citation's (file, lineage); a same-file form resolves to its host. A record
+    citation's `[...]` selector is dropped: this names the record section holding it."""
     cite = cite.strip()
     if cite.startswith("§"):
-        return host, cite.lstrip("§ ").strip()
-    path, _, target = cite.partition(" § ")
-    return path.strip(), target.strip()
+        path, target = host, cite.lstrip("§ ").strip()
+    else:
+        path, _, target = cite.partition(" § ")
+        path, target = path.strip(), target.strip()
+    m = RECORD_SELECTOR.match(target)
+    return path, (m.group(1).strip() if m else target)
+
+
+def parse_records(body, lineage):
+    """modeling-constructs.md § Constructs § Record Form: a record section's records.
+
+    -> (records, problems): each record a list of (key, value, line) in the order
+    written; each problem (rule, line, message). A record section holds only fields: an
+    optional Diagrams list, then Records, whose value is one list item per record, the
+    first field on the item's line and each later one a paragraph indented two spaces.
+    """
+    lines = body.split("\n")
+    h, end = sections(body)[lineage]
+    rows = [(i, lines[i]) for i in range(h + 1, end)]
+    while rows and rows[-1][1].strip() in ("", "---"):
+        rows.pop()
+    problems, records = [], []
+    k = 0
+
+    def skip():
+        nonlocal k
+        while k < len(rows) and not rows[k][1].strip():
+            k += 1
+
+    skip()
+    if k < len(rows) and rows[k][1].strip() == "**Diagrams:**":
+        k += 1
+        cites = []
+        while k < len(rows) and (rows[k][1].startswith("- ") or (not rows[k][1].strip() and k + 1 < len(rows) and rows[k + 1][1].startswith("- "))):
+            if not rows[k][1].strip():
+                k += 1
+                continue
+            mm = re.fullmatch(r'-\s+`([^`]+)`', rows[k][1].strip())
+            if mm:
+                cites.append(mm.group(1))
+            else:
+                problems.append((RECORD_FORM, rows[k][0], "a Diagrams bullet is not one citation"))
+            k += 1
+        if not cites:
+            problems.append((RECORD_FORM, h, "a record section's Diagrams field lists no diagram"))
+        elif cites != sorted(cites):
+            problems.append((RECORD_FORM, h, "a record section's Diagrams list is not sorted"))
+        skip()
+    if k >= len(rows) or rows[k][1].strip() != "**Records:**":
+        problems.append((RECORD_FORM, h, "a record section does not hold its records under **Records:**"))
+        return records, problems
+    k += 1
+    current = None
+    for i, text in rows[k:]:
+        if not text.strip():
+            continue
+        if text.startswith("- "):
+            mm = FIELD_LINE.match(text)
+            current = [(mm.group(3), text[mm.end():].strip(), i)] if mm else [(None, "", i)]
+            records.append(current)
+            if not mm:
+                problems.append((RECORD_FORM, i, "a record does not open with a field"))
+        elif text.startswith("  ") and current is not None:
+            mm = FIELD_LINE.match(text)
+            if mm and len(mm.group(1)) == 2 and not mm.group(2):
+                current.append((mm.group(3), text[mm.end():].strip(), i))
+            elif current:
+                key, value, at = current[-1]
+                current[-1] = (key, (value + " " + text.strip()).strip(), at)
+        else:
+            problems.append((RECORD_FORM, i, "a record section holds something other than its fields"))
+    if not records:
+        problems.append((RECORD_FORM, h, "a record section holds no record"))
+    return records, problems
+
+
+def record_findings(r, body, found):
+    """Each record section in a file: its shape, its type's fields, and its placement."""
+    lines = body.split("\n")
+    for lineage in sections(body):
+        title = lineage.split(" § ")[-1]
+        spec = RECORD_TYPES.get(title)
+        if not spec:
+            continue
+        home = spec["home"]
+        h, end = sections(body)[lineage]
+        if spec["last_top_level"] and (" § " in lineage or end != len(lines)):
+            found.append((home, r, h + 1, f"the {title} section is not its file's last top-level section"))
+        records, problems = parse_records(body, lineage)
+        for rule, at, msg in problems:
+            found.append((rule, r, at + 1, msg))
+        names = set()
+        for rec in records:
+            keys = [key for key, _, _ in rec]
+            at = rec[0][2] + 1
+            if keys != spec["fields"]:
+                found.append((home, r, at, f"a record's fields are {keys}, not {spec['fields']}"))
+                continue
+            values = {key: value for key, value, _ in rec}
+            for key in spec["identifying"]:
+                if not values[key] or UNPLAIN.search(values[key]):
+                    found.append((RECORD_FORM, r, at, f"an identifying value is not plain text: {key}: {values[key]}"))
+            ident = tuple(values[key] for key in spec["identifying"])
+            if ident in names:
+                found.append((RECORD_FORM, r, at, f"two records share their identifying values: {ident}"))
+            names.add(ident)
+            if "Impacts" in values and not CITATION.search(values["Impacts"]):
+                found.append((home, r, at, "a record's Impacts carries no section citation"))
+
+
+def field_findings(r, body, found):
+    """modeling-constructs.md § Fields: each field's key is one a form declares, it sits
+    where that form places it, and a key at the left margin follows a blank line."""
+    raw = body.split("\n")
+    live = strip_fences(body).split("\n")
+    secs = sorted(sections(body).items(), key=lambda x: x[1][0])
+    for i, line in enumerate(live):
+        mm = FIELD_LINE.match(line)
+        if not mm:
+            continue
+        indent, dash, key = mm.group(1), mm.group(2), mm.group(3)
+        owner = [(lin, s) for lin, s in secs if s[0] < i < s[1]]
+        lineage, (h, end) = owner[-1] if owner else ("", (-1, len(raw)))
+        title = lineage.split(" § ")[-1]
+        place = FIELD_KEYS.get(key)
+        if place is None:
+            found.append((FIELDS, r, i + 1, f"a field whose key no form declares: {key}"))
+            continue
+        if place == "diagram":
+            ok = any(raw[j].startswith("```mermaid") for j in range(h + 1, end))
+        elif place == "record section":
+            ok = title in RECORD_TYPES and not indent and not dash
+        else:
+            ok = title in RECORD_TYPES and key in RECORD_TYPES[title]["fields"] and bool(indent or dash)
+        if not ok:
+            found.append((FIELDS, r, i + 1, f"the {key} field outside the place its form gives it"))
+        # Record Form: a blank line precedes each field in a record section, or Markdown
+        # renders it inside the line above
+        if title in RECORD_TYPES and not dash and i > 0 and raw[i - 1].strip():
+            found.append((RECORD_FORM, r, i + 1, f"the {key} field directly after a non-blank line"))
+
+
+def record_citation(sel, path, target, text_of, r, line, found):
+    """sourcing-and-citation.md § Writing a Citation: a record citation names every
+    identifying field of its type, in order, and matches exactly one record."""
+    rule = "sourcing-and-citation.md § Writing a Citation"
+    title = target.split(" § ")[-1]
+    spec = RECORD_TYPES.get(title)
+    if not spec:
+        found.append((rule, r, line, f"a record citation on a section that is no record section: § {target}"))
+        return
+    pairs = [KEY_VALUE.match(p.strip()) for p in sel.split("; ")]
+    if not all(pairs):
+        found.append((rule, r, line, f"a record citation not written as Key: value pairs: [{sel}]"))
+        return
+    keys = [p.group(1) for p in pairs]
+    if keys != spec["identifying"]:
+        found.append((rule, r, line, f"a record citation names {keys}, not {spec['identifying']}"))
+        return
+    wanted = [p.group(2).strip() for p in pairs]
+    records, _ = parse_records(text_of[path], target)
+    hits = [rec for rec in records
+            if [dict((k, v) for k, v, _ in rec).get(key, "").strip() for key in keys] == wanted]
+    if len(hits) != 1:
+        found.append((rule, r, line, f"a record citation matches {len(hits)} records: § {target} [{sel}]"))
 
 
 def diagram_findings(r, body, text_of, known, lineage, found):
@@ -198,6 +401,16 @@ def diagram_findings(r, body, text_of, known, lineage, found):
             sh, se = sections(text_of[path])[target]
             back = False
             own = strip_fences("\n".join(src[sh + 1:se])).split("\n")
+            if target.split(" § ")[-1] in RECORD_TYPES:
+                # a record section, or a record, cites its diagrams in its Diagrams field only
+                start = next((k for k, l in enumerate(own) if l.strip() == "**Diagrams:**"), None)
+                field = []
+                if start is not None:
+                    for l in own[start + 1:]:
+                        if FIELD_LINE.match(l):
+                            break
+                        field.append(l)
+                own = field
             for l in own:
                 for cm in CITATION.finditer(l):
                     if resolve(cm.group(1), path) == (r, dlin):
@@ -277,6 +490,17 @@ def check(root):
         # illustration, not a dependency, and linting one produces a finding
         # nobody can act on.
         for i, line in enumerate(live.split("\n"), 1):
+            # a code span is literal text, so markup inside one is never bold or italic
+            prose = re.sub(r'`[^`]*`', lambda m: "x" * len(m.group(0)), line)
+            for m in BOLD_SPAN.finditer(prose):
+                if not LINE_OPENING.match(prose[:m.start()]):
+                    found.append((EMPHASIS, r, i, f"bold outside a line's opening: {line[m.start():m.end()][:60]}"))
+                elif not (m.group(1).endswith(":") or m.group(1).endswith(" —")):
+                    found.append((BOLD_LEAD_INS, r, i, f"bold opening a line closes on neither a colon nor a dash: {line[m.start():m.end()][:60]}"))
+            if ITALIC_OPENING.match(prose):
+                found.append((EMPHASIS, r, i, "a line opens with italic"))
+            if ODD_EMPHASIS.search(prose):
+                found.append((EMPHASIS, r, i, "bold italic or underscore bold"))
             if NUMBERED_LEAD_IN.match(line):
                 found.append(("AGENTS.md § Ordinals and Counts", r, i, "bold lead-in carries a number"))
             elif NUMBERED_ITEM.match(line):
@@ -298,6 +522,9 @@ def check(root):
                 else:
                     path, _, target = cite.partition(" § ")
                     path, target = path.strip(), target.strip()
+                sel = RECORD_SELECTOR.match(target)
+                if sel:
+                    target, sel = sel.group(1).strip(), sel.group(2)
 
                 # lineage resolves
                 if path not in known:
@@ -307,6 +534,8 @@ def check(root):
                 if target not in lineage[path]:
                     found.append(("sourcing-and-citation.md § Writing a Citation", r, i,
                                   f"no such heading path in {path}: § {target}"))
+                elif sel is not None:
+                    record_citation(sel, path, target, text_of, r, i, found)
 
                 # direction
                 direction(src_layer, path, r, i, found)
@@ -341,6 +570,9 @@ def check(root):
             if "§" in title:
                 found.append(("sourcing-and-citation.md § Titling a Heading", r, 0,
                               f"heading contains §: {title}"))
+            if "[" in title:
+                found.append(("sourcing-and-citation.md § Titling a Heading", r, 0,
+                              f"heading contains [: {title}"))
             key = (parent, title)
             if key in seen:
                 found.append(("sourcing-and-citation.md § Titling a Heading", r, 0,
@@ -383,6 +615,8 @@ def check(root):
         # worked example. The fence is found in the raw text: strip_fences() blanks it.
         if r.startswith("specs/"):
             diagram_findings(r, body, text_of, known, lineage, found)
+            record_findings(r, body, found)
+            field_findings(r, body, found)
             for m in re.finditer(r'^```mermaid\s*\n(.*?)^```', body, re.S | re.M):
                 # a diagram opens with a config frontmatter block, so scan the whole
                 # fence rather than its first line
@@ -469,6 +703,38 @@ def candidates(root):
     return out
 
 
+def literal_candidates(root):
+    """-> list of (path, line, kind, context), for the Literal text and emphasis audit.
+
+    A backtick span naming no heading, field key, path, citation, identifier or markup
+    the tree holds may be a name; an italic span of more than a few words may be stress
+    that needs structure instead. Places to read, never findings.
+    """
+    known, out, fenced = set(FIELD_KEYS), [], []
+    for f in md_files(root):
+        text = f.read_text(encoding="utf-8")
+        known.update(title for _, title in headings(text))
+        # a span written verbatim in a fenced example, a Gherkin keyword or a Mermaid
+        # directive, is literal text the tree itself shows
+        fenced += re.findall(r'^```[^\n]*\n(.*?)^```', text, re.S | re.M)
+    fenced_words = set(" ".join(fenced).split())
+    fenced_text = "\n".join(fenced)
+    literal = re.compile(r'[§/._*\[\]:=()<>#;~]|^-|^[a-z0-9-]+$')
+    for f in md_files(root):
+        rel = f.relative_to(root).as_posix()
+        for n, line in enumerate(strip_fences(f.read_text(encoding="utf-8")).split("\n"), 1):
+            for m in re.finditer(r'`([^`]+)`', line):
+                span = m.group(1)
+                if span in known or literal.search(span) or span in fenced_words or span in fenced_text:
+                    continue
+                out.append((rel, n, "backtick span that may be a name", span))
+            prose = re.sub(r'`[^`]*`', "", line)
+            for m in re.finditer(r'(?<![*\w])\*(?!\*)([^*]+?)\*(?!\*)', prose):
+                if len(m.group(1).split()) > 6:
+                    out.append((rel, n, "italic span longer than a short phrase", m.group(1)[:80]))
+    return out
+
+
 def main(argv):
     try:
         sys.stdout.reconfigure(encoding="utf-8")
@@ -493,6 +759,9 @@ def main(argv):
     if "--candidates" in argv:
         print("\nCandidates for AGENTS.md § Ordinals and Counts: places to read, not findings")
         for path, line, name, context in candidates(root):
+            print(f"  {path}:{line}  [{name}]\n    {context}")
+        print("\nCandidates for the Literal text and emphasis audit: places to read, not findings")
+        for path, line, name, context in literal_candidates(root):
             print(f"  {path}:{line}  [{name}]\n    {context}")
     return 1 if n else 0
 

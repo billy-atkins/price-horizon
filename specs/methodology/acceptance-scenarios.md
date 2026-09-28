@@ -11,11 +11,11 @@ A product capability's spec gets acceptance scenarios in Gherkin form, co-locate
 
 The title is the same every time and does not restate the capability, because the capability's own heading is already the parent every citation carries. A repeated title lets a reader or a search recognize the pattern once and rely on it everywhere.
 
-**Why a fenced block.** These specifications are the authoritative source a later code-generation and test-generation effort is written against and checked back against. A fenced block is what such an effort parses, rather than transcribes by hand from prose, the same reason a JSON payload or a config file would be fenced rather than described in sentences. Fencing makes a scenario precise and stable to cite; it does not make it executable on its own. If an executable copy is ever generated into application code, that copy cites back to the scenario here as its source rather than drifting into a separately maintained one.
+**Why a fenced block —** these specifications are the authoritative source a later code-generation and test-generation effort is written against and checked back against. A fenced block is what such an effort parses, rather than transcribes by hand from prose, the same reason a JSON payload or a config file would be fenced rather than described in sentences. Fencing makes a scenario precise and stable to cite; it does not make it executable on its own. If an executable copy is ever generated into application code, that copy cites back to the scenario here as its source rather than drifting into a separately maintained one.
 
-**Concrete values, not categories.** A scenario's `Given` and `When` steps use a named entity, a real geography, a stated horizon. A scenario proves one specific case actually produces the promised outcome; a step written in the abstract proves nothing a reader could check.
+**Concrete values, not categories —** a scenario's `Given` and `When` steps use a named entity, a real geography, a stated horizon. A scenario proves one specific case actually produces the promised outcome; a step written in the abstract proves nothing a reader could check.
 
-**Actors are named by role.** A `Given` names its actor by the exact role name the product spec's role table defines, never an informal stand-in. That table already distinguishes populations precisely for this reason. If a scenario needs an actor no row names, the table is what is incomplete: add the role there first, as a real decision about the access model, then write the scenario against the corrected table.
+**Actors are named by role —** a `Given` names its actor by the exact role name the product spec's role table defines, never an informal stand-in. That table already distinguishes populations precisely for this reason. If a scenario needs an actor no row names, the table is what is incomplete: add the role there first, as a real decision about the access model, then write the scenario against the corrected table.
 
 ## Deciding What to Write
 
@@ -34,7 +34,7 @@ A capability whose own section states no guardrail gets only its promise scenari
 
 A guarantee stated only in a cross-cutting file, rather than in one capability's own section, does not get a scenario under that capability. It gets one under that file's own scenarios, if and when it has them.
 
-**A cross-cutting lens** needs no different scenario shape, only more scenarios: each axis's own stated promise and each axis's own stated boundary gets the same treatment as any other capability. Where such a lens acts on an answer that already exists rather than producing a first one, its `Given` states that prior answer as a precondition before the `When` acts on it.
+**A cross-cutting lens —** it needs no different scenario shape, only more scenarios: each axis's own stated promise and each axis's own stated boundary gets the same treatment as any other capability. Where such a lens acts on an answer that already exists rather than producing a first one, its `Given` states that prior answer as a precondition before the `When` acts on it.
 
 ## Keeping a Scenario and Its Prose in Step
 
