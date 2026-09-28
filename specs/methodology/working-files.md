@@ -1,6 +1,6 @@
 ## The Working Files
 
-Writing the specs leaves working files beside them. They serve the engineer writing the specs, never a reader of them, so none is committed. Which specs may name one is set in `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`. What a working file settles reaches a reader only through the spec it changes.
+A working file is never committed, since no reader of the specs needs it. Which specs may name one is set in `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`. What a working file settles reaches a reader only through the spec it changes.
 
 | File | Holds |
 |---|---|

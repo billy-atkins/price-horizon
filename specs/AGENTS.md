@@ -1,6 +1,6 @@
 # Spec of Record — Agent Instructions
 
-The entry point to Spec of Record, the method these specifications are written by. Read it before any work under `specs/`, with a skill the method registers, or on a working file: it routes each task to the rule that governs it, and holds the rules that reach the method's whole scope.
+The entry point to Spec of Record for these specifications. Read it before any work under `specs/`, with a skill the method registers, or on a working file: it routes each task to the rule that governs it, and holds the rules that reach the method's whole scope. Read `specs/methodology/glossary.md` next, before anything else (`specs/methodology/scope.md § Progressive Disclosure`).
 
 ## Writing specs
 
@@ -10,6 +10,8 @@ The entry point to Spec of Record, the method these specifications are written b
 |---|---|
 | Finding which files Spec of Record governs, and how to find your way through them | `specs/methodology/scope.md` |
 | Deciding whether a skill is part of the method | `specs/methodology/skills.md` |
+| Meeting a term Spec of Record gives a meaning of its own | `specs/methodology/glossary.md` |
+| Coining a term Spec of Record gives a meaning of its own | `specs/methodology/glossary.md § Writing an Entry` |
 | Deciding product spec versus technical spec | `specs/methodology/spec-placement.md § Product or Technical` |
 | Deciding index, architecture, or detail file | `specs/methodology/spec-placement.md § Index, Architecture, Detail` |
 | Placing a new file, or deciding whether a domain earns a subfolder | `specs/methodology/spec-placement.md § Where a File Goes` |
@@ -63,20 +65,20 @@ The instructions in Spec of Record's scope, both `AGENTS.md` files and each regi
 
 ## Design, Refactor, Refine (DRR)
 
-How anything here gets built or reworked, whether a spec, a rule, a skill, or code. Whoever does the work, the builder, takes it through the process below; a cold subagent, one with none of the builder's context and no attachment to their decisions, then runs its own adversarial DRR over the result. `.ai/skills/design-specs/` applies it to specs.
+How anything here gets built or reworked, whether a spec, a rule, a skill, or code. The builder takes it through the process below, and a cold agent then runs its own adversarial DRR over the result. `.ai/skills/design-specs/` applies it to specs.
 
 **Read fresh before any work —** before working on a file, however small the change or recent the last read, read it again, direct edits included. Nothing tells an agent whether its memory of a file survived compaction, and content written an hour ago feels remembered when it is a reconstruction.
 
 **Scope comes first —** determine the actual scope of the change before drafting it. Too small a scope reaches a local optimum, right for the file in hand and wrong for the system around it; only the real scope admits the global one. Widen it until nothing outside it would change the answer, and sweep for it by meaning as well as by the draft's own words: a search built from the draft's terms finds only what the draft already knew about.
 
 - **Design —** start from the problem to solve, stated plainly, and get it logically working: a draft that solves it correctly, before it is good. The draft is described in a design entry in `.ai/designs.md` (`specs/methodology/working-files.md § A Design Entry`).
-- **Refactor —** macro improvements to its internal workings and its external surface: structural changes that make it better meet its actual needs, not wording. Repeat until it converges, when a round leaves the structure where it was.
-- **Refine —** once Refactor has converged, enhance its elegance and make it easy to use and to understand: wording, naming, phrasing, consistency. Polishing something still moving structurally is wasted effort.
+- **Refactor —** macro improvements to its internal workings and its external surface: structural changes, not wording, that make it better meet its actual needs and work toward elegance (`specs/methodology/glossary.md`). Repeat until it converges, when a round leaves the structure where it was.
+- **Refine —** once Refactor has converged, make its elegance plain and make it easy to use and to understand: wording, naming, phrasing, consistency. Polishing something still moving structurally is wasted effort.
 
-**The adversarial DRR —** when the builder judges the work optimal, the cold subagent is given the same problem and the builder's design, each stated on its own. It is never the builder, since re-reading your own work re-reads what you meant. It does not derive its own solution: it takes the builder's design through Design, Refactor and Refine again, from the perspectives of what is over-engineered, a mechanism, role, or safeguard whose complexity no stated need justifies, and what is under-developed, something relied on as a guarantee or an enforcement mechanism that is asserted but not specified. It reports findings; it does not edit.
+**The adversarial DRR —** when the builder judges the work optimal, the cold agent is given the same problem and the builder's design, each stated on its own. It is never the builder, since re-reading your own work re-reads what you meant. It does not derive its own solution: it takes the builder's design through Design, Refactor and Refine again, looking for Rube Goldberg machines and Potemkin villages (`specs/methodology/glossary.md`). It reports findings; it does not edit.
 
 Brief it with more than the task: name the failure patterns earlier rounds found, say which decisions the user has settled so it checks fidelity to them rather than reopening them, ask for any sweep of the repo to be redone by its own method, and point it at whatever the design decides, since that is where defects concentrate.
 
-The builder checks every finding against the files before acting on it, since a review can be confidently wrong. The user steers which findings are addressed and how. Accepted findings go back through the builder's process, and if they changed the structure, the revised design gets another adversarial DRR. Then, with the user's go-ahead, the builder applies the work and a cold subagent audits it, which for specs means `.ai/skills/audit-specs/`.
+The builder checks every finding against the files before acting on it, since a review can be confidently wrong. The user steers which findings are addressed and how. Accepted findings go back through the builder's process, and if they changed the structure, the revised design gets another adversarial DRR. Then, with the user's go-ahead, the builder applies the work and a cold agent audits it, which for specs means `.ai/skills/audit-specs/`.
 
 **Direct edits —** a small tactical edit, narrow in scope and low in risk, may skip this process and be applied directly, but only once the user has approved it. Anything larger or riskier goes through the process.

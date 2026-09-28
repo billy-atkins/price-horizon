@@ -7,7 +7,7 @@ Spec of Record governs the files of these kinds, each named the way the table gi
 | Agent instructions | the method's entry point, and a project's own instructions to an agent | `specs/AGENTS.md`, and `AGENTS.md` at the project's root |
 | Specs | the specifications, the methodology among them | their place under `specs/`, `specs/AGENTS.md` aside |
 | Skills | the procedures that apply the method's rules | `specs/methodology/skills.md` |
-| Working files | what writing the specs leaves behind | `specs/methodology/working-files.md § The Working Files` |
+| Working files | the working files | `specs/methodology/working-files.md § The Working Files` |
 
 Whatever is not named so is outside the scope, and the method's rules do not reach it. The method's rules, the methodology's and `specs/AGENTS.md`'s, reach every file in scope, except where a rule scopes itself, in its own text rather than through an exemption granted elsewhere, to something a file is not. A project's own root `AGENTS.md` holds that project's instructions, whose reach is the project's to set.
 
@@ -22,6 +22,7 @@ specs/
 │   ├── index.md
 │   ├── architecture.md
 │   ├── acceptance-scenarios.md
+│   ├── glossary.md
 │   ├── modeling-constructs.md
 │   ├── scope.md
 │   ├── skills.md
@@ -42,6 +43,8 @@ The tree names the methodology's files, since they are the rules every task depe
 ## Progressive Disclosure
 
 An agent loads what its current step needs, when the step needs it, descending only as far as the step requires: from `specs/AGENTS.md`'s routing table, which maps a task to the rule governing it, to this scope, to a directory's `index.md`, to a file, and to the section a citation names. What is loaded long before it is needed sits behind everything loaded since and competes with all of it; what is loaded at the step that needs it is at the front of the agent's attention and carries its full weight.
+
+The glossary is the one methodology file loaded ahead of need, read with `specs/AGENTS.md` before any step, since an agent cannot know a word is one of its terms without having read it.
 
 Progressive disclosure governs when to read, not how much. Whatever is loaded is read in full and never skimmed, and read fresh rather than recalled (`specs/AGENTS.md § Design, Refactor, Refine (DRR)`), and a task whose unit is a whole directory, an audit among them, loads the whole directory. The path it relies on is checked: every directory under `specs/` has an `index.md` naming each of its files, and `§ The Shape of the Scope` names what exists.
 

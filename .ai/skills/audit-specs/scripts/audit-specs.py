@@ -26,6 +26,8 @@ REGISTRY_RULE = "skills.md § Registered Skills"
 AUTHORING = "specs/AGENTS.md § Authoring Skills"
 SCOPE_TREE = "specs/methodology/scope.md"
 SPECS_AGENTS = "specs/AGENTS.md"
+GLOSSARY = "specs/methodology/glossary.md"
+GLOSSARY_RULE = "glossary.md § Writing an Entry"
 SCRIPT_SUFFIXES = {".py", ".ps1", ".sh"}
 LAYER = {"methodology": "specs/methodology/", "product": "specs/application/product/",
          "technical": "specs/application/technical/"}
@@ -709,7 +711,107 @@ def check(root):
             found.append(("spec-placement.md § Where a File Goes", rel_d + "/index.md", 0, f"a row names {extra}, which is not here"))
 
     found += scope_findings(root)
+    found += glossary_findings(root)
     return found
+
+
+# A definition's other names are its trailing sentences: "Abbreviated X." with one name,
+# then "Also called X." or "Also called X, Y.", each optional.
+OTHER_NAMES = re.compile(r'(?:\s*Abbreviated ([^.,]+)\.)?(?:\s*Also called ([^.]+)\.)?\s*$')
+BARE_TERM = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ,'-]*$")
+TABLE_RULE = re.compile(r'^\|[\s|:-]+\|$', re.M)
+
+
+def glossary_terms(root):
+    """-> (header, [(line, term, other names, definition, where the other names start)]),
+    or None when there is no glossary."""
+    g = root / GLOSSARY
+    if not g.exists():
+        return None
+    rows, header = [], None
+    for n, line in enumerate(g.read_text(encoding="utf-8").split("\n"), 1):
+        if not line.startswith("|") or TABLE_RULE.match(line):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if header is None:
+            header = cells
+            continue
+        term, definition = cells[0], "|".join(cells[1:])
+        m = OTHER_NAMES.search(definition)
+        others = ([m.group(1).strip()] if m.group(1) else []) + \
+                 ([x.strip() for x in m.group(2).split(",")] if m.group(2) else [])
+        rows.append((n, term, others, definition, m.start(), len(cells)))
+    return header, rows
+
+
+def glossary_findings(root):
+    """The glossary cites nothing and holds one table of bare terms, unique and sorted, each
+    definition ending with its other names in the fixed form, none shared or equal to a term."""
+    got = glossary_terms(root)
+    if got is None:
+        return [(GLOSSARY_RULE, GLOSSARY, 0, "the glossary is missing")]
+    header, rows = got
+    found, text = [], (root / GLOSSARY).read_text(encoding="utf-8")
+    for n, line in enumerate(strip_fences(text).split("\n"), 1):
+        if CITATION.search(line) or WHOLE_FILE.search(line):
+            found.append((GLOSSARY_RULE, GLOSSARY, n, "the glossary cites nothing"))
+    if header != ["Term", "Definition"]:
+        found.append((GLOSSARY_RULE, GLOSSARY, 0, "the table's header is not | Term | Definition |"))
+    if len(TABLE_RULE.findall(text)) != 1:
+        found.append((GLOSSARY_RULE, GLOSSARY, 0, "the glossary does not hold exactly one table"))
+    folded = [t.casefold() for _, t, _, _, _, _ in rows]
+    if folded != sorted(folded):
+        found.append((GLOSSARY_RULE, GLOSSARY, 0, "the terms are not in sorted order"))
+    owner = {}
+    for n, term, others, definition, trail, width in rows:
+        if width != 2:
+            found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: a row holds a term and a definition, nothing else"))
+        if not definition:
+            found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: no definition"))
+        if not BARE_TERM.match(term):
+            found.append((GLOSSARY_RULE, GLOSSARY, n, f"not a bare term: {term}"))
+        if folded.count(term.casefold()) > 1:
+            found.append((GLOSSARY_RULE, GLOSSARY, n, f"the term is listed twice: {term}"))
+        if re.search(r'\b(?:Abbreviated|Also called)\b', definition[:trail]):
+            found.append((GLOSSARY_RULE, GLOSSARY, n,
+                          f"{term}: other names are the trailing sentences, Abbreviated with one name, then Also called"))
+        for o in others:
+            k = o.casefold()
+            if k in folded:
+                found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: the other name {o} is a term"))
+            elif owner.setdefault(k, term) != term:
+                found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: the other name {o} also belongs to {owner[k]}"))
+    return found
+
+
+def glossary_candidates(root):
+    """-> list of (path, line, kind, context), for the Glossary terms audit: a line outside the
+    glossary where a term or one of its other names seems to be defined. Places to read."""
+    got, out = glossary_terms(root), []
+    if got is None:
+        return out
+    names = set()
+    for _, term, others, _, _, _ in got[1]:
+        names.update([term] + others)
+    alt = "|".join(sorted((r'\s+'.join(map(re.escape, x.split())) for x in names), key=len, reverse=True))
+    name = rf"(?:{alt})s?"
+    # A definition equates the term with a kind, "A field is a key-value pair", or glosses it
+    # in apposition, "Spec of Record, the method"; "is written" or "is missing" states a rule
+    # about the term instead, and a term after an article or a comma is an item in a list.
+    defining = re.compile(
+        rf"(?:(?:^|[.!?:]\s+|\|\s*|—\s*)|\b(?:a|an|the)\s+){name}\b(?:\s*\([^)]*\)|\s*`[^`]*`)?"
+        rf"\s+(?:(?:is|are)\s+(?:a|an|the|one|what|where|how)\b|means\b|names\s+\w)"
+        rf"|(?<!\ba\s)(?<!\ban\s)(?<!\bthe\s)(?<!,\s)\b{name},\s+(?:a|an|the)\b", re.I)
+    for f in md_files(root):
+        rel = f.relative_to(root).as_posix()
+        if rel == GLOSSARY:
+            continue
+        for n, line in enumerate(strip_fences(f.read_text(encoding="utf-8")).split("\n"), 1):
+            m = defining.search(line)
+            if m:
+                a, b = max(0, m.start() - 40), min(len(line), m.end() + 60)
+                out.append((rel, n, "a glossary term that may be defined here", line[a:b].strip()))
+    return out
 
 
 def scope_findings(root):
@@ -917,6 +1019,9 @@ def main(argv):
             print(f"  {path}:{line}  [{name}]\n    {context}")
         print("\nCandidates for the Literal text and emphasis audit: places to read, not findings")
         for path, line, name, context in literal_candidates(root):
+            print(f"  {path}:{line}  [{name}]\n    {context}")
+        print("\nCandidates for the Glossary terms audit: places to read, not findings")
+        for path, line, name, context in glossary_candidates(root):
             print(f"  {path}:{line}  [{name}]\n    {context}")
         print("\nCandidates about skills: places to read, not findings")
         for path, line, name, context in skill_candidates(root):

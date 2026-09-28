@@ -1,6 +1,6 @@
 ---
 name: design-specs
-description: Propose or revise content in this repo's specifications. Use when adding a rule, reconciling two documents that disagree, closing a gap found in an audit or review, or taking a change through DRR. Routes to the conventions that govern the work, and covers the failures that recur in it, duplicating a rule that already has a home, distorting a fact while compressing it, and proposing edits whose anchors do not exist.
+description: Propose or revise content in this repo's specifications. Use when adding a rule, reconciling two documents that disagree, closing a gap found in an audit or review, coining a term, or taking a change through DRR. Routes to the conventions that govern the work, and covers the failures that recur in it, duplicating a rule that already has a home, distorting a fact while compressing it, and proposing edits whose anchors do not exist.
 ---
 
 # Designing specifications
@@ -23,6 +23,8 @@ This skill does not restate the repo's conventions, which would be the same defe
 | Deciding whether a citation may be written here | `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` |
 | Finding which files Spec of Record governs | `specs/methodology/scope.md` |
 | Deciding whether a skill is part of the method | `specs/methodology/skills.md` |
+| Meeting a term Spec of Record gives a meaning of its own | `specs/methodology/glossary.md` |
+| Coining a term Spec of Record gives a meaning of its own | `specs/methodology/glossary.md § Writing an Entry` |
 | Writing a number, a count, or a reference to an item's position | `specs/AGENTS.md § Ordinals and Counts` |
 | Adding or retitling a heading | `specs/methodology/sourcing-and-citation.md § Titling a Heading` |
 | Writing or updating acceptance scenarios | `specs/methodology/acceptance-scenarios.md § Acceptance Scenarios` |
@@ -33,7 +35,7 @@ This skill does not restate the repo's conventions, which would be the same defe
 | Describing a rule, a process, or an entity's behavior | `specs/methodology/modeling-constructs.md` |
 | Recording a decision the specs rely on but have not made | `specs/methodology/spec-placement.md § An Open Question` |
 | Writing a field, a bold lead-in, emphasis, literal text, or an entry of a repeated kind | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Emphasis`, `specs/methodology/modeling-constructs.md § Literal Text`, `specs/methodology/modeling-constructs.md § Constructs § Record Form` |
-| Keeping a companion spec or an `architecture.md` in step | `specs/methodology/sourcing-and-citation.md § Keeping Companions in Step` |
+| Keeping a counterpart spec, an `architecture.md` or a diagram in step | `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step` |
 | Adding, changing, or re-checking a diagram | `specs/methodology/modeling-constructs.md § Diagrams` for where it goes, its form, what it may show and how it and its sources cite each other, then `.ai/skills/author-mermaid-diagram/` |
 
 ## Workflow
@@ -56,7 +58,7 @@ The rule for each step is named at the step, because that is where it is needed.
 
 **Update the scenarios in the same pass —** `specs/methodology/acceptance-scenarios.md § Keeping a Scenario and Its Prose in Step`.
 
-**Synchronize whatever restates what you changed —** `specs/methodology/sourcing-and-citation.md § Keeping Companions in Step`. A section you changed that a diagram renders cites that diagram, wherever it sits, so the diagram to re-check is named in the text you just edited.
+**Synchronize whatever restates what you changed —** `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`. A section you changed that a diagram renders cites that diagram, wherever it sits, so the diagram to re-check is named in the text you just edited.
 
 A diagram is the easiest rendering to leave stale and the hardest to notice, because a wrong one is invisible in source and obvious only once rendered. Authoring or re-checking one goes through `.ai/skills/author-mermaid-diagram/`, which covers the altitude check that keeps a label inside what its host file actually states, and the render step that catches what reading the source will not.
 
@@ -97,7 +99,7 @@ Before adding a sentence, check which conventions currently apply because of whe
 
 ## Never propose structure before proving the existing structure fails
 
-New sections, new files, new domains, new notation. Each is expensive, hard to remove later, and the most satisfying thing to write.
+New sections, new files, new domains, new notation. Each is expensive, hard to remove later, and the most satisfying thing to write, which is how a Rube Goldberg machine gets built where the aim is elegance (`specs/methodology/glossary.md`).
 
 Before proposing any, name the existing home that would have to receive the content, and say why it cannot. If you cannot name one, you have not looked hard enough. A proposal that starts from new structure and reasons toward it will always find the reasoning. The tests are already written: `specs/methodology/spec-placement.md § Where a File Goes` for whether a domain earns a subfolder or stays a root file, `specs/methodology/spec-placement.md § Naming a Capability Domain` for whether a domain exists at all, and `specs/methodology/sourcing-and-citation.md § Titling a Heading` for whether a bold lead-in should become a heading.
 
@@ -126,6 +128,8 @@ A term smuggles in whatever its ordinary meaning implies. A word suggesting rhyt
 When naming anything, state the claims the word makes beyond your definition and confirm each is true. When reviewing an existing name, ask what a reader would assume from the word alone, then check whether the document supports it. Renaming is cheap before citations exist and expensive after, and `specs/methodology/sourcing-and-citation.md § Titling a Heading` requires every citation to move in the same edit.
 
 Sometimes the answer is no name at all. If a distinction has two values that work as adjectives on something already named, the axis may not need a noun; inventing one creates a thing readers expect to be able to set.
+
+A term that passes the test in `specs/methodology/glossary.md § Writing an Entry` goes in the glossary, written as that section states.
 
 ## Numbers stated in passing
 
