@@ -35,7 +35,7 @@ Where an audit compares one passage against what it restates, the ways a compres
 
 | Audit | Enforces |
 |---|---|
-| Directory summary currency | `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`, `specs/methodology/spec-placement.md § Where a File Goes` |
+| Directory summary currency | `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`, `specs/methodology/spec-placement.md § Index, Architecture, Detail`, `specs/methodology/spec-placement.md § Where a File Goes` |
 | Counterpart currency | `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step` |
 | Scenario coverage | `specs/methodology/acceptance-scenarios.md § Acceptance Scenarios`, `specs/methodology/acceptance-scenarios.md § Deciding What to Write` |
 | Where a rule lives | `specs/methodology/sourcing-and-citation.md § One Home Per Fact`, `specs/AGENTS.md § Authoring Skills` |
@@ -49,7 +49,7 @@ Where an audit compares one passage against what it restates, the ways a compres
 
 Does a directory's own summary still describe what it contains. Separate units, because the summaries cover different ground: an `index.md` covers a directory's direct contents, and an `architecture.md` covers everything beneath the directory that owns it. Read the tree once, then check the blueprint against all of it and each `index.md` row against its own file.
 
-For the blueprint, both directions: a claim it makes that its detail files no longer support, and, the one usually missed, a fact those files establish that a reader of the blueprint alone would never learn. The test for that omission is not "is it stated somewhere else" but "would a reader of this file alone form a false impression, or find a later section unfollowable."
+For the blueprint: a claim it makes that its detail files no longer support; a detail it holds that no detail file states (`specs/methodology/spec-placement.md § Index, Architecture, Detail`); and, the one usually missed, a fact those files establish that a reader of the blueprint alone would never learn. The test for that omission is not "is it stated somewhere else" but "would a reader of this file alone form a false impression, or find a later section unfollowable."
 
 ### Counterpart currency
 
@@ -77,7 +77,7 @@ One signal is worth naming, because it looks like the opposite of a defect: a pa
 
 Product and technical are never compared with each other, for the reason `specs/methodology/spec-placement.md § Product or Technical` gives.
 
-**An `architecture.md` restates its own directory by design, and those restatements are not findings —** this is a false-positive trap the audit sets, and it is expensive: an overview names every major piece in its own words rather than leaning on citations to carry its meaning, per `specs/methodology/spec-placement.md § Index, Architecture, Detail`, so it restates constantly and by instruction. `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step` is what resolves it — a rendering is not a second home. A diagram, wherever it sits, is a rendering too. An auditor who has not read that sentence finds the overview restating half the directory and reports it as the most drifted file present, confidently and at length. What is still a finding is an `architecture.md` duplicating *itself*, or restating anything from outside its own directory, which no rule licenses, and which is easy to miss while discounting everything else it restates.
+**An `architecture.md` restates its own directory by design, and those restatements are not findings —** this is a false-positive trap the audit sets, and it is expensive: an overview names every major piece in its own words rather than leaning on citations to carry its meaning, per `specs/methodology/spec-placement.md § Index, Architecture, Detail`, so it restates constantly and by instruction. `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step` is what resolves it — a rendering is not a second home. A diagram, wherever it sits, is a rendering too. An auditor who has not read that sentence finds the overview restating half the directory and reports it as the most drifted file present, confidently and at length. What is still a finding is an `architecture.md` duplicating *itself*, holding a detail no detail file states, or restating anything from outside its own directory, which no rule licenses, and which is easy to miss while discounting everything else it restates.
 
 Where a duplicate is real, choose the home by `specs/methodology/sourcing-and-citation.md § One Home Per Fact`'s test and replace the others with citations. Where `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` forbids that citation, as for an application spec restating a methodology rule, the restatement is cut back to the spec's own content instead. Where several files use a rule and none owns it, hoist to the narrowest location covering every use and no further. Hoisting too high is not illegal, but it overstates how far the rule reaches. Name which usages forced the height; a home no usage forces is too high.
 
@@ -202,7 +202,7 @@ What is worth adding is what auditing your own work costs here: a confident swee
 
 **Drafting residue gets no audit of its own —** the `design-specs` skill applies `specs/methodology/spec-style.md` at authoring time.
 
-**File placement and altitude get no audit —** whether a file sits at the right altitude, whether a domain earned its subfolder, whether an overview has accumulated detail that belongs in a detail file: all real, all governed by `specs/methodology/spec-placement.md § Index, Architecture, Detail` and `specs/methodology/spec-placement.md § Where a File Goes`, and none of it checked here. Directory summary currency reaches the case where an overview has thinned into pointers, because that shows up as a fact its reader cannot learn. It does not reach the opposite case, an overview that has accumulated full detail. That gap is known and accepted rather than overlooked.
+**File placement and altitude get no audit —** whether a file sits at the right altitude, whether a domain earned its subfolder, whether an overview restates more of its detail files than it needs: all real, all governed by `specs/methodology/spec-placement.md § Index, Architecture, Detail` and `specs/methodology/spec-placement.md § Where a File Goes`, and none of it checked here. Directory summary currency reaches an overview holding a detail no detail file states (`specs/methodology/spec-placement.md § Index, Architecture, Detail`), and an overview that has thinned into pointers, which shows up as a fact its reader cannot learn. What it does not reach, an overview restating more than it needs, is a known gap, accepted rather than overlooked.
 
 **Migration fidelity gets no audit —** though comparing a migration's source statements against their rewritten destinations is exactly this kind of work. Migrations are rare enough that a written method would be exercised about once, and one exercise is not enough to generalize a method from. Brief it directly when a migration happens.
 

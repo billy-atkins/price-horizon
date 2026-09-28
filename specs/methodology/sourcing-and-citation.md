@@ -88,6 +88,6 @@ Some facts are stated once and rendered in more than one place. Those renderings
 
 **A product spec and its technical counterpart —** when a fact changes in one, check whether the other needs a matching update. That the two name each other at all is `specs/methodology/spec-placement.md § Product or Technical`'s requirement; what it does not do is keep them current, which is this duty.
 
-**A directory's own `architecture.md` —** it is a synchronization target, not a first-written source. Its prose, its citations, and its mapping tables each restate or render a fact whose real home is elsewhere. When that fact changes, check whether `architecture.md` needs a matching update too.
+**A directory's own `architecture.md` —** what it restates of its detail files, in its prose, its citations and its mapping tables, and what it connects among them, is a synchronization target (`specs/methodology/spec-placement.md § Index, Architecture, Detail`). When a fact in one of its detail files changes, check whether `architecture.md` needs a matching update too.
 
 **A diagram, wherever it sits —** it renders the sections and records its Sources list names, each of which names it back (`specs/methodology/modeling-constructs.md § Diagrams`). When one of them changes, check whether the diagram needs a matching update too.

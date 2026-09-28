@@ -33,9 +33,11 @@ Every directory under `specs/` organizes its files by altitude. New content belo
 | Overview | `architecture.md` | where a directory's shape is worth describing as a whole, which not every directory's is: a self-contained description of the whole directory's shape, naming every major piece and how they relate, in its own words |
 | Detail | everything else | one file per functional area, holding the actual mechanism, schema, or experience, at whatever depth the subject needs |
 
-**The test for new content —** does it explain how pieces fit together, in prose rich enough to stand on its own? That is overview. Does it specify what one piece does or shows, precisely enough to need citation-grade traceability? That is detail.
+**The test for new content —** does it connect pieces, how they relate, why they are arranged as they are, what they add up to? That is overview. Does it specify what one piece does, shows or promises? That is detail, however much it says about the pieces around it.
 
 **What an `architecture.md` is, and is not —** it is written so it can be read, understood, and shared in isolation, the way an architecture document stands apart from the system it describes rather than being a portal into it. A closing mention of where fuller detail lives is fine; that mention is not how the overview gets its meaning.
+
+**It holds no detail of its own —** an overview is the view of the whole from altitude, and zooming in reaches the detail files. A detail, by the test above, has its home in one of them, and an overview stating it restates it from there. What the overview states as its own is what only that height shows: how the pieces connect, the forest a reader of any one file cannot see for the trees.
 
 Opposite failure modes, and the same fix for each. An overview that accumulates full detail has stopped being an overview. An overview that thins into a table of citations cannot be understood without opening the files it points at. In either case: write the overview so it stands alone, move genuine step-by-step or field-level detail into its own file, and repath every citation that pointed at the old location in the same pass.
 
@@ -76,7 +78,7 @@ Traps worth checking for before finalizing any new product file:
 
 **The same mechanism, split by audience, masquerading as two capabilities —** if one role's view of something and another role's view of the same thing are one underlying mechanism seen at two scopes, they belong in one file describing both scopes, not two files that will drift apart. The technical spec's own language is a useful signal: when it describes what look like two product-facing capabilities as one mechanism serving several audiences, treat that as a reason to consolidate on the product side too.
 
-**A cross-domain concern written into whichever domain needed it first —** a definition, principle, or distinction genuinely used by more than one domain and owned by none belongs at the directory's own root (`§ Where a File Goes`), or as a named principle in `architecture.md`, never in the domain that happened to need it first (`specs/methodology/sourcing-and-citation.md § One Home Per Fact`).
+**A cross-domain concern written into whichever domain needed it first —** a definition, principle, or distinction genuinely used by more than one domain and owned by none belongs at the directory's own root (`§ Where a File Goes`), never in the domain that happened to need it first (`specs/methodology/sourcing-and-citation.md § One Home Per Fact`).
 
 ## Naming the Technical Files Behind a Capability
 
