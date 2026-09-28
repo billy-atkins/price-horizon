@@ -13,7 +13,7 @@ The audits are the substance. The script is a pre-pass.
 
     python .ai/skills/audit-specs/scripts/audit-specs.py           # from the repo root
     python .ai/skills/audit-specs/scripts/audit-specs.py <path>    # explicit root
-    python .ai/skills/audit-specs/scripts/audit-specs.py --candidates    # also list places for the Ordinals and counts audit
+    python .ai/skills/audit-specs/scripts/audit-specs.py --candidates    # also list places for the reading audits that use them
 
 Run it first, because it is fast and because its findings would otherwise be noise in a reading pass.
 
@@ -25,9 +25,9 @@ Each one requires a judgment the files do not encode, often across a whole direc
 
 Every audit is governed by the rules below.
 
-**Read the files in full.** Not headings, not a previous read, not recall. The one time a directory summary was built from headings and memory, it missed the largest gap in the directory.
+**Read the files in full —** not headings, not a previous read, not recall. The one time a directory summary was built from headings and memory, it missed the largest gap in the directory.
 
-**Compare against the open source, not against the summary.** Re-reading a summary confirms it reads well, which it always does. The defect is only visible with the source beside it.
+**Compare against the open source, not against the summary —** re-reading a summary confirms it reads well, which it always does. The defect is only visible with the source beside it.
 
 Where an audit compares one passage against what it restates, the ways a compression goes wrong are listed in the `design-specs` skill, in its section on compression distortion. Use that taxonomy rather than restating it. It applies to Directory summary currency, to Diagram currency, and to Whether the home holds the fact wherever a citer states in its own words what it attributes. The other audits compare no two versions of one passage, and it does not reach them.
 
@@ -41,6 +41,7 @@ Where an audit compares one passage against what it restates, the ways a compres
 | Where a rule lives | `specs/methodology/sourcing-and-citation.md § One Home Per Fact`, `AGENTS.md § Authoring Skills` |
 | Whether the home holds the fact | `specs/methodology/sourcing-and-citation.md § One Home Per Fact`, `specs/methodology/sourcing-and-citation.md § Writing a Citation` |
 | Ordinals and counts | `AGENTS.md § Ordinals and Counts` |
+| Literal text and emphasis | `specs/methodology/modeling-constructs.md § Emphasis`, `specs/methodology/modeling-constructs.md § Literal Text` |
 | Diagram currency | `specs/methodology/modeling-constructs.md § Diagrams` |
 
 ### Directory summary currency
@@ -71,17 +72,17 @@ Inventory first, then compare. Collect every normative statement in the unit, an
 
 Inventory within a file and within a section too, not only across files. A duplicate inside one section is the one this audit reliably misses, because the two copies are read as one passage in one sitting and a passage does not feel like it disagrees with itself. The shape to watch for is a rule stated once in a table and again in the prose around it: the table row is the enumeration, the paragraph restates it while adding something real, and the restatement is invisible because it arrives as continuation rather than repetition. Counting sites is what catches it — a rule found in two files is often in three.
 
-One signal is worth naming, because it looks like the opposite of a defect: **a passage that cites another file's rule and then extends it.** A citation followed by application is correct. A citation followed by further rules about the cited subject is a second home with a citation attached, reading as deference precisely because the citation is there.
+One signal is worth naming, because it looks like the opposite of a defect: a passage that cites another file's rule and then extends it. A citation followed by application is correct. A citation followed by further rules about the cited subject is a second home with a citation attached, reading as deference precisely because the citation is there.
 
 Product and technical are never compared with each other, for the reason `specs/methodology/spec-placement.md § Product or Technical` gives.
 
-**An `architecture.md` restates its own directory by design, and those restatements are not findings.** This is a false-positive trap the audit sets, and it is expensive: an overview names every major piece in its own words rather than leaning on citations to carry its meaning, per `specs/methodology/spec-placement.md § Index, Architecture, Detail`, so it restates constantly and by instruction. `specs/methodology/sourcing-and-citation.md § Keeping Companions in Step` is what resolves it — a rendering is not a second home. A diagram, wherever it sits, is a rendering too. An auditor who has not read that sentence finds the overview restating half the directory and reports it as the most drifted file present, confidently and at length. What is still a finding is an `architecture.md` duplicating *itself*, or restating anything from outside its own directory, which no rule licenses, and which is easy to miss while discounting everything else it restates.
+**An `architecture.md` restates its own directory by design, and those restatements are not findings —** this is a false-positive trap the audit sets, and it is expensive: an overview names every major piece in its own words rather than leaning on citations to carry its meaning, per `specs/methodology/spec-placement.md § Index, Architecture, Detail`, so it restates constantly and by instruction. `specs/methodology/sourcing-and-citation.md § Keeping Companions in Step` is what resolves it — a rendering is not a second home. A diagram, wherever it sits, is a rendering too. An auditor who has not read that sentence finds the overview restating half the directory and reports it as the most drifted file present, confidently and at length. What is still a finding is an `architecture.md` duplicating *itself*, or restating anything from outside its own directory, which no rule licenses, and which is easy to miss while discounting everything else it restates.
 
-Where a duplicate is real, choose the home by `specs/methodology/sourcing-and-citation.md § One Home Per Fact`'s test and replace the others with citations. Where `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` forbids that citation, as for an application spec restating a methodology rule, the restatement is cut back to the spec's own content instead. Where several files use a rule and none owns it, hoist to **the narrowest location covering every use and no further**. Hoisting too high is not illegal, but it overstates how far the rule reaches. Name which usages forced the height; a home no usage forces is too high.
+Where a duplicate is real, choose the home by `specs/methodology/sourcing-and-citation.md § One Home Per Fact`'s test and replace the others with citations. Where `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` forbids that citation, as for an application spec restating a methodology rule, the restatement is cut back to the spec's own content instead. Where several files use a rule and none owns it, hoist to the narrowest location covering every use and no further. Hoisting too high is not illegal, but it overstates how far the rule reaches. Name which usages forced the height; a home no usage forces is too high.
 
 ### Whether the home holds the fact
 
-One home per fact means everywhere else cites that home instead of restating it. What nothing checks is the other half of that bargain: that the home still states the fact being attributed to it. A citer says *X is governed there*; the audit asks whether *X* is actually there.
+One home per fact means everywhere else cites that home instead of restating it. What nothing checks is the other half of that bargain: that the home still states the fact being attributed to it. A citer says "X is governed there"; the audit asks whether *X* is actually there.
 
 This is the audit that catches the most and is the easiest to leave out, because every symptom of it looks fine. The heading resolves, so the script clears it. The citer reads as correct, because it says what it means. The target reads as correct, because a section is not obviously missing a sentence. The defect exists only in the gap between two files that are each individually clean, and the citation being valid is precisely what hides it.
 
@@ -89,23 +90,27 @@ Sweep by target, not by citer. Take a section that is cited from several places,
 
 Each shape below is a finding, fixed on the side that is wrong rather than by weakening the citation:
 
-- **The target never states the rule.** A capability file cites a guarantees section as holding a ceiling on what it may display; that section's prose never mentions the ceiling, only its scenarios imply it. The prose is what is missing.
-- **The target states it differently, and the citer is right.** A second file cites the same section while stating the rule in its correct, narrower form. When a citer is more accurate than the home it cites, the home is what is stale, and the citer's wording is the best available evidence of what the rule should say.
-- **A stage's own fact has no home anywhere.** The mechanism is specified on the technical side, the scenario asserts it, every file assumes it, and no product section states it. This surfaces here rather than under Scenario coverage, because what reveals it is a citation looking for a fact rather than a scenario looking for prose.
+- **The target never states the rule —** a capability file cites a guarantees section as holding a ceiling on what it may display; that section's prose never mentions the ceiling, only its scenarios imply it. The prose is what is missing.
+- **The target states it differently, and the citer is right —** a second file cites the same section while stating the rule in its correct, narrower form. When a citer is more accurate than the home it cites, the home is what is stale, and the citer's wording is the best available evidence of what the rule should say.
+- **A stage's own fact has no home anywhere —** the mechanism is specified on the technical side, the scenario asserts it, every file assumes it, and no product section states it. This surfaces here rather than under Scenario coverage, because what reveals it is a citation looking for a fact rather than a scenario looking for prose.
 
 A target that never states the rule and a target that states it differently are the ordinary cases and both were found in this repo on the first run of it. Note what they share: a heavily-cited section accumulates attributions faster than it is re-read, so the most-cited section in a directory is where to start, not where to stop.
 
 Same-layer citations count. Companion currency covers product against technical; this audit covers every direction a citation is allowed to point, and product-to-product is where both real cases were found.
 
-**After a change lands, the target set is not a judgment call.** Every section whose meaning the change altered is a mandatory target, because a citation written against the old meaning is still a valid citation and nothing else will surface it. Choosing targets by how heavily cited they are is the rule for an audit run on a tree nobody just edited; run after a change, this audit starts from the sections that changed and sweeps outward from each.
+**After a change lands, the target set is not a judgment call —** every section whose meaning the change altered is a mandatory target, because a citation written against the old meaning is still a valid citation and nothing else will surface it. Choosing targets by how heavily cited they are is the rule for an audit run on a tree nobody just edited; run after a change, this audit starts from the sections that changed and sweeps outward from each.
 
-**Sweep twice, by citation and by wording, because they find different things.** A citation sweep finds citers. It does not find a passage that restates the fact without citing it, and those are common in exactly the places that are supposed to track a change: a diagram, an `architecture.md`'s prose, a table row rendering a rule stated elsewhere. Take the fact's own distinctive phrasing and grep for it across the tree as a second pass.
+**Sweep twice, by citation and by wording, because they find different things —** a citation sweep finds citers. It does not find a passage that restates the fact without citing it, and those are common in exactly the places that are supposed to track a change: a diagram, an `architecture.md`'s prose, a table row rendering a rule stated elsewhere. Take the fact's own distinctive phrasing and grep for it across the tree as a second pass.
 
 The evidence for needing both is one pass in this repo where a change widened a guarantee's condition. The citation sweep checked every citer of the amended section and every attribution held — a clean result, correctly reported. Further copies of the superseded wording survived anyway, neither of them citing anything: one in a paragraph restating the guarantee, one in a diagram node whose own source table said it was "kept in sync with these tables whenever they change." Both were found by grepping the old phrasing. A sweep that had run only by citation would have closed the audit and left both.
 
 ### Ordinals and counts
 
 Does any number break `AGENTS.md § Ordinals and Counts`. Run the script with `--candidates`, then read the files in scope in full, using the candidates as a guide to where numbers are likely rather than as the boundary of the search. Judge every number against the rule as written: a violation gets a proposed rewrite, and a decline names the rule's reason for keeping the number. A violation the patterns missed is reported like any other, and its phrasing is a candidate for a new pattern.
+
+### Literal text and emphasis
+
+Does every backtick span hold text written exactly so elsewhere, and does every italic span stress a word or a short phrase whose stress changes what its sentence means. The script checks only where bold and italic may appear; this is the judgment it cannot make. Run it with `--candidates`, which lists each backtick span holding a capital letter and no punctuation that matches no heading, field key, or text a fenced example in the tree holds, and each italic span of more than a few words, then read the files in scope in full, using the candidates as a guide rather than as the boundary. A name in backticks is written plain; an italic span stressing nothing loses its italic, and one carrying a point that needs more is given the structure `specs/methodology/modeling-constructs.md § Emphasis` names.
 
 ### Diagram currency
 
@@ -143,6 +148,7 @@ What is worth adding is what auditing your own work costs here: a confident swee
 | Where a rule lives | per unit: `AGENTS.md`, `specs/methodology/`, `specs/application/product/`, `specs/application/technical/`, `.ai/skills/` |
 | Whether the home holds the fact | per cited section, taking every citation into it in one pass |
 | Ordinals and counts | the files a change touched, or everything in the script's scope for a full run |
+| Literal text and emphasis | the files a change touched, or everything in the script's scope for a full run |
 | Diagram currency | per diagram, with every section its Sources list names |
 
 `specs/index.md` and `specs/application/index.md` sit above every architecture-rooted tree, so a directory summary run names them explicitly or nothing covers them.
@@ -167,30 +173,32 @@ What is worth adding is what auditing your own work costs here: a confident swee
 | Every fenced `mermaid` block declares `flowchart` | `specs/methodology/modeling-constructs.md § Diagrams` |
 | No bold lead-in or list item carries a number | `AGENTS.md § Ordinals and Counts` |
 | No file under `specs/` other than `specs/methodology/working-files.md` names a working file | `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` |
+| Every bold span opens a line, after any list marker, quote marker and indentation, and closes on a colon inside the bold, a field, or a space and an em dash inside the bold, a bold lead-in; bold italic and underscore bold are reported wherever they appear | `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Emphasis` |
+| No line opens with italic, after any list marker, quote marker and indentation; underscore italic goes unchecked, since it cannot be told apart from an identifier such as retention_purge written outside backticks | `specs/methodology/modeling-constructs.md § Emphasis` |
 | Every record citation resolves to a record section, names each of its type's identifying fields in the type's order and no other, separated by `; `, and matches exactly one record; brackets on a section that is not a record section are a malformed record citation; and an identifying value holds no `;` | `specs/methodology/sourcing-and-citation.md § Writing a Citation` |
 | No heading title contains `[` | `specs/methodology/sourcing-and-citation.md § Titling a Heading` |
 | Under `specs/`, an `Open Questions` section is its file's last top-level section and holds an optional `**Diagrams:**` field, then a `**Records:**` field of at least one record, one list item each, and nothing else; a blank line precedes each field; each record is its `**Name:**`, `**Open Question:**`, `**Provisional Answer:**` and `**Impacts:**` fields in that order, the later ones indented two spaces, its Impacts carrying at least one section citation, and no two records share a Name | `specs/methodology/modeling-constructs.md § Constructs § Record Form`, `specs/methodology/spec-placement.md § An Open Question` |
 | Under `specs/`, every line opening with a bold phrase ending in a colon inside the bold carries a key a form declares, where that form places it | `specs/methodology/modeling-constructs.md § Fields` |
 
-**Scope** is `specs/`, `AGENTS.md`, `.ai/skills/`, `README.md`, and the scripts under `scripts/`. `--candidates` lists places for the Ordinals and counts audit to read. Deliberately excluded: the working files, per `specs/methodology/working-files.md § The Working Files`, which legitimately carry citations to things since moved or pruned, and whose content is scanned wherever it lands. The audits above set their own scope, except Ordinals and counts, which uses this one.
+**Scope —** `specs/`, `AGENTS.md`, `.ai/skills/`, `README.md`, and the scripts under `scripts/`. `--candidates` lists places for the Ordinals and counts audit and the Literal text and emphasis audit to read. Deliberately excluded: the working files, per `specs/methodology/working-files.md § The Working Files`, which legitimately carry citations to things since moved or pruned, and whose content is scanned wherever it lands. The audits above set their own scope, except Ordinals and counts, which uses this one.
 
 ## What is deliberately not audited
 
-**Nothing the script cannot decide moves into the script**, now or later. Listing candidates for a reading audit is not deciding: `--candidates` reports places to read, never a finding or a clear, and its output is kept apart from the findings for that reason. One claiming to judge whether a compression stayed faithful would produce a confident false clear over the findings that cost the most. What is possible later is more mechanical checks and more audits, never the conversion of one into the other.
+**Nothing the script cannot decide moves into the script —** now or later. Listing candidates for a reading audit is not deciding: `--candidates` reports places to read, never a finding or a clear, and its output is kept apart from the findings for that reason. One claiming to judge whether a compression stayed faithful would produce a confident false clear over the findings that cost the most. What is possible later is more mechanical checks and more audits, never the conversion of one into the other.
 
-**Script checks were built and removed**, because a check that cannot decide is worse than no check. *Every product capability section has a `Test Scenarios` child* — "is this a capability" is a judgment the files do not encode, and most of its findings were overview or definitional headings. *Every `Given` names a role the role table defines* — the rule is real, but absence does not decide a violation: a scenario about system state has no actor, and one may name its role in the `Then`. Scenario coverage now covers both by reading.
+**Script checks were built and removed —** because a check that cannot decide is worse than no check. "Every product capability section has a `Test Scenarios` child" — "is this a capability" is a judgment the files do not encode, and most of its findings were overview or definitional headings. "Every `Given` names a role the role table defines" — the rule is real, but absence does not decide a violation: a scenario about system state has no actor, and one may name its role in the `Then`. Scenario coverage now covers both by reading.
 
-**Drafting residue gets no audit of its own.** The `design-specs` skill applies `specs/methodology/spec-style.md` at authoring time.
+**Drafting residue gets no audit of its own —** the `design-specs` skill applies `specs/methodology/spec-style.md` at authoring time.
 
-**File placement and altitude get no audit.** Whether a file sits at the right altitude, whether a domain earned its subfolder, whether an overview has accumulated detail that belongs in a detail file: all real, all governed by `specs/methodology/spec-placement.md § Index, Architecture, Detail` and `specs/methodology/spec-placement.md § Where a File Goes`, and none of it checked here. Directory summary currency reaches the case where an overview has thinned into pointers, because that shows up as a fact its reader cannot learn. It does not reach the opposite case, an overview that has accumulated full detail. That gap is known and accepted rather than overlooked.
+**File placement and altitude get no audit —** whether a file sits at the right altitude, whether a domain earned its subfolder, whether an overview has accumulated detail that belongs in a detail file: all real, all governed by `specs/methodology/spec-placement.md § Index, Architecture, Detail` and `specs/methodology/spec-placement.md § Where a File Goes`, and none of it checked here. Directory summary currency reaches the case where an overview has thinned into pointers, because that shows up as a fact its reader cannot learn. It does not reach the opposite case, an overview that has accumulated full detail. That gap is known and accepted rather than overlooked.
 
-**Migration fidelity gets no audit**, though comparing a migration's source statements against their rewritten destinations is exactly this kind of work. Migrations are rare enough that a written method would be exercised about once, and one exercise is not enough to generalize a method from. Brief it directly when a migration happens.
+**Migration fidelity gets no audit —** though comparing a migration's source statements against their rewritten destinations is exactly this kind of work. Migrations are rare enough that a written method would be exercised about once, and one exercise is not enough to generalize a method from. Brief it directly when a migration happens.
 
 ## Traps worth knowing
 
-**A level-1 heading is the file's title, not a section.** A lineage starts below it, which is why a citation naming a top-level section resolves in a file whose first line is a title. Building lineages from level 1 down makes every same-file citation in the repo fail at once; that was the script's earliest defect, and it looked like a wall of broken citations rather than one bad assumption.
+**A level-1 heading is the file's title, not a section —** a lineage starts below it, which is why a citation naming a top-level section resolves in a file whose first line is a title. Building lineages from level 1 down makes every same-file citation in the repo fail at once; that was the script's earliest defect, and it looked like a wall of broken citations rather than one bad assumption.
 
-**Not every backtick span containing a section token is a citation.** A rule that discusses the token, or shows a forbidden heading form as an example, is the token being mentioned rather than used. Only these shapes are treated as citations:
+**Not every backtick span containing a section token is a citation —** a rule that discusses the token, or shows a forbidden heading form as an example, is the token being mentioned rather than used. Only these shapes are treated as citations:
 
 ```
 § Title
@@ -201,6 +209,6 @@ path/to/file.md § Title [Key: value; Key: value]
 
 Everything else is left alone, and every inline span is stripped before looking for a token outside one. This skill's own documentation tripped that check on its first run, which is the most direct evidence available that the distinction is needed.
 
-**Fenced blocks are stripped before anything is parsed.** Examples inside them are illustrations, not live content, and linting them produces findings nobody can act on.
+**Fenced blocks are stripped before anything is parsed —** examples inside them are illustrations, not live content, and linting them produces findings nobody can act on.
 
-**A mermaid block does not begin with `flowchart`.** Every diagram in this repo opens with a `config` frontmatter block inside the fence, so a check reading the first line fails on correct content. Match anywhere before the first node.
+**A mermaid block does not begin with `flowchart` —** every diagram in this repo opens with a `config` frontmatter block inside the fence, so a check reading the first line fails on correct content. Match anywhere before the first node.

@@ -223,7 +223,7 @@ Produced by the simulation engine (`specs/application/technical/query-service/la
 
 Produced by reconciliation (`specs/application/technical/materialization-service/reconciliation.md § Product and Geography Reconciliation`), related but distinct structures.
 
-*Product Match.*
+**Product Match —**
 
 | Field | Description |
 |---|---|
@@ -232,7 +232,7 @@ Produced by reconciliation (`specs/application/technical/materialization-service
 | match_confidence | How confident the match is, low-confidence matches are flagged for review rather than forced through |
 | match_method | Structured attribute matching or semantic matching, whichever produced the match |
 
-*Geography Crosswalk.*
+**Geography Crosswalk —**
 
 | Field | Description |
 |---|---|

@@ -12,15 +12,15 @@ PriceHorizon runs as a self-hosted installation inside each customer's own envir
 
 ## Spec of Record
 
-The interesting part of this exercise was not just the pricing domain but also the methodology, **Spec of Record**, a governed spec-as-source approach for the agentic SDLC: the discipline of keeping a specification honest as it grows. Specifications drift: a product promise and the mechanism meant to deliver it stop agreeing, a rule stated in two places changes in one, and prose reads as complete while silently leaving cases out. When AI agents write and maintain the specs, those failures arrive faster and read more confidently. The methodology is built to prevent them:
+The interesting part of this exercise was not just the pricing domain but also the methodology, Spec of Record, a governed spec-as-source approach for the agentic SDLC: the discipline of keeping a specification honest as it grows. Specifications drift: a product promise and the mechanism meant to deliver it stop agreeing, a rule stated in two places changes in one, and prose reads as complete while silently leaving cases out. When AI agents write and maintain the specs, those failures arrive faster and read more confidently. The methodology is built to prevent them:
 
-- **Two layers that answer to each other.** `specs/application/product/` states what a user can rely on, and `specs/application/technical/` states how it is made true. Each names the other, so the two cannot drift apart silently, and the technical overview maps each layer of the answer to the mechanism that produces it.
-- **One home per fact.** Everywhere else cites that home, down to the section, so a change lands in one place and everything that depends on it can be found.
-- **Structure where prose would hide gaps.** Where a rule or a process has to be checkably complete, it is written as one of an approved set of constructs, such as a decision table, a state machine, or an algorithm, because prose can describe anything but cannot be checked for what it leaves out.
-- **Unsettled decisions marked where they apply.** A decision the specs rely on but have not made is recorded as an open question at the end of the file it affects, with the answer in use until it is settled and everything that depends on it, so it is never mistaken for settled prose.
-- **A scenario for every promise.** Each capability owes, in Given, When, Then form, a statement of how each of its promises would be tested, so a promise that could never be checked shows up as one.
-- **Diagrams that cite their sources.** Each source cites the diagram back, so a change to what a drawing shows points to the drawing that needs to follow it.
-- **A methodology held to its own rules.** `specs/methodology/` is held to the rules it states.
+- **Two layers that answer to each other —** `specs/application/product/` states what a user can rely on, and `specs/application/technical/` states how it is made true. Each names the other, so the two cannot drift apart silently, and the technical overview maps each layer of the answer to the mechanism that produces it.
+- **One home per fact —** everywhere else cites that home, down to the section, so a change lands in one place and everything that depends on it can be found.
+- **Structure where prose would hide gaps —** where a rule or a process has to be checkably complete, it is written as one of an approved set of constructs, such as a decision table, a state machine, or an algorithm, because prose can describe anything but cannot be checked for what it leaves out.
+- **Unsettled decisions marked where they apply —** a decision the specs rely on but have not made is recorded as an open question at the end of the file it affects, with the answer in use until it is settled and everything that depends on it, so it is never mistaken for settled prose.
+- **A scenario for every promise —** each capability owes, in Given, When, Then form, a statement of how each of its promises would be tested, so a promise that could never be checked shows up as one.
+- **Diagrams that cite their sources —** each source cites the diagram back, so a change to what a drawing shows points to the drawing that needs to follow it.
+- **A methodology held to its own rules —** `specs/methodology/` is held to the rules it states.
 
 One fact, followed end to end: the product promises that every answer shows how it was built (`specs/application/product/trust-and-explainability/guarantees.md`), a scenario beside that promise states how it would be tested, `specs/application/technical/guarantees-mechanics.md` gathers the mechanisms that keep the promise, and the product overview's From Evidence to Answer diagram draws it, citing that promise as its source.
 

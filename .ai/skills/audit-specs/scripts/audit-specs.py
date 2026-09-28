@@ -68,6 +68,16 @@ for _type, _spec in RECORD_TYPES.items():
 # indentation before the key are no part of it.
 FIELD_LINE = re.compile(r'^(\s*)(-\s+)?\*\*([^*`]+?):\*\*(?:\s|$)')
 RECORD_SELECTOR = re.compile(r'^(.*?)\s+\[(.*)\]$')
+# modeling-constructs.md § Bold Lead-ins and § Emphasis: bold marks only a field or a dash
+# label, both opening a line, and italic, the one emphasis, never opens one.
+BOLD_SPAN = re.compile(r'\*\*(.+?)\*\*')
+# a line's opening skips indentation, a quote marker, and a list marker: -, *, + or a number
+LIST_OR_QUOTE = r'\s*(?:>\s*)*(?:(?:[-*+]|\d+[.)])\s+)?'
+LINE_OPENING = re.compile(r'^' + LIST_OR_QUOTE + r'$')
+ITALIC_OPENING = re.compile(r'^' + LIST_OR_QUOTE + r'\*(?!\*)\S')
+ODD_EMPHASIS = re.compile(r'\*\*\*|__[^_\s][^_]*__')
+BOLD_LEAD_INS = "modeling-constructs.md § Bold Lead-ins"
+EMPHASIS = "modeling-constructs.md § Emphasis"
 KEY_VALUE = re.compile(r'^([A-Z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*(?: [A-Z0-9][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*)*): (.+)$')
 UNPLAIN = re.compile(r'[*_`§;\]\[]')
 
@@ -480,6 +490,17 @@ def check(root):
         # illustration, not a dependency, and linting one produces a finding
         # nobody can act on.
         for i, line in enumerate(live.split("\n"), 1):
+            # a code span is literal text, so markup inside one is never bold or italic
+            prose = re.sub(r'`[^`]*`', lambda m: "x" * len(m.group(0)), line)
+            for m in BOLD_SPAN.finditer(prose):
+                if not LINE_OPENING.match(prose[:m.start()]):
+                    found.append((EMPHASIS, r, i, f"bold outside a line's opening: {line[m.start():m.end()][:60]}"))
+                elif not (m.group(1).endswith(":") or m.group(1).endswith(" —")):
+                    found.append((BOLD_LEAD_INS, r, i, f"bold opening a line closes on neither a colon nor a dash: {line[m.start():m.end()][:60]}"))
+            if ITALIC_OPENING.match(prose):
+                found.append((EMPHASIS, r, i, "a line opens with italic"))
+            if ODD_EMPHASIS.search(prose):
+                found.append((EMPHASIS, r, i, "bold italic or underscore bold"))
             if NUMBERED_LEAD_IN.match(line):
                 found.append(("AGENTS.md § Ordinals and Counts", r, i, "bold lead-in carries a number"))
             elif NUMBERED_ITEM.match(line):
@@ -682,6 +703,38 @@ def candidates(root):
     return out
 
 
+def literal_candidates(root):
+    """-> list of (path, line, kind, context), for the Literal text and emphasis audit.
+
+    A backtick span naming no heading, field key, path, citation, identifier or markup
+    the tree holds may be a name; an italic span of more than a few words may be stress
+    that needs structure instead. Places to read, never findings.
+    """
+    known, out, fenced = set(FIELD_KEYS), [], []
+    for f in md_files(root):
+        text = f.read_text(encoding="utf-8")
+        known.update(title for _, title in headings(text))
+        # a span written verbatim in a fenced example, a Gherkin keyword or a Mermaid
+        # directive, is literal text the tree itself shows
+        fenced += re.findall(r'^```[^\n]*\n(.*?)^```', text, re.S | re.M)
+    fenced_words = set(" ".join(fenced).split())
+    fenced_text = "\n".join(fenced)
+    literal = re.compile(r'[§/._*\[\]:=()<>#;~]|^-|^[a-z0-9-]+$')
+    for f in md_files(root):
+        rel = f.relative_to(root).as_posix()
+        for n, line in enumerate(strip_fences(f.read_text(encoding="utf-8")).split("\n"), 1):
+            for m in re.finditer(r'`([^`]+)`', line):
+                span = m.group(1)
+                if span in known or literal.search(span) or span in fenced_words or span in fenced_text:
+                    continue
+                out.append((rel, n, "backtick span that may be a name", span))
+            prose = re.sub(r'`[^`]*`', "", line)
+            for m in re.finditer(r'(?<![*\w])\*(?!\*)([^*]+?)\*(?!\*)', prose):
+                if len(m.group(1).split()) > 6:
+                    out.append((rel, n, "italic span longer than a short phrase", m.group(1)[:80]))
+    return out
+
+
 def main(argv):
     try:
         sys.stdout.reconfigure(encoding="utf-8")
@@ -706,6 +759,9 @@ def main(argv):
     if "--candidates" in argv:
         print("\nCandidates for AGENTS.md § Ordinals and Counts: places to read, not findings")
         for path, line, name, context in candidates(root):
+            print(f"  {path}:{line}  [{name}]\n    {context}")
+        print("\nCandidates for the Literal text and emphasis audit: places to read, not findings")
+        for path, line, name, context in literal_candidates(root):
             print(f"  {path}:{line}  [{name}]\n    {context}")
     return 1 if n else 0
 

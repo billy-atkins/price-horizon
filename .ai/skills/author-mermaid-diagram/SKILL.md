@@ -9,21 +9,21 @@ What a diagram is, where it goes, its form, what it may show, and how it and its
 
 ## Workflow
 
-**Find where it helps its reader most,** per `specs/methodology/modeling-constructs.md § Diagrams`.
+**Find where it helps its reader most —** per `specs/methodology/modeling-constructs.md § Diagrams`.
 
-**Altitude-check every label before drawing,** per `specs/methodology/modeling-constructs.md § Diagrams`: list each node label and edge label you intend to use, and find where the host file's own content names each. The same section sets the notation, a Mermaid flowchart.
+**Altitude-check every label before drawing —** per `specs/methodology/modeling-constructs.md § Diagrams`: list each node label and edge label you intend to use, and find where the host file's own content names each. The same section sets the notation, a Mermaid flowchart.
 
 The most common failure is rendering the source faithfully. Faithful-to-the-source is the wrong target; consistent-with-the-host is the right one. A source rendered at full fidelity drags its detail up into a host file that never discusses it, and the result reads as though the host covers things it does not. The opposite case occurs too: a fact at the host's own level of detail that the diagram needs and the host never states is often a real gap in the host, worth closing on its own terms rather than as a workaround to license a picture.
 
-**Then check each label out of its sentence.** Passing the altitude check is necessary, not sufficient. A label can be lifted verbatim from the host file and still be wrong in the diagram, because a diagram strips the sentence that qualified it. A phrase describing how much some nightly job covers, taken word for word from prose, sat next to a branch for the cases that job does not cover, and read as a flat contradiction that the prose never contained. Ask whether each label still means the same thing with its sentence removed, and whether it is attached to the thing it actually describes. That phrase described the scope of a stored result, and it had been hung on the computation that produced it.
+**Then check each label out of its sentence —** passing the altitude check is necessary, not sufficient. A label can be lifted verbatim from the host file and still be wrong in the diagram, because a diagram strips the sentence that qualified it. A phrase describing how much some nightly job covers, taken word for word from prose, sat next to a branch for the cases that job does not cover, and read as a flat contradiction that the prose never contained. Ask whether each label still means the same thing with its sentence removed, and whether it is attached to the thing it actually describes. That phrase described the scope of a stored result, and it had been hung on the computation that produced it.
 
-**Check the diagram cannot contradict the host file's prose.** Read the prose around what the diagram renders and ask whether the drawing denies anything it asserts. Containers are the usual culprit: grouping nodes into subgraphs asserts that the grouping is the real structure, which is wrong if the prose says two structures cut across one another.
+**Check the diagram cannot contradict the host file's prose —** read the prose around what the diagram renders and ask whether the drawing denies anything it asserts. Containers are the usual culprit: grouping nodes into subgraphs asserts that the grouping is the real structure, which is wrong if the prose says two structures cut across one another.
 
-**If you collapsed anything, re-check the source row by row.** Collapsing a construct's internal states into one box is legitimate, and it silently drops transitions. Walk the source table and confirm every transition is either drawn or genuinely subsumed by the box you collapsed into. A node left outside the container it was meant to be grouped into loses its edges with no error and no warning.
+**If you collapsed anything, re-check the source row by row —** collapsing a construct's internal states into one box is legitimate, and it silently drops transitions. Walk the source table and confirm every transition is either drawn or genuinely subsumed by the box you collapsed into. A node left outside the container it was meant to be grouped into loses its edges with no error and no warning.
 
-**Give it its caption and its sources, and cite it from each source,** per `specs/methodology/modeling-constructs.md § Diagrams`. The citation back is the one that gets forgotten, since it lands in a file the author was not otherwise editing, so add it in the same change; `.ai/skills/audit-specs/scripts/audit-specs.py` checks both.
+**Give it its caption and its sources, and cite it from each source —** per `specs/methodology/modeling-constructs.md § Diagrams`. The citation back is the one that gets forgotten, since it lands in a file the author was not otherwise editing, so add it in the same change; `.ai/skills/audit-specs/scripts/audit-specs.py` checks both.
 
-**Render it and look at it. Not optional.** Hand-tracing Mermaid grammar catches parse errors and nothing else. Layout and semantic defects survive hand-tracing intact and die on first render. Run this skill's `scripts/author-mermaid-diagram.py` from the project root, then read the PNG it writes:
+**Render it and look at it —** rendering is not optional: hand-tracing Mermaid grammar catches parse errors and nothing else. Layout and semantic defects survive hand-tracing intact and die on first render. Run this skill's `scripts/author-mermaid-diagram.py` from the project root, then read the PNG it writes:
 
     python <skill-dir>/scripts/author-mermaid-diagram.py path/to/file.md --all      # every block
     python <skill-dir>/scripts/author-mermaid-diagram.py path/to/file.md --list     # what blocks exist, and the name each renders to
@@ -57,11 +57,11 @@ Put `classDef` before the `class` statements that reference it. Either order par
 
 ## What you cannot control
 
-**Subgraph placement order.** There is no mechanism for it. `A ~~~ B`, the invisible link, constrains node rank and does not move clusters; tested directly against subgraphs and the placement did not change at all. Flipping `TD` to `LR` only moves the problem to the other axis. So a diagram whose meaning depends on one cluster reading before another is a diagram the layout engine may silently invert, and the only reliable fixes are structural: merge the clusters, put the ordering in the labels where a reader cannot miss it, or accept that this subject does not want to be two clusters. If a diagram fights this more than twice, that is evidence about the diagram, not about the tool.
+**Subgraph placement order —** there is no mechanism for it. `A ~~~ B`, the invisible link, constrains node rank and does not move clusters; tested directly against subgraphs and the placement did not change at all. Flipping `TD` to `LR` only moves the problem to the other axis. So a diagram whose meaning depends on one cluster reading before another is a diagram the layout engine may silently invert, and the only reliable fixes are structural: merge the clusters, put the ordering in the labels where a reader cannot miss it, or accept that this subject does not want to be two clusters. If a diagram fights this more than twice, that is evidence about the diagram, not about the tool.
 
-**`direction` inside a subgraph, reliably.** The documented rule is that if any node in a subgraph is linked from outside it, the subgraph's own `direction` is ignored and it inherits the parent graph's. In practice it may be honoured anyway depending on which layout engine is running, which is worse than it simply not working: the diagram looks right, and is one renderer change away from silently reflowing. Check the render rather than trusting the directive, and do not build a diagram whose readability rests on it.
+**`direction` inside a subgraph, reliably —** the documented rule is that if any node in a subgraph is linked from outside it, the subgraph's own `direction` is ignored and it inherits the parent graph's. In practice it may be honoured anyway depending on which layout engine is running, which is worse than it simply not working: the diagram looks right, and is one renderer change away from silently reflowing. Check the render rather than trusting the directive, and do not build a diagram whose readability rests on it.
 
-**Which renderer the reader gets, unless you pin it.** Pin the layout engine in front matter on every checked-in diagram:
+**Which renderer the reader gets, unless you pin it —** pin the layout engine in front matter on every checked-in diagram:
 
     ---
     config:
@@ -95,10 +95,10 @@ The check: if you deleted the edges between a set of nodes and lost nothing, the
 
 Once a document set has more than one diagram, they are read as a family, and a convention that shifts between them misleads a reader who has just learned it. Check a new diagram against every existing one for:
 
-- **A concept drawn two ways.** The same cross-cutting thing was drawn with directed arrows in one diagram and undirected in another, which told a reader it flowed *into* the pipeline in one place and *out of* it in another. Pick the grammar that matches what the prose actually claims, then fix the other diagram in the same pass rather than leaving the pair inconsistent.
-- **A colour that means two things.** Green established as "finished successfully" in one diagram, then reused for an intermediate output in another, teaches the reader something false the second time.
-- **One thing under several names.** A start node called "Question asked", "A question", and "An executive question" across diagrams is as many concepts to a reader who does not already know they are one.
-- **Shape drift.** If terminals are stadiums in one diagram, they are stadiums everywhere.
+- **A concept drawn two ways —** the same cross-cutting thing was drawn with directed arrows in one diagram and undirected in another, which told a reader it flowed *into* the pipeline in one place and *out of* it in another. Pick the grammar that matches what the prose actually claims, then fix the other diagram in the same pass rather than leaving the pair inconsistent.
+- **A colour that means two things —** green established as "finished successfully" in one diagram, then reused for an intermediate output in another, teaches the reader something false the second time.
+- **One thing under several names —** a start node called "Question asked", "A question", and "An executive question" across diagrams is as many concepts to a reader who does not already know they are one.
+- **Shape drift —** if terminals are stadiums in one diagram, they are stadiums everywhere.
 
 The cost of fixing this rises with each diagram added, and the fix usually means editing something already shipped. Do it anyway; the alternative is a reader learning a grammar that is only locally true.
 

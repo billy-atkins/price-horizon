@@ -8,9 +8,9 @@ A citing location may add the context specific to its own use, the part that wou
 
 Before adding a paragraph that states a general rule, check whether that rule already has a home. If it does, cite it as the paragraphs above describe. If it is being stated for the first time, decide its home deliberately: the file whose subject it is, not the file that happened to need it first, so the next place that needs it can cite rather than restate.
 
-**Why the discipline is strict.** Two correct copies of a rule read identically on the day they are written. They diverge later, when one is edited and the other is not, and nothing about reading either one reveals that the other exists. A rule with two homes is not redundant, it is a defect waiting for its first amendment.
+**Why the discipline is strict —** two correct copies of a rule read identically on the day they are written. They diverge later, when one is edited and the other is not, and nothing about reading either one reveals that the other exists. A rule with two homes is not redundant, it is a defect waiting for its first amendment.
 
-**Pointers may repeat; rules may not.** Several files may cite the same home, and having many citations to one home is the point of there being one home. What no file may do is restate what the cited file says.
+**Pointers may repeat; rules may not —** several files may cite the same home, and having many citations to one home is the point of there being one home. What no file may do is restate what the cited file says.
 
 ## Which Citations Are Allowed
 
@@ -26,7 +26,7 @@ AGENTS.md
 
 `AGENTS.md`'s rules apply to the whole project and the methodology's to every spec (`AGENTS.md § Writing specs`); a product spec states what a user can rely on and a technical spec how it is made true (`specs/methodology/spec-placement.md § Product or Technical`).
 
-**A citation names where a fact lives. Cited down a layer, it directs the reader where to look for a specific reason. Cited up a layer, it gives background that benefits the local text.**
+A citation names where a fact lives. Cited down a layer, it directs the reader where to look for a specific reason. Cited up a layer, it gives background that benefits the local text.
 
 | From | May cite |
 |---|---|
@@ -54,7 +54,7 @@ A heading's title is a stable slug for whatever the section covers, not prose to
 
 A numbered heading, or one counting its children, is the heading case of `AGENTS.md § Ordinals and Counts`. A heading pays for it twice, since its title is also the text of every citation naming it: renumbering sections, or retitling one whose count went stale, changes those citations as well.
 
-**Bold lead-ins are not headings.** A bold lead-in (`specs/methodology/modeling-constructs.md § Bold Lead-ins`) has none of the guarantees a heading carries, starting with enforced uniqueness. It has no citation form either, per `§ Writing a Citation`, so a paragraph that is or needs to be a citation's target is authored as a child heading instead, which gets every rule above rather than needing a workaround. A record (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) is the one exception, cited by the form of its own `§ Writing a Citation` gives. Do not promote one pre-emptively on the chance it might be cited; only once it actually is, or once its section states that its entries exist to be cited.
+**Bold lead-ins are not headings —** a bold lead-in (`specs/methodology/modeling-constructs.md § Bold Lead-ins`) has none of the guarantees a heading carries, starting with enforced uniqueness. It has no citation form either, per `§ Writing a Citation`, so a paragraph that is or needs to be a citation's target is authored as a child heading instead, which gets every rule above rather than needing a workaround. A record (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) is the one exception, cited by the form of its own `§ Writing a Citation` gives. Do not promote one pre-emptively on the chance it might be cited; only once it actually is, or once its section states that its entries exist to be cited.
 
 ## Writing a Citation
 
@@ -78,16 +78,16 @@ A section is named by its full lineage of heading titles, one segment per level 
 
 A record (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) is named by the citation of the record section holding it, then a space and, in square brackets inside the same span, each of its identifying fields as `Key: value`, in the order its type's table gives them, separated by a semicolon and a space, like a query parameter selecting one record from the section: `[Name: Retry Policy]` after an Open Questions section's citation, or `[Region: Texas; Horizon: 6 Months]` for a type identified by two fields. An identifying value holds no semicolon (`specs/methodology/modeling-constructs.md § Constructs § Record Form`), so each pair is split at `; `, and each value is compared with the record's after trimming the space around it, and must match exactly, as a title does.
 
-**What cannot be cited.** There is no form for citing a bold lead-in or any other non-heading content but a record; `§ Titling a Heading` says when such content becomes a heading. A directory's `index.md` carries no heading lineage of its own, and it is not a place a citation is written either.
+**What cannot be cited —** there is no form for citing a bold lead-in or any other non-heading content but a record; `§ Titling a Heading` says when such content becomes a heading. A directory's `index.md` carries no heading lineage of its own, and it is not a place a citation is written either.
 
-**A title that names a kind of section rather than one particular section** resolves to no single heading anywhere, so it is not a citation and takes no `§`. A rule referring to `Test Scenarios` generally, where the level varies by context, names a kind; a rule referring to one file's own `## Diagrams` names a section.
+**A title that names a kind of section rather than one particular section —** it resolves to no single heading anywhere, so it is not a citation and takes no `§`. A rule referring to `Test Scenarios` generally, where the level varies by context, names a kind; a rule referring to one file's own `## Diagrams` names a section.
 
 ## Keeping Companions in Step
 
 Some facts are stated once and rendered in more than one place. Those renderings are not second homes, and they do not keep themselves current.
 
-**A product spec and its technical counterpart.** When a fact changes in one, check whether the other needs a matching update. That the two name each other at all is `specs/methodology/spec-placement.md § Product or Technical`'s requirement; what it does not do is keep them current, which is this duty.
+**A product spec and its technical counterpart —** when a fact changes in one, check whether the other needs a matching update. That the two name each other at all is `specs/methodology/spec-placement.md § Product or Technical`'s requirement; what it does not do is keep them current, which is this duty.
 
-**A directory's own `architecture.md`.** It is a synchronization target, not a first-written source. Its prose, its citations, and its mapping tables each restate or render a fact whose real home is elsewhere. When that fact changes, check whether `architecture.md` needs a matching update too.
+**A directory's own `architecture.md` —** it is a synchronization target, not a first-written source. Its prose, its citations, and its mapping tables each restate or render a fact whose real home is elsewhere. When that fact changes, check whether `architecture.md` needs a matching update too.
 
-**A diagram, wherever it sits.** It renders the sections and records its Sources list names, each of which names it back (`specs/methodology/modeling-constructs.md § Diagrams`). When one of them changes, check whether the diagram needs a matching update too.
+**A diagram, wherever it sits —** it renders the sections and records its Sources list names, each of which names it back (`specs/methodology/modeling-constructs.md § Diagrams`). When one of them changes, check whether the diagram needs a matching update too.
