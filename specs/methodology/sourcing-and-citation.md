@@ -4,9 +4,9 @@ Where a fact lives, how the place holding it is named, and how everywhere else p
 
 Every rule, definition, or design principle that could matter in more than one place has exactly one home: the file whose subject matter it most specifically belongs to. Every other place that needs it cites that home rather than restating it in its own words.
 
-A citing location may add the context specific to its own use, the part that would not make sense anywhere else. It never re-derives or re-explains the rule itself.
+**Citing a rule where it applies —** a place applying another file's rule, definition or principle cites its home and may add what only that place can say: how the rule applies there, and why it matters there. Clean-as-you-go is one principle in a home garage, a commercial kitchen and a medical facility, yet what it asks of the hands and what hangs on it differ in each. An agent meets the rule where it acts, so the citing place states the application wherever an agent reading only that place would apply the rule wrongly, and the reason wherever that agent would not see why it matters there; a bare citation is enough where neither holds. What a citing place never does is re-derive or re-explain the rule, or add a rule of its own about the cited subject, which would be a second home with a citation attached: a duty that would hold wherever the rule applies belongs in the rule's home, and one that holds only because of the citing place's own subject is its application.
 
-Before adding a paragraph that states a general rule, check whether that rule already has a home. If it does, cite it as the paragraphs above describe. If it is being stated for the first time, decide its home deliberately: the file whose subject it is, not the file that happened to need it first, so the next place that needs it can cite rather than restate.
+Before adding a paragraph that states a general rule, check whether that rule already has a home. If it does, cite it as the paragraphs above describe. If it is being stated for the first time, decide its home deliberately: the file whose subject it is, not the file that happened to need it first, so the next place that needs it can cite rather than restate. A rule several files use and none owns has its home in the narrowest file covering every use, since a home above every use overstates how far the rule reaches.
 
 **Why the discipline is strict —** two correct copies of a rule read identically on the day they are written. They diverge later, when one is edited and the other is not, and nothing about reading either one reveals that the other exists. A rule with two homes is not redundant, it is a defect waiting for its first amendment.
 
@@ -58,7 +58,7 @@ A numbered heading, or one counting its children, is the heading case of `specs/
 
 ## Writing a Citation
 
-A citation must let a cold reader follow it without guessing or reopening files to re-derive the location.
+A citation must let a cold reader follow it without guessing or reopening files to re-derive the location, and find at its target what the citer attributes to it.
 
 The token for referencing a section is `§`, with a space on each side. Each form below is written inside a single backtick span, never split across spans and never left as bare prose:
 

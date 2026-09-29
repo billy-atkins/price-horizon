@@ -2,9 +2,8 @@
 """Checks the project against the rules that govern it, mechanically.
 
 Every check enforces one stated rule and names it, so a failure points at the rule
-rather than only at a line. Nothing here needs judgment: a check that cannot decide
-is worse than no check, because a confident false clear is harder to notice than a
-missing one. `--candidates` decides nothing either: it lists places for a reading
+rather than only at a line. Nothing here needs judgment, per
+specs/methodology/scope.md § Rules and Skills. `--candidates` lists places for a reading
 audit to look, printed apart from the findings and never affecting the exit status.
 
 Standard library only. See SKILL.md.
@@ -18,7 +17,7 @@ from pathlib import Path
 # specs by their place under specs/, the agent instructions by the root AGENTS.md and
 # specs/AGENTS.md, and skills by the registry, read at run time. The places and names below
 # are the ones scope.md's table gives, and scope_findings checks the table still says so;
-# the working files are outside the script until their forms are record forms.
+# the working files are outside the script, read by the Working-file form audit instead.
 SCOPE_HOME = "scope.md § What Spec of Record Governs"
 SCOPE_KINDS = {"Agent instructions", "Specs", "Skills", "Working files"}
 REGISTRY = "specs/methodology/skills.md"

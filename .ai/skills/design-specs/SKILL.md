@@ -47,7 +47,7 @@ The rule for each step is named at the step, because that is where it is needed.
 
 **Scope the change —** per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, and draft it as a design entry, per `specs/methodology/working-files.md § A Design Entry`.
 
-**Find the fact's existing home —** grep before drafting, per `specs/methodology/sourcing-and-citation.md § One Home Per Fact`. If it has one, the work is a citation plus whatever delta is specific to the new location, and most of the steps below do not apply.
+**Find the fact's existing home —** grep before drafting, per `specs/methodology/sourcing-and-citation.md § One Home Per Fact`. If it has one, the work is a citation, plus what that section asks of a citing place, and most of the steps below do not apply.
 
 **Decide which spec it belongs to —** `specs/methodology/spec-placement.md § Product or Technical`. Before editing a technical file, read the product files whose `technical-specs` name it, per `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability`.
 
@@ -79,7 +79,7 @@ Not after. Not during review. Before, because once a well-formed paragraph exist
 
 The search is cheap and mechanical. Take the fact's distinctive nouns and grep for each. Take the rule's governing verb and grep for that. If a search returns a document already covering the subject, read it before writing anything, even when you are confident it says something different.
 
-What to do when you find one is not a judgment call: `specs/methodology/sourcing-and-citation.md § One Home Per Fact` says cite the home and write only the delta specific to the new location, never re-derive or re-explain the rule. Deciding a home for the first time is the same section, and it turns on whose subject the rule is, not which file happened to need it first.
+`specs/methodology/sourcing-and-citation.md § One Home Per Fact` says what to do when you find one: cite the home, and add what it asks of a citing place. Deciding a home for the first time is the same section, and it turns on whose subject the rule is, not which file happened to need it first.
 
 **Your own recent work is not exempt —** a document you edited earlier in the session is searched and read like any other, per `§ Recall picks the direction; the file supplies the words`.
 
