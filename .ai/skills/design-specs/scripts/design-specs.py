@@ -10,6 +10,7 @@ and a checker catching only quoted text lets a wrong heading through unnoticed:
 
   anchors    quoted text exists, exactly once, in the file named
   citations  every `path.md § A § B` in the proposal resolves to that heading
+  specs      every design entry's Target stays within the kind its Specs declares
 
 Standard library only. See SKILL.md for the manifest format.
 """
@@ -20,6 +21,7 @@ from pathlib import Path
 
 USAGE = """usage: design-specs.py anchors <manifest|->
        design-specs.py citations <proposal.md>
+       design-specs.py specs <designs.md>
 
   anchors    Verifies each anchor in the manifest appears exactly once in its file.
 
@@ -31,7 +33,57 @@ USAGE = """usage: design-specs.py anchors <manifest|->
              real heading lineage. A same-file citation is skipped: a proposal is
              not the file it cites into, so a bare section token has no referent
              to check against.
+
+  specs      Verifies each design entry's Specs line is canon, application or
+             neither, and every file on its Target line is of that kind or of
+             neither: canon is specs/AGENTS.md, a file under specs/methodology/,
+             or a registered skill's files; application is a file under
+             specs/application/. A neither entry names no file of either kind.
 """
+
+REGISTRY = "specs/methodology/skills.md"
+KINDS = ("canon", "application", "neither")
+
+
+def kind_of(path, skills):
+    """canon, application, or None for a file of neither kind."""
+    if path == "specs/AGENTS.md" or path.startswith("specs/methodology/"):
+        return "canon"
+    if any(path.startswith(".ai/skills/" + n + "/") for n in skills):
+        return "canon"
+    if path.startswith("specs/application/"):
+        return "application"
+    return None
+
+
+def check_specs(designs, root):
+    """-> (entries, [(entry title, problem)]) for each design entry whose Target strays from its Specs."""
+    reg = root / REGISTRY
+    skills = re.findall(r"^\| `([a-z0-9-]+)` \|", reg.read_text(encoding="utf-8"), re.M) if reg.exists() else []
+    if not skills:
+        return 0, [(REGISTRY, "no registered skills read, so a skill's files cannot be classified")]
+    text = Path(designs).read_text(encoding="utf-8").replace("\r\n", "\n")
+    problems, entries = [], re.split(r"^## ", text, flags=re.M)[1:]
+    for e in entries:
+        title = e.split("\n", 1)[0].strip()
+        spec = re.search(r"^\*\*Specs:\*\* (\S+)\s*$", e, re.M)
+        target = re.search(r"^\*\*Target:\*\* (.*)$", e, re.M)
+        if not spec:
+            problems.append((title, "no Specs line"))
+            continue
+        value = spec.group(1)
+        if not target:
+            problems.append((title, "no Target line"))
+            continue
+        if value not in KINDS:
+            problems.append((title, "Specs is not canon, application or neither: " + value))
+            continue
+        for path in re.findall(r"`([^`]+)`", target.group(1) if target else ""):
+            k = kind_of(path, skills)
+            if k and k != value:
+                article = lambda w: ("an " if w[0] in "aeiou" else "a ") + w
+                problems.append((title, "Target names %s file in %s design: %s" % (article(k), article(value), path)))
+    return len(entries), problems
 
 # `path/to/file.md § Parent § Child`. A span carrying no path is a same-file
 # citation and is not checked here; see USAGE.
@@ -180,9 +232,20 @@ def check(path, anchor, root):
 
 
 def main(argv):
-    if len(argv) != 3 or argv[1] not in ("anchors", "citations"):
+    if len(argv) != 3 or argv[1] not in ("anchors", "citations", "specs"):
         sys.stderr.write(USAGE)
         return 2
+
+    if argv[1] == "specs":
+        try:
+            count, problems = check_specs(argv[2], Path.cwd())
+        except OSError as exc:
+            sys.stderr.write("cannot read designs: %s\n" % exc)
+            return 2
+        for title, problem in problems:
+            print("%s\n  %s" % (title, problem))
+        print("\n%d design entr%s, %d problem%s" % (count, "y" if count == 1 else "ies", len(problems), "" if len(problems) == 1 else "s"))
+        return 1 if problems else 0
 
     if argv[1] == "citations":
         try:

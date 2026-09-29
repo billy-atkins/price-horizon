@@ -9,6 +9,7 @@ audit to look, printed apart from the findings and never affecting the exit stat
 Standard library only. See SKILL.md.
 """
 
+import posixpath
 import re
 import sys
 from pathlib import Path
@@ -22,7 +23,7 @@ SCOPE_HOME = "scope.md § What Spec of Record Governs"
 SCOPE_KINDS = {"Agent instructions", "Specs", "Skills", "Working files"}
 REGISTRY = "specs/methodology/skills.md"
 REGISTRY_RULE = "skills.md § Registered Skills"
-AUTHORING = "specs/AGENTS.md § Authoring Skills"
+AUTHORING = "specs/methodology/skills.md § Authoring a Skill"
 SCOPE_TREE = "specs/methodology/scope.md"
 SPECS_AGENTS = "specs/AGENTS.md"
 GLOSSARY = "specs/methodology/glossary.md"
@@ -587,8 +588,10 @@ def check(root):
 
                 # lineage resolves
                 if path not in known:
-                    found.append(("sourcing-and-citation.md § Writing a Citation", r, i,
-                                  f"cites a file that does not exist: {path}"))
+                    relative = posixpath.normpath(posixpath.join(posixpath.dirname(r), path))
+                    problem = (f"not a project-root path: {path}" if relative in known
+                               else f"cites a file that does not exist: {path}")
+                    found.append(("sourcing-and-citation.md § Writing a Citation", r, i, problem))
                     continue
                 if target not in lineage[path]:
                     found.append(("sourcing-and-citation.md § Writing a Citation", r, i,
@@ -604,10 +607,10 @@ def check(root):
                     found.append(("sourcing-and-citation.md § Writing a Citation", r, i,
                                   "cites an index.md, which is never a citation target"))
 
-                # cross-file citations use a project-root path
-                if path != r and not path.startswith("specs/") and path != "AGENTS.md":
-                    found.append(("sourcing-and-citation.md § Writing a Citation", r, i,
-                                  f"not a project-root path: {path}"))
+                # a skill's files cite into .ai/skills/ only that skill's own
+                if path.startswith(".ai/skills/") and path.split("/")[2] != (
+                        r.split("/")[2] if r.startswith(".ai/skills/") else None):
+                    found.append((AUTHORING, r, i, f"cites another skill's file: {path}"))
 
         # bare § outside a backtick span. Every inline span is stripped, not only the
         # ones that parse as citations, since the rule is about the span and not the form.
@@ -739,15 +742,22 @@ def image_findings(root):
     return found
 
 
-def first_table(text, title, column=None):
-    """-> (header cells, rows of cells) of the first table in the level-2 section titled
-    `title` whose header holds `column`, or of its first table where no column is given; or None."""
+def level2_section(text, title):
+    """-> the body of the level-2 section titled `title`, or None."""
     m = re.search(r'^## ' + re.escape(title) + r'\s*$', text, re.M)
     if not m:
         return None
     body = text[m.end():]
     nxt = re.search(r'^## ', body, re.M)
-    body = body[:nxt.start()] if nxt else body
+    return body[:nxt.start()] if nxt else body
+
+
+def first_table(text, title, column=None):
+    """-> (header cells, rows of cells) of the first table in the level-2 section titled
+    `title` whose header holds `column`, or of its first table where no column is given; or None."""
+    body = level2_section(text, title)
+    if body is None:
+        return None
     cells = lambda l: [c.strip() for c in l.strip().strip("|").split("|")]
     tables, cur = [], []
     for l in body.split("\n") + [""]:
@@ -762,14 +772,32 @@ def first_table(text, title, column=None):
     return None
 
 
+def workflow_citations(root):
+    """-> {(path, section)} each registered skill's steps cite, under ## Workflow in its SKILL.md
+    and in each of its references, from the first step on: a Workflow's opening paragraph is
+    not a step."""
+    cited = set()
+    for n in registry(root)[0]:
+        d = root / ".ai/skills" / n
+        for f in [d / "SKILL.md"] + sorted((d / "references").glob("*.md")):
+            body = level2_section(strip_fences(f.read_text(encoding="utf-8")), "Workflow") if f.exists() else None
+            first = re.search(r'^(?:### |\*\*)', body or "", re.M)
+            for m in CITATION.finditer(body[first.start():] if first else ""):
+                path, _, target = m.group(1).partition(" § ")
+                if target:
+                    cited.add((path.strip(), target.strip()))
+    return cited
+
+
 def coverage_findings(root):
     """Every section of specs/AGENTS.md and of the methodology's files, its overview aside, is
     named, itself or through a section it sits under, in the rule column of one of the audit
-    skill's coverage tables."""
+    skill's coverage tables; and each operating rule is cited, itself or through a section it
+    sits under, by a step of a registered skill's Workflow, which is where its step is found."""
     sk = root / AUDIT_SKILL
     if not sk.exists():
         return [(COVERAGE_RULE, AUDIT_SKILL, 0, "the audit skill is missing, so no rule's check is named")]
-    text, named, found = sk.read_text(encoding="utf-8"), set(), []
+    text, named, operating, found = sk.read_text(encoding="utf-8"), set(), set(), []
     for title, column in COVERAGE_TABLES:
         table = first_table(text, title, column)
         if table is None:
@@ -781,6 +809,13 @@ def coverage_findings(root):
                 path, _, target = m.group(1).partition(" § ")
                 if target:
                     named.add((path.strip(), target.strip()))
+                    if title == COVERAGE_TABLES[1][0]:
+                        operating.add((path.strip(), target.strip()))
+    cited = workflow_citations(root)
+    for path, target in sorted(operating):
+        if not any(p == path and (s == target or target.startswith(s + " § ")) for p, s in cited):
+            found.append((COVERAGE_RULE, AUDIT_SKILL, 0,
+                          f"no registered skill's Workflow step cites the operating rule {path} § {target}"))
     for f in [root / SPECS_AGENTS] + sorted((root / "specs/methodology").glob("*.md")):
         rel = f.relative_to(root).as_posix()
         if not f.exists() or f.name in ("architecture.md", "index.md"):
@@ -1020,7 +1055,7 @@ def scope_findings(root):
 
 
 def skill_findings(root, names):
-    """specs/AGENTS.md § Authoring Skills, for each registered skill."""
+    """specs/methodology/skills.md § Authoring a Skill, for each registered skill."""
     found = []
     for n in names:
         d = root / ".ai/skills" / n
@@ -1036,6 +1071,8 @@ def skill_findings(root, names):
             found.append((AUTHORING, rel, 1, f"front matter name is not the kebab-case directory name {n}"))
         if not meta.get("description", "").strip():
             found.append((AUTHORING, rel, 1, "front matter has no description"))
+        if level2_section(strip_fences((d / "SKILL.md").read_text(encoding="utf-8")), "Workflow") is None:
+            found.append((AUTHORING, rel, 0, "SKILL.md has no ## Workflow section"))
         if (d / "scripts").is_dir() and not (d / "scripts" / (n + ".py")).exists():
             found.append((AUTHORING, f".ai/skills/{n}/scripts", 0, f"no entry-point script named {n}.py"))
     return found
@@ -1093,7 +1130,7 @@ def candidates(root):
 
 def skill_candidates(root):
     """An unregistered skill whose SKILL.md cites the method's rules, which may belong to the
-    method or may simply follow Authoring Skills; and a registered skill's script importing
+    method or may simply follow Authoring a Skill; and a registered skill's script importing
     from outside the standard library, which the rule allows where the standard library
     cannot serve. Places to read, never findings."""
     out, names = [], set(registry(root)[0])

@@ -15,4 +15,4 @@ This project is specified with Spec of Record, whose entry point is `specs/AGENT
 ## Repo conventions
 
 - This is a proposal and research repo, not a codebase. Do not scaffold application code here unless explicitly asked to build a prototype.
-- This project's instructions are held to `specs/AGENTS.md § Agent Agnostic`. Its opt-in helpers are `scripts/setup-claude-skills.ps1` and `scripts/setup-claude-skills.sh`, which link `.ai/skills/` into the directory Claude Code loads skills from; `README.md` says how to run them.
+- This project's instructions are held to `specs/methodology/scope.md § Agent Agnostic`. Its opt-in helpers are `scripts/setup-claude-skills.ps1` and `scripts/setup-claude-skills.sh`, which link `.ai/skills/` into the directory Claude Code loads skills from; `README.md` says how to run them.

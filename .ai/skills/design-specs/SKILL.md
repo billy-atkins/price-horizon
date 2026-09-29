@@ -1,6 +1,6 @@
 ---
 name: design-specs
-description: Propose or revise content in this repo's specifications. Use when adding a rule, reconciling two documents that disagree, closing a gap found in an audit or review, coining a term, or taking a change through DRR. Routes to the conventions that govern the work, and covers the failures that recur in it, duplicating a rule that already has a home, distorting a fact while compressing it, and proposing edits whose anchors do not exist.
+description: Propose or revise a specification, the canon or the application specs. Use when adding or changing a capability, a guarantee, a mechanism, a rule, a term or a skill, reconciling two documents that disagree, closing a gap an audit or review found, or taking a change through DRR. Its Workflow gives each rule it applies a point-of-use citation and forks at the kind of specification changed into a reference for that kind, and it covers the failures that recur in the work, duplicating a rule that already has a home, distorting a fact while compressing it, and proposing edits whose anchors do not exist.
 ---
 
 # Designing specifications
@@ -11,67 +11,67 @@ That is the difficulty. A sentence you are about to write is almost always corre
 
 This skill does not restate the repo's conventions, which would be the same defect it exists to prevent. It says where they are and what recurs when applying them.
 
-## Where the governing rules live
-
-| Doing this | The rule is here |
-|---|---|
-| Deciding product spec versus technical spec | `specs/methodology/spec-placement.md § Product or Technical` |
-| Deciding index, architecture, or detail file | `specs/methodology/spec-placement.md § Index, Architecture, Detail` |
-| Placing a new product capability, or naming a domain | `specs/methodology/spec-placement.md § Naming a Capability Domain` |
-| Deciding whether a rule may be restated | `specs/methodology/sourcing-and-citation.md § One Home Per Fact` |
-| Writing a citation, or naming a section | `specs/methodology/sourcing-and-citation.md § Writing a Citation` |
-| Deciding whether a citation may be written here | `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` |
-| Finding which files Spec of Record governs | `specs/methodology/scope.md` |
-| Deciding whether a skill is part of the method | `specs/methodology/skills.md` |
-| Meeting a term Spec of Record gives a meaning of its own | `specs/methodology/glossary.md` |
-| Coining a term Spec of Record gives a meaning of its own | `specs/methodology/glossary.md § Writing an Entry` |
-| Writing a number, a count, or a reference to an item's position | `specs/AGENTS.md § Ordinals and Counts` |
-| Adding or retitling a heading | `specs/methodology/sourcing-and-citation.md § Titling a Heading` |
-| Writing or updating acceptance scenarios | `specs/methodology/acceptance-scenarios.md § Acceptance Scenarios` |
-| Linking a product file to its technical files | `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` |
-| Removing drafting residue and hedged framing | `specs/methodology/spec-style.md § What a Finished Spec Reads Like` |
-| Taking work through Design, Refactor, Refine | `specs/AGENTS.md § Design, Refactor, Refine (DRR)` |
-| Giving a rule its check | `specs/methodology/scope.md § Rules and Skills` |
-| Recording a proposed change, or work to take up later | `specs/methodology/working-files.md § A Design Entry`, `specs/methodology/working-files.md § A Follow-up` |
-| Describing a rule, a process, or an entity's behavior | `specs/methodology/modeling-constructs.md` |
-| Recording a decision the specs rely on but have not made | `specs/methodology/spec-placement.md § An Open Question` |
-| Writing a field, a bold lead-in, emphasis, literal text, or an entry of a repeated kind | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Emphasis`, `specs/methodology/modeling-constructs.md § Literal Text`, `specs/methodology/modeling-constructs.md § Constructs § Record Form` |
-| Keeping a counterpart spec, an `architecture.md` or a diagram in step | `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step` |
-| Adding, changing, or re-checking a diagram | `specs/methodology/modeling-constructs.md § Diagrams` for where it goes, its form, what it may show and how it and its sources cite each other, then `.ai/skills/author-mermaid-diagram/` |
-
 ## Workflow
 
-The rule for each step is named at the step, because that is where it is needed. Finding the fact's existing home, synchronizing whatever restates what you changed, and verifying anchors and citations mechanically are where the defects below actually get caught.
+Each step applying a rule carries its point-of-use citation (`specs/methodology/sourcing-and-citation.md § One Home Per Fact`). Finding the fact's existing home, synchronizing whatever restates what you changed, and verifying anchors and citations mechanically are where the defects below actually get caught.
 
-**Start from the entry point —** `specs/AGENTS.md`, then `specs/methodology/glossary.md`, and a directory's `index.md` before working in it, per `specs/methodology/scope.md § Progressive Disclosure`.
+### Start from the entry point
 
-**Scope the change —** per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, and draft it as a design entry, per `specs/methodology/working-files.md § A Design Entry`.
+`specs/AGENTS.md`, then `specs/methodology/glossary.md`, and a directory's `index.md` before working in it, per `specs/methodology/scope.md § Progressive Disclosure` and `specs/methodology/scope.md § The Shape of the Scope`.
 
-**Find the fact's existing home —** grep before drafting, per `specs/methodology/sourcing-and-citation.md § One Home Per Fact`. If it has one, the work is a citation, plus what that section asks of a citing place, and most of the steps below do not apply.
+### Scope the change
 
-**Decide which spec it belongs to —** `specs/methodology/spec-placement.md § Product or Technical`. Before editing a technical file, read the product files whose `technical-specs` name it, per `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability`.
+Scope it per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, and draft it as a design entry, per `specs/methodology/working-files.md § A Design Entry`, its Specs line settling the change's kind before any file is edited.
 
-**Decide its altitude, and its file —** `specs/methodology/spec-placement.md § Index, Architecture, Detail` for index versus architecture versus detail. For a product capability, `specs/methodology/spec-placement.md § Naming a Capability Domain` first, then `specs/methodology/spec-placement.md § Where a File Goes`'s test for subfolder versus root file.
+### Fork on the kind of specification
 
-**Check whether a construct applies before writing prose —** `specs/methodology/modeling-constructs.md § Purpose` decides whether a passage is a construct or prose, and `specs/methodology/modeling-constructs.md § When to Use Which` which construct it is.
+Every change is of a kind, and this skill forks on it (`specs/AGENTS.md § Writing specs`). A change to the canon also reads `.ai/skills/design-specs/references/canon-specs.md`, a change to the application specs `.ai/skills/design-specs/references/app-specs.md`: each holds the steps only that kind owes, in the order this Workflow reaches them, each naming the step it joins. A `neither` change reads neither, except that one editing the project's root `AGENTS.md` reads the canon reference, whose step adding or changing a skill holds both `AGENTS.md` files to agent-agnostic instructions.
 
-**Draft with the source file open —** anything compressed from another file is compared against it clause by clause, not re-read in isolation.
+### Find the fact's existing home
 
-**Write the references —** `specs/methodology/sourcing-and-citation.md § Writing a Citation` for citing a section, `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` for whether it may point where it does, `specs/methodology/sourcing-and-citation.md § Titling a Heading` for any heading added or retitled, `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` when a technical file now fulfills a product file's capability.
+Grep before drafting, per `specs/methodology/sourcing-and-citation.md § One Home Per Fact`. If it has one, the work is a citation, plus what that section asks of a citing place, and most of the steps below do not apply.
 
-**Update the scenarios in the same pass —** `specs/methodology/acceptance-scenarios.md § Keeping a Scenario and Its Prose in Step`.
+### Decide its altitude, and its file
 
-**Give a changed rule its check —** `specs/methodology/scope.md § Rules and Skills`.
+`specs/methodology/spec-placement.md § Index, Architecture, Detail` for index versus architecture versus detail, and `specs/methodology/spec-placement.md § Where a File Goes` for which file.
 
-**Synchronize whatever restates what you changed —** `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`. A section you changed that a diagram renders cites that diagram, wherever it sits, so the diagram to re-check is named in the text you just edited.
+### Check whether a construct applies before writing prose
 
-A diagram is the easiest rendering to leave stale and the hardest to notice, because a wrong one is invisible in source and obvious only once rendered. Authoring or re-checking one goes through `.ai/skills/author-mermaid-diagram/`, which covers the altitude check that keeps a label inside what its host file actually states, and the render step that catches what reading the source will not.
+`specs/methodology/modeling-constructs.md § Purpose` decides whether a passage is a construct or prose, `specs/methodology/modeling-constructs.md § When to Use Which` which construct it is, and `specs/methodology/modeling-constructs.md § Constructs` the form it is written in.
 
-**Strip drafting residue —** `specs/methodology/spec-style.md § What a Finished Spec Reads Like`.
+### Draft with the source file open
 
-**Verify every anchor and every citation mechanically —** `.ai/skills/design-specs/scripts/design-specs.py`, both modes, below. A proposal whose quoted text or cited heading does not exist cannot be applied, however sound its reasoning. Anything the script cannot decide goes to a cold subagent, per `§ Recall picks the direction; the file supplies the words`.
+Anything compressed from another file is compared against it clause by clause, not re-read in isolation.
 
-**Refactor and refine, then the adversarial DRR, then apply and audit —** per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, rerunning the steps above for whatever each pass changes. In the brief, name the failure patterns this skill's sections record. The audit is `.ai/skills/audit-specs/`, whose script catches a citation left pointing at a heading that moved, and whose audits catch a summary that no longer describes what it summarizes.
+### Write the text in the form the rules give it
+
+A field, a bold lead-in, emphasis and literal text as `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Emphasis` and `specs/methodology/modeling-constructs.md § Literal Text` give them, an entry of a repeated kind as `specs/methodology/modeling-constructs.md § Constructs § Record Form` does, and a number only where `specs/AGENTS.md § Ordinals and Counts` keeps one.
+
+### Record what the specs rely on but have not decided
+
+Record it as an open question, per `specs/methodology/spec-placement.md § An Open Question`, rather than hedging it inside settled prose.
+
+### Write the references
+
+`specs/methodology/sourcing-and-citation.md § Writing a Citation` for citing a section, `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` for whether it may point where it does, and `specs/methodology/sourcing-and-citation.md § Titling a Heading` for any heading added or retitled.
+
+### Synchronize whatever restates what you changed
+
+`specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`. A section you changed that a diagram renders cites that diagram, wherever it sits, so the diagram to re-check is named in the text you just edited.
+
+A diagram is the easiest rendering to leave stale and the hardest to notice, because a wrong one is invisible in source and obvious only once rendered. Authoring or re-checking one follows `specs/methodology/modeling-constructs.md § Diagrams` through `.ai/skills/author-mermaid-diagram/`, which covers the altitude check that keeps a label inside what its host file actually states, and the render step that catches what reading the source will not.
+
+### Strip drafting residue
+
+`specs/methodology/spec-style.md § What a Finished Spec Reads Like`, and `specs/methodology/spec-style.md § Trade-offs Are Not Journey Language` for a comparison kept.
+
+### Verify mechanically
+
+`.ai/skills/design-specs/scripts/design-specs.py`, every mode, per `§ Verifying a proposal`: every quoted anchor, every cited heading, and every design entry's Target against its Specs. A proposal whose quoted text or cited heading does not exist cannot be applied, however sound its reasoning. Anything the script cannot decide goes to a cold subagent, per `§ Recall picks the direction; the file supplies the words`.
+
+### Refactor and refine, then the adversarial DRR, then apply and audit
+
+Per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, rerunning the steps above for whatever each pass changes. In the brief, name the failure patterns this skill's sections record. The audit is `.ai/skills/audit-specs/`, forking on the same kind, whose script catches a citation left pointing at a heading that moved, and whose audits catch a summary that no longer describes what it summarizes.
 
 ## Search for the fact before drafting the sentence
 
@@ -96,12 +96,6 @@ The ways it goes wrong, in rough order of frequency:
 
 Re-reading your own summary will not catch these; it will read fine. Open the source beside the clause and compare directly, asking what the source said that this does not, and whether the omission changes what a reader concludes.
 
-## Adding a statement changes which rules apply to it
-
-Conventions here are often conditional. `specs/methodology/acceptance-scenarios.md § Deciding What to Write` exempts a guarantee stated *only* in a cross-cutting file from needing a scenario under each capability relying on it. Add that guarantee to a capability's own section and the condition stops holding: it is now a guardrail stated in that section, and a scenario is owed.
-
-Before adding a sentence, check which conventions currently apply because of where the fact is *not* stated. Citing the existing statement rather than restating it usually keeps the condition intact and owes nothing further, which is also what `specs/methodology/sourcing-and-citation.md § One Home Per Fact` asks for anyway.
-
 ## Never propose structure before proving the existing structure fails
 
 New sections, new files, new domains, new notation. Each is expensive, hard to remove later, and the most satisfying thing to write, which is how a Rube Goldberg machine gets built where the aim is elegance (`specs/methodology/glossary.md`).
@@ -122,7 +116,7 @@ The tell, when this has gone wrong, is that the *direction* was right and the *t
 
 **One instrument for each half —**
 
-**What is mechanically decidable goes to the script —** `.ai/skills/design-specs/scripts/design-specs.py` verifies quoted text with `anchors` and cited heading paths with `citations`, per `§ Verifying anchors and citations`. They are separate modes because a proposal makes both kinds of claim, and a checker covering only quotations lets every wrong heading through — which is exactly how several of them once reached a reviewer in a single revision, in a proposal whose every quotation passed.
+**What is mechanically decidable goes to the script —** `.ai/skills/design-specs/scripts/design-specs.py` verifies quoted text with `anchors`, cited heading paths with `citations` and a design entry's kind with `specs`, per `§ Verifying a proposal`. They are separate modes because a proposal makes both kinds of claim, and a checker covering only quotations lets every wrong heading through — which is exactly how several of them once reached a reviewer in a single revision, in a proposal whose every quotation passed.
 
 **What needs judgment goes to a cold subagent —** whether a section actually states the rule being attributed to it, whether a count holds, whether "nothing in the repo says X" is true: no script decides these, and re-reading your own work does not either, for the reason `specs/AGENTS.md § Design, Refactor, Refine (DRR)` gives. The cold subagent runs the adversarial DRR before a change lands and the post-apply audit after it.
 
@@ -134,7 +128,7 @@ When naming anything, state the claims the word makes beyond your definition and
 
 Sometimes the answer is no name at all. If a distinction has two values that work as adjectives on something already named, the axis may not need a noun; inventing one creates a thing readers expect to be able to set.
 
-A term that passes the test in `specs/methodology/glossary.md § Writing an Entry` goes in the glossary, written as that section states.
+A term Spec of Record itself would give a meaning of its own is a change to the canon, made as `.ai/skills/design-specs/references/canon-specs.md` says.
 
 ## Numbers stated in passing
 
@@ -146,21 +140,19 @@ Verify a number before stating it, or state none. An argument needing a specific
 
 A proposal silently omitting something looks identical to one that never considered it, and the next reader raises it again.
 
-When you consider a change and reject it, say so and why, in the proposal. When work is real but out of scope, record it as a follow-up when it is deferred, per `specs/methodology/working-files.md § A Design Entry`. A statement that something was deliberately left alone is worth as much to the next reader as the changes.
+When you consider a change and reject it, say so and why, in the proposal. When work is real but out of scope, record it as a follow-up when it is deferred, per `specs/methodology/working-files.md § A Design Entry`, in the form `specs/methodology/working-files.md § A Follow-up` gives. A statement that something was deliberately left alone is worth as much to the next reader as the changes.
 
-## Hand product decisions back
+## Verifying a proposal
 
-Some forks are craft and yours to settle: where content goes, how a rule is worded, whether to cite or restate.
-
-Some are not. What the product does, who may do it, what it promises a user, are decisions about the thing being specified rather than about specifying it. Present the options and consequences, recommend one, and let the person decide. Settling these quietly inside a proposal is how a specification acquires facts nobody chose.
-
-## Verifying anchors and citations
-
-`.ai/skills/design-specs/scripts/design-specs.py` checks that text a proposal quotes from a file it does not contain is there, and that a heading it cites is there.
+`.ai/skills/design-specs/scripts/design-specs.py` checks that text a proposal quotes from a file it does not contain is there, that a heading it cites is there, and that each design entry's Target stays within its Specs.
 
     python .ai/skills/design-specs/scripts/design-specs.py anchors <manifest>
     python .ai/skills/design-specs/scripts/design-specs.py anchors -    # manifest on stdin
     python .ai/skills/design-specs/scripts/design-specs.py citations <proposal.md>
+
+`specs` reads each design entry's Specs line and checks every file on its Target line is of that kind or of `neither`, by the kinds `specs/methodology/working-files.md § A Design Entry` defines.
+
+    python .ai/skills/design-specs/scripts/design-specs.py specs <designs.md>
 
 `citations` reads the proposal itself and resolves every cross-file citation span in it against the live file:
 
@@ -185,4 +177,4 @@ Each anchor reports `ok`, `missing`, or `ambiguous` with a match count. A missin
 
 Ways a quoted anchor fails, all of which the script names: the string is quoted from recall and differs in a word; the string is real but lifted from a *different* file discussing the same subject; the string appears more than once, so the edit is ambiguous.
 
-Run both modes against every proposal, before review rather than at apply time. The script cannot tell you a proposal is right; it tells you a proposal is applicable, which is a cheaper thing to be wrong about.
+Run every mode against every proposal, before review rather than at apply time. The script cannot tell you a proposal is right; it tells you a proposal is applicable, which is a cheaper thing to be wrong about.

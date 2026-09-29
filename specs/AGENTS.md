@@ -1,17 +1,24 @@
 # Spec of Record — Agent Instructions
 
-The entry point to Spec of Record for these specifications. Read it before any work under `specs/`, with a skill the method registers, or on a working file: it routes each task to the rule that governs it, and holds the rules that reach the method's whole scope. Read `specs/methodology/glossary.md` next, before anything else (`specs/methodology/scope.md § Progressive Disclosure`).
+The entry point to Spec of Record for these specifications. Read it before any work under `specs/`, with a skill the method registers, or on a working file: it sends each change to the procedure that governs it, and holds the rules that reach every author. Read `specs/methodology/glossary.md` next, before anything else (`specs/methodology/scope.md § Progressive Disclosure`).
 
 ## Writing specs
 
-`specs/methodology/` holds the rules for writing a specification, which apply to every file in Spec of Record's scope (`specs/methodology/scope.md § What Spec of Record Governs`), its own files included, and so do the rules in this file. Read the governing rule before drafting, not after; `specs/methodology/index.md` lists which file covers what.
+`specs/methodology/` holds the rules for writing a specification, which apply to every file in Spec of Record's scope (`specs/methodology/scope.md § What Spec of Record Governs`), its own files included, and so do the rules in this file.
+
+Every change is to the canon, to the application specs, or to neither, the kinds `specs/methodology/working-files.md § A Design Entry` defines, and its design entry says which before any file is edited, a change needing both kinds being two entries; a direct edit, which needs no entry, is of a kind all the same (`§ Design, Refactor, Refine (DRR)`). The same two skills serve every kind, each forking on it where the work differs:
+
+- **Changing a specification —** `.ai/skills/design-specs/`, whose Workflow gives each rule it applies a point-of-use citation and forks into the reference for the change's kind.
+- **Checking one —** `.ai/skills/audit-specs/`, whose Workflow forks the same way.
+
+Before doing by hand a kind of work a registered skill covers, read its `SKILL.md`.
+
+Running the procedure, rather than recalling the rules, is what puts each rule in mind at the step it governs (`specs/methodology/sourcing-and-citation.md § One Home Per Fact`). The index below finds a rule an author of application specs applies, mid-step; it routes, and stands in for no step of a procedure.
 
 | Doing this | The rule is here |
 |---|---|
-| Finding which files Spec of Record governs, and how to find your way through them | `specs/methodology/scope.md` |
-| Deciding whether a skill is part of the method | `specs/methodology/skills.md` |
+| Finding which files Spec of Record governs, and how to find your way through them | `specs/methodology/scope.md § What Spec of Record Governs`, `specs/methodology/scope.md § Progressive Disclosure` |
 | Meeting a term Spec of Record gives a meaning of its own | `specs/methodology/glossary.md` |
-| Coining a term Spec of Record gives a meaning of its own | `specs/methodology/glossary.md § Writing an Entry` |
 | Deciding product spec versus technical spec | `specs/methodology/spec-placement.md § Product or Technical` |
 | Deciding index, architecture, or detail file | `specs/methodology/spec-placement.md § Index, Architecture, Detail` |
 | Placing a new file, or deciding whether a domain earns a subfolder | `specs/methodology/spec-placement.md § Where a File Goes` |
@@ -25,10 +32,9 @@ The entry point to Spec of Record for these specifications. Read it before any w
 | Writing a field, a bold lead-in, emphasis, literal text, or an entry of a repeated kind | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Emphasis`, `specs/methodology/modeling-constructs.md § Literal Text`, `specs/methodology/modeling-constructs.md § Constructs § Record Form` |
 | Writing or updating acceptance scenarios | `specs/methodology/acceptance-scenarios.md § Acceptance Scenarios` |
 | Removing drafting residue and hedged framing | `specs/methodology/spec-style.md § What a Finished Spec Reads Like` |
-| Giving a rule its check | `specs/methodology/scope.md § Rules and Skills` |
+| Keeping a counterpart spec, an `architecture.md` or a diagram in step | `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step` |
+| Adding, changing, or re-checking a diagram | `specs/methodology/modeling-constructs.md § Diagrams`, then `.ai/skills/author-mermaid-diagram/` |
 | Recording a proposed change, or work to take up later | `specs/methodology/working-files.md § A Design Entry`, `specs/methodology/working-files.md § A Follow-up` |
-
-`.ai/skills/design-specs/` sequences this work and names the governing rule at each step; `.ai/skills/audit-specs/` checks the result, by reading and by script.
 
 ## Ordinals and Counts
 
@@ -40,31 +46,9 @@ Avoid numbers that add nothing a reader cannot already see but create friction w
 
 Numbers that carry value stay. Algorithm and Decision Tree tables keep their numbered steps, and references to those steps, because that numbering is an industry standard a cold agent reads without further instruction, as a software engineer would (`specs/methodology/modeling-constructs.md`). A Gherkin scenario states its own test case in full, and its numbers are that case's data. A value is not a count: a two-week window, a floor of two options, exactly one home. Neither is naming a pair, "both", "either" or "the two", nor where something sits on the page, "the table above" or "below".
 
-## Authoring Skills
-
-A skill captures a procedure this repo has already worked out, so the next agent does not rediscover it by repeating the mistakes that produced it. Each one lives in its own directory under `.ai/skills/`, and one that is part of the method is registered in `specs/methodology/skills.md`, by the test it states. Before doing by hand a kind of work a registered skill covers, read its `SKILL.md`.
-
-**Name it verb-target, in kebab-case —** `author-mermaid-diagram`, not `mermaid` or `diagrams`. The verb states the action, the target states what it acts on, and someone scanning the directory can tell whether a skill applies without opening it. That directory name is the skill's name everywhere else it appears.
-
-**`SKILL.md` is the entry point —** it opens with YAML front matter carrying `name`, matching the directory, and `description`. Write the description to answer "when would someone reach for this", not "what is this about": a description that only names the subject leaves a reader guessing at the trigger, which is the one thing it exists to remove.
-
-**A skill cites the rules that govern its work, at the step where the work needs them —** rather than restating them, per `specs/methodology/sourcing-and-citation.md § One Home Per Fact`, or leaving them out, which would send a cold agent to re-derive them. What it adds is what that section asks of a citing place. Those rules live in this file and `specs/methodology/`. `specs/application/` is different: it is where the work is done, not a body of rules, so a skill works on it rather than citing it for how to work.
-
-**Tooling goes in a `scripts/` child directory —** the entry-point script carries exactly the skill's own name: `.ai/skills/author-mermaid-diagram/scripts/author-mermaid-diagram.py`. Helpers sit beside it under their own names. Most skills will only ever have one script, and the convention costs nothing there; it earns itself in the rarer case of several, where a name matching the skill's own tells an agent listing the directory, or a person browsing it, which file is the way in without either having to read one. Apply it from the start rather than when another script appears, since by then the original is already named something else.
-
-**Scratch space is `.ai/tmp/<skill-name>/` —** created by the skill if it is not there. One directory per skill so that one skill's output is never mistaken for another's, and under `.ai/tmp/` so none of it is ever committed. A skill does not delete its own output when it finishes: the output is usually the whole point, and something downstream, an agent or a person, is about to read it. What a skill should clean is its own *stale* output, the file left behind from a previous run that no longer corresponds to anything, since a reader has no way to tell that from a current one.
-
-**Scripts are Python 3 —** standard library only wherever that is achievable. A script needing an install step is a script that will not run at the moment it is needed. Where a capability genuinely requires something external, degrade rather than fail: prefer a local tool when present, a documented remote or manual path when not, and report which one actually ran so a reader knows what they are trusting.
-
-Record what actually went wrong. A skill earns its length by naming the failures that motivated it, the trap that only shows up at the wrong moment, the fix that is not obvious from the symptom. Anything derivable from reading the underlying tool's own documentation does not need to be here.
-
-## Agent Agnostic
-
-The instructions in Spec of Record's scope, both `AGENTS.md` files and each registered skill, stay agnostic of which agent reads them: no vendor-specific instruction filename, no tool-specific directory, no assumption about which model, CLI, or editor is running. The test for anything new: would it still make sense to an agent from a different vendor, or a person reading it directly. Tooling is the one exception, and only because it carries no content: an opt-in helper outside the method's scope, named for the tool it serves, may wire that tool up to the agnostic content. Whatever a helper generates is gitignored, and nothing depends on a helper having run: a skill stays readable directly, and a helper only saves a step for someone using that tool.
-
 ## Design, Refactor, Refine (DRR)
 
-How anything here gets built or reworked, whether a spec, a rule, a skill, or code. The builder takes it through the process below, and a cold agent then runs its own adversarial DRR over the result. `.ai/skills/design-specs/` applies it to specs.
+How anything here gets built or reworked, whether a spec, a rule, a skill, or code. The builder takes it through the process below, and a cold agent then runs its own adversarial DRR over the result. `.ai/skills/design-specs/` applies it to the canon and the application specs.
 
 **Read fresh before any work —** before working on a file, however small the change or recent the last read, read it again, direct edits included. Nothing tells an agent whether its memory of a file survived compaction, and content written an hour ago feels remembered when it is a reconstruction.
 
