@@ -9,7 +9,7 @@ The entry point to Spec of Record for these specifications. Read it before any w
 Every change is to the canon, to the application specs, or to neither, the kinds `specs/methodology/working-files.md § A Design Entry` defines, and its design entry says which before any file is edited, a change needing both kinds being two entries; a direct edit, which needs no entry, is of a kind all the same (`§ Design, Refactor, Refine (DRR)`). The same two skills serve every kind, each forking on it where the work differs:
 
 - **Changing a specification —** `.ai/skills/design-specs/`, whose Workflow gives each rule it applies a point-of-use citation and forks into the reference for the change's kind.
-- **Checking one —** `.ai/skills/audit-specs/`, whose method forks the same way.
+- **Checking one —** `.ai/skills/audit-specs/`, whose Workflow forks the same way.
 
 Before doing by hand a kind of work a registered skill covers, read its `SKILL.md`.
 

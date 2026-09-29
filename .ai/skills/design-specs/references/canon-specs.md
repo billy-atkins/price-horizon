@@ -10,7 +10,7 @@ The steps a change to the canon owes beyond the Workflow of `.ai/skills/design-s
 
 **Add or change a skill —** within `.ai/skills/design-specs/SKILL.md § Workflow § Write the text in the form the rules give it`: in the form `specs/methodology/skills.md § Authoring a Skill` gives, registered by the test `specs/methodology/skills.md § Registered Skills` states. A skill's instructions, and both `AGENTS.md` files, stay as `specs/methodology/scope.md § Agent Agnostic` asks.
 
-**Give an added or changed rule its check —** after `.ai/skills/design-specs/SKILL.md § Workflow § Write the text in the form the rules give it`: `specs/methodology/scope.md § Rules and Skills`, in `.ai/skills/audit-specs/`' audits table or its table of operating rules carried out by a step.
+**Give an added or changed rule its check —** after `.ai/skills/design-specs/SKILL.md § Workflow § Write the text in the form the rules give it`: `specs/methodology/scope.md § Rules and Skills`, in `.ai/skills/audit-specs/`' audits table or its table of operating rules carried out by a step, an operating rule's check being complete only once the step carrying it out cites it.
 
 **Give an added rule its point-of-use citation —** after `.ai/skills/design-specs/SKILL.md § Workflow § Write the text in the form the rules give it`, at the step of this skill's Workflow or references where the rule is applied, per `specs/methodology/sourcing-and-citation.md § One Home Per Fact`.
 

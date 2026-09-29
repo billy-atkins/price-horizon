@@ -17,7 +17,7 @@ Each step applying a rule carries its point-of-use citation (`specs/methodology/
 
 ### Start from the entry point
 
-`specs/AGENTS.md`, then `specs/methodology/glossary.md`, and a directory's `index.md` before working in it, per `specs/methodology/scope.md § Progressive Disclosure`.
+`specs/AGENTS.md`, then `specs/methodology/glossary.md`, and a directory's `index.md` before working in it, per `specs/methodology/scope.md § Progressive Disclosure` and `specs/methodology/scope.md § The Shape of the Scope`.
 
 ### Scope the change
 
@@ -25,7 +25,7 @@ Scope it per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, and draft it a
 
 ### Fork on the kind of specification
 
-A change to the canon also reads `.ai/skills/design-specs/references/canon-specs.md`, a change to the application specs `.ai/skills/design-specs/references/app-specs.md`: each holds the steps only that kind owes, in the order this Workflow reaches them, each naming the step it joins. A `neither` change reads neither, except that one editing the project's root `AGENTS.md` reads the canon reference, whose step adding or changing a skill holds both `AGENTS.md` files to agent-agnostic instructions.
+Every change is of a kind, and this skill forks on it (`specs/AGENTS.md § Writing specs`). A change to the canon also reads `.ai/skills/design-specs/references/canon-specs.md`, a change to the application specs `.ai/skills/design-specs/references/app-specs.md`: each holds the steps only that kind owes, in the order this Workflow reaches them, each naming the step it joins. A `neither` change reads neither, except that one editing the project's root `AGENTS.md` reads the canon reference, whose step adding or changing a skill holds both `AGENTS.md` files to agent-agnostic instructions.
 
 ### Find the fact's existing home
 

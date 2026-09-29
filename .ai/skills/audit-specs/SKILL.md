@@ -21,13 +21,13 @@ Run it first, because it is fast and because its findings would otherwise be noi
 
 Each one requires a judgment the files do not encode, often across a whole directory held in mind at once. A script cannot judge whether a summary is still true. A person can, but does it by sampling, with attention that degrades across a long directory. Reading a whole unit in one pass and holding it together is what makes a method this exhaustive worth writing down rather than aspiring to.
 
-## The method
+## Workflow
 
 A run follows the steps below, and each audit the ones it needs.
 
-**Start from the entry point —** `specs/AGENTS.md`, then `specs/methodology/glossary.md`, and a directory's `index.md` before working in it, per `specs/methodology/scope.md § Progressive Disclosure`.
+**Start from the entry point —** `specs/AGENTS.md`, then `specs/methodology/glossary.md`, and a directory's `index.md` before working in it, per `specs/methodology/scope.md § Progressive Disclosure` and `specs/methodology/scope.md § The Shape of the Scope`.
 
-**Fork on the kind of specification —** a run over the canon also reads `.ai/skills/audit-specs/references/canon-specs.md`, a run over the application specs `.ai/skills/audit-specs/references/app-specs.md`, and a full run, or one verifying a `neither` change, both, each audit reading only the files of its unit: each reference holds the audits only that kind owes, and the audits in this file every kind owes. A run after a change to the canon also reads the application specs, against the sections the change altered, since what it leaves in breach lies there. A design entry's Specs line names the kind of change a run verifies (`specs/methodology/working-files.md § A Design Entry`).
+**Fork on the kind of specification —** every change is of a kind, and a check forks on it as a change does (`specs/AGENTS.md § Writing specs`): a run over the canon also reads `.ai/skills/audit-specs/references/canon-specs.md`, a run over the application specs `.ai/skills/audit-specs/references/app-specs.md`, and a full run, or one verifying a `neither` change, both, each audit reading only the files of its unit: each reference holds the audits only that kind owes, and the audits in this file every kind owes. A run after a change to the canon also reads the application specs, against the sections the change altered, since what it leaves in breach lies there. A design entry's Specs line names the kind of change a run verifies (`specs/methodology/working-files.md § A Design Entry`).
 
 **Read the files in full —** not headings, not a previous read, not recall, per `specs/methodology/scope.md § Progressive Disclosure`. The one time a directory summary was built from headings and memory, it missed the largest gap in the directory.
 
@@ -196,7 +196,7 @@ Each row describes, in the script's own terms, what it checks for the rule it na
 | Every `gherkin` block parses: each `Scenario:` followed by at least one `Given`, `When`, and `Then` | `specs/methodology/acceptance-scenarios.md § Acceptance Scenarios` |
 | Every `technical-specs` list is alphabetically sorted, appears only in a product file, and every path in it resolves under the technical directory | `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` |
 | `specs/methodology/glossary.md` holds no citation and one table, headed Term and Definition, whose Term cells are bare terms, unique and sorted, each with a definition; each definition ends with its other names in the fixed form, and no other name is shared by two terms or equals a term | `specs/methodology/glossary.md § Writing an Entry` |
-| Every section of `specs/AGENTS.md` and of each file in `specs/methodology/` but its `architecture.md` and `index.md` is named, itself or through a section it sits under, in the Enforces column of `§ The audits` or the Operating rule column of `§ Operating rules carried out by a step` | `specs/methodology/scope.md § Rules and Skills` |
+| Every section of `specs/AGENTS.md` and of each file in `specs/methodology/` but its `architecture.md` and `index.md` is named, itself or through a section it sits under, in the Enforces column of `§ The audits` or the Operating rule column of `§ Operating rules carried out by a step`, and each section that column names is cited, itself or through a section it sits under, by a step under a registered skill's `## Workflow` | `specs/methodology/scope.md § Rules and Skills` |
 | No spec embeds an image | `specs/methodology/modeling-constructs.md § Diagrams` |
 | Each working file `specs/methodology/working-files.md § The Working Files` names is ignored by a line of the project's `.gitignore` naming it or a directory holding it, and no negating line un-ignores it | `specs/methodology/working-files.md § The Working Files` |
 | Every directory under `specs/` has an `index.md`, naming each file and subdirectory it holds, each row naming one that exists | `specs/methodology/spec-placement.md § Where a File Goes` |
@@ -205,6 +205,7 @@ Each row describes, in the script's own terms, what it checks for the rule it na
 | The kinds in `specs/methodology/scope.md § What Spec of Record Governs` are the ones the script reads, and each home the table names exists | `specs/methodology/scope.md § What Spec of Record Governs` |
 | Every row of the registry in `specs/methodology/skills.md` names a skill in backticks with a directory under `.ai/skills/` | `specs/methodology/skills.md § Registered Skills` |
 | Every registered skill's `SKILL.md` opens with YAML front matter whose `name` is its directory's name, in kebab-case, and whose `description` is present; a `scripts/` directory beside it, where it has one, holds an entry-point script named for the skill | `specs/methodology/skills.md § Authoring a Skill` |
+| Every registered skill's `SKILL.md` has a `## Workflow` section | `specs/methodology/skills.md § Authoring a Skill` |
 | Every diagram in `specs/` sits directly under a heading of its own whose section holds, in this order and nothing else, the diagram, a single `**Caption:**` paragraph citing no section and no file, and a `**Sources:**` line followed by one citation per bullet, sorted, each resolving to a section or a record other than the diagram's own; and every listed section carries a citation of that diagram's heading in its own text, or, for a record section or a record, in that record section's `**Diagrams:**` field | `specs/methodology/modeling-constructs.md § Diagrams` |
 | Every fenced `mermaid` block under `specs/` declares `flowchart` | `specs/methodology/modeling-constructs.md § Diagrams` |
 | No bold lead-in or list item carries a number | `specs/AGENTS.md § Ordinals and Counts` |
@@ -220,17 +221,17 @@ Each row describes, in the script's own terms, what it checks for the rule it na
 
 ## Operating rules carried out by a step
 
-The steps carrying out the operating rules that leave no trace in the files (`specs/methodology/scope.md § Rules and Skills`):
+The operating rules that leave no trace in the files, each carried out by the steps applying it and giving it a point-of-use citation (`specs/methodology/scope.md § Rules and Skills`), and what skipping them leaves in the files:
 
-| Operating rule | Carried out by | A skipped step leaves |
-|---|---|---|
-| `specs/AGENTS.md § Writing specs` | `specs/AGENTS.md § Writing specs`' playbook, sending each change and each check to its skill; `design-specs`, whose Workflow gives each rule it applies a point-of-use citation and forks into the reference for the change's kind | a fact placed, cited or formed against its rule, which the audit reading that rule finds |
-| `specs/AGENTS.md § Design, Refactor, Refine (DRR)` | `design-specs`' Workflow, which scopes a change and takes it through the adversarial DRR, and this skill's audit once the change is applied | an applied design entry whose Status names no adversarial DRR, which Working-file form finds while the entry stands, a trace that goes when the entry is pruned; a direct edit made without the user's approval leaves nothing in the files, and the user who approves is its check |
-| `specs/methodology/scope.md § Progressive Disclosure`, `specs/methodology/scope.md § The Shape of the Scope` | the steps of `design-specs` and of this skill starting from the entry point and forking on the kind of specification; this skill's method, reading the files in full; `design-specs`' section on recall and the file, and its step deciding a fact's altitude and file | a citation naming a heading that does not exist, which the script finds; a fact given a second home, which Where a rule lives finds; a term used against its sense, which Glossary terms finds |
-| `specs/methodology/sourcing-and-citation.md § One Home Per Fact` | `design-specs`' step finding the fact's existing home, and its section on searching before drafting | a fact given a second home, which Where a rule lives finds; a citation bare where it owed its application or its reason, which Whether the home holds the fact finds |
-| `specs/methodology/spec-placement.md § Where a File Goes`, `specs/methodology/spec-placement.md § Naming a Capability Domain` | `design-specs`' step deciding a fact's altitude and file, and its application reference's step naming a capability domain | a file or a domain placed against its test, which Placement finds |
-| `specs/methodology/scope.md § Rules and Skills` | the step of `design-specs`' canon reference giving an added or changed rule its check | a rule section no audit names, which the script finds |
-| `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` | the step of `design-specs`' application reference deciding which spec a fact belongs to, which reads the product files naming a technical file before it is edited | a technical change breaking a promise its product file makes, which Counterpart currency finds |
+| Operating rule | A skipped step leaves |
+|---|---|
+| `specs/AGENTS.md § Writing specs` | a fact placed, cited or formed against its rule, which the audit reading that rule finds |
+| `specs/AGENTS.md § Design, Refactor, Refine (DRR)` | an applied design entry whose Status names no adversarial DRR, which Working-file form finds while the entry stands, a trace that goes when the entry is pruned; a direct edit made without the user's approval leaves nothing in the files, and the user who approves is its check |
+| `specs/methodology/scope.md § Progressive Disclosure`, `specs/methodology/scope.md § The Shape of the Scope` | a citation naming a heading that does not exist, which the script finds; a fact given a second home, which Where a rule lives finds; a term used against its sense, which Glossary terms finds |
+| `specs/methodology/sourcing-and-citation.md § One Home Per Fact` | a fact given a second home, which Where a rule lives finds; a citation bare where it owed its application or its reason, which Whether the home holds the fact finds |
+| `specs/methodology/spec-placement.md § Where a File Goes`, `specs/methodology/spec-placement.md § Naming a Capability Domain` | a file or a domain placed against its test, which Placement finds |
+| `specs/methodology/scope.md § Rules and Skills` | a rule section neither table names, or an operating rule no Workflow step cites, which the script finds |
+| `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` | a technical change breaking a promise its product file makes, which Counterpart currency finds |
 
 ## What is deliberately not audited
 
