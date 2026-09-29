@@ -6,7 +6,7 @@ Every rule, definition, or design principle that could matter in more than one p
 
 A citing location may add the context specific to its own use, the part that would not make sense anywhere else. It never re-derives or re-explains the rule itself.
 
-Before adding a paragraph that states a general rule, check whether that rule already has a home. If it does, cite it as the paragraphs above describe. If it is being stated for the first time, decide its home deliberately: the file whose subject it is, not the file that happened to need it first, so the next place that needs it can cite rather than restate.
+Before adding a paragraph that states a general rule, check whether that rule already has a home. If it does, cite it as the paragraphs above describe. If it is being stated for the first time, decide its home deliberately: the file whose subject it is, not the file that happened to need it first, so the next place that needs it can cite rather than restate. A rule several files use and none owns has its home in the narrowest file covering every use, since a home above every use overstates how far the rule reaches.
 
 **Why the discipline is strict —** two correct copies of a rule read identically on the day they are written. They diverge later, when one is edited and the other is not, and nothing about reading either one reveals that the other exists. A rule with two homes is not redundant, it is a defect waiting for its first amendment.
 
@@ -58,7 +58,7 @@ A numbered heading, or one counting its children, is the heading case of `specs/
 
 ## Writing a Citation
 
-A citation must let a cold reader follow it without guessing or reopening files to re-derive the location.
+A citation must let a cold reader follow it without guessing or reopening files to re-derive the location, and find at its target what the citer attributes to it.
 
 The token for referencing a section is `§`, with a space on each side. Each form below is written inside a single backtick span, never split across spans and never left as bare prose:
 
