@@ -58,7 +58,7 @@ FENCE = re.compile(r'^```', re.M)
 # specs/AGENTS.md § Ordinals and Counts. The findings are the forms a pattern decides alone.
 NUMBERED_LEAD_IN = re.compile(r'^\*\*\d+[.)]\s')
 NUMBERED_ITEM = re.compile(r'^\s*\d+[.)]\s')
-WORKING_FILE = re.compile(r'\.ai/(?:designs\.md|follow-ups\.md|tmp\b)')
+WORKING_FILE = re.compile(r'\.ai/(?:plans\b|follow-ups\.md|tmp\b)')
 WORKING_FILES_HOME = "specs/methodology/working-files.md"
 
 # modeling-constructs.md § Constructs § Record Form. The record-type registry: each type's

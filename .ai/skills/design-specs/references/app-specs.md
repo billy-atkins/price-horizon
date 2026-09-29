@@ -4,7 +4,7 @@ The steps a change to the application specs owes beyond the Workflow of `.ai/ski
 
 ## Workflow
 
-**Hand a change needing the canon to the canon —** at `.ai/skills/design-specs/SKILL.md § Workflow § Fork on the kind of specification`, or wherever the work finds a rule of Spec of Record wrong or missing: record it as a canon design entry, which this one depends on, per `specs/methodology/working-files.md § A Design Entry`, rather than working around the rule.
+**Hand a change needing the canon to the canon —** at `.ai/skills/design-specs/SKILL.md § Workflow § Fork on the kind of specification`, or wherever the work finds a rule of Spec of Record wrong or missing: spawn a canon design document, which blocks this one, per `specs/methodology/working-files.md § A Design Document`, rather than working around the rule.
 
 **Decide which spec it belongs to —** before `.ai/skills/design-specs/SKILL.md § Workflow § Decide its altitude, and its file`: `specs/methodology/spec-placement.md § Product or Technical`. Before editing a technical file, read the product files whose `technical-specs` name it, per `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability`.
 

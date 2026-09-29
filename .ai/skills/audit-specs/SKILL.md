@@ -27,7 +27,7 @@ A run follows the steps below, and each audit the ones it needs.
 
 **Start from the entry point —** `specs/AGENTS.md`, then `specs/methodology/glossary.md`, and a directory's `index.md` before working in it, per `specs/methodology/scope.md § Progressive Disclosure` and `specs/methodology/scope.md § The Shape of the Scope`.
 
-**Fork on the kind of specification —** every change is of a kind, and a check forks on it as a change does (`specs/AGENTS.md § Writing specs`): a run over the canon also reads `.ai/skills/audit-specs/references/canon-specs.md`, a run over the application specs `.ai/skills/audit-specs/references/app-specs.md`, and a full run, or one verifying a `neither` change, both, each audit reading only the files of its unit: each reference holds the audits only that kind owes, and the audits in this file every kind owes. A run after a change to the canon also reads the application specs, against the sections the change altered, since what it leaves in breach lies there. A design entry's Specs line names the kind of change a run verifies (`specs/methodology/working-files.md § A Design Entry`).
+**Fork on the kind of specification —** every change is of a kind, and a check forks on it as a change does (`specs/AGENTS.md § Writing specs`): a run over the canon also reads `.ai/skills/audit-specs/references/canon-specs.md`, a run over the application specs `.ai/skills/audit-specs/references/app-specs.md`, and a full run, or one verifying a `neither` change, both, each audit reading only the files of its unit: each reference holds the audits only that kind owes, and the audits in this file every kind owes. A run after a change to the canon also reads the application specs, against the sections the change altered, since what it leaves in breach lies there. A run verifying a change is told its kind, the one its design document declares (`specs/methodology/working-files.md § A Design Document`).
 
 **Read the files in full —** not headings, not a previous read, not recall, per `specs/methodology/scope.md § Progressive Disclosure`. The one time a directory summary was built from headings and memory, it missed the largest gap in the directory.
 
@@ -52,7 +52,7 @@ Where an audit compares one passage against what it restates, the ways a compres
 | Finished style | canon, application | `specs/methodology/spec-style.md § What a Finished Spec Reads Like`, `specs/methodology/spec-style.md § Trade-offs Are Not Journey Language` |
 | Agent agnostic | canon | `specs/methodology/scope.md § Agent Agnostic` |
 | Skill form | canon | `specs/methodology/skills.md § Authoring a Skill`, `specs/methodology/scope.md § Rules and Skills`, `specs/methodology/skills.md § Registered Skills`, `specs/methodology/working-files.md § The Working Files` |
-| Working-file form | canon, application | `specs/methodology/working-files.md § The Working Files`, `specs/methodology/working-files.md § A Design Entry`, `specs/methodology/working-files.md § A Follow-up`, `specs/AGENTS.md § Design, Refactor, Refine (DRR)` |
+| Working-file form | canon, application | `specs/methodology/working-files.md § The Working Files`, `specs/methodology/working-files.md § A Follow-up` |
 | Diagram currency | canon, application | `specs/methodology/modeling-constructs.md § Diagrams`, `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step` |
 
 Each audit reads its unit against every rule the sections in its Enforces column state, or the part of one its text names (`specs/methodology/scope.md § Rules and Skills`); what an audit's own text adds is how to read, what is easy to miss, and how a finding is fixed (`specs/methodology/skills.md § Authoring a Skill`).
@@ -131,7 +131,7 @@ Run the script with `--candidates`, which lists each line holding a phrase the E
 
 ### Working-file form
 
-Run `.ai/skills/design-specs/scripts/design-specs.py specs .ai/designs.md` first, which decides each design entry's Target against its Specs. Of `specs/methodology/working-files.md § The Working Files`, the paragraph on a skill's scratch space is Skill form's to read; this audit reads the rest. What is easy to miss: an applied design entry whose Status names no adversarial DRR, work an entry defers with no follow-up recording it, and a follow-up leaning on a skill's output under `.ai/tmp/`, which the skill clears once it is stale.
+Of `specs/methodology/working-files.md § The Working Files`, the paragraphs on a skill's scratch space and on its plans are Skill form's to read; this audit reads the rest. It reads no plan, per `specs/methodology/working-files.md § A Design Document`. What is easy to miss: a follow-up leaning on a skill's output under `.ai/tmp/`, which the skill clears once it is stale.
 
 ### Diagram currency
 
@@ -151,7 +151,7 @@ A report also carries what was examined and declined: the candidate that had the
 
 Output goes to `.ai/tmp/audit-specs/`, one file per run named for the unit and the date. A run clears any earlier report for the same unit, the stale output `specs/methodology/working-files.md § The Working Files` has a skill clean.
 
-A finding becomes a design entry (`specs/methodology/working-files.md § A Design Entry`) rather than an edit, taken through `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, which also says when a small one may be applied directly instead.
+A finding becomes a design document (`specs/methodology/working-files.md § A Design Document`) rather than an edit, taken through `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, which also says when a small one may be applied directly instead.
 
 ## Running one
 
@@ -174,7 +174,7 @@ A finding becomes a design entry (`specs/methodology/working-files.md § A Desig
 | Finished style | the specs a change touched, or every spec for a full run |
 | Agent agnostic | both `AGENTS.md` files, each registered skill, the project's `.gitignore`, and the helpers the root `AGENTS.md` names |
 | Skill form | `specs/methodology/skills.md`, each registered skill, and each unregistered one `--candidates` lists |
-| Working-file form | `.ai/designs.md` and `.ai/follow-ups.md` |
+| Working-file form | `.ai/follow-ups.md` |
 | Diagram currency | per diagram, with every section its Sources list names |
 
 `specs/index.md` and `specs/application/index.md` sit above every architecture-rooted tree, so a directory summary run names them explicitly or nothing covers them.
@@ -217,16 +217,17 @@ Each row describes, in the script's own terms, what it checks for the rule it na
 | Under `specs/`, an `Open Questions` section is its file's last top-level section and holds an optional `**Diagrams:**` field, then a `**Records:**` field of at least one record, one list item each, and nothing else; a blank line precedes each field; each record is its `**Name:**`, `**Open Question:**`, `**Provisional Answer:**` and `**Impacts:**` fields in that order, the later ones indented two spaces, its Impacts carrying at least one section citation, and no two records share a Name | `specs/methodology/modeling-constructs.md § Constructs § Record Form`, `specs/methodology/spec-placement.md § An Open Question` |
 | Under `specs/`, every line opening with a bold phrase ending in a colon inside the bold carries a key a form declares, where that form places it | `specs/methodology/modeling-constructs.md § Fields` |
 
-**Scope —** the files `specs/methodology/scope.md § What Spec of Record Governs` names, the working files aside: the root `AGENTS.md`, every file under `specs/`, and each skill `specs/methodology/skills.md` registers, its `SKILL.md`, its references and its scripts. The working files legitimately carry citations to things since moved or pruned, so the Working-file form audit reads them instead, and the skills' output under `.ai/tmp/` is read by no check, being reports rather than rules; the check keeping the working files out of version control reads the project's `.gitignore`. `--candidates` lists places for the Ordinals and counts audit, the Markup audit, the Glossary terms audit, the Finished style audit and the Agent agnostic audit to read, and, for the Skill form audit, an unregistered skill whose `SKILL.md` cites the method's rules and a registered skill's script importing from outside the standard library. An audit whose unit names the script's scope for a full run uses this one. The candidates print apart from the findings, since a list of places to read decides nothing (`specs/methodology/scope.md § Rules and Skills`).
+**Scope —** the files `specs/methodology/scope.md § What Spec of Record Governs` names, the working files aside: the root `AGENTS.md`, every file under `specs/`, and each skill `specs/methodology/skills.md` registers, its `SKILL.md`, its references and its scripts. The working files legitimately carry citations to things since moved or removed, so the Working-file form audit reads `.ai/follow-ups.md` instead, and `.ai/skills/design-specs/` checks the plans it writes, and the skills' output under `.ai/tmp/` is read by no check, being reports rather than rules; the check keeping the working files out of version control reads the project's `.gitignore`. `--candidates` lists places for the Ordinals and counts audit, the Markup audit, the Glossary terms audit, the Finished style audit and the Agent agnostic audit to read, and, for the Skill form audit, an unregistered skill whose `SKILL.md` cites the method's rules and a registered skill's script importing from outside the standard library. An audit whose unit names the script's scope for a full run uses this one. The candidates print apart from the findings, since a list of places to read decides nothing (`specs/methodology/scope.md § Rules and Skills`).
 
 ## Operating rules carried out by a step
 
-The operating rules that leave no trace in the files, each carried out by the steps applying it and giving it a point-of-use citation (`specs/methodology/scope.md § Rules and Skills`), and what skipping them leaves in the files:
+The operating rules that leave no trace in the files the audits read, each carried out by the steps applying it and giving it a point-of-use citation (`specs/methodology/scope.md § Rules and Skills`), and what skipping them leaves in the files:
 
 | Operating rule | A skipped step leaves |
 |---|---|
 | `specs/AGENTS.md § Writing specs` | a fact placed, cited or formed against its rule, which the audit reading that rule finds |
-| `specs/AGENTS.md § Design, Refactor, Refine (DRR)` | an applied design entry whose Status names no adversarial DRR, which Working-file form finds while the entry stands, a trace that goes when the entry is pruned; a direct edit made without the user's approval leaves nothing in the files, and the user who approves is its check |
+| `specs/AGENTS.md § Design, Refactor, Refine (DRR)` | a direct edit made without the user's approval, which leaves nothing in the files, the user who approves being its check; a design approved with no adversarial DRR named in its passes, which `.ai/skills/design-specs/scripts/design-specs.py` reports while the design stands |
+| `specs/methodology/working-files.md § A Design Document`, `specs/methodology/working-files.md § A Steering Decision`, `specs/methodology/working-files.md § A Stamp` | a design document out of its form or out of step with the workstack, which `.ai/skills/design-specs/scripts/design-specs.py` reports while it stands |
 | `specs/methodology/scope.md § Progressive Disclosure`, `specs/methodology/scope.md § The Shape of the Scope` | a citation naming a heading that does not exist, which the script finds; a fact given a second home, which Where a rule lives finds; a term used against its sense, which Glossary terms finds |
 | `specs/methodology/sourcing-and-citation.md § One Home Per Fact` | a fact given a second home, which Where a rule lives finds; a citation bare where it owed its application or its reason, which Whether the home holds the fact finds |
 | `specs/methodology/spec-placement.md § Where a File Goes`, `specs/methodology/spec-placement.md § Naming a Capability Domain` | a file or a domain placed against its test, which Placement finds |

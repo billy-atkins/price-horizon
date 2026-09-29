@@ -22,9 +22,13 @@ A skill captures a procedure this repo has already worked out, so the next agent
 
 **Tooling goes in a `scripts/` child directory —** the entry-point script carries exactly the skill's own name: `.ai/skills/author-mermaid-diagram/scripts/author-mermaid-diagram.py`. Helpers sit beside it under their own names. Most skills will only ever have one script, and the convention costs nothing there; it earns itself in the rarer case of several, where a name matching the skill's own tells an agent listing the directory, or a person browsing it, which file is the way in without either having to read one. Apply it from the start rather than when another script appears, since by then the original is already named something else.
 
-**Instructions only some paths need go in a `references/` child directory —** a file of its own for each path, read at the step that forks to it, so a path that does not need them never loads them. Where a skill forks on the kind of specification, its references are `references/app-specs.md` and `references/canon-specs.md`.
+**Instructions only some paths need go in a `references/` child directory —** a file of its own for each path, read at the step that forks to it, so a path that does not need them never loads them. Where a skill forks on the kind of specification, its references for the kinds are `references/app-specs.md` and `references/canon-specs.md`.
 
-**A skill's scratch space is its own directory among the working files —** in the form `specs/methodology/working-files.md § The Working Files` gives it.
+**A template a step fills goes in `references/` too —** a file of its own, read at the step that fills it, so the form is copied rather than recalled. It holds the form's parts in order, each with a placeholder saying what kind of value goes there, and leaves the rule setting the form to its home.
+
+**A skill's scratch space, and its plans, are directories of its own among the working files —** in the form `specs/methodology/working-files.md § The Working Files` gives them.
+
+**A script's actions are flags named verb-target —** as a skill is named, `--check-design-form`, `--show-workstack`, so an agent reads what a run does from the flag alone: the verb says what kind of action it is, a check reporting what is wrong, a show describing a state, and a verb changing a file, such as stamp, saying so; the target says what it acts on. A flag setting how an action runs, rather than choosing one, is named for what it holds, `--out-dir`. Flags combine in one run, so a capability added is a flag added.
 
 **Scripts are Python 3 —** standard library only wherever that is achievable. A script needing an install step is a script that will not run at the moment it is needed. Where a capability genuinely requires something external, degrade rather than fail: prefer a local tool when present, a documented remote or manual path when not, and report which one actually ran so a reader knows what they are trusting.
 

@@ -1,6 +1,6 @@
 ---
 name: design-specs
-description: Propose or revise a specification, the canon or the application specs. Use when adding or changing a capability, a guarantee, a mechanism, a rule, a term or a skill, reconciling two documents that disagree, closing a gap an audit or review found, or taking a change through DRR. Its Workflow gives each rule it applies a point-of-use citation and forks at the kind of specification changed into a reference for that kind, and it covers the failures that recur in the work, duplicating a rule that already has a home, distorting a fact while compressing it, and proposing edits whose anchors do not exist.
+description: Propose or revise a specification, the canon or the application specs, as a design document under .ai/plans/design-specs/. Use when adding or changing a capability, a guarantee, a mechanism, a rule, a term or a skill, reconciling two documents that disagree, closing a gap an audit or review found, or taking a change through DRR. Its Workflow gives each rule it applies a point-of-use citation and forks at the kind of specification changed into a reference for that kind, and it covers the failures that recur in the work, duplicating a rule that already has a home, distorting a fact while compressing it, and proposing edits whose anchors do not exist.
 ---
 
 # Designing specifications
@@ -21,7 +21,19 @@ Each step applying a rule carries its point-of-use citation (`specs/methodology/
 
 ### Scope the change
 
-Scope it per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, and draft it as a design entry, per `specs/methodology/working-files.md § A Design Entry`, its Specs line settling the change's kind before any file is edited.
+Scope it per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, and draft it as a design document in `.ai/plans/design-specs/`, copied from `.ai/skills/design-specs/references/design-document.md`, per `specs/methodology/working-files.md § A Design Document`, its Specs field settling the change's kind before any file is edited. Set its Status as that section's lifecycle moves it, here and at each step that moves it.
+
+### Hand a change of its own to the user to spawn or log
+
+Here and at any later step, a change of its own that the work turns up, a migration of files a rule change leaves out of step among them, goes to the user, who decides how it is worked, per `specs/methodology/working-files.md § A Design Document`: spawned as a design, not-started until it is taken up and named in this design's Depends On if this design cannot finish without it, or logged as a follow-up, per `specs/methodology/working-files.md § A Follow-up`. Ask rather than choose: which suits depends on how the user means to work it.
+
+### Revise what waited, once what it waited on finishes
+
+When `--show-workstack`, per `§ Verifying a proposal`, lists a design to revise, take in what each finished design its Depends On names settled, or why it was dropped, per `specs/methodology/working-files.md § A Design Document`, rerunning the steps below for whatever that changes. Record the revision in its passes, remove each from Depends On, and delete each design `--show-workstack` then lists as may be deleted.
+
+### Record each steer when it is given
+
+Each steer the user gives the design goes into its Steering Decisions as it is given, per `specs/methodology/working-files.md § A Steering Decision`, the user's words quoted rather than paraphrased: a paraphrase drifts toward what the builder meant, and a reviewer reading it as background then checks fidelity to a decision the user never made.
 
 ### Fork on the kind of specification
 
@@ -67,11 +79,11 @@ A diagram is the easiest rendering to leave stale and the hardest to notice, bec
 
 ### Verify mechanically
 
-`.ai/skills/design-specs/scripts/design-specs.py`, every mode, per `§ Verifying a proposal`: every quoted anchor, every cited heading, and every design entry's Target against its Specs. A proposal whose quoted text or cited heading does not exist cannot be applied, however sound its reasoning. Anything the script cannot decide goes to a cold subagent, per `§ Recall picks the direction; the file supplies the words`.
+`.ai/skills/design-specs/scripts/design-specs.py`, per `§ Verifying a proposal`: `--check-quoted-text` for every quoted anchor, `--check-cited-headings` for every cited heading, and `--check-design` for the design document's form, its Target against its Specs, and its place in the workstack. A proposal whose quoted text or cited heading does not exist cannot be applied, however sound its reasoning. Anything the script cannot decide goes to a cold subagent, per `§ Recall picks the direction; the file supplies the words`.
 
 ### Refactor and refine, then the adversarial DRR, then apply and audit
 
-Per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, rerunning the steps above for whatever each pass changes. In the brief, name the failure patterns this skill's sections record. The audit is `.ai/skills/audit-specs/`, forking on the same kind, whose script catches a citation left pointing at a heading that moved, and whose audits catch a summary that no longer describes what it summarizes.
+Per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, rerunning the steps above for whatever each pass changes. Give the reviewer the complete design document, its Steering Decisions among it, and in the brief name the failure patterns this skill's sections record. Once its findings are taken in, and before the user is asked to approve, read the design's validation with `--show-validation`, per `§ Verifying a proposal`: a design still validated goes to the user as it is, and one stale or never stamped goes first to a cold agent running the validation review `specs/methodology/working-files.md § A Design Document` sets, briefed with the complete design document, its report going to `.ai/tmp/design-specs/`; it stamps the design with `--stamp-validation`, in the form `specs/methodology/working-files.md § A Stamp` gives. Its Status moves to approved when the user approves the converged design, to applying when the apply begins, and to complete once the post-apply audit and its fixes are settled; an applying design the user abandons has the edits it wrote reverted first, per `specs/methodology/working-files.md § A Design Document`. The audit is `.ai/skills/audit-specs/`, forking on the same kind, whose script catches a citation left pointing at a heading that moved, and whose audits catch a summary that no longer describes what it summarizes.
 
 ## Search for the fact before drafting the sentence
 
@@ -116,7 +128,7 @@ The tell, when this has gone wrong, is that the *direction* was right and the *t
 
 **One instrument for each half —**
 
-**What is mechanically decidable goes to the script —** `.ai/skills/design-specs/scripts/design-specs.py` verifies quoted text with `anchors`, cited heading paths with `citations` and a design entry's kind with `specs`, per `§ Verifying a proposal`. They are separate modes because a proposal makes both kinds of claim, and a checker covering only quotations lets every wrong heading through — which is exactly how several of them once reached a reviewer in a single revision, in a proposal whose every quotation passed.
+**What is mechanically decidable goes to the script —** `.ai/skills/design-specs/scripts/design-specs.py` verifies quoted text with `--check-quoted-text`, cited heading paths with `--check-cited-headings` and a design document with `--check-design`, per `§ Verifying a proposal`. They are separate checks because a proposal makes both kinds of claim, and a checker covering only quotations lets every wrong heading through — which is exactly how several of them once reached a reviewer in a single revision, in a proposal whose every quotation passed.
 
 **What needs judgment goes to a cold subagent —** whether a section actually states the rule being attributed to it, whether a count holds, whether "nothing in the repo says X" is true: no script decides these, and re-reading your own work does not either, for the reason `specs/AGENTS.md § Design, Refactor, Refine (DRR)` gives. The cold subagent runs the adversarial DRR before a change lands and the post-apply audit after it.
 
@@ -140,21 +152,30 @@ Verify a number before stating it, or state none. An argument needing a specific
 
 A proposal silently omitting something looks identical to one that never considered it, and the next reader raises it again.
 
-When you consider a change and reject it, say so and why, in the proposal. When work is real but out of scope, record it as a follow-up when it is deferred, per `specs/methodology/working-files.md § A Design Entry`, in the form `specs/methodology/working-files.md § A Follow-up` gives. A statement that something was deliberately left alone is worth as much to the next reader as the changes.
+When you consider a change and reject it, say so and why, in the proposal. When work is real but out of scope, hand it to the user to spawn as a design or log as a follow-up when it is deferred, per `specs/methodology/working-files.md § A Design Document`, a follow-up in the form `specs/methodology/working-files.md § A Follow-up` gives. A statement that something was deliberately left alone is worth as much to the next reader as the changes.
 
 ## Verifying a proposal
 
-`.ai/skills/design-specs/scripts/design-specs.py` checks that text a proposal quotes from a file it does not contain is there, that a heading it cites is there, and that each design entry's Target stays within its Specs.
+`.ai/skills/design-specs/scripts/design-specs.py` checks that text a proposal quotes from a file it does not contain is there, that a heading it cites is there, and that a design document, and the workstack the design documents draw, hold together. These checks and this skill's steps are what hold one to its form, per `specs/methodology/working-files.md § A Design Document`. Each check is a flag named for what it does, per `specs/methodology/skills.md § Authoring a Skill`; flags combine in one run, and the exit status is 0 when every check passes, 1 when one finds a problem, and 2 for a usage error, so a run can gate a proposal.
 
-    python .ai/skills/design-specs/scripts/design-specs.py anchors <manifest>
-    python .ai/skills/design-specs/scripts/design-specs.py anchors -    # manifest on stdin
-    python .ai/skills/design-specs/scripts/design-specs.py citations <proposal.md>
+    python .ai/skills/design-specs/scripts/design-specs.py --check-quoted-text <manifest>
+    python .ai/skills/design-specs/scripts/design-specs.py --check-quoted-text -    # manifest on stdin
+    python .ai/skills/design-specs/scripts/design-specs.py --check-cited-headings <proposal>
+    python .ai/skills/design-specs/scripts/design-specs.py --check-design-form <design-document>
+    python .ai/skills/design-specs/scripts/design-specs.py --check-target-kind <design-document>
+    python .ai/skills/design-specs/scripts/design-specs.py --check-design <design-document>
+    python .ai/skills/design-specs/scripts/design-specs.py --check-workstack [plans-dir]
+    python .ai/skills/design-specs/scripts/design-specs.py --show-workstack [plans-dir]
+    python .ai/skills/design-specs/scripts/design-specs.py --show-validation <design-document>
+    python .ai/skills/design-specs/scripts/design-specs.py --stamp-validation <design-document>
 
-`specs` reads each design entry's Specs line and checks every file on its Target line is of that kind or of `neither`, by the kinds `specs/methodology/working-files.md § A Design Entry` defines.
+`--check-design-form` checks a design document against `specs/methodology/working-files.md § A Design Document` and `specs/methodology/working-files.md § A Steering Decision`: its heading, its fields in order, a file named for its Name, a Status that is a state, a Target of paths, its sections in order, each steering decision's fields, and a design approved or further naming an adversarial DRR in its passes and carrying a stamp, current while it is approved. `--check-target-kind` reads its Specs field and checks every file its Target names is of that kind or of `neither`, by the kinds `specs/methodology/working-files.md § A Design Document` defines. `--check-design` runs both, and reports what `--check-workstack` finds wrong with that design; any problem any of them reports counts, whatever it is filed under.
 
-    python .ai/skills/design-specs/scripts/design-specs.py specs <designs.md>
+`--show-workstack` reads every design document under `.ai/plans/design-specs/`, unless given another directory, since a workstack spans designs. It draws the tree from each design's Spawned By and Depends On, marking each design blocked, with a finished design to take in, or validated or validation stale while it is in progress or approved; lists the designs ready to work, the one the most open designs wait on first, the blocked ones apart, and the finished ones no design names in its Depends On, which may be deleted. `--check-workstack` reads the same designs and reports a Status out of step with what the design depends on, a Depends On naming no design, and a loop in Depends On or Spawned By.
 
-`citations` reads the proposal itself and resolves every cross-file citation span in it against the live file:
+`--show-validation` prints a design's stamped hash, its hash as it stands, and whether it is validated, stale or never stamped, the hashes compared by the script and never by hand. `--stamp-validation` runs `--check-design` and, when that finds nothing but the stamp's own absence, writes the stamp `specs/methodology/working-files.md § A Stamp` sets into the Validated field, leaving a current stamp as it is, so its date stays that of the review that earned it. The validation review runs it, once its reading checks pass, and the builder never does: a stamp the builder wrote would vouch for reading checks no one made.
+
+`--check-cited-headings` reads the proposal itself and resolves every cross-file citation span in it against the live file:
 
 ```
 path/from/root.md § Parent § Child
@@ -166,15 +187,15 @@ It resolves a filename given in shorthand by path suffix, since a proposal is pr
 
 A same-file citation, one with no path, is skipped. A proposal is not the file it cites into, so a bare section token in it has no file to resolve against — which also means a proposal is clearer giving the full path in every citation, even where a spec would legitimately shorten it.
 
-The manifest is plain text. A line beginning `--- ` names a file; everything up to the next `--- ` is one anchor, verbatim, newlines included. Lines beginning `#` before the first `--- ` are comments.
+The manifest `--check-quoted-text` reads is plain text. A line beginning `--- ` names a file; everything up to the next `--- ` is one anchor, verbatim, newlines included. Lines beginning `#` before the first `--- ` are comments.
 
     --- specs/application/product/architecture.md
     an upgrade is a discrete, versioned, customer-visible event
     --- specs/application/product/platform-and-compliance-operations/versioned-upgrades.md
     Under an Acme AI-managed upgrade, a Platform admin executes it
 
-Each anchor reports `ok`, `missing`, or `ambiguous` with a match count. A missing anchor is retried with whitespace collapsed and says so when that is the only difference, which is the usual cause. Exit status is non-zero if anything failed, so it can gate a proposal.
+Each anchor reports `ok`, `missing`, or `ambiguous` with a match count. A missing anchor is retried with whitespace collapsed and says so when that is the only difference, which is the usual cause.
 
 Ways a quoted anchor fails, all of which the script names: the string is quoted from recall and differs in a word; the string is real but lifted from a *different* file discussing the same subject; the string appears more than once, so the edit is ambiguous.
 
-Run every mode against every proposal, before review rather than at apply time. The script cannot tell you a proposal is right; it tells you a proposal is applicable, which is a cheaper thing to be wrong about.
+Run every check against every proposal, before review rather than at apply time. The script cannot tell you a proposal is right; it tells you a proposal is applicable, which is a cheaper thing to be wrong about.
