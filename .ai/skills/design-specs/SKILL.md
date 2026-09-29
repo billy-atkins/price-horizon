@@ -21,7 +21,7 @@ Each step applying a rule carries its point-of-use citation (`specs/methodology/
 
 ### Scope the change
 
-Scope it per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, and draft it as a design document in `.ai/plans/design-specs/`, copied from `.ai/skills/design-specs/references/design-document.md`, per `specs/methodology/working-files.md § A Design Document`, its Specs field settling the change's kind before any file is edited. Set its Status as that section's lifecycle moves it, here and at each step that moves it.
+Scope it per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, and draft it as a design document in `.ai/plans/design-specs/`, copied from `.ai/skills/design-specs/references/design-document-template.md`, per `specs/methodology/working-files.md § A Design Document`, its Specs field settling the change's kind before any file is edited. Set its Status as that section's lifecycle moves it, here and at each step that moves it. Where the work wants a new branch, propose it, and create it only once the user approves it, per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`.
 
 ### Hand a change of its own to the user to spawn or log
 
@@ -29,11 +29,11 @@ Here and at any later step, a change of its own that the work turns up, a migrat
 
 ### Revise what waited, once what it waited on finishes
 
-When `--show-workstack`, per `§ Verifying a proposal`, lists a design to revise, take in what each finished design its Depends On names settled, or why it was dropped, per `specs/methodology/working-files.md § A Design Document`, rerunning the steps below for whatever that changes. Record the revision in its passes, remove each from Depends On, and delete each design `--show-workstack` then lists as may be deleted.
+When `--show-workstack`, per `§ Verifying a proposal`, lists a design to revise, take in what each finished design its Depends On names settled, or why it was dropped, per `specs/methodology/working-files.md § A Design Document`, rerunning `§ Workflow § Fork on the kind of specification` through `§ Workflow § Verify mechanically` for whatever that changes. Record the revision in its passes, remove each from Depends On, and delete each design `--show-workstack` then lists as may be deleted.
 
-### Record each steer when it is given
+### Record each steer and apply it
 
-Each steer the user gives the design goes into its Steering Decisions as it is given, per `specs/methodology/working-files.md § A Steering Decision`, the user's words quoted rather than paraphrased: a paraphrase drifts toward what the builder meant, and a reviewer reading it as background then checks fidelity to a decision the user never made.
+Each steer the user gives the design goes into its Steering Decisions as it is given, per `specs/methodology/working-files.md § A Steering Decision`, the user's words quoted rather than paraphrased: a paraphrase drifts toward what the builder meant, and a reviewer reading it as background then checks fidelity to a decision the user never made. Then revise the design to apply it, rerunning `§ Workflow § Fork on the kind of specification` through `§ Workflow § Verify mechanically` for whatever it changes, before the work goes on: the steering decisions are the history of how the design was shaped, and a design lagging them leaves its reviewers reading a decision the design does not yet carry out.
 
 ### Fork on the kind of specification
 
@@ -41,7 +41,7 @@ Every change is of a kind, and this skill forks on it (`specs/AGENTS.md § Writi
 
 ### Find the fact's existing home
 
-Grep before drafting, per `specs/methodology/sourcing-and-citation.md § One Home Per Fact`. If it has one, the work is a citation, plus what that section asks of a citing place, and most of the steps below do not apply.
+Grep before drafting, per `specs/methodology/sourcing-and-citation.md § One Home Per Fact`. If it has one, the work is a citation, plus what that section asks of a citing place, and `§ Workflow § Decide its altitude, and its file` through `§ Workflow § Record what the specs rely on but have not decided` do not apply.
 
 ### Decide its altitude, and its file
 
@@ -83,7 +83,7 @@ A diagram is the easiest rendering to leave stale and the hardest to notice, bec
 
 ### Refactor and refine, then the adversarial DRR, then apply and audit
 
-Per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, rerunning the steps above for whatever each pass changes. Give the reviewer the complete design document, its Steering Decisions among it, and in the brief name the failure patterns this skill's sections record. Once its findings are taken in, and before the user is asked to approve, read the design's validation with `--show-validation`, per `§ Verifying a proposal`: a design still validated goes to the user as it is, and one stale or never stamped goes first to a cold agent running the validation review `specs/methodology/working-files.md § A Design Document` sets, briefed with the complete design document, its report going to `.ai/tmp/design-specs/`; it stamps the design with `--stamp-validation`, in the form `specs/methodology/working-files.md § A Stamp` gives. Its Status moves to approved when the user approves the converged design, to applying when the apply begins, and to complete once the post-apply audit and its fixes are settled; an applying design the user abandons has the edits it wrote reverted first, per `specs/methodology/working-files.md § A Design Document`. The audit is `.ai/skills/audit-specs/`, forking on the same kind, whose script catches a citation left pointing at a heading that moved, and whose audits catch a summary that no longer describes what it summarizes.
+Per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, rerunning `§ Workflow § Fork on the kind of specification` through `§ Workflow § Verify mechanically` for whatever each pass changes. Give the reviewer the complete design document, its Steering Decisions among it, and in the brief name the failure patterns this skill's sections record. Once its findings are taken in, and before the user is asked to approve, read the design's validation with `--show-validation`, per `§ Verifying a proposal`: a design still validated goes to the user as it is, and one stale or never stamped goes first to a cold agent running the validation review `specs/methodology/working-files.md § A Design Document` sets, briefed with the complete design document, its report going to `.ai/tmp/design-specs/`; it stamps the design with `--stamp-validation`, in the form `specs/methodology/working-files.md § A Stamp` gives. Ask for approval as a choice of approved, approved and apply, or not approved, so the answer is a word and the user can approve a design and pause, leaving nothing pending: approved moves its Status to approved; approved and apply moves it to approved and begins the apply, and is offered only while its Depends On names none, since a blocked design is not applied, per `specs/methodology/working-files.md § A Design Document`; not approved keeps it in progress, whatever the user says with it being a steer. Its Status moves to applying when the apply begins, and to complete once the post-apply audit and its fixes are settled; an applying design the user abandons has the edits it wrote reverted first, per `specs/methodology/working-files.md § A Design Document`. The audit is `.ai/skills/audit-specs/`, forking on the same kind, whose script catches a citation left pointing at a heading that moved, and whose audits catch a summary that no longer describes what it summarizes.
 
 ## Search for the fact before drafting the sentence
 

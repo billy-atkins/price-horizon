@@ -1,19 +1,12 @@
 # Design Document
 
 **Name:** {a few words}
-
 **Status:** {not-started, or in-progress once it is worked}
-
 **Source:** {the user's words, quoted, or the finding}
-
 **Specs:** {canon, application or neither}
-
 **Target:** {`path`; `path`}
-
 **Spawned By:** {a design document's file name, without .md, or none}
-
 **Depends On:** {design documents' file names, separated by semicolons, or none}
-
 **Validated:** none
 
 ## The Problem

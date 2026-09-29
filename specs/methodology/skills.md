@@ -24,7 +24,7 @@ A skill captures a procedure this repo has already worked out, so the next agent
 
 **Instructions only some paths need go in a `references/` child directory —** a file of its own for each path, read at the step that forks to it, so a path that does not need them never loads them. Where a skill forks on the kind of specification, its references for the kinds are `references/app-specs.md` and `references/canon-specs.md`.
 
-**A template a step fills goes in `references/` too —** a file of its own, read at the step that fills it, so the form is copied rather than recalled. It holds the form's parts in order, each with a placeholder saying what kind of value goes there, and leaves the rule setting the form to its home.
+**A template a step fills goes in `references/` too —** a file of its own, named for the form it holds with `-template` ending the name before its extension, `design-document-template.md`, so a reader listing `references/` tells a template from instructions without opening it, and read at the step that fills it, so the form is copied rather than recalled. It holds the form's parts in order, each with a placeholder, a token in braces saying what kind of value replaces it, `{a few words}`, the braces replaced along with the token, or, for a section kept only in some cases, a token in braces saying when it is kept, removed with its braces once the section is kept; and it leaves the rule setting the form to its home.
 
 **A skill's scratch space, and its plans, are directories of its own among the working files —** in the form `specs/methodology/working-files.md § The Working Files` gives them.
 

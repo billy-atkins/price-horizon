@@ -65,3 +65,5 @@ Brief it with more than the task: name the failure patterns earlier rounds found
 The builder checks every finding against the files before acting on it, since a review can be confidently wrong. The user steers which findings are addressed and how. Accepted findings go back through the builder's process, and if they changed the structure, the revised design gets another adversarial DRR. Then, with the user's go-ahead, the builder applies the work and a cold agent audits it, which for specs means `.ai/skills/audit-specs/`.
 
 **Direct edits —** a small tactical edit, narrow in scope and low in risk, may skip this process and be applied directly, but only once the user has approved it. Anything larger or riskier goes through the process.
+
+**A new branch —** is created only once the user approves it, the builder proposing its name and what it starts from: how work is split across branches decides how it is reviewed and merged, which is the user's to settle, as a direct edit is.
