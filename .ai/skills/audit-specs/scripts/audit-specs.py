@@ -3,12 +3,14 @@
 
 Every check enforces one stated rule and names it, so a failure points at the rule
 rather than only at a line. Nothing here needs judgment, per
-specs/methodology/scope.md § Rules and Skills. `--candidates` lists places for a reading
-audit to look, printed apart from the findings and never affecting the exit status.
+specs/methodology/scope.md § Rules and Skills. `--check-scope` runs the checks, and
+`--list-candidates` lists places for a reading audit to look, printed apart from any
+finding and never affecting the exit status.
 
 Standard library only. See SKILL.md.
 """
 
+import argparse
 import posixpath
 import re
 import sys
@@ -58,7 +60,7 @@ FENCE = re.compile(r'^```', re.M)
 # specs/AGENTS.md § Ordinals and Counts. The findings are the forms a pattern decides alone.
 NUMBERED_LEAD_IN = re.compile(r'^\*\*\d+[.)]\s')
 NUMBERED_ITEM = re.compile(r'^\s*\d+[.)]\s')
-WORKING_FILE = re.compile(r'\.ai/(?:designs\.md|follow-ups\.md|tmp\b)')
+WORKING_FILE = re.compile(r'\.ai/(?:plans\b|follow-ups\.md|tmp\b)')
 WORKING_FILES_HOME = "specs/methodology/working-files.md"
 
 # modeling-constructs.md § Constructs § Record Form. The record-type registry: each type's
@@ -1190,23 +1192,40 @@ def main(argv):
         sys.stdout.reconfigure(encoding="utf-8")
     except (AttributeError, ValueError):
         pass
-    args = [a for a in argv[1:] if not a.startswith("--")]
-    root = Path(args[0]).resolve() if args else Path.cwd()
-    found = check(root)
-    by_rule = {}
-    for rule, path, line, msg in found:
-        by_rule.setdefault(rule, []).append((path, line, msg))
+    # Actions are flags per specs/methodology/skills.md § Authoring a Skill.
+    parser = argparse.ArgumentParser(prog="audit-specs.py", description=__doc__.split("\n\n")[0], allow_abbrev=False)
+    parser.add_argument("--check-scope", action="store_true",
+                        help="check the files Spec of Record governs against every rule the files alone decide, "
+                             "each finding named for the rule it breaks; exits 1 on any finding")
+    parser.add_argument("--list-candidates", action="store_true",
+                        help="list places for the reading audits to look, printed apart from any finding, "
+                             "and never itself a finding")
+    parser.add_argument("--root", metavar="DIR", default=".",
+                        help="the project root the scope is read from; the current directory unless given")
+    args = parser.parse_args(argv[1:])
+    if not (args.check_scope or args.list_candidates):
+        parser.print_usage(sys.stderr)
+        return 2
+    root = Path(args.root).resolve()
+    if not (root / "specs").is_dir():
+        parser.error(f"--root {args.root} holds no specs/ directory")
+    status = 0
 
-    for rule in sorted(by_rule):
-        print(f"\n{rule}")
-        for path, line, msg in sorted(by_rule[rule]):
-            where = f"{path}:{line}" if line else path
-            print(f"  {where}\n    {msg}")
+    if args.check_scope:
+        found = check(root)
+        by_rule = {}
+        for rule, path, line, msg in found:
+            by_rule.setdefault(rule, []).append((path, line, msg))
+        for rule in sorted(by_rule):
+            print(f"\n{rule}")
+            for path, line, msg in sorted(by_rule[rule]):
+                where = f"{path}:{line}" if line else path
+                print(f"  {where}\n    {msg}")
+        n = len(found)
+        print(f"\n{n} finding{'' if n == 1 else 's'} across {len(md_files(root))} files")
+        status = 1 if n else 0
 
-    n = len(found)
-    print(f"\n{n} finding{'' if n == 1 else 's'} across {len(md_files(root))} files")
-
-    if "--candidates" in argv:
+    if args.list_candidates:
         print("\nCandidates for specs/AGENTS.md § Ordinals and Counts: places to read, not findings")
         for path, line, name, context in candidates(root):
             print(f"  {path}:{line}  [{name}]\n    {context}")
@@ -1222,7 +1241,7 @@ def main(argv):
         print("\nCandidates for the Skill form audit: places to read, not findings")
         for path, line, name, context in skill_candidates(root):
             print(f"  {path}:{line}  [{name}]\n    {context}")
-    return 1 if n else 0
+    return status
 
 
 if __name__ == "__main__":

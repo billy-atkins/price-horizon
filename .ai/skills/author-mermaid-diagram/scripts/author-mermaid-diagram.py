@@ -12,15 +12,14 @@ Renderers, tried in order:
     and runs whatever Mermaid version that service runs.
 
 Usage:
-  author-mermaid-diagram.py FILE                  # first mermaid block in FILE
-  author-mermaid-diagram.py FILE --index 2        # one block, by index (1-based)
-  author-mermaid-diagram.py FILE --all            # every block
-  author-mermaid-diagram.py FILE --list           # list blocks without rendering
-  author-mermaid-diagram.py --stdin < diagram.mmd
-  author-mermaid-diagram.py FILE --out-dir path/  # default: .ai/tmp/author-mermaid-diagram
+  author-mermaid-diagram.py --render-diagrams FILE              # every mermaid block in FILE
+  author-mermaid-diagram.py --render-diagrams FILE --block 2    # one block, by number (1-based)
+  author-mermaid-diagram.py --list-diagrams FILE                # list blocks without rendering
+  author-mermaid-diagram.py --render-diagrams - < diagram.mmd   # one diagram from stdin
+  author-mermaid-diagram.py --render-diagrams FILE --output-directory path/  # default: .ai/tmp/author-mermaid-diagram
 
 Paths are resolved against the current working directory, so run it from the
-repository root (or pass --out-dir) if the default output location matters.
+repository root (or pass --output-directory) if the default output location matters.
 
 Markdown blockquote prefixes ("> ") are stripped, so a diagram quoted inside a
 design note renders the same as one checked into a spec.
@@ -225,51 +224,49 @@ def render(code: str, out: Path) -> tuple[str | None, str]:
     return ("mermaid.ink (remote)", "") if ok else (None, reason)
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser(description="Render Mermaid diagrams to PNG.")
-    ap.add_argument("file", nargs="?", help="markdown or .mmd file containing the diagram")
-    ap.add_argument("--stdin", action="store_true", help="read diagram source from stdin")
-    ap.add_argument("--index", type=int, default=1, help="which block to render, 1-based")
-    ap.add_argument("--all", action="store_true", help="render every block")
-    ap.add_argument("--list", action="store_true", help="list blocks without rendering")
-    ap.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR), help="output directory")
-    args = ap.parse_args()
-
-    if args.stdin:
-        blocks, prefix = [([], sys.stdin.read())], "stdin"
-    elif args.file:
-        path = Path(args.file)
-        if not path.exists():
-            sys.stderr.write(f"no such file: {path}\n")
-            return 2
-        text = path.read_text(encoding="utf-8")
-        blocks = extract_blocks(text) if "```" in text else [([], text)]
-        prefix = source_prefix(path)
-    else:
-        ap.print_help()
+def load(file):
+    """-> (blocks, prefix), or an exit status: the mermaid blocks FILE holds, or the
+    diagram stdin carries when FILE is -, and the prefix their renders are named with."""
+    if file == "-":
+        return [([], sys.stdin.read())], "stdin"
+    path = Path(file)
+    if not path.exists():
+        sys.stderr.write(f"no such file: {path}\n")
         return 2
-
+    text = path.read_text(encoding="utf-8")
+    blocks = extract_blocks(text) if "```" in text else [([], text)]
     if not blocks:
         sys.stderr.write("no ```mermaid blocks found\n")
         return 1
+    return blocks, source_prefix(path)
 
+
+def list_diagrams(file) -> int:
+    loaded = load(file)
+    if isinstance(loaded, int):
+        return loaded
+    blocks, prefix = loaded
+    for i, ((lineage, code), name) in enumerate(zip(blocks, output_names(prefix, blocks)), 1):
+        where = " > ".join(lineage) or "(no heading)"
+        print(f"{i}: {where}  ({len(code.splitlines())} lines)\n   -> {name}")
+    return 0
+
+
+def render_diagrams(file, block, out_dir) -> int:
+    loaded = load(file)
+    if isinstance(loaded, int):
+        return loaded
+    blocks, prefix = loaded
     names = output_names(prefix, blocks)
-
-    if args.list:
-        for i, ((lineage, code), name) in enumerate(zip(blocks, names), 1):
-            where = " > ".join(lineage) or "(no heading)"
-            print(f"{i}: {where}  ({len(code.splitlines())} lines)\n   -> {name}")
-        return 0
-
-    if args.all:
+    if block is None:
         wanted = list(enumerate(zip(blocks, names), 1))
+    elif 1 <= block <= len(blocks):
+        wanted = [(block, (blocks[block - 1], names[block - 1]))]
     else:
-        if not 1 <= args.index <= len(blocks):
-            sys.stderr.write(f"--index {args.index} out of range; file has {len(blocks)}\n")
-            return 2
-        wanted = [(args.index, (blocks[args.index - 1], names[args.index - 1]))]
+        sys.stderr.write(f"--block {block} out of range; the file has {len(blocks)}\n")
+        return 2
 
-    out_dir = Path(args.out_dir)
+    out_dir = Path(out_dir)
 
     # Clear this source's previous renders before writing new ones. Without this a
     # block that has since been deleted leaves its PNG behind, and the next reader
@@ -302,6 +299,36 @@ def main() -> int:
             "unverified, not wrong. Do not describe them as checked."
         )
     return 1 if (invalid or unreachable) else 0
+
+
+def main() -> int:
+    # Actions are flags per specs/methodology/skills.md § Authoring a Skill.
+    ap = argparse.ArgumentParser(description="Render Mermaid diagrams to PNG.", allow_abbrev=False)
+    ap.add_argument("--render-diagrams", metavar="FILE", action="append",
+                    help="render every mermaid block in FILE, a markdown or .mmd file, to PNG; - reads one diagram "
+                         "from stdin; repeat it for more files")
+    ap.add_argument("--list-diagrams", metavar="FILE", action="append",
+                    help="list FILE's mermaid blocks and the name each renders to, without rendering; repeat it for more files")
+    ap.add_argument("--block", type=int, metavar="N",
+                    help="with a single --render-diagrams, render only block N, 1-based, as --list-diagrams numbers them")
+    ap.add_argument("--output-directory", metavar="DIR", default=str(DEFAULT_OUT_DIR), help="the directory renders are written to")
+    args = ap.parse_args()
+    renders, lists = args.render_diagrams or [], args.list_diagrams or []
+    if not (renders or lists):
+        ap.print_usage(sys.stderr)
+        return 2
+    if args.block is not None and len(renders) != 1:
+        sys.stderr.write("--block narrows a single --render-diagrams\n")
+        return 2
+    if (renders + lists).count("-") > 1:
+        sys.stderr.write("stdin can be read by one action per run\n")
+        return 2
+    status = 0
+    for file in lists:
+        status = max(status, list_diagrams(file))
+    for file in renders:
+        status = max(status, render_diagrams(file, args.block, args.output_directory))
+    return status
 
 
 if __name__ == "__main__":

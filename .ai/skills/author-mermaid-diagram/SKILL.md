@@ -25,9 +25,9 @@ The most common failure is rendering the source faithfully. Faithful-to-the-sour
 
 **Render it and look at it —** rendering is not optional: hand-tracing Mermaid grammar catches parse errors and nothing else. Layout and semantic defects survive hand-tracing intact and die on first render. Run this skill's `scripts/author-mermaid-diagram.py` from the project root, then read the PNG it writes:
 
-    python <skill-dir>/scripts/author-mermaid-diagram.py path/to/file.md --all      # every block
-    python <skill-dir>/scripts/author-mermaid-diagram.py path/to/file.md --list     # what blocks exist, and the name each renders to
-    python <skill-dir>/scripts/author-mermaid-diagram.py path/to/file.md --index 2  # one block, by the index --list shows
+    python <skill-dir>/scripts/author-mermaid-diagram.py --render-diagrams path/to/file.md            # every block
+    python <skill-dir>/scripts/author-mermaid-diagram.py --list-diagrams path/to/file.md              # what blocks exist, and the name each renders to
+    python <skill-dir>/scripts/author-mermaid-diagram.py --render-diagrams path/to/file.md --block 2  # one block, by the number --list-diagrams shows
 
 It strips markdown blockquote prefixes, so a diagram drafted inside a quoted design note renders the same as one already checked in. It uses a local `mmdc` when one is on PATH and falls back to rendering over the network, and it reports which it used. If neither works, say so plainly rather than implying the diagram is verified.
 

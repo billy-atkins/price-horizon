@@ -6,7 +6,7 @@ The entry point to Spec of Record for these specifications. Read it before any w
 
 `specs/methodology/` holds the rules for writing a specification, which apply to every file in Spec of Record's scope (`specs/methodology/scope.md § What Spec of Record Governs`), its own files included, and so do the rules in this file.
 
-Every change is to the canon, to the application specs, or to neither, the kinds `specs/methodology/working-files.md § A Design Entry` defines, and its design entry says which before any file is edited, a change needing both kinds being two entries; a direct edit, which needs no entry, is of a kind all the same (`§ Design, Refactor, Refine (DRR)`). The same two skills serve every kind, each forking on it where the work differs:
+Every change is to the canon, to the application specs, or to neither, the kinds `specs/methodology/working-files.md § A Design Document` defines, and its design document says which before any file is edited, a change needing both kinds being two design documents; a direct edit, which needs none, is of a kind all the same (`§ Design, Refactor, Refine (DRR)`). The same two skills serve every kind, each forking on it where the work differs:
 
 - **Changing a specification —** `.ai/skills/design-specs/`, whose Workflow gives each rule it applies a point-of-use citation and forks into the reference for the change's kind.
 - **Checking one —** `.ai/skills/audit-specs/`, whose Workflow forks the same way.
@@ -34,7 +34,7 @@ Running the procedure, rather than recalling the rules, is what puts each rule i
 | Removing drafting residue and hedged framing | `specs/methodology/spec-style.md § What a Finished Spec Reads Like` |
 | Keeping a counterpart spec, an `architecture.md` or a diagram in step | `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step` |
 | Adding, changing, or re-checking a diagram | `specs/methodology/modeling-constructs.md § Diagrams`, then `.ai/skills/author-mermaid-diagram/` |
-| Recording a proposed change, or work to take up later | `specs/methodology/working-files.md § A Design Entry`, `specs/methodology/working-files.md § A Follow-up` |
+| Recording a proposed change, a steer given it, or work to take up later | `specs/methodology/working-files.md § A Design Document`, `specs/methodology/working-files.md § A Steering Decision`, `specs/methodology/working-files.md § A Follow-up` |
 
 ## Ordinals and Counts
 
@@ -54,14 +54,16 @@ How anything here gets built or reworked, whether a spec, a rule, a skill, or co
 
 **Scope comes first —** determine the actual scope of the change before drafting it. Too small a scope reaches a local optimum, right for the file in hand and wrong for the system around it; only the real scope admits the global one. Widen it until nothing outside it would change the answer, and sweep for it by meaning as well as by the draft's own words: a search built from the draft's terms finds only what the draft already knew about.
 
-- **Design —** start from the problem to solve, stated plainly, and get it logically working: a draft that solves it correctly, before it is good. The draft is described in a design entry in `.ai/designs.md` (`specs/methodology/working-files.md § A Design Entry`).
+- **Design —** start from the problem to solve, stated plainly, and get it logically working: a draft that solves it correctly, before it is good. The draft is described in a plan, for the specifications a design document, and a change of its own that the work turns up is spawned as a design of its own or logged as a follow-up, as the user decides (`specs/methodology/working-files.md § A Design Document`).
 - **Refactor —** macro improvements to its internal workings and its external surface: structural changes, not wording, that make it better meet its actual needs and work toward elegance (`specs/methodology/glossary.md`). Repeat until it converges, when a round leaves the structure where it was.
 - **Refine —** once Refactor has converged, make its elegance plain and make it easy to use and to understand: wording, naming, phrasing, consistency. Polishing something still moving structurally is wasted effort.
 
-**The adversarial DRR —** when the builder judges the work optimal, the cold agent is given the same problem and the builder's design, each stated on its own. It is never the builder, since re-reading your own work re-reads what you meant. It does not derive its own solution: it takes the builder's design through Design, Refactor and Refine again, looking for Rube Goldberg machines and Potemkin villages (`specs/methodology/glossary.md`). It reports findings; it does not edit.
+**The adversarial DRR —** when the builder judges the work optimal, the cold agent is given the builder's complete plan: the problem and the design, each stated on its own, and the steers that settled it (`specs/methodology/working-files.md § A Steering Decision`). It is never the builder, since re-reading your own work re-reads what you meant. It does not derive its own solution: it takes the builder's design through Design, Refactor and Refine again, looking for Rube Goldberg machines and Potemkin villages (`specs/methodology/glossary.md`). It reports findings; it does not edit.
 
-Brief it with more than the task: name the failure patterns earlier rounds found, say which decisions the user has settled so it checks fidelity to them rather than reopening them, ask for any sweep of the repo to be redone by its own method, and point it at whatever the design decides, since that is where defects concentrate.
+Brief it with more than the task: name the failure patterns earlier rounds found, point it at the steers the plan records, the decisions the user has settled, so it checks fidelity to them rather than reopening them, ask for any sweep of the repo to be redone by its own method, and point it at whatever the design decides, since that is where defects concentrate.
 
 The builder checks every finding against the files before acting on it, since a review can be confidently wrong. The user steers which findings are addressed and how. Accepted findings go back through the builder's process, and if they changed the structure, the revised design gets another adversarial DRR. Then, with the user's go-ahead, the builder applies the work and a cold agent audits it, which for specs means `.ai/skills/audit-specs/`.
 
 **Direct edits —** a small tactical edit, narrow in scope and low in risk, may skip this process and be applied directly, but only once the user has approved it. Anything larger or riskier goes through the process.
+
+**A new branch —** is created only once the user approves it, the builder proposing its name and what it starts from: how work is split across branches decides how it is reviewed and merged, which is the user's to settle, as a direct edit is.

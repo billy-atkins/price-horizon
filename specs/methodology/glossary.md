@@ -11,6 +11,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Citation | A pointer from one place in the Spec of Record scope to another, written in a fixed form a reader and a script can both follow. Not a bibliographic reference. |
 | Cold agent | An agent arriving with no context but what it reads, and so with no attachment to the decisions of whoever did the work before it. |
 | Construct | A structured form, one of a bounded set the method approves, in which a rule, a process, an entity's behavior or a repeated entry is written rather than in free prose. Not the programming sense. |
+| Design document | A plan describing one change to the specifications taken through Design, Refactor, Refine, from the problem it solves to the edits that make it. Not a design the product's architecture describes. |
 | Design, Refactor, Refine | A process by which work is brought to elegance: a draft that solves the problem, then structural change until the structure settles, then its wording. Abbreviated DRR. |
 | Elegance | A quality of a solution, the opposite of a Rube Goldberg machine, in which its objective is satisfied by the fewest rules, as a minimal proof reaches its theorem in the fewest steps, so that a skilled reader sees simple, recurring patterns, a rhythm and a beauty, where an unskilled reader sees only complexity. The complexity is reduced, never hidden: everything the objective truly requires is still there, in its simplest form. |
 | Field | A key-value pair written into a spec's or a working file's text. Not a table's column, a data field a data model defines, or a key in a file's frontmatter. |
@@ -19,6 +20,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Layer | A level in the order of what governs what among the specifications, each governed by those above it. Not a layer of the product's answer. |
 | Open question | A decision the specs rely on but have not made, recorded with the answer in use until it is settled. Not a question merely unanswered in conversation. |
 | Operating rule | A rule about operating Spec of Record: how work on the specifications is done, reviewed, recorded and tooled, rather than what the specifications hold. Not a rule about how the product operates. |
+| Plan | A working file in which a skill describes a change before making it. Not a schedule, a project plan, or a plan the product's specifications describe, such as a competitor's. |
 | Point-of-use citation | A citation placed where the rule, definition or principle it names is applied, in the step or passage doing the work. |
 | Potemkin village | A front built to look complete with nothing behind it, as the painted village facades of the legend: a guarantee, rule or enforcement mechanism relied on as real that is stated but not specified or not checked. |
 | Progressive disclosure | A way of reading in which what a step needs is loaded at the step that needs it, rather than everything at once. |
@@ -28,7 +30,11 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Spec of Record | A methodology for the agentic SDLC, governed and spec-as-source, in which the specifications are the durable source a system is built from, and a human designs and steers while an AI agent assists. |
 | Spec of Record scope | The set of files Spec of Record governs, and nothing else. |
 | Specification rule | A rule governing what the specifications hold and how they are written. Not a rule a specification states about the product. |
+| Stamp | A field's value recording when a check passed and a hash of the content it passed on. Not a version number or a signature. |
+| Steering decision | A record of a decision the user made while a design was shaped or reviewed, quoting the user's words. Not the request that opened the design. |
+| Validation review | A review by a cold agent of whether a plan holds to the rules for its form and its record, run before the user approves it. Not an adversarial DRR, which reviews the design itself. |
 | Working file | A file that writing the specs leaves behind, serving whoever writes them. |
+| Workstack | The tree of design documents their Spawned By draws from one design that was not spawned, together with the blocking their Depends On records. Not a call stack or a task queue. |
 
 ## Writing an Entry
 
