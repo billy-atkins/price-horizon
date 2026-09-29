@@ -7,6 +7,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Adversarial DRR | A Design, Refactor, Refine run by a cold agent over a builder's design. |
 | Altitude | The level of a file, or of its content, within its directory, from the navigation that names what the directory holds down to the detail that states it. |
 | Builder | The person or agent who does a piece of work and takes it through Design, Refactor, Refine. |
+| Canon | The part of the Spec of Record scope that states and applies the method's rules: the entry point to the specifications, the methodology, and the skills the methodology registers, each skill the specification of a procedure. Not a product's specifications, and not a canonical form or version. |
 | Citation | A pointer from one place in the Spec of Record scope to another, written in a fixed form a reader and a script can both follow. Not a bibliographic reference. |
 | Cold agent | An agent arriving with no context but what it reads, and so with no attachment to the decisions of whoever did the work before it. |
 | Construct | A structured form, one of a bounded set the method approves, in which a rule, a process, an entity's behavior or a repeated entry is written rather than in free prose. Not the programming sense. |

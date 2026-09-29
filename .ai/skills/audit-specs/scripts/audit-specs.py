@@ -9,6 +9,7 @@ audit to look, printed apart from the findings and never affecting the exit stat
 Standard library only. See SKILL.md.
 """
 
+import posixpath
 import re
 import sys
 from pathlib import Path
@@ -22,7 +23,7 @@ SCOPE_HOME = "scope.md § What Spec of Record Governs"
 SCOPE_KINDS = {"Agent instructions", "Specs", "Skills", "Working files"}
 REGISTRY = "specs/methodology/skills.md"
 REGISTRY_RULE = "skills.md § Registered Skills"
-AUTHORING = "specs/AGENTS.md § Authoring Skills"
+AUTHORING = "specs/methodology/skills.md § Authoring a Skill"
 SCOPE_TREE = "specs/methodology/scope.md"
 SPECS_AGENTS = "specs/AGENTS.md"
 GLOSSARY = "specs/methodology/glossary.md"
@@ -587,8 +588,10 @@ def check(root):
 
                 # lineage resolves
                 if path not in known:
-                    found.append(("sourcing-and-citation.md § Writing a Citation", r, i,
-                                  f"cites a file that does not exist: {path}"))
+                    relative = posixpath.normpath(posixpath.join(posixpath.dirname(r), path))
+                    problem = (f"not a project-root path: {path}" if relative in known
+                               else f"cites a file that does not exist: {path}")
+                    found.append(("sourcing-and-citation.md § Writing a Citation", r, i, problem))
                     continue
                 if target not in lineage[path]:
                     found.append(("sourcing-and-citation.md § Writing a Citation", r, i,
@@ -604,10 +607,10 @@ def check(root):
                     found.append(("sourcing-and-citation.md § Writing a Citation", r, i,
                                   "cites an index.md, which is never a citation target"))
 
-                # cross-file citations use a project-root path
-                if path != r and not path.startswith("specs/") and path != "AGENTS.md":
-                    found.append(("sourcing-and-citation.md § Writing a Citation", r, i,
-                                  f"not a project-root path: {path}"))
+                # a skill's files cite into .ai/skills/ only that skill's own
+                if path.startswith(".ai/skills/") and path.split("/")[2] != (
+                        r.split("/")[2] if r.startswith(".ai/skills/") else None):
+                    found.append((AUTHORING, r, i, f"cites another skill's file: {path}"))
 
         # bare § outside a backtick span. Every inline span is stripped, not only the
         # ones that parse as citations, since the rule is about the span and not the form.
@@ -1020,7 +1023,7 @@ def scope_findings(root):
 
 
 def skill_findings(root, names):
-    """specs/AGENTS.md § Authoring Skills, for each registered skill."""
+    """specs/methodology/skills.md § Authoring a Skill, for each registered skill."""
     found = []
     for n in names:
         d = root / ".ai/skills" / n
@@ -1093,7 +1096,7 @@ def candidates(root):
 
 def skill_candidates(root):
     """An unregistered skill whose SKILL.md cites the method's rules, which may belong to the
-    method or may simply follow Authoring Skills; and a registered skill's script importing
+    method or may simply follow Authoring a Skill; and a registered skill's script importing
     from outside the standard library, which the rule allows where the standard library
     cannot serve. Places to read, never findings."""
     out, names = [], set(registry(root)[0])

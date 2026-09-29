@@ -6,7 +6,9 @@ A working file is never committed, since no reader of the specs needs it. Which 
 |---|---|
 | `.ai/designs.md` | changes proposed and under review, each as a design entry (`§ A Design Entry`) |
 | `.ai/follow-ups.md` | work on the specs that should be done and is not yet, each as a follow-up (`§ A Follow-up`) |
-| `.ai/tmp/` | the skills' own output, review and audit reports among it (`specs/AGENTS.md § Authoring Skills`) |
+| `.ai/tmp/` | the skills' own output, review and audit reports among it |
+
+**A skill's scratch space is `.ai/tmp/<skill-name>/` —** created by the skill if it is not there. One directory per skill so that one skill's output is never mistaken for another's, and under `.ai/tmp/` so none of it is ever committed. A skill does not delete its own output when it finishes: the output is usually the whole point, and something downstream, an agent or a person, is about to read it. What a skill should clean is its own *stale* output, the file left behind from a previous run that no longer corresponds to anything, since a reader has no way to tell that from a current one.
 
 `.ai/designs.md` and `.ai/follow-ups.md` each open with a short header naming what the file holds and citing this file, and the file's entries follow that header.
 
@@ -20,6 +22,7 @@ A design entry describes one change taken through `specs/AGENTS.md § Design, Re
 |---|---|---|
 | Status | a `**Status:**` line | where the entry is in its lifecycle below, and each review it has been through, naming the review's report |
 | Source | a `**Source:**` line | what asked for the change: the user's own words, or the finding that raised it |
+| Specs | a `**Specs:**` line | the kind of file the change is bounded to, settled while the design is shaped and before any file is edited: `canon`, `specs/AGENTS.md` and the files under `specs/methodology/` and a registered skill's directory; `application`, the files under `specs/application/`; or `neither`, any other file. Every file on the Target line is of the declared kind or of `neither` |
 | Target | a `**Target:**` line | every file the change edits |
 | Depends On | a `**Depends On:**` line | the design entries that must be applied before this one, named by their headings, or none; a withdrawn dependency is removed from the line when the entry is reworked |
 | The problem | a `### The problem` section | what is wrong, stated on its own, before any fix |
@@ -28,7 +31,7 @@ A design entry describes one change taken through `specs/AGENTS.md § Design, Re
 | The builder's passes | a `### The builder's passes` section | what each pass and each review changed |
 | Deliberately left alone | a `### Deliberately left alone` section | each change considered and declined, with the reason, and each piece of work deferred, named by its follow-up |
 
-Work the change defers becomes a follow-up when it is deferred, not when the entry is pruned.
+A change needing both kinds is two entries, the application one depending on the canon one. Work the change defers becomes a follow-up when it is deferred, not when the entry is pruned.
 
 A Lifecycle. States:
 

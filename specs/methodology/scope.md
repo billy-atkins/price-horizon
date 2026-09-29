@@ -35,14 +35,14 @@ specs/
     ├── product/               what a user can rely on
     └── technical/             how it is made true
 .ai/
-└── skills/<skill-name>/       a registered skill: SKILL.md, its entry point, and scripts/
+└── skills/<skill-name>/       a registered skill: SKILL.md, its entry point, references/ and scripts/
 ```
 
 The tree names the methodology's files, since they are the rules every task depends on, and describes none of them; it stops at `product/` and `technical/`, whose files grow with the product; and it leaves the working files to `specs/methodology/working-files.md § The Working Files`, which names them. What a file covers is its directory's `index.md` (`specs/methodology/spec-placement.md § Where a File Goes`), so before working in a directory an agent reads its `index.md`.
 
 ## Progressive Disclosure
 
-An agent loads what its current step needs, when the step needs it, descending only as far as the step requires: from `specs/AGENTS.md`'s routing table, which maps a task to the rule governing it, to this scope, to a directory's `index.md`, to a file, and to the section a citation names. What is loaded long before it is needed sits behind everything loaded since and competes with all of it; what is loaded at the step that needs it is at the front of the agent's attention and carries its full weight.
+An agent loads what its current step needs, when the step needs it, descending only as far as the step requires: from `specs/AGENTS.md`'s playbook, which sends a change to the procedure that governs it, to that procedure's step and the reference it forks to, to a directory's `index.md`, to a file, and to the section a citation names. What is loaded long before it is needed sits behind everything loaded since and competes with all of it; what is loaded at the step that needs it is at the front of the agent's attention and carries its full weight.
 
 The glossary is the one methodology file loaded ahead of need, read with `specs/AGENTS.md` before any step, since an agent cannot know a word is one of its terms without having read it.
 
@@ -51,6 +51,10 @@ Progressive disclosure governs when to read, not how much. Whatever is loaded is
 ## The Methodology Governs Itself
 
 The methodology is held to the rules it states: it has an `index.md`, and an `architecture.md` summarizing it, a rule that is a lookup is authored as a table, and its files meet the style rules they set. The rules on acceptance scenarios and on `technical-specs` frontmatter scope themselves to product specs, and so do not reach it: a methodology file has no product capability to prove and no technical counterpart to name.
+
+## Agent Agnostic
+
+The instructions in Spec of Record's scope, both `AGENTS.md` files and each registered skill, stay agnostic of which agent reads them: no vendor-specific instruction filename, no tool-specific directory, no assumption about which model, CLI, or editor is running. The test for anything new: would it still make sense to an agent from a different vendor, or a person reading it directly. Tooling is the one exception, and only because it carries no content: an opt-in helper outside the method's scope, named for the tool it serves, may wire that tool up to the agnostic content. Whatever a helper generates is gitignored, and nothing depends on a helper having run: a skill stays readable directly, and a helper only saves a step for someone using that tool.
 
 ## Rules and Skills
 
