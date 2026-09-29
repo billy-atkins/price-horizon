@@ -11,9 +11,9 @@ A script decides whether a citation resolves, a frontmatter list is sorted, a fe
 
 The audits are the substance. The script is a pre-pass.
 
-    python .ai/skills/audit-specs/scripts/audit-specs.py           # from the repo root
-    python .ai/skills/audit-specs/scripts/audit-specs.py <path>    # explicit root
-    python .ai/skills/audit-specs/scripts/audit-specs.py --candidates    # also list places for the reading audits that use them
+    python .ai/skills/audit-specs/scripts/audit-specs.py --check-scope                 # from the repo root
+    python .ai/skills/audit-specs/scripts/audit-specs.py --check-scope --root <path>   # an explicit root
+    python .ai/skills/audit-specs/scripts/audit-specs.py --list-candidates             # places for the reading audits that use them
 
 Run it first, because it is fast and because its findings would otherwise be noise in a reading pass.
 
@@ -107,15 +107,15 @@ The evidence for needing both is one pass in this repo where a change widened a 
 
 ### Ordinals and counts
 
-Run the script with `--candidates`, then read the files in scope in full, using the candidates as a guide to where numbers are likely rather than as the boundary of the search. Judge every number against `specs/AGENTS.md § Ordinals and Counts` as written: a violation gets a proposed rewrite, and a decline names that section's reason for keeping the number. A violation the patterns missed is reported like any other, and its phrasing is a candidate for a new pattern.
+Run the script with `--list-candidates`, then read the files in scope in full, using the candidates as a guide to where numbers are likely rather than as the boundary of the search. Judge every number against `specs/AGENTS.md § Ordinals and Counts` as written: a violation gets a proposed rewrite, and a decline names that section's reason for keeping the number. A violation the patterns missed is reported like any other, and its phrasing is a candidate for a new pattern.
 
 ### Markup
 
-The script decides where bold and italic may appear, a field's key, and a heading's form; whether a backtick span holds literal text and an italic span real stress, per `specs/methodology/modeling-constructs.md § Literal Text` and `specs/methodology/modeling-constructs.md § Emphasis`, is the judgment it cannot make. Run it with `--candidates`, which lists each backtick span holding a capital letter and no punctuation that matches no heading, field key, or text a fenced example in the tree holds, and each italic span of more than a few words, then read the files in scope in full, using the candidates as a guide rather than as the boundary. Among bold lead-ins and headings, the case to look for is a lead-in a citation needs.
+The script decides where bold and italic may appear, a field's key, and a heading's form; whether a backtick span holds literal text and an italic span real stress, per `specs/methodology/modeling-constructs.md § Literal Text` and `specs/methodology/modeling-constructs.md § Emphasis`, is the judgment it cannot make. Run it with `--list-candidates`, which lists each backtick span holding a capital letter and no punctuation that matches no heading, field key, or text a fenced example in the tree holds, and each italic span of more than a few words, then read the files in scope in full, using the candidates as a guide rather than as the boundary. Among bold lead-ins and headings, the case to look for is a lead-in a citation needs.
 
 ### Glossary terms
 
-A use in a file's own ordinary sense, an application spec's product record or data field among them, is outside this audit unless it could be misread as the method's. Run the script with `--candidates`, which lists each line outside the glossary where a glossary term or one of its other names seems to be defined, then read the files in scope in full against `specs/methodology/glossary.md`, using the candidates as a guide rather than as the boundary. A second definition is cut, leaving what its file says about the term, and a term used in the method's sense but differently is reworded or, where the sense recurs, the glossary is corrected.
+A use in a file's own ordinary sense, an application spec's product record or data field among them, is outside this audit unless it could be misread as the method's. Run the script with `--list-candidates`, which lists each line outside the glossary where a glossary term or one of its other names seems to be defined, then read the files in scope in full against `specs/methodology/glossary.md`, using the candidates as a guide rather than as the boundary. A second definition is cut, leaving what its file says about the term, and a term used in the method's sense but differently is reworded or, where the sense recurs, the glossary is corrected.
 
 ### Construct choice and form
 
@@ -127,7 +127,7 @@ What is easy to miss: a file named by a bare filename another directory shares, 
 
 ### Finished style
 
-Run the script with `--candidates`, which lists each line holding a phrase the Example column of `specs/methodology/spec-style.md § What a Finished Spec Reads Like`'s table quotes, and use the list as a guide rather than as the boundary. A trade-off that passes its section's test is declined with the reason.
+Run the script with `--list-candidates`, which lists each line holding a phrase the Example column of `specs/methodology/spec-style.md § What a Finished Spec Reads Like`'s table quotes, and use the list as a guide rather than as the boundary. A trade-off that passes its section's test is declined with the reason.
 
 ### Working-file form
 
@@ -173,7 +173,7 @@ A finding becomes a design document (`specs/methodology/working-files.md § A De
 | Placement | per directory, its `index.md` and every file in it, with the product `architecture.md` for the product side |
 | Finished style | the specs a change touched, or every spec for a full run |
 | Agent agnostic | both `AGENTS.md` files, each registered skill, the project's `.gitignore`, and the helpers the root `AGENTS.md` names |
-| Skill form | `specs/methodology/skills.md`, each registered skill, and each unregistered one `--candidates` lists |
+| Skill form | `specs/methodology/skills.md`, each registered skill, and each unregistered one `--list-candidates` lists |
 | Working-file form | `.ai/follow-ups.md` |
 | Diagram currency | per diagram, with every section its Sources list names |
 
@@ -217,7 +217,7 @@ Each row describes, in the script's own terms, what it checks for the rule it na
 | Under `specs/`, an `Open Questions` section is its file's last top-level section and holds an optional `**Diagrams:**` field, then a `**Records:**` field of at least one record, one list item each, and nothing else; a blank line precedes each field; each record is its `**Name:**`, `**Open Question:**`, `**Provisional Answer:**` and `**Impacts:**` fields in that order, the later ones indented two spaces, its Impacts carrying at least one section citation, and no two records share a Name | `specs/methodology/modeling-constructs.md § Constructs § Record Form`, `specs/methodology/spec-placement.md § An Open Question` |
 | Under `specs/`, every line opening with a bold phrase ending in a colon inside the bold carries a key a form declares, where that form places it | `specs/methodology/modeling-constructs.md § Fields` |
 
-**Scope —** the files `specs/methodology/scope.md § What Spec of Record Governs` names, the working files aside: the root `AGENTS.md`, every file under `specs/`, and each skill `specs/methodology/skills.md` registers, its `SKILL.md`, its references and its scripts. The working files legitimately carry citations to things since moved or removed, so the Working-file form audit reads `.ai/follow-ups.md` instead, and `.ai/skills/design-specs/` checks the plans it writes, and the skills' output under `.ai/tmp/` is read by no check, being reports rather than rules; the check keeping the working files out of version control reads the project's `.gitignore`. `--candidates` lists places for the Ordinals and counts audit, the Markup audit, the Glossary terms audit, the Finished style audit and the Agent agnostic audit to read, and, for the Skill form audit, an unregistered skill whose `SKILL.md` cites the method's rules and a registered skill's script importing from outside the standard library. An audit whose unit names the script's scope for a full run uses this one. The candidates print apart from the findings, since a list of places to read decides nothing (`specs/methodology/scope.md § Rules and Skills`).
+**Scope —** the files `specs/methodology/scope.md § What Spec of Record Governs` names, the working files aside: the root `AGENTS.md`, every file under `specs/`, and each skill `specs/methodology/skills.md` registers, its `SKILL.md`, its references and its scripts. The working files legitimately carry citations to things since moved or removed, so the Working-file form audit reads `.ai/follow-ups.md` instead, and `.ai/skills/design-specs/` checks the plans it writes, and the skills' output under `.ai/tmp/` is read by no check, being reports rather than rules; the check keeping the working files out of version control reads the project's `.gitignore`. `--list-candidates` lists places for the Ordinals and counts audit, the Markup audit, the Glossary terms audit, the Finished style audit and the Agent agnostic audit to read, and, for the Skill form audit, an unregistered skill whose `SKILL.md` cites the method's rules and a registered skill's script importing from outside the standard library. An audit whose unit names the script's scope for a full run uses this one. The candidates print apart from the findings, since a list of places to read decides nothing (`specs/methodology/scope.md § Rules and Skills`).
 
 ## Operating rules carried out by a step
 

@@ -156,7 +156,7 @@ When you consider a change and reject it, say so and why, in the proposal. When 
 
 ## Verifying a proposal
 
-`.ai/skills/design-specs/scripts/design-specs.py` checks that text a proposal quotes from a file it does not contain is there, that a heading it cites is there, and that a design document, and the workstack the design documents draw, hold together. These checks and this skill's steps are what hold one to its form, per `specs/methodology/working-files.md § A Design Document`. Each check is a flag named for what it does, per `specs/methodology/skills.md § Authoring a Skill`; flags combine in one run, and the exit status is 0 when every check passes, 1 when one finds a problem, and 2 for a usage error, so a run can gate a proposal.
+`.ai/skills/design-specs/scripts/design-specs.py` checks that text a proposal quotes from a file it does not contain is there, that a heading it cites is there, and that a design document, and the workstack the design documents draw, hold together. These checks and this skill's steps are what hold one to its form, per `specs/methodology/working-files.md § A Design Document`. Its checks are flags, per `specs/methodology/skills.md § Authoring a Skill`, and the exit status is 0 when every check passes, 1 when one finds a problem, and 2 for a usage error, so a run can gate a proposal.
 
     python .ai/skills/design-specs/scripts/design-specs.py --check-quoted-text <manifest>
     python .ai/skills/design-specs/scripts/design-specs.py --check-quoted-text -    # manifest on stdin

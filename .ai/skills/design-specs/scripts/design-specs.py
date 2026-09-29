@@ -4,9 +4,8 @@
 A proposal that says "replace X with Y" is applicable only if X appears in the
 target file, exactly, once, and only if every heading it cites exists; a design
 document must hold the form working-files.md sets, and the workstack its lineage
-draws must hold together. Each capability is a flag named for its action and its
-target, per specs/methodology/skills.md, and flags combine in one run. The exit
-status is 0 when every check passes, 1 when one finds a problem, and 2 for a
+draws must hold together. Its actions are flags per specs/methodology/skills.md
+§ Authoring a Skill. The exit status is 0 when every check passes, 1 when one finds a problem, and 2 for a
 usage error.
 
 Standard library only. See SKILL.md for the manifest format.
@@ -611,8 +610,7 @@ def stamp_validation(value):
     return 0
 
 
-# Each capability is a flag naming its action and its target, verb-target as a skill is
-# named: check- flags report, show- flags describe, and a flag that writes says so.
+# Actions are flags per specs/methodology/skills.md § Authoring a Skill.
 FLAGS = (
     ("--check-quoted-text", "MANIFEST", check_quoted_text,
      "confirm each text the manifest quotes appears exactly once in the file it names; - reads the manifest from stdin"),
@@ -636,7 +634,7 @@ FLAGS = (
 
 
 def main(argv):
-    parser = argparse.ArgumentParser(prog="design-specs.py", description=__doc__.split("\n\n")[0])
+    parser = argparse.ArgumentParser(prog="design-specs.py", description=__doc__.split("\n\n")[0], allow_abbrev=False)
     for flag, metavar, _, help_text in FLAGS:
         # a flag given more than once runs once for each value it is given
         if flag in ("--check-workstack", "--show-workstack"):
