@@ -18,6 +18,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Layer | A level in the order of what governs what among the specifications, each governed by those above it. Not a layer of the product's answer. |
 | Open question | A decision the specs rely on but have not made, recorded with the answer in use until it is settled. Not a question merely unanswered in conversation. |
 | Operating rule | A rule about operating Spec of Record: how work on the specifications is done, reviewed, recorded and tooled, rather than what the specifications hold. Not a rule about how the product operates. |
+| Point-of-use citation | A citation placed where the rule, definition or principle it names is applied, in the step or passage doing the work. |
 | Potemkin village | A front built to look complete with nothing behind it, as the painted village facades of the legend: a guarantee, rule or enforcement mechanism relied on as real that is stated but not specified or not checked. |
 | Progressive disclosure | A way of reading in which what a step needs is loaded at the step that needs it, rather than everything at once. |
 | Record | An entry of a record type, written in the Record Form. Not the product's stored data. |
