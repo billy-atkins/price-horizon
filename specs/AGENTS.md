@@ -35,6 +35,7 @@ Running the procedure, rather than recalling the rules, is what puts each rule i
 | Keeping a counterpart spec, an `architecture.md` or a diagram in step | `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step` |
 | Adding, changing, or re-checking a diagram | `specs/methodology/modeling-constructs.md § Diagrams`, then `.ai/skills/author-mermaid-diagram/` |
 | Recording a proposed change, a steer given it, or work to take up later | `specs/methodology/working-files.md § A Design Document`, `specs/methodology/working-files.md § A Steering Decision`, `specs/methodology/working-files.md § A Follow-up` |
+| Setting up the agent in use to apply a review's reasoning effort | `specs/methodology/skills.md § Setting Up an Agent`, then `.ai/skills/configure-spec-of-record/` |
 
 ## Ordinals and Counts
 
@@ -63,6 +64,8 @@ How anything here gets built or reworked, whether a spec, a rule, a skill, or co
 Brief it with more than the task: name the failure patterns earlier rounds found, point it at the steers the plan records, the decisions the user has settled, so it checks fidelity to them rather than reopening them, ask for any sweep of the repo to be redone by its own method, and point it at whatever the design decides, since that is where defects concentrate.
 
 The builder checks every finding against the files before acting on it, since a review can be confidently wrong. The user steers which findings are addressed and how. Accepted findings go back through the builder's process, and if they changed the structure, the revised design gets another adversarial DRR. Then, with the user's go-ahead, the builder applies the work and a cold agent audits it, which for specs means `.ai/skills/audit-specs/`.
+
+**Each review's model and effort —** the adversarial DRR and the post-apply audit each run on a model and at a reasoning effort (`specs/methodology/glossary.md`), light, medium or high, that the user chooses before the review starts, as separate choices, the model the agent runs on and medium effort being the defaults. A model other than the agent's own can see past a blind spot a reviewer on the same model would share, and a higher effort costs more; neither changes the review's scope or its brief. A level is applied as the nearest the agent offers, through the reviewer definition the agent was set up with for it where it needs one (`specs/methodology/skills.md § Setting Up an Agent`), and a choice the agent cannot apply runs as the agent allows. Its pass in the plan names the model and effort it ran on, per `specs/methodology/working-files.md § A Design Document`.
 
 **Direct edits —** a small tactical edit, narrow in scope and low in risk, may skip this process and be applied directly, but only once the user has approved it. Anything larger or riskier goes through the process.
 

@@ -13,8 +13,9 @@ Standard library only. See SKILL.md.
 import argparse
 import posixpath
 import re
+import subprocess
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 # specs/methodology/scope.md § What Spec of Record Governs names where each kind is named:
 # specs by their place under specs/, the agent instructions by the root AGENTS.md and
@@ -727,8 +728,26 @@ def check(root):
     found += glossary_findings(root)
     found += coverage_findings(root)
     found += ignored_findings(root)
+    found += reviewer_findings(root)
     found += image_findings(root)
     return found
+
+
+# specs/methodology/skills.md § Setting Up an Agent names the reviewers an agent writes to set
+# itself up, and specs/methodology/scope.md § Agent Agnostic keeps what it writes out of git.
+REVIEWERS = ("review-light", "review-medium", "review-high")
+AGNOSTIC_RULE = "scope.md § Agent Agnostic"
+
+
+def reviewer_findings(root):
+    """No reviewer an agent wrote to set itself up is tracked, read from git ls-files. A project
+    that is not a git repository, or a machine without git, tracks nothing to check."""
+    try:
+        out = subprocess.run(["git", "ls-files"], cwd=root, capture_output=True, text=True, check=True).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return []
+    return [(AGNOSTIC_RULE, p, 0, "a reviewer definition an agent wrote to set itself up is tracked")
+            for p in out.splitlines() if any(c.split(".")[0] in REVIEWERS for c in PurePosixPath(p).parts)]
 
 
 def image_findings(root):

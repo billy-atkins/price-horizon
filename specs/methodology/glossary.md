@@ -24,6 +24,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Point-of-use citation | A citation placed where the rule, definition or principle it names is applied, in the step or passage doing the work. |
 | Potemkin village | A front built to look complete with nothing behind it, as the painted village facades of the legend: a guarantee, rule or enforcement mechanism relied on as real that is stated but not specified or not checked. |
 | Progressive disclosure | A way of reading in which what a step needs is loaded at the step that needs it, rather than everything at once. |
+| Reasoning effort | A setting of the model an agent runs on: how far it reasons before it answers. Not how far a review reaches, nor how many reviewers run it. |
 | Record | An entry of a record type, written in the Record Form. Not the product's stored data. |
 | Record section | A section holding the records of one record type. |
 | Rube Goldberg machine | A mechanism far more elaborate than the task it performs, as the cartoonist's contraptions chain many steps to do something simple: a mechanism, role or safeguard whose complexity no stated need justifies, where a light switch would do. |
