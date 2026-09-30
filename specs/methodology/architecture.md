@@ -31,7 +31,7 @@ The methodology is held to the rules it states, and a rule reaches a methodology
 
 The detail files that govern what a spec says are not independent. Each answers a question another leaves open, and they apply to different subsets of what is written here. `index.md` lists what each contains; this section says how they fit together.
 
-**The scope frames all of them —** `scope.md` states which files these rules reach, how the methodology governs itself, how rules and skills relate, how every rule is enforced, and how the method's instructions stay agnostic of the agent reading them, `skills.md` which skills belong to the method and how a skill is authored, and `glossary.md` the terms the method gives meanings of its own; every rule here applies within that scope.
+**The scope frames all of them —** `scope.md` states which files these rules reach, how the methodology governs itself, how rules and skills relate, how every rule is enforced, and how the method's instructions stay agnostic of the agent reading them, `skills.md` which skills belong to the method, how a skill is authored, and how the agent in use is set up to carry out what the method leaves to it, and `glossary.md` the terms the method gives meanings of its own; every rule here applies within that scope.
 
 **Placement comes first and constrains everything after it —** `spec-placement.md` settles which spec a fact belongs in, at which altitude, in which file. Nothing downstream can be decided before that: a citation cannot be written until there is a file to cite, and a capability cannot owe scenarios until it is known to be a product capability.
 
@@ -58,5 +58,7 @@ These files state the rules, and the skills `specs/methodology/skills.md` regist
 What it deliberately leaves unaudited it declines by name rather than by silence.
 
 **`author-mermaid-diagram` serves the diagram rules —** `specs/methodology/modeling-constructs.md § Diagrams` licenses exactly one kind of rendering for a human reader and leaves where it goes to the reader's need, and bounds its form, what it may show, and how it and its sources cite each other; that skill is how one gets authored, rendered, and checked, and that section points at it directly. It differs from `design-specs` and `audit-specs` in its subject, not in how it is governed: drawing a good diagram is craft, so the skill cites these files only where they govern a diagram, while `design-specs` and `audit-specs` exist to serve these rules and cite them throughout.
+
+**`configure-spec-of-record` sets up the agent in use —** the method's instructions name no agent, so what only the agent in use can carry out, applying a review's reasoning effort among it, it sets up for itself through that skill, as `specs/methodology/skills.md § Setting Up an Agent` has it, writing only what it needs, outside the scope.
 
 A skill belongs to the method by being registered in `specs/methodology/skills.md`, which is also the boundary between the method's skills and any other skill under `.ai/skills/`.

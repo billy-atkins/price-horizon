@@ -6,6 +6,7 @@ A skill is part of Spec of Record when it is registered here, and only then; a s
 |---|---|
 | `audit-specs` | `specs/AGENTS.md`, `specs/methodology/` |
 | `author-mermaid-diagram` | `specs/methodology/modeling-constructs.md § Diagrams` |
+| `configure-spec-of-record` | `§ Setting Up an Agent` |
 | `design-specs` | `specs/AGENTS.md`, `specs/methodology/` |
 
 ## Authoring a Skill
@@ -33,3 +34,7 @@ A skill captures a procedure this repo has already worked out, so the next agent
 **Scripts are Python 3 —** standard library only wherever that is achievable. A script needing an install step is a script that will not run at the moment it is needed. Where a capability genuinely requires something external, degrade rather than fail: prefer a local tool when present, a documented remote or manual path when not, and report which one actually ran so a reader knows what they are trusting.
 
 Record what actually went wrong. A skill earns its length by naming the failures that motivated it, the trap that only shows up at the wrong moment, the fix that is not obvious from the symptom. Anything derivable from reading the underlying tool's own documentation does not need to be here.
+
+## Setting Up an Agent
+
+What only the agent in use can carry out, it sets up for itself, through `.ai/skills/configure-spec-of-record/`, writing what it needs as `specs/methodology/scope.md § Agent Agnostic` allows anything written for one tool. For a review's reasoning effort (`specs/AGENTS.md § Design, Refactor, Refine (DRR)`), an agent that applies a level only through a definition of its own writes one reviewer definition for each level, named `review-light`, `review-medium` and `review-high`, each set to the agent's nearest level and giving no instructions of its own, since the brief the review is started with carries them, and keeps them out of version control through the checkout's own exclude file, `.git/info/exclude`, so its set-up changes no committed file; an agent that applies a level as it starts a reviewer writes none.
