@@ -48,6 +48,8 @@ An open question about what is specified is not a working file's to hold; it is 
 
 **A change needing both kinds is split —** its canon design reviews the application specs for what it leaves out of step there, records that in its Impact on the Application Specs, and edits none of them. That application work goes to the application design the canon design was spawned from, where there is one, or else is spawned or logged as this section's spawning paragraph has it. The two may be worked in concert. What the canon design's post-apply audit finds in the application specs is application work too, added to what its review handed on or handed on the same way, so the canon design completes without editing them. Where the application work finds the canon design wrong, the canon design takes the change while it is in progress or approved, the user reopening an approved one. For any other canon change the application work needs, the canon design's change among them once it is applying or complete, the application design spawns a canon design, which blocks it, the user reopening the application design first where it is approved. An application design already applying keeps to what was approved, the canon change spawned or logged without blocking it, as the user decides.
 
+**Changes after approval —** once the user approves a design, every change it makes to the files is one the user approved and one the design describes. Each finding of its post-apply audit is presented to the user and settles one way. A tactical fix is made as a direct edit once the user approves it (`specs/AGENTS.md § Design, Refactor, Refine (DRR)`), and recorded in the audit's pass. A canon design's finding in the application specs is application work, handed on as this section's paragraph on a change needing both kinds has it. A finding the user judges wrong is set aside, and recorded in the pass with the reason. And a finding that exposes a flaw in the design, or a fix the user does not approve, sends the design back to in progress: its changes to the files are reverted, and it is revised and worked afresh from the files as they stood before its apply, with what was learned. A design's apply begins only once nothing else is uncommitted and no other design is applying in the same checkout, and its changes are committed on their own, one commit for each design, even where a branch holds several, so that a revert takes exactly that design's changes; where the project has no version control, its changes are reverted by hand. A design stays applying until the user approves its commit.
+
 A Lifecycle. States:
 
 | state | description | terminal |
@@ -67,7 +69,8 @@ Transitions:
 | in-progress | approved | its adversarial DRR, and another after a revision that changed its structure, as `specs/AGENTS.md § Design, Refactor, Refine (DRR)` has one, is taken in, its validation review has stamped it, its Depends On names none, and the user approves it |
 | approved | in-progress | the user reopens it |
 | approved | applying | the user gives the go-ahead to apply |
-| applying | complete | its edits are written, and its post-apply audit and the fixes that asks for are settled |
+| applying | in-progress | a finding of its post-apply audit exposes a flaw in the design, or the user does not approve its fix; its changes to the files are reverted |
+| applying | complete | its edits are written, each finding of its post-apply audit is settled without sending it back to in progress, and its changes are committed on their own where the project has version control |
 | not-started | abandoned | the user abandons it |
 | in-progress | abandoned | the user abandons it |
 | approved | abandoned | the user abandons it |
