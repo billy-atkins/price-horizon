@@ -2,7 +2,7 @@
 
 | File | Description |
 |---|---|
-| `architecture.md` | A summary of the methodology: the shape of the specifications, how the layers govern each other, how the rules below depend on and constrain one another, and how they are applied |
+| `architecture.md` | A summary of the methodology: the shape of the specifications, how the layers govern each other, how the methodology's rules depend on and constrain one another, and how they are applied |
 | `glossary.md` | The terms Spec of Record gives a meaning of its own, each defined once, and how an entry is written |
 | `scope.md` | What Spec of Record governs, the shape of that scope, how an agent loads it on demand, how the methodology governs its own files, how the rules and the skills that apply them relate, how every rule is enforced, and how the method's instructions stay agnostic of which agent reads them |
 | `skills.md` | The skills registered as part of the method, which rules each serves, and how a skill is authored |

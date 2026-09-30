@@ -6,14 +6,14 @@ The entry point to Spec of Record for these specifications. Read it before any w
 
 `specs/methodology/` holds the rules for writing a specification, which apply to every file in Spec of Record's scope (`specs/methodology/scope.md § What Spec of Record Governs`), its own files included, and so do the rules in this file.
 
-Every change is to the canon, to the application specs, or to neither, the kinds `specs/methodology/working-files.md § A Design Document` defines, and its design document says which before any file is edited, a change needing both kinds being two design documents; a direct edit, which needs none, is of a kind all the same (`§ Design, Refactor, Refine (DRR)`). The same two skills serve every kind, each forking on it where the work differs:
+Every change is to the canon, to the application specs, or to neither, the kinds `specs/methodology/working-files.md § A Design Document` defines, and its design document says which before any file is edited, a change needing both kinds being split into a canon design and the application work it leaves; a direct edit, which needs no design document, is of a kind all the same (`§ Design, Refactor, Refine (DRR)`). The same two skills serve every kind, each forking on it where the work differs:
 
 - **Changing a specification —** `.ai/skills/design-specs/`, whose Workflow gives each rule it applies a point-of-use citation and forks into the reference for the change's kind.
 - **Checking one —** `.ai/skills/audit-specs/`, whose Workflow forks the same way.
 
 Before doing by hand a kind of work a registered skill covers, read its `SKILL.md`.
 
-Running the procedure, rather than recalling the rules, is what puts each rule in mind at the step it governs (`specs/methodology/sourcing-and-citation.md § One Home Per Fact`). The index below finds a rule an author of application specs applies, mid-step; it routes, and stands in for no step of a procedure.
+Running the procedure, rather than recalling the rules, is what puts each rule in mind at the step it governs (`specs/methodology/sourcing-and-citation.md § One Home Per Fact`). This section's index finds a rule an author of application specs applies, mid-step; it routes, and stands in for no step of a procedure.
 
 | Doing this | The rule is here |
 |---|---|
@@ -25,7 +25,7 @@ Running the procedure, rather than recalling the rules, is what puts each rule i
 | Naming a new product capability domain | `specs/methodology/spec-placement.md § Naming a Capability Domain` |
 | Linking a product file to the technical files that build it | `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` |
 | Deciding whether a rule may be restated | `specs/methodology/sourcing-and-citation.md § One Home Per Fact` |
-| Writing a citation, or deciding whether one may be written | `specs/methodology/sourcing-and-citation.md § Writing a Citation`, `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` |
+| Writing a citation, referring to other text, or deciding whether a citation may be written | `specs/methodology/sourcing-and-citation.md § Writing a Citation`, `specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text`, `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` |
 | Adding or retitling a heading | `specs/methodology/sourcing-and-citation.md § Titling a Heading` |
 | Describing a rule, a process, or an entity's behavior | `specs/methodology/modeling-constructs.md` |
 | Recording a decision the specs rely on but have not made | `specs/methodology/spec-placement.md § An Open Question` |
@@ -38,17 +38,17 @@ Running the procedure, rather than recalling the rules, is what puts each rule i
 
 ## Ordinals and Counts
 
-Avoid numbers that add nothing a reader cannot already see but create friction when the set changes. A number restating a list's order or its size goes stale silently the moment an item is added or moved, and so does everything that refers to it. Say what things are, what they mean, or where they are; whoever needs a count can count them when they do the work.
+Avoid numbers that add nothing a reader cannot already see but create friction when the set changes. A number restating a list's order or its size goes stale silently the moment an item is added or moved, and so does everything that refers to it. Say what things are, what they mean, or cite where they are; whoever needs a count can count them when they do the work.
 
 - Nothing is numbered: not a heading, a bold lead-in, or a list item.
 - Nothing refers to an item by its position, by number or by word ("step 5", "the second", "the latter"). Refer to it by its name.
-- Nothing says how many things a list or the repo holds. Name them, describe them, or point to them.
+- Nothing says how many things a list or the repo holds. Name them, describe them, or cite them.
 
-Numbers that carry value stay. Algorithm and Decision Tree tables keep their numbered steps, and references to those steps, because that numbering is an industry standard a cold agent reads without further instruction, as a software engineer would (`specs/methodology/modeling-constructs.md`). A Gherkin scenario states its own test case in full, and its numbers are that case's data. A value is not a count: a two-week window, a floor of two options, exactly one home. Neither is naming a pair, "both", "either" or "the two", nor where something sits on the page, "the table above" or "below".
+Numbers that carry value stay. Algorithm and Decision Tree tables keep their numbered steps, and references to those steps, because that numbering is an industry standard a cold agent reads without further instruction, as a software engineer would (`specs/methodology/modeling-constructs.md`). A Gherkin scenario states its own test case in full, and its numbers are that case's data. A value is not a count: a two-week window, a floor of two options, exactly one home. Neither is naming a pair, "both", "either" or "the two". Where something sits on the page is no count, and no way to refer to it either: other text is cited (`specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text`).
 
 ## Design, Refactor, Refine (DRR)
 
-How anything here gets built or reworked, whether a spec, a rule, a skill, or code. The builder takes it through the process below, and a cold agent then runs its own adversarial DRR over the result. `.ai/skills/design-specs/` applies it to the canon and the application specs.
+How anything here gets built or reworked, whether a spec, a rule, a skill, or code. The builder takes it through the process this section sets, and a cold agent then runs its own adversarial DRR over the result. `.ai/skills/design-specs/` applies it to the canon and the application specs.
 
 **Read fresh before any work —** before working on a file, however small the change or recent the last read, read it again, direct edits included. Nothing tells an agent whether its memory of a file survived compaction, and content written an hour ago feels remembered when it is a reconstruction.
 

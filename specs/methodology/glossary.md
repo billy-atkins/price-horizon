@@ -1,6 +1,6 @@
 ## Glossary
 
-The terms Spec of Record gives a meaning of its own, each defined here once and nowhere else: a file using a term states its rules about it, never a second definition. What earns a term its entry, and how an entry is written, follow the table.
+The terms Spec of Record gives a meaning of its own, each defined here once and nowhere else: a file using a term states its rules about it, never a second definition. What earns a term its entry, and how an entry is written, this file states too.
 
 | Term | Definition |
 |---|---|

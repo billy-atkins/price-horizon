@@ -1,6 +1,6 @@
 ## Risks and Mitigations
 
-Each risk below is the failure mode of a Constraint already established where its mechanism lives. Gathered here as one Constraint table, so a reviewer can scan every safeguard in the design at once and confirm each one actually traces to something that enforces it, not just a sentence asserting it.
+Each risk in this section is the failure mode of a Constraint already established where its mechanism lives. Gathered here as one Constraint table, so a reviewer can scan every safeguard in the design at once and confirm each one actually traces to something that enforces it, not just a sentence asserting it.
 
 | Constraint | Applies to | Enforced by |
 |---|---|---|

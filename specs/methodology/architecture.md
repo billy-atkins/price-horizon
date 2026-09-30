@@ -29,7 +29,7 @@ The methodology is held to the rules it states, and a rule reaches a methodology
 
 ## How the Rules Relate
 
-The detail files that govern what a spec says are not independent. Each answers a question another leaves open, and they apply to different subsets of what is written here. `index.md` lists what each contains; what follows is how they fit together.
+The detail files that govern what a spec says are not independent. Each answers a question another leaves open, and they apply to different subsets of what is written here. `index.md` lists what each contains; this section says how they fit together.
 
 **The scope frames all of them —** `scope.md` states which files these rules reach, how the methodology governs itself, how rules and skills relate, how every rule is enforced, and how the method's instructions stay agnostic of the agent reading them, `skills.md` which skills belong to the method and how a skill is authored, and `glossary.md` the terms the method gives meanings of its own; every rule here applies within that scope.
 

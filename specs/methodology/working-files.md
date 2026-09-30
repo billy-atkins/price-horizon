@@ -18,41 +18,42 @@ An open question about what is specified is not a working file's to hold; it is 
 
 ## A Design Document
 
-`.ai/skills/design-specs/` writes each design document to a file of its own under `.ai/plans/design-specs/`, one per change taken through `specs/AGENTS.md § Design, Refactor, Refine (DRR)`. That skill's steps and script hold it to this form, and no audit reads it. It opens with a level-one heading, `Design Document`, whose section holds its fields (`specs/methodology/modeling-constructs.md § Fields`), and its sections follow as level-two headings. It holds these parts, in this order:
+`.ai/skills/design-specs/` writes each design document to a file of its own under `.ai/plans/design-specs/`, one per change taken through `specs/AGENTS.md § Design, Refactor, Refine (DRR)`. That skill's steps and script hold it to this form, and no audit reads it. It opens with a level-one heading, `Design Document`, whose section holds its fields (`specs/methodology/modeling-constructs.md § Fields`), and its sections follow as level-two headings. It holds its parts, in this order:
 
 | Part | Form | Holds |
 |---|---|---|
 | Name | a `**Name:**` field | the change, in a few words; the file is named for it in kebab-case, lower case with each run of other characters a hyphen, and other design documents name this one by that file name, without its extension |
-| Status | a `**Status:**` field | its state in the lifecycle below |
+| Status | a `**Status:**` field | its state in this section's lifecycle |
 | Source | a `**Source:**` field | what asked for the change: the user's own words, or the finding that raised it |
 | Specs | a `**Specs:**` field | the kind of file the change is bounded to, settled while the design is shaped and before any file is edited: `canon`, `specs/AGENTS.md` and the files under `specs/methodology/` and a registered skill's directory; `application`, the files under `specs/application/`; or `neither`, any other file. Every file its Target names is of the declared kind or of `neither` |
 | Target | a `**Target:**` field | every file the change edits, each a path in backticks, separated by semicolons; none while the design is not-started and its files are not yet known |
 | Spawned By | a `**Spawned By:**` field | the design document this one was spawned from, or none |
-| Depends On | a `**Depends On:**` field | the design documents that must finish before this one is applied, separated by semicolons, or none |
+| Depends On | a `**Depends On:**` field | the design documents that must finish before this one is validated and approved, separated by semicolons, or none |
 | Validated | a `**Validated:**` field | the stamp its validation review left, per `§ A Stamp`, leaving out the Validated and Status fields, or none; current while the design is approved |
 | The Problem | a `## The Problem` section | what is wrong, stated on its own, before any fix |
 | Scope | a `## Scope` section | how the sweep for affected content was done and what it found, what it left out included |
 | Steering Decisions | a `## Steering Decisions` record section, once the user has steered the design | each steer the user gave, per `§ A Steering Decision` |
 | The Design | a `## The Design` section | what the design does, then each edit, introduced by a bold lead-in naming the file it edits (`specs/methodology/modeling-constructs.md § Bold Lead-ins`) and quoting exactly the text it replaces or follows, so it can be verified and applied as written |
+| Impact on the Application Specs | a `## Impact on the Application Specs` section, in a canon design and no other | each application file and section the canon change leaves out of step, what it leaves out of step there and what the application work must do, or that none was found; and how the application specs were reviewed |
 | The Builder's Passes | a `## The Builder's Passes` section | what each pass and each review changed, each under a bold lead-in naming it, an adversarial DRR's opening `Adversarial DRR`, and each review named with its report |
 | Deliberately Left Alone | a `## Deliberately Left Alone` section | each change considered and declined, with the reason, and each piece of work deferred, named by the design document spawned for it or the follow-up logging it |
 
-**Spawning keeps a design focused —** work a design turns up that is a change of its own, a migration of files a rule change leaves out of step among them, is spawned as a design document of its own or logged as a follow-up (`§ A Follow-up`), as the user decides, since which suits depends on how the user means to work it. A spawned design's Spawned By names the design it came from, so each design, and each review of it, holds one change; the design's scope still sweeps what the spawned change touches, and only its edits move. A spawned design without which the design it came from cannot finish blocks that design, and is named in that design's Depends On; one that can be worked before or after it does not. Depends On is the one record of what blocks what, and names any design that must finish first, spawned or not, as an application design names the canon design whose rule it follows. A workstack is worked from the designs nothing open blocks back to the design it began from.
+**Spawning keeps a design focused —** work a design turns up that is a change of its own, a migration of files a rule change leaves out of step among them, is spawned as a design document of its own or logged as a follow-up (`§ A Follow-up`), as the user decides, since which suits depends on how the user means to work it. It is spawned or logged when it is deferred, not when the design completes. A spawned design's Spawned By names the design it came from, so each design, and each review of it, holds one change; the design's scope still sweeps what the spawned change touches, and only its edits move. A spawned design without which the design it came from cannot finish blocks that design, and is named in that design's Depends On; one that can be worked before or after it does not. Depends On is the one record of what blocks what, and names any design that must finish first, spawned or not, as an application design names the canon design whose rule it follows. A workstack is worked from the designs nothing open blocks back to the design it began from.
 
-**Blocked and to revise are read, not recorded —** a design finishes when it is complete or abandoned. A design is blocked while its Depends On names a design that has not finished; it may be worked and approved while blocked, but not applied. Once a design its Depends On names finishes, the design takes in what that one settled, or why it was dropped, and removes it from Depends On, an approved design going back to in-progress to do so. Blocked and to revise are read from the Status of the designs its Depends On names, so a design finishing changes no other design's file.
+**Blocked and to revise are read, not recorded —** a design finishes when it is complete or abandoned. A design is blocked while its Depends On names a design that has not finished; it may be worked while blocked, and is validated and approved only once its Depends On names none, so what it relies on has landed and is stable when the user approves it. Once a design its Depends On names finishes, the design takes in what that one settled, or why it was dropped, and removes it from Depends On. Blocked and to revise are read from the Status of the designs its Depends On names, so a design finishing changes no other design's file.
 
 **Unwinding —** a finished design is deleted once no design names it in Depends On, so what it settled or why it was dropped stays readable until the designs that waited on it have taken it in. An open design spawned by one abandoned goes on as a design of its own or is abandoned with it, as the user decides, and a Spawned By naming a design since deleted stays as its history.
 
-**A validation review holds it to this form —** before the user is asked to approve a design, a cold agent other than the builder checks the document against this section and `§ A Steering Decision`: for what the design script decides, and by reading for what it cannot, each steer recorded as a steering decision in the user's words rather than paraphrased or left in The Builder's Passes, and each Decision borne out by the design as it stands, the Source holding the request that opened the design, each piece of deferred work naming a follow-up or a design document that exists, each review in the passes named with its report, and Scope saying how its sweep was done. It reports what it finds, and edits nothing but the Validated field, which it stamps once the document passes; the stamp is its record in the design, its report named in no pass, since naming it would change what it stamped. The adversarial DRR reviews the design, and the validation review the record of it, so each keeps its own focus. A design changed after its stamp no longer matches it, so a stale validation is read from the file and never cleared by hand.
+**A validation review holds it to this form —** before the user is asked to approve a design, a cold agent other than the builder checks the document against this section and `§ A Steering Decision`: for what the design script decides, and by reading for what it cannot, each steer recorded as a steering decision in the user's words rather than paraphrased or left in The Builder's Passes, and each Decision borne out by the design as it stands, the Source holding the request that opened the design, each piece of deferred work naming a follow-up or a design document that exists, each review in the passes named with its report, Scope saying how its sweep was done, and a canon design's Impact on the Application Specs how its review was. It reports what it finds, and edits nothing but the Validated field, which it stamps once the document passes; the stamp is its record in the design, its report named in no pass, since naming it would change what it stamped. The adversarial DRR reviews the design, and the validation review the record of it, so each keeps its own focus. A design changed after its stamp no longer matches it, so a stale validation is read from the file and never cleared by hand.
 
-A change needing both kinds is two design documents, the application one depending on the canon one. Work the change defers is spawned or logged when it is deferred, not when the design completes.
+**A change needing both kinds is split —** its canon design reviews the application specs for what it leaves out of step there, records that in its Impact on the Application Specs, and edits none of them. That application work goes to the application design the canon design was spawned from, where there is one, or else is spawned or logged as this section's spawning paragraph has it. The two may be worked in concert. What the canon design's post-apply audit finds in the application specs is application work too, added to what its review handed on or handed on the same way, so the canon design completes without editing them. Where the application work finds the canon design wrong, the canon design takes the change while it is in progress or approved, the user reopening an approved one. For any other canon change the application work needs, the canon design's change among them once it is applying or complete, the application design spawns a canon design, which blocks it, the user reopening the application design first where it is approved. An application design already applying keeps to what was approved, the canon change spawned or logged without blocking it, as the user decides.
 
 A Lifecycle. States:
 
 | state | description | terminal |
 |---|---|---|
 | not-started | recorded, often by the design that spawned it, and not yet worked | No |
-| in-progress | under the builder's passes, a review, or taking in a design it waited on | No |
+| in-progress | under the builder's passes or a review, waiting on a design its Depends On names, or taking in one that finished | No |
 | approved | converged, reviewed, and approved by the user, and not yet applied | No |
 | applying | its edits being written, and its post-apply audit and what that asks for under way | No |
 | complete | applied, its audit settled; what it decided lives on in the specs it changed | Yes |
@@ -63,9 +64,9 @@ Transitions:
 | From | To | Trigger or condition |
 |---|---|---|
 | not-started | in-progress | the work is taken up |
-| in-progress | approved | its adversarial DRR, and another after a revision that changed its structure, as `specs/AGENTS.md § Design, Refactor, Refine (DRR)` has one, is taken in, its validation review has stamped it, and the user approves it |
-| approved | in-progress | a design its Depends On names finishes, or the user reopens it |
-| approved | applying | the user gives the go-ahead to apply, and its Depends On names none |
+| in-progress | approved | its adversarial DRR, and another after a revision that changed its structure, as `specs/AGENTS.md § Design, Refactor, Refine (DRR)` has one, is taken in, its validation review has stamped it, its Depends On names none, and the user approves it |
+| approved | in-progress | the user reopens it |
+| approved | applying | the user gives the go-ahead to apply |
 | applying | complete | its edits are written, and its post-apply audit and the fixes that asks for are settled |
 | not-started | abandoned | the user abandons it |
 | in-progress | abandoned | the user abandons it |
@@ -94,12 +95,12 @@ The form a stamp is used in names the field holding it and the fields it leaves 
 
 ## A Follow-up
 
-A follow-up records work on the specs that should be done and is not yet, with enough context for someone arriving cold to take it up. It is kept until the work is done, however many changes pass in between, so nothing that should be worked is lost. Each sits under a priority heading: `## High`, the work to take up next; `## Medium`, which waits until High is settled; or `## Low`, worth doing once nothing more pressing is open. Each holds these parts, in this order:
+A follow-up records work on the specs that should be done and is not yet, with enough context for someone arriving cold to take it up. It is kept until the work is done, however many changes pass in between, so nothing that should be worked is lost. Each sits under a priority heading: `## High`, the work to take up next; `## Medium`, which waits until High is settled; or `## Low`, worth doing once nothing more pressing is open. Each holds its parts, in this order:
 
 | Part | Form | Holds |
 |---|---|---|
 | Name | a `###` heading, a kebab-case slug | the name the follow-up is referred to by |
-| Status | a `**Status:**` line | where the follow-up is in its lifecycle below |
+| Status | a `**Status:**` line | where the follow-up is in this section's lifecycle |
 | Category | a `**Category:**` line | what kind of gap it is, such as under-developed, stale wording, a missing citation, or an open scope decision |
 | Location | a `**Location:**` line | the file, section or files it concerns |
 | Body | prose | the work, the context needed to take it up, and, where known, what found it |

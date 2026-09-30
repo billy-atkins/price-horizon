@@ -28,7 +28,8 @@ FIELDS = ("Name", "Status", "Source", "Specs", "Target", "Spawned By", "Depends 
 # Validated stamp leaves out the Validated and Status fields.
 STAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z sha256:[0-9a-f]{16}$")
 UNSTAMPED = ("Validated", "Status")
-SECTIONS = ("The Problem", "Scope", "Steering Decisions", "The Design", "The Builder's Passes", "Deliberately Left Alone")
+IMPACT = "Impact on the Application Specs"  # a canon design's, and no other design's
+SECTIONS = ("The Problem", "Scope", "Steering Decisions", "The Design", IMPACT, "The Builder's Passes", "Deliberately Left Alone")
 OPTIONAL = ("Steering Decisions",)
 STEER_FIELDS = ("Name", "Prompted By", "Steer", "Decision")
 STATES = ("not-started", "in-progress", "approved", "applying", "complete", "abandoned")
@@ -148,7 +149,7 @@ def check_form(design):
         if values.get("Status") in ("approved", "applying", "complete"):
             if not re.search(r"^\*\*Adversarial DRR\b", section(text, "The Builder's Passes") or "", re.M):
                 problems.append((name, values["Status"] + ", but its passes name no adversarial DRR"))
-        want = [s for s in SECTIONS if s in sections or s not in OPTIONAL]
+        want = [s for s in SECTIONS if (s in sections or s not in OPTIONAL) and (s != IMPACT or values.get("Specs") == "canon")]
         if sections != want:
             problems.append((name, "its sections are %s, not %s" % (", ".join(sections), ", ".join(want))))
         body = section(text, "Steering Decisions")
@@ -218,10 +219,8 @@ def check_stack(folder):
             if d not in designs:
                 problems.append((n, "Depends On names no design document: " + d))
         s = status(n)
-        if s in ("applying", "complete") and names(n, "Depends On"):
-            problems.append((n, "%s, but its Depends On names %s; a design is applied once it names none" % (s, "; ".join(names(n, "Depends On")))))
-        elif s == "approved" and landed(n):
-            problems.append((n, "approved, but %s has finished since, so it is back in progress to take it in" % "; ".join(landed(n))))
+        if s in ("approved", "applying", "complete") and names(n, "Depends On"):
+            problems.append((n, "%s, but its Depends On names %s; a design is approved once it names none" % (s, "; ".join(names(n, "Depends On")))))
 
     def loops(edges):
         found, seen = [], set()
@@ -305,7 +304,7 @@ def check_stack(folder):
     lines.append("Work next:")
     lines += ["  %s: %s, %d waiting on it" % (action(n), label(n), len(behind(n, set()))) for n in ready] or ["  none"]
     held = sorted(n for n in designs if status(n) in STATES and status(n) not in FINISHED and blocked_by(n))
-    lines.append("Blocked, worked but not applied until what blocks it finishes:")
+    lines.append("Blocked, worked but not approved until what blocks it finishes:")
     lines += ["  %s: %s" % ("revise" if landed(n) else "design", label(n)) for n in held] or ["  none"]
     stale = sorted(n for n in designs if status(n) in FINISHED and not any(n in deps(m) for m in designs))
     lines.append("May be deleted:")
@@ -595,6 +594,10 @@ def stamp_validation(value):
     if validation(text, fields)[0] == "validated":
         print("== stamp-validation\nalready validated, the stamp current: %s\n" % dict(fields)["Validated"])
         return 0
+    # working-files.md § A Design Document: validated only once its Depends On names none
+    if named(dict(fields).get("Depends On", "")):
+        print("== stamp-validation, not stamped\nits Depends On names %s; a design is validated once it names none\n" % dict(fields)["Depends On"])
+        return 1
     # every check but the stamp's own absence, which this is about to write
     problems = [(t, p) for t, p in design_problems(design) if "validation review" not in p]
     if problems:

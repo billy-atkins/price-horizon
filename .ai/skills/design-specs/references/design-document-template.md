@@ -43,6 +43,12 @@ becomes:
 
 > {its replacement}
 
+## Impact on the Application Specs
+
+{this section only in a canon design}
+
+{each application file and section left out of step, and what the application work must do there, or none found; and how the review was done}
+
 ## The Builder's Passes
 
 {each pass and each review under a bold lead-in naming it, an adversarial DRR's opening Adversarial DRR, and what it changed}

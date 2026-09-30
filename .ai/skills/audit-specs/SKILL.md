@@ -1,6 +1,6 @@
 ---
 name: audit-specs
-description: Audit the project against the rules that govern it by reading it. Use when a directory's summary may have fallen behind its files, when a capability's scenarios may not cover what it promises, when a rule may be stated twice or in the wrong file, when something may cite a section for a rule that section does not state, when a number or a positional reference may be restating a list, when a term may be defined outside the glossary or used against its sense there, when a diagram may no longer match what it renders, when a spec may describe in prose what a construct should hold, when a file may sit in the wrong place, when drafting residue may remain, when an instruction may assume a particular agent, when a skill may not meet the authoring rules, when a working file's entry may have lost its form, when a rule may have no check, or after any change large enough that something restating it has gone stale. Reading audits, with a script that clears the mechanically decidable failures first.
+description: Audit the project against the rules that govern it by reading it. Use when a directory's summary may have fallen behind its files, when a capability's scenarios may not cover what it promises, when a rule may be stated twice or in the wrong file, when something may cite a section for a rule that section does not state, when a number or a positional reference may be restating a list, when text may point at other text by direction rather than cite it, when a term may be defined outside the glossary or used against its sense there, when a diagram may no longer match what it renders, when a spec may describe in prose what a construct should hold, when a file may sit in the wrong place, when drafting residue may remain, when an instruction may assume a particular agent, when a skill may not meet the authoring rules, when a working file's entry may have lost its form, when a rule may have no check, or after any change large enough that something restating it has gone stale. Reading audits, with a script that clears the mechanically decidable failures first.
 ---
 
 # Auditing the specifications
@@ -23,7 +23,7 @@ Each one requires a judgment the files do not encode, often across a whole direc
 
 ## Workflow
 
-A run follows the steps below, and each audit the ones it needs.
+A run follows this Workflow's steps, and each audit the ones it needs.
 
 **Start from the entry point —** `specs/AGENTS.md`, then `specs/methodology/glossary.md`, and a directory's `index.md` before working in it, per `specs/methodology/scope.md § Progressive Disclosure` and `specs/methodology/scope.md § The Shape of the Scope`.
 
@@ -44,7 +44,7 @@ Where an audit compares one passage against what it restates, the ways a compres
 | Scenario coverage | application | `specs/methodology/acceptance-scenarios.md § Acceptance Scenarios`, `specs/methodology/acceptance-scenarios.md § Deciding What to Write`, `specs/methodology/acceptance-scenarios.md § Keeping a Scenario and Its Prose in Step` |
 | Where a rule lives | canon, application | `specs/methodology/sourcing-and-citation.md § One Home Per Fact`, `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`, `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`, `specs/methodology/scope.md § What Spec of Record Governs`, `specs/methodology/scope.md § The Methodology Governs Itself` |
 | Whether the home holds the fact | canon, application | `specs/methodology/sourcing-and-citation.md § One Home Per Fact`, `specs/methodology/sourcing-and-citation.md § Writing a Citation` |
-| Ordinals and counts | canon, application | `specs/AGENTS.md § Ordinals and Counts` |
+| Ordinals and counts | canon, application | `specs/AGENTS.md § Ordinals and Counts`, `specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text` |
 | Markup | canon, application | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Emphasis`, `specs/methodology/modeling-constructs.md § Literal Text`, `specs/methodology/sourcing-and-citation.md § Titling a Heading` |
 | Glossary terms | canon, application | `specs/methodology/glossary.md § Glossary`, `specs/methodology/glossary.md § Writing an Entry` |
 | Construct choice and form | canon, application | `specs/methodology/modeling-constructs.md § Purpose`, `specs/methodology/modeling-constructs.md § Constructs`, `specs/methodology/modeling-constructs.md § When to Use Which`, `specs/methodology/acceptance-scenarios.md § Why a Scenario Is Not a Modeling Construct` |
@@ -81,7 +81,7 @@ Where a duplicate is real, choose the home by `specs/methodology/sourcing-and-ci
 
 ### Whether the home holds the fact
 
-What nothing else checks is that a cited home still states the fact attributed to it, as `specs/methodology/sourcing-and-citation.md § Writing a Citation` requires. A citer says "X is governed there"; the audit asks whether *X* is actually there.
+What nothing else checks is that a cited home still states the fact attributed to it, as `specs/methodology/sourcing-and-citation.md § Writing a Citation` requires. A citer says "X is governed there"; the audit asks whether *X* is actually there. Of that section, `specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text` is Ordinals and counts' to read; this audit reads the rest.
 
 This is the audit that catches the most and is the easiest to leave out, because every symptom of it looks fine. The heading resolves, so the script clears it. The citer reads as correct, because it says what it means. The target reads as correct, because a section is not obviously missing a sentence. The defect exists only in the gap between two files that are each individually clean, and the citation being valid is precisely what hides it.
 
@@ -89,7 +89,7 @@ Sweep by target, not by citer. Take a section that is cited from several places,
 
 **A bare citation that needed more —** with every citer of a section gathered, read each as an agent reading only that place would, against the sentence of `specs/methodology/sourcing-and-citation.md § One Home Per Fact` on when a citing place states a rule's application and its reason, the one part of that section this audit reads. A citation that only routes or lists, a routing row, a Sources bullet or a `technical-specs` entry, applies no rule, and bare is enough there; an audit's Enforces cell is the citation the audit runs from, not one of these. A bare citation reads as correct because nothing in it is wrong, which is why it is missed.
 
-Each shape below is a finding, fixed on the side that is wrong rather than by weakening the citation:
+Each shape this audit names is a finding, fixed on the side that is wrong rather than by weakening the citation:
 
 - **The target never states the rule —** a capability file cites a guarantees section as holding a ceiling on what it may display; that section's prose never mentions the ceiling, only its scenarios imply it. The prose is what is missing.
 - **The target states it differently, and the citer is right —** a second file cites the same section while stating the rule in its correct, narrower form. When a citer is more accurate than the home it cites, the home is what is stale, and the citer's wording is the best available evidence of what the rule should say; once the home holds it, the citer's restatement gives way to its citation.
@@ -107,7 +107,7 @@ The evidence for needing both is one pass in this repo where a change widened a 
 
 ### Ordinals and counts
 
-Run the script with `--list-candidates`, then read the files in scope in full, using the candidates as a guide to where numbers are likely rather than as the boundary of the search. Judge every number against `specs/AGENTS.md § Ordinals and Counts` as written: a violation gets a proposed rewrite, and a decline names that section's reason for keeping the number. A violation the patterns missed is reported like any other, and its phrasing is a candidate for a new pattern.
+Run the script with `--list-candidates`, then read the files in scope in full, using the candidates as a guide to where numbers and directions are likely rather than as the boundary of the search. Judge every number against `specs/AGENTS.md § Ordinals and Counts` as written: a violation gets a proposed rewrite, and a decline names that section's reason for keeping the number. Judge every reference to other text against `specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text`, the one part of `specs/methodology/sourcing-and-citation.md § Writing a Citation` this audit reads: a direction is fixed as that paragraph says, and a candidate it excepts is declined with its reason. A violation the patterns missed is reported like any other, and its phrasing is a candidate for a new pattern.
 
 ### Markup
 
@@ -139,7 +139,7 @@ Run only once the script's diagram check passes; if it fails, the work is fixing
 
 ## The report
 
-A run states the unit it covered and a verdict on it: current, current with named fixes, or drifted. Findings are rows in one of the shapes below, depending on what kind of defect it is.
+A run states the unit it covered and a verdict on it: current, current with named fixes, or drifted. Findings are rows in one of the shapes this section gives, depending on what kind of defect it is.
 
 | Defect | Row |
 |---|---|
@@ -244,7 +244,7 @@ The operating rules that leave no trace in the files the audits read, each carri
 
 **Lineages start below the file's title —** as `specs/methodology/sourcing-and-citation.md § Writing a Citation` states. Building them from level 1 down made every same-file citation in the repo fail at once, the script's earliest defect, and it looked like a wall of broken citations rather than one bad assumption.
 
-**Not every backtick span containing a section token is a citation —** a rule that discusses the token, or shows a forbidden heading form as an example, is the token being mentioned rather than used. Only these shapes are treated as citations:
+**Not every backtick span containing a section token is a citation —** a rule that discusses the token, or shows a forbidden heading form as an example, is the token being mentioned rather than used. Only a span in one of the citation shapes is treated as a citation:
 
 ```
 § Title

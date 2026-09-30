@@ -37,7 +37,7 @@ Every directory under `specs/` organizes its files by altitude. New content belo
 
 **What an `architecture.md` is, and is not —** it is written so it can be read, understood, and shared in isolation, the way an architecture document stands apart from the system it describes rather than being a portal into it. A closing mention of where fuller detail lives is fine; that mention is not how the overview gets its meaning.
 
-**It holds no detail of its own —** an overview is the view of the whole from altitude, and zooming in reaches the detail files. A detail, by the test above, has its home in one of them, and an overview stating it restates it from there. What the overview states as its own is what only that height shows: how the pieces connect, the forest a reader of any one file cannot see for the trees.
+**It holds no detail of its own —** an overview is the view of the whole from altitude, and zooming in reaches the detail files. A detail, by this section's test for new content, has its home in one of them, and an overview stating it restates it from there. What the overview states as its own is what only that height shows: how the pieces connect, the forest a reader of any one file cannot see for the trees.
 
 Opposite failure modes, and the same fix for each. An overview that accumulates full detail has stopped being an overview. An overview that thins into a table of citations cannot be understood without opening the files it points at. In either case: write the overview so it stands alone, move genuine step-by-step or field-level detail into its own file, and repath every citation that pointed at the old location in the same pass.
 
