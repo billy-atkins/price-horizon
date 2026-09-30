@@ -13,7 +13,7 @@ This skill does not restate the repo's conventions, which would be the same defe
 
 ## Workflow
 
-Each step applying a rule carries its point-of-use citation (`specs/methodology/sourcing-and-citation.md § One Home Per Fact`). Finding the fact's existing home, synchronizing whatever restates what you changed, and verifying anchors and citations mechanically are where the defects below actually get caught.
+Each step applying a rule carries its point-of-use citation (`specs/methodology/sourcing-and-citation.md § One Home Per Fact`). Finding the fact's existing home, synchronizing whatever restates what you changed, and verifying anchors and citations mechanically are where the defects this skill's sections record actually get caught.
 
 ### Start from the entry point
 
@@ -25,7 +25,7 @@ Scope it per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`, and draft it a
 
 ### Hand a change of its own to the user to spawn or log
 
-Here and at any later step, a change of its own that the work turns up, a migration of files a rule change leaves out of step among them, goes to the user, who decides how it is worked, per `specs/methodology/working-files.md § A Design Document`: spawned as a design, not-started until it is taken up and named in this design's Depends On if this design cannot finish without it, or logged as a follow-up, per `specs/methodology/working-files.md § A Follow-up`. Ask rather than choose: which suits depends on how the user means to work it.
+At any step of this Workflow, a change of its own that the work turns up, a migration of files a rule change leaves out of step among them, goes to the user, who decides how it is worked, per `specs/methodology/working-files.md § A Design Document`: spawned as a design, not-started until it is taken up and named in this design's Depends On if this design cannot finish without it, or logged as a follow-up, per `specs/methodology/working-files.md § A Follow-up`. Ask rather than choose: which suits depends on how the user means to work it.
 
 ### Revise what waited, once what it waited on finishes
 
@@ -65,7 +65,7 @@ Record it as an open question, per `specs/methodology/spec-placement.md § An Op
 
 ### Write the references
 
-`specs/methodology/sourcing-and-citation.md § Writing a Citation` for citing a section, `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` for whether it may point where it does, and `specs/methodology/sourcing-and-citation.md § Titling a Heading` for any heading added or retitled.
+`specs/methodology/sourcing-and-citation.md § Writing a Citation` for citing a section, `specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text` for referring to any other text, `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` for whether it may point where it does, and `specs/methodology/sourcing-and-citation.md § Titling a Heading` for any heading added or retitled.
 
 ### Synchronize whatever restates what you changed
 

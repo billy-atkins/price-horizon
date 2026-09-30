@@ -18,8 +18,8 @@ from pathlib import Path
 
 # specs/methodology/scope.md § What Spec of Record Governs names where each kind is named:
 # specs by their place under specs/, the agent instructions by the root AGENTS.md and
-# specs/AGENTS.md, and skills by the registry, read at run time. The places and names below
-# are the ones scope.md's table gives, and scope_findings checks the table still says so;
+# specs/AGENTS.md, and skills by the registry, read at run time. The places and names this
+# block defines are the ones scope.md's table gives, and scope_findings checks the table still says so;
 # the working files are outside the script, read by the Working-file form audit instead.
 SCOPE_HOME = "scope.md § What Spec of Record Governs"
 SCOPE_KINDS = {"Agent instructions", "Specs", "Skills", "Working files"}
@@ -1130,6 +1130,46 @@ def candidates(root):
     return out
 
 
+# specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text: other text pointed at by
+# direction rather than cited. A word placing something in a hierarchy or a layout, one
+# level below a heading, is none of this, so these are places to read, never findings.
+DIRECTION = re.compile(
+    r"\b(?:the|each|every|this|these|those|its|in|as|per|by|defined|described|stated|shown|given|listed)\s+"
+    r"(?:[\w-]+\s+){0,4}?(?:above|below)\b(?!\s+(?:the|an|its|their|every|one|that|which|them)\b)"
+    r"|\b(?:already\s+)?(?:named|described|stated|given|listed|defined|shown|mentioned|drawn)\s+(?:above|below|next|earlier)\b"
+    r"|\bfollows?\s+the\s+(?:table|list|tree|steps?)\b"
+    r"|\bsteps?\s+[\d.]+(?:\s*(?:,|and|to)\s*[\d.]+)*\s+(?:above|below)\b"
+    r"|\b(?:what|that|which|as)\s+(?:follows?|precedes?)\b(?!\s+(?:from|for)\b)|\bsee\s+(?:above|below)\b"
+    r"|\b(?:the\s+following|these\s+[\w-]+(?:\s+[\w-]+)?)\s*:"
+    r"|\b(?:earlier|later)\s+in\s+this\s+(?:file|section|skill|document)\b"
+    r"|\bas\s+(?:described|stated|noted|shown|given|defined)\s+(?:earlier|previously)\b|\b(?:foregoing|aforementioned)\b"
+    r"|`\s+(?:above|below)\b|\((?:above|below)\)"
+    r"|\b(?:next|previous|preceding|following|later|earlier)\s+(?:[\w-]+\s+)?(?:step|section|table|paragraph|list|heading|row|audit|algorithm|tree|lifecycle|constraint|dag|machine|form)s?\b",
+    re.I)
+
+
+def direction_candidates(root):
+    """-> list of (path, line, pattern, context): candidate lines pointing at other text by direction,
+    for the Ordinals and counts audit."""
+    out = []
+    for f in md_files(root):
+        rel = f.relative_to(root).as_posix()
+        for n, line in enumerate(strip_fences(f.read_text(encoding="utf-8")).split("\n"), 1):
+            m = DIRECTION.search(line)
+            if m:
+                s, e = max(0, m.start() - 60), min(len(line), m.end() + 40)
+                out.append((rel, n, "pointed at by direction", line[s:e].strip()))
+    for base in [root / ".ai/skills" / n for n in registry(root)[0]]:
+        for f in sorted(base.rglob("*")) if base.is_dir() else []:
+            if f.suffix in SCRIPT_SUFFIXES:
+                for n, line in script_lines(f):
+                    m = DIRECTION.search(line)
+                    if m:
+                        s, e = max(0, m.start() - 60), min(len(line), m.end() + 40)
+                        out.append((f.relative_to(root).as_posix(), n, "pointed at by direction", line[s:e].strip()))
+    return out
+
+
 def skill_candidates(root):
     """An unregistered skill whose SKILL.md cites the method's rules, which may belong to the
     method or may simply follow Authoring a Skill; and a registered skill's script importing
@@ -1226,7 +1266,7 @@ def main(argv):
         status = 1 if n else 0
 
     if args.list_candidates:
-        print("\nCandidates for specs/AGENTS.md § Ordinals and Counts: places to read, not findings")
+        print("\nCandidates for the Ordinals and counts audit: numbers, places to read, not findings")
         for path, line, name, context in candidates(root):
             print(f"  {path}:{line}  [{name}]\n    {context}")
         print("\nCandidates for the Markup audit: places to read, not findings")
@@ -1240,6 +1280,9 @@ def main(argv):
             print(f"  {path}:{line}  [{name}]\n    {context}")
         print("\nCandidates for the Skill form audit: places to read, not findings")
         for path, line, name, context in skill_candidates(root):
+            print(f"  {path}:{line}  [{name}]\n    {context}")
+        print("\nCandidates for the Ordinals and counts audit: text pointed at by direction, places to read, not findings")
+        for path, line, name, context in direction_candidates(root):
             print(f"  {path}:{line}  [{name}]\n    {context}")
     return status
 

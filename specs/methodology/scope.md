@@ -1,6 +1,6 @@
 ## What Spec of Record Governs
 
-Spec of Record governs the files of these kinds, each named the way the table gives:
+Spec of Record governs files by kind, each kind with what it holds and how its files are named:
 
 | Kind | Holds | Named by |
 |---|---|---|

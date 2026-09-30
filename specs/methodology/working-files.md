@@ -18,12 +18,12 @@ An open question about what is specified is not a working file's to hold; it is 
 
 ## A Design Document
 
-`.ai/skills/design-specs/` writes each design document to a file of its own under `.ai/plans/design-specs/`, one per change taken through `specs/AGENTS.md § Design, Refactor, Refine (DRR)`. That skill's steps and script hold it to this form, and no audit reads it. It opens with a level-one heading, `Design Document`, whose section holds its fields (`specs/methodology/modeling-constructs.md § Fields`), and its sections follow as level-two headings. It holds these parts, in this order:
+`.ai/skills/design-specs/` writes each design document to a file of its own under `.ai/plans/design-specs/`, one per change taken through `specs/AGENTS.md § Design, Refactor, Refine (DRR)`. That skill's steps and script hold it to this form, and no audit reads it. It opens with a level-one heading, `Design Document`, whose section holds its fields (`specs/methodology/modeling-constructs.md § Fields`), and its sections follow as level-two headings. It holds its parts, in this order:
 
 | Part | Form | Holds |
 |---|---|---|
 | Name | a `**Name:**` field | the change, in a few words; the file is named for it in kebab-case, lower case with each run of other characters a hyphen, and other design documents name this one by that file name, without its extension |
-| Status | a `**Status:**` field | its state in the lifecycle below |
+| Status | a `**Status:**` field | its state in this section's lifecycle |
 | Source | a `**Source:**` field | what asked for the change: the user's own words, or the finding that raised it |
 | Specs | a `**Specs:**` field | the kind of file the change is bounded to, settled while the design is shaped and before any file is edited: `canon`, `specs/AGENTS.md` and the files under `specs/methodology/` and a registered skill's directory; `application`, the files under `specs/application/`; or `neither`, any other file. Every file its Target names is of the declared kind or of `neither` |
 | Target | a `**Target:**` field | every file the change edits, each a path in backticks, separated by semicolons; none while the design is not-started and its files are not yet known |
@@ -94,12 +94,12 @@ The form a stamp is used in names the field holding it and the fields it leaves 
 
 ## A Follow-up
 
-A follow-up records work on the specs that should be done and is not yet, with enough context for someone arriving cold to take it up. It is kept until the work is done, however many changes pass in between, so nothing that should be worked is lost. Each sits under a priority heading: `## High`, the work to take up next; `## Medium`, which waits until High is settled; or `## Low`, worth doing once nothing more pressing is open. Each holds these parts, in this order:
+A follow-up records work on the specs that should be done and is not yet, with enough context for someone arriving cold to take it up. It is kept until the work is done, however many changes pass in between, so nothing that should be worked is lost. Each sits under a priority heading: `## High`, the work to take up next; `## Medium`, which waits until High is settled; or `## Low`, worth doing once nothing more pressing is open. Each holds its parts, in this order:
 
 | Part | Form | Holds |
 |---|---|---|
 | Name | a `###` heading, a kebab-case slug | the name the follow-up is referred to by |
-| Status | a `**Status:**` line | where the follow-up is in its lifecycle below |
+| Status | a `**Status:**` line | where the follow-up is in this section's lifecycle |
 | Category | a `**Category:**` line | what kind of gap it is, such as under-developed, stale wording, a missing citation, or an open scope decision |
 | Location | a `**Location:**` line | the file, section or files it concerns |
 | Body | prose | the work, the context needed to take it up, and, where known, what found it |
