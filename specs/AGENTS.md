@@ -6,7 +6,7 @@ The entry point to Spec of Record for these specifications. Read it before any w
 
 `specs/methodology/` holds the rules for writing a specification, which apply to every file in Spec of Record's scope (`specs/methodology/scope.md § What Spec of Record Governs`), its own files included, and so do the rules in this file.
 
-Every change is to the canon, to the application specs, or to neither, the kinds `specs/methodology/working-files.md § A Design Document` defines, and its design document says which before any file is edited, a change needing both kinds being two design documents; a direct edit, which needs none, is of a kind all the same (`§ Design, Refactor, Refine (DRR)`). The same two skills serve every kind, each forking on it where the work differs:
+Every change is to the canon, to the application specs, or to neither, the kinds `specs/methodology/working-files.md § A Design Document` defines, and its design document says which before any file is edited, a change needing both kinds being split into a canon design and the application work it leaves; a direct edit, which needs no design document, is of a kind all the same (`§ Design, Refactor, Refine (DRR)`). The same two skills serve every kind, each forking on it where the work differs:
 
 - **Changing a specification —** `.ai/skills/design-specs/`, whose Workflow gives each rule it applies a point-of-use citation and forks into the reference for the change's kind.
 - **Checking one —** `.ai/skills/audit-specs/`, whose Workflow forks the same way.
