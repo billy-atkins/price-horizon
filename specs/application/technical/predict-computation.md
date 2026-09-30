@@ -6,25 +6,25 @@ The mechanism that turns retrieved evidence into a forecasted effective price, d
 
 ### Signal routing
 
-Each Driver Signal feeds exactly one downstream consumer, decided by its event type, never both, so no signal's effect on the forecast is counted twice. Each consumer reads a signal's magnitude signed by its direction, and a bracket at its midpoint. Who may change the routing rule is `specs/application/technical/control-plane-service/control-plane.md § Control Plane`'s. The rule that decides `routes_to` for every event type is the following Decision Table, and there is no other case:
+Each Driver Signal feeds exactly one downstream consumer, decided by its event type, never both, so no signal's effect on the forecast is counted twice. Each consumer reads a signal's magnitude signed by its direction, and a bracket at its midpoint. Who may change the routing rule is `specs/application/technical/control-plane-service/control-plane.md § Control Plane`'s. The rule that decides `routes_to` for every event type is a Decision Table, and there is no other case:
 
 | Does the event type state a fact about the exact thing being forecast, the competitor's own list price or promotional depth? | routes_to |
 |---|---|
-| Yes (competitor plans' announced price change, promotional calendar change) | Baseline, the effective price forecasting Algorithm below |
+| Yes (competitor plans' announced price change, promotional calendar change) | Baseline, the effective price forecasting Algorithm (`§ Predict Computation § Effective price forecasting`) |
 | No, it requires inference about how it translates into a price effect (every other event type, across every driver category, competitor plans' own product launch and capacity change, every tax event type, every input cost and discretionary spending event type) | Driver Attribution |
 
 Event types are a bounded, governed set, the same discipline as the driver categories and source types (`specs/application/technical/data-model.md § Core Data Model § Vector Database Schema § Driver Signal`), declared as a versioned Event Type Taxonomy (`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Signal Routing Rule`), not implicit in application logic, so both consumers read a declared field rather than the mapping being written as conditional logic somewhere in the codebase. That keeps the routing inspectable by reading the taxonomy, not only by reading source, and lets `specs/application/technical/evaluation-and-monitoring.md § Evaluation and monitoring`'s golden-question harness assert directly that every event type has exactly one declared consumer. Adding a new event type is a deliberate versioned change to that table, setting its driver category and its routing together in one governed artifact, not a runtime classification decision and not separate changes that can drift apart.
 
 ### Effective price forecasting
 
-The baseline, computed by forecast materialization in `specs/application/technical/materialization-service/forecast-materialization.md § Forecast materialization` across its configured grid, or here live when a query falls outside it, is the following Algorithm. Steps 2 and 3 below each call a registered forecasting model, the trend-and-seasonality baseline and the promotional depth cadence model respectively, each documented in `specs/application/technical/model-registry.md § Model registry` the same way every other model is, with its own declared confidence interval and last-validated date.
+The baseline, computed by forecast materialization in `specs/application/technical/materialization-service/forecast-materialization.md § Forecast materialization` across its configured grid, or here live when a query falls outside it, is an Algorithm whose steps 2 and 3 each call a registered forecasting model, the trend-and-seasonality baseline and the promotional depth cadence model respectively, each documented in `specs/application/technical/model-registry.md § Model registry` the same way every other model is, with its own declared confidence interval and last-validated date.
 
 | Step | Action |
 |---|---|
 | 1 | Decompose the competitor's historical effective price series into its list price and promotional depth components |
 | 2 | Forecast list price on a trend-and-seasonality baseline, adjusted for any signal routed here with event type announced price change |
 | 3 | Forecast promotional depth on a cadence model calibrated to the competitor's own historical promotional calendar, adjusted for any signal routed here with event type promotional calendar change |
-| 4 | Recombine both forecasts into a forecasted effective price at the horizon, this is the baseline, whose move and direction the steps below set |
+| 4 | Recombine both forecasts into a forecasted effective price at the horizon, this is the baseline, whose move and direction this Algorithm's steps 5 to 7 set |
 | 5 | Compute the baseline move as step 4's forecasted effective price minus current effective price |
 | 6 | If the size of the baseline move, as a share of current effective price, falls under the dead-zone threshold, roughly half a percent, set the baseline's direction to stable |
 | 7 | Otherwise, set the baseline's direction to the sign of the baseline move |
@@ -38,7 +38,7 @@ The Driver Signal records (`specs/application/technical/data-model.md § Core Da
 
 ### Driver Attribution
 
-This step computes the correction, and sizes each signal triangulation found, drawing on every Driver Signal (`specs/application/technical/data-model.md § Core Data Model § Vector Database Schema § Driver Signal`) routed here rather than to the baseline above, by the following Algorithm.
+This step computes the correction, and sizes each signal triangulation found, drawing on every Driver Signal (`specs/application/technical/data-model.md § Core Data Model § Vector Database Schema § Driver Signal`) routed here rather than to the baseline, by an Algorithm.
 
 | Step | Action |
 |---|---|
@@ -58,11 +58,11 @@ This step computes the correction, and sizes each signal triangulation found, dr
 
 Each driver's contribution from step 3 is both part of the correction applied in step 6 and the exact value rendered as that driver's slice of the decomposition graph, so the graph is a true accounting of how the number was built, not a plausible story assembled after the fact. The forecast's move is therefore exactly the baseline move plus the drivers' contributions, and the decomposition graph shows every term of that sum, the accounting `specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes` promises. Because the weighting rubric is versioned, the same inputs against the same rubric version always produce the same breakdown.
 
-Elasticity's magnitude always comes from the named model alone, no document ever backs it. Competitor plans is different: the model only translates a Driver Signal's trigger into a magnitude, it does not estimate one without a signal to translate, so competitor plans is backed by both the signal and the model together whenever it contributes anything, and by neither, contributing zero, when no signal exists for it this query. Which of these driver_evidence (`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Rationale Record`) records for a given driver, a signal, a model, both together, or neither, is exactly what step 1 and the paragraph above it already determine, so the evidence a Query user sees for a driver (`specs/application/product/answer-engine/predict.md § Predict — what will the competitor do`) is the same source the computation actually used, never a description assembled after the fact.
+Elasticity's magnitude always comes from the named model alone, no document ever backs it. Competitor plans is different: the model only translates a Driver Signal's trigger into a magnitude, it does not estimate one without a signal to translate, so competitor plans is backed by both the signal and the model together whenever it contributes anything, and by neither, contributing zero, when no signal exists for it this query. Which of these driver_evidence (`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Rationale Record`) records for a given driver, a signal, a model, both together, or neither, is exactly what step 1 and this section's account of elasticity and competitor plans already determine, so the evidence a Query user sees for a driver (`specs/application/product/answer-engine/predict.md § Predict — what will the competitor do`) is the same source the computation actually used, never a description assembled after the fact.
 
 ### Confidence and rationale packaging
 
-Rationale here means a Rationale Record (`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Rationale Record`), the structured fields it defines rather than prose, so the answer can show how the number was built and why its confidence sits where it does. Nothing reaches the output layer unaccompanied by this record. confidence_score is a declared, versioned formula rather than a learned model, the same reasoning as the driver attribution weighting rubric: there is no labeled history of real outcomes yet to train a calibrated model against (`specs/application/technical/materialization-service/forecast-materialization.md § Open Questions [Name: Recalibration]`), and a declared formula is explainable to a customer questioning a number in a way a trained model is not. It is computed by the following Algorithm.
+Rationale here means a Rationale Record (`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Rationale Record`), the structured fields it defines rather than prose, so the answer can show how the number was built and why its confidence sits where it does. Nothing reaches the output layer unaccompanied by this record. confidence_score is a declared, versioned formula rather than a learned model, the same reasoning as the driver attribution weighting rubric: there is no labeled history of real outcomes yet to train a calibrated model against (`specs/application/technical/materialization-service/forecast-materialization.md § Open Questions [Name: Recalibration]`), and a declared formula is explainable to a customer questioning a number in a way a trained model is not. It is computed by an Algorithm.
 
 | Step | Action |
 |---|---|

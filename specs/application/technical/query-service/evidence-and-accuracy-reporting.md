@@ -9,7 +9,7 @@ One report, not one per scope, since a Control plane admin's own business unit, 
 
 | Step | Action |
 |---|---|
-| 1 | Determine the business units in scope for the requesting role, per the table above |
+| 1 | Determine the business units in scope for the requesting role, per this section's Role table |
 | 2 | If no business unit remains in scope, stop |
 | 3 | Take the next business unit in scope |
 | 4 | Select every Effective Price Forecast (`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Effective Price Forecast`) for that business unit |

@@ -8,7 +8,7 @@ technical-specs:
 
 ## Roles
 
-PriceHorizon defines these roles, distinguishing everyday use from administration:
+PriceHorizon's roles distinguish everyday use from administration:
 
 | Role | Description |
 |---|---|
@@ -47,7 +47,7 @@ Scenario: A person holding both roles changes configuration only on the administ
 
 ### Identity Federation
 
-Access follows the customer's own identity system rather than a separate one PriceHorizon maintains. The installation federates with the customer's identity provider using OIDC or SAML, whichever the customer already runs, so integration adds no new login system for their users to learn and no new identity infrastructure for their team to stand up. Which business units a person can see and query is asserted by that same identity provider, a large customer's own layers of management, a leader working across several business units, another working inside just one, are reflected automatically rather than re-modeled inside PriceHorizon. Which of the roles above a person holds is asserted through this same federation, Acme AI's own staff included, as `specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology` describes.
+Access follows the customer's own identity system rather than a separate one PriceHorizon maintains. The installation federates with the customer's identity provider using OIDC or SAML, whichever the customer already runs, so integration adds no new login system for their users to learn and no new identity infrastructure for their team to stand up. Which business units a person can see and query is asserted by that same identity provider, a large customer's own layers of management, a leader working across several business units, another working inside just one, are reflected automatically rather than re-modeled inside PriceHorizon. Which roles a person holds is asserted through this same federation, Acme AI's own staff included, as `specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology` describes.
 
 `specs/application/product/architecture.md § Diagrams § Using and Administering` renders this.
 
