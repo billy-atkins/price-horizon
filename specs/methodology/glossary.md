@@ -32,7 +32,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Spec of Record scope | The set of files Spec of Record governs, and nothing else. |
 | Specification rule | A rule governing what the specifications hold and how they are written. Not a rule a specification states about the product. |
 | Stamp | A field's value recording when a check passed and a hash of the content it passed on. Not a version number or a signature. |
-| Steering decision | A record of a decision the user made while a design was shaped or reviewed, quoting the user's words. Not the request that opened the design. |
+| Steering decision | A record of a decision the user made about what a design is, while it was shaped or reviewed: what it solves, decides, includes or leaves out, quoting the user's words. Not the request that opened the design, nor the user's direction about how the work proceeds, nor a tactical adjustment. |
 | Validation review | A review by a cold agent of whether a plan holds to the rules for its form and its record, run before the user approves it. Not an adversarial DRR, which reviews the design itself. |
 | Working file | A file that writing the specs leaves behind, serving whoever writes them. |
 | Workstack | The tree of design documents their Spawned By draws from one design that was not spawned, together with the blocking their Depends On records. Not a call stack or a task queue. |
