@@ -229,8 +229,13 @@ def check_stack(folder):
             if d not in designs:
                 problems.append((n, "Depends On names no design document: " + d))
         s = status(n)
-        if s in ("approved", "applying", "complete") and names(n, "Depends On"):
-            problems.append((n, "%s, but its Depends On names %s; a design is approved once it names none" % (s, "; ".join(names(n, "Depends On")))))
+        unapproved = [d for d in blocked_by(n) if status(d) not in ("approved", "applying")]
+        if s == "approved" and unapproved:
+            problems.append((n, "approved, but its Depends On names %s, not approved; it goes back to in progress" % "; ".join(unapproved)))
+        elif s == "approved" and landed(n):
+            problems.append((n, "approved, but %s has finished; it goes back to in progress to take it in" % "; ".join(landed(n))))
+        elif s in ("applying", "complete") and names(n, "Depends On"):
+            problems.append((n, "%s, but its Depends On names %s; a design is applied once it names none" % (s, "; ".join(names(n, "Depends On")))))
 
     def loops(edges):
         found, seen = [], set()
@@ -314,8 +319,8 @@ def check_stack(folder):
     lines.append("Work next:")
     lines += ["  %s: %s, %d waiting on it" % (action(n), label(n), len(behind(n, set()))) for n in ready] or ["  none"]
     held = sorted(n for n in designs if status(n) in STATES and status(n) not in FINISHED and blocked_by(n))
-    lines.append("Blocked, worked but not approved until what blocks it finishes:")
-    lines += ["  %s: %s" % ("revise" if landed(n) else "design", label(n)) for n in held] or ["  none"]
+    lines.append("Blocked, approved once what it depends on is approved, and applied once that finishes:")
+    lines += ["  %s: %s" % ("revise" if landed(n) else "wait" if status(n) == "approved" else "design", label(n)) for n in held] or ["  none"]
     stale = sorted(n for n in designs if status(n) in FINISHED and not any(n in deps(m) for m in designs))
     lines.append("May be deleted:")
     lines += ["  " + n for n in stale] or ["  none"]
@@ -601,13 +606,18 @@ def stamp_validation(value):
     if design is None:
         return 2
     name, fields, _, text = read_design(design)
+    # working-files.md § A Design Document: validated once each design its Depends On names is approved or applying
+    others = {n: dict(f).get("Status", "") for n, f, _, _ in read_designs(design.parent)}
+    depends = named(dict(fields).get("Depends On", ""))
+    missing = [d for d in depends if d not in others]
+    finished = [d for d in depends if others.get(d) in FINISHED]
+    waiting = [d for d in depends if d in others and d not in finished and others[d] not in ("approved", "applying")]
+    if missing or finished or waiting:
+        print("== stamp-validation, not stamped\n" + "".join("its Depends On names no design document: %s\n" % d for d in missing) + "".join("its Depends On names %s, finished; take it in and remove it first\n" % d for d in finished) + "".join("its Depends On names %s, not approved; a design is validated once each design it names is approved or applying\n" % d for d in waiting))
+        return 1
     if validation(text, fields)[0] == "validated":
         print("== stamp-validation\nalready validated, the stamp current: %s\n" % dict(fields)["Validated"])
         return 0
-    # working-files.md § A Design Document: validated only once its Depends On names none
-    if named(dict(fields).get("Depends On", "")):
-        print("== stamp-validation, not stamped\nits Depends On names %s; a design is validated once it names none\n" % dict(fields)["Depends On"])
-        return 1
     # every check but the stamp's own absence, which this is about to write
     problems = [(t, p) for t, p in design_problems(design) if "validation review" not in p]
     if problems:
