@@ -2,7 +2,7 @@
 
 ## What this project is
 
-PriceHorizon is a proposed technical approach to a Revenue Growth Management (RGM) problem: how an AI capability could answer plain-language business questions (for example, a competitor pricing forecast) with a repeatable, evidence-grounded, layered answer, designed as a standalone product for a fictional client, Acme AI. This repo is the working spec and supporting design research for that approach, written by Billy Atkins as an applied exercise in spec-driven system design.
+PriceHorizon is a proposed technical approach to a Revenue Growth Management (RGM) problem: how an AI capability could answer plain-language business questions (for example, a competitor pricing forecast) with a repeatable, evidence-grounded, layered answer, designed as a standalone product of a fictional SaaS company, Acme AI. This repo is the working spec and supporting design research for that approach, written by Billy Atkins as an applied exercise in spec-driven system design.
 
 ## Product naming and positioning
 - Product name: PriceHorizon. A single, standalone RGM offering, not a module extending or positioned against any other product.
