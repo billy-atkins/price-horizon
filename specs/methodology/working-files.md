@@ -78,22 +78,22 @@ Transitions:
 
 ## A Steering Decision
 
-Steering Decisions record only the user's steers, the decisions a steering decision records (`specs/methodology/glossary.md`), new scope or a flaw's fix among them. The user's direction about how the work proceeds, and tactical adjustments that leave the design as it is, are no steer. The two differ so:
+Steering Decisions record only the user's steers, the decisions a steering decision records (`specs/methodology/glossary.md`), new scope or a flaw's fix among them. The user's direction about how the work proceeds, and tactical adjustments that leave the design as it is, are no steer; and a decision about other work is no steer of the design being worked. They differ so:
 
-| | A steer | Direction about the work |
-|---|---|---|
-| Sounds like | "split the canon and application work", "count each review phase apart", "yes, take in the new scope we found" | "yes, fold in the tactical fixes", "rerun the validation review", "approved and apply", "create the branch", "medium effort", "G1 to G6 are flaws" |
-| Recorded | in Steering Decisions, its Steer quoting the words that decide the design | not as a steer; where the record needs it, in the passes, as the Builder's Passes row of `§ A Design Document` has them, or in the Status field |
-| Tells a reviewer | how the design was formed | nothing about what the design is |
+| | A steer | Direction about the work | A decision about other work |
+|---|---|---|---|
+| Sounds like | "split the canon and application work", "count each review phase apart", "yes, take in the new scope we found" | "yes, fold in the tactical fixes", "rerun the validation review", "approved and apply", "create the branch", "medium effort", "G1 to G6 are flaws" | "the implement-specs design should weigh renaming the workstack", "keep the query service read-only when we design it" |
+| Recorded | in Steering Decisions, its Steer quoting the words that decide the design | not as a steer; where the record needs it, in the passes, as the Builder's Passes row of `§ A Design Document` has them, or in the Status field | where that work is held |
+| Tells a reviewer | how the design was formed | nothing about what the design is | nothing about the design being worked |
 
-A go-ahead to take in findings is a steer for those that change what the design is and direction for the tactical ones, and an answer carrying both is recorded for the part that decides the design. Each steer is recorded when it is given, and the design is revised to apply it before the work goes on, so the design carries how it was formed and never lags a steer it records: the adversarial DRR reads the steers as background, checking fidelity to them rather than reopening them, and a later revision does not reopen what the user decided. The request that opened the design is its Source, and The Builder's Passes record what each pass changed and the direction the record needs, never a steer, so each steer is recorded once. Its records sit in a design document's record section titled Steering Decisions. It is a Record Form (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) whose type is named Steering Decisions:
+A go-ahead to take in findings is a steer for those that change what the design is and direction for the tactical ones, and an answer carrying both is recorded for the part that decides the design. A decision about other work is recorded where that work is held, so whoever takes the work up finds it in the files rather than in one agent's memory. Where a design not yet approved holds the work, the decision is its steer, applied when that design is worked. Where an approved or applying design holds it, the user is asked whether to reopen that design for it, an applying one only as a flaw in what it applies (`§ A Design Document`): reopened, the design takes it as its steer; not reopened, the decision is dropped, or, where the user wants it kept for later, logged as a follow-up. Where only a follow-up holds the work (`§ A Follow-up`), the decision goes in its body, and the design taking up the follow-up records it as its steer. Where nothing holds the work, the user chooses between a not-started design recorded for it, the decision its Source where it asks for the work and its steer otherwise, and a new follow-up. A decision about more than one design is recorded in each. Each steer is recorded when it is given, and the design is revised to apply it before its work goes on, so the design carries how it was formed and never lags a steer it records: the adversarial DRR reads the steers as background, checking fidelity to them rather than reopening them, and a later revision does not reopen what the user decided. The request that opened the design is its Source, and The Builder's Passes record what each pass changed and the direction the record needs, never a steer, so each steer is recorded once. Its records sit in a design document's record section titled Steering Decisions. It is a Record Form (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) whose type is named Steering Decisions:
 
 | Field | Identifies | Holds |
 |---|---|---|
 | Name | yes | a short name for what was decided |
 | Prompted By | no | what the steer answered: a question, proposal or account the builder gave, a review's finding named by its ID, or the user's own initiative |
 | Steer | no | the user's own words, quoted |
-| Decision | no | what the steer settles for the design, as the design now applies it |
+| Decision | no | what the steer settles for the design, as the design applies it |
 
 ## A Stamp
 
