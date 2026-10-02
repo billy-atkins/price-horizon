@@ -103,9 +103,6 @@ Independent axes, the ones `specs/application/product/answer-engine/drill-down.m
 **Records:**
 
 - **Name:** Default Materiality Thresholds
-
   **Open Question:** What default materiality threshold, and what bounds, does Acme AI provide for each decision-facing field of a positioning option, until real data calibrates them?
-
   **Provisional Answer:** The default threshold is 1 point for share and for relative_price_index, and, for every other decision-facing field, price_gap, volume, category_growth, revenue and margin, 1% of the larger magnitude of the two values compared. A Control plane admin may set each anywhere from zero to twice its default. A field whose two values are identical never keeps a pair apart, since its delta of zero is at or under any threshold.
-
   **Impacts:** step 3 of the Algorithm in `§ Layered Output Synthesis (producing the answer) § Option Consolidation`, and the false-choice failure mode that section avoids; options with essentially the same outcome shown as one (`specs/application/product/answer-engine/position.md § Position — where Brand A should sit`); the bounds a Control plane admin sets each threshold within (`specs/application/product/tenant-administration/business-unit-settings.md § Business Unit Settings`); and the control plane's self-service bounds for materiality thresholds (`specs/application/technical/control-plane-service/control-plane.md § Control Plane`).
