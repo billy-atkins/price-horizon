@@ -109,17 +109,11 @@ Document vectorization is a separate process, its own trace per ingested documen
 **Records:**
 
 - **Name:** Retry Policy
-
   **Open Question:** How many times is a failed step retried, and on what backoff, before the step counts as failed?
-
   **Provisional Answer:** On the live path, a failed step is retried up to twice, waiting 200 and then 400 milliseconds, so a failing step's waits add no more than 600 milliseconds to its latency budget. On the batch path, it is retried up to three times, waiting one, two and then four minutes. Both follow the one set of retry semantics the orchestration engine gives both paths, differing only in these values.
-
   **Impacts:** the Orchestration State Machine's failure states, what it fixes once a step's retries are exhausted, and the one set of retry semantics both paths share (`§ Engineering and Production Considerations § Orchestration`); the live path's response time in the low seconds (`§ Engineering and Production Considerations`); and when an answer degrades after exhausting its retries (`specs/application/product/trust-and-explainability/degraded-answer-behavior.md § Degraded Answer Behavior`).
 
 - **Name:** Retention Decrease
-
   **Open Question:** How is a genuine decrease to an installation's retention period made, and is it contract- and legal-reviewed?
-
   **Provisional Answer:** It is not made: the retention period only rises, through the control plane, and nothing shortens it.
-
   **Impacts:** the purge that relies on a period that never shrinks, in step 1 of the Algorithm in `§ Engineering and Production Considerations § Security and governance` and that section's account of why comparing against today's setting never shortens a commitment; and the retention period's raise-only control (`specs/application/technical/control-plane-service/control-plane.md § Control Plane`).

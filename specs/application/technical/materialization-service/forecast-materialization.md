@@ -31,9 +31,6 @@ The original Effective Price Forecast is never edited to reflect what actually h
 **Records:**
 
 - **Name:** Recalibration
-
   **Open Question:** What trend in Realized Outcomes counts as drift worth acting on, and how are the driver attribution weighting rubric, the confidence scoring weighting rubric, and the competitor price-response model recalibrated against them, once enough Realized Outcomes have accumulated to judge?
-
   **Provisional Answer:** No trend is defined as drift, and nothing is recalibrated automatically: Acme AI judges the pattern a Platform admin sees across business units, and each rubric and model stays at the version the installation pins until a model release replaces it.
-
   **Impacts:** what accumulated Realized Outcomes are for, in `§ Realized outcome tracking`; the competitor price-response model's training and validation, in step 1 of the Algorithm in `specs/application/technical/predict-computation.md § Predict Computation § Driver Attribution`; the confidence scoring rubric's reason for being a declared formula, that there is no labeled history of real outcomes yet (`specs/application/technical/predict-computation.md § Predict Computation § Confidence and rationale packaging`); a recalibrated model reaching a customer without an application upgrade (`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations`); drift monitoring's watch on the trend in forecast_error (`specs/application/technical/evaluation-and-monitoring.md § Evaluation and monitoring`); and how the pattern a Platform admin sees reaches the platform (`specs/application/product/accuracy-governance.md § Tracking Forecast Accuracy`).
