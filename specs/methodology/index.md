@@ -10,5 +10,6 @@
 | `sourcing-and-citation.md` | One home per fact, which citations are allowed between layers, how a heading is titled, how a citation is written, and what has to be resynchronized when a fact restated elsewhere changes |
 | `modeling-constructs.md` | How a field, a bold lead-in, emphasis and literal text are written; the bounded, approved set of structured constructs, rather than free prose, for representing a rule, a process, an entity's behavior, or an entry written repeatedly into a spec or a working file; and where a diagram goes, its form, what it may show, and how it and its sources cite each other |
 | `acceptance-scenarios.md` | When a product capability owes Gherkin scenarios, which ones its promises and guardrails call for, what form they take, and how they stay in step with the prose they test |
+| `code.md` | The rules that reach the code the application specs govern: governed code and wiring code, and how governed code names, by app-spec annotations, the specs it carries out |
 | `spec-style.md` | What a finished spec reads like, and the drafting residue that does not belong in one |
 | `working-files.md` | The working files, the form and lifecycle of a design document and of a follow-up, a design document's steering decisions, and a stamp |

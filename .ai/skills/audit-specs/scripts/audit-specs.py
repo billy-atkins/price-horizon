@@ -21,9 +21,10 @@ from pathlib import Path, PurePosixPath
 # specs by their place under specs/, the agent instructions by the root AGENTS.md and
 # specs/AGENTS.md, and skills by the registry, read at run time. The places and names this
 # block defines are the ones scope.md's table gives, and scope_findings checks the table still says so;
-# the working files are outside the script, read by the Working-file form audit instead.
+# the working files are outside the script, read by the Working-file form audit instead, and code
+# is outside this skill, which audits every kind but code.
 SCOPE_HOME = "scope.md § What Spec of Record Governs"
-SCOPE_KINDS = {"Agent instructions", "Specs", "Skills", "Working files"}
+SCOPE_KINDS = {"Agent instructions", "Specs", "Skills", "Working files", "Code"}
 REGISTRY = "specs/methodology/skills.md"
 REGISTRY_RULE = "skills.md § Registered Skills"
 AUTHORING = "specs/methodology/skills.md § Authoring a Skill"

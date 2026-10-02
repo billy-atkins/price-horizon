@@ -24,7 +24,7 @@ specs/AGENTS.md
               └ technical/
 ```
 
-`specs/AGENTS.md`'s rules and the methodology's reach every file in Spec of Record's scope (`specs/methodology/scope.md § What Spec of Record Governs`); a product spec states what a user can rely on and a technical spec how it is made true (`specs/methodology/spec-placement.md § Product or Technical`).
+`specs/AGENTS.md`'s rules and the methodology's reach the files in Spec of Record's scope as `specs/methodology/scope.md § What Spec of Record Governs` sets; a product spec states what a user can rely on and a technical spec how it is made true (`specs/methodology/spec-placement.md § Product or Technical`).
 
 Cited down a layer, a citation directs the reader where to look for a specific reason. Cited up a layer, it gives background that benefits the local text.
 
@@ -34,8 +34,9 @@ Cited down a layer, a citation directs the reader where to look for a specific r
 | A technical spec | another technical spec, a product spec |
 | A methodology spec | another methodology spec; `specs/AGENTS.md` |
 | `specs/AGENTS.md` | any spec |
+| Code | a product spec, a technical spec, or a section of one, never a record, naming what it carries out in the form `specs/methodology/code.md § Citing the Specs From Code` gives, governed by the specs rather than a layer of them |
 
-The table is the whole permission for citations among these specs and `specs/AGENTS.md`. Files outside that set, the project's own root `AGENTS.md` among them, cite these specs under their own rules, and no spec cites a section of the root `AGENTS.md`, whose instructions are the project's rather than the method's. No spec other than `specs/methodology/working-files.md` names a working file (`specs/methodology/working-files.md § The Working Files`): none is committed, so the name would point a reader at nothing. `specs/AGENTS.md` is agent instructions rather than a spec, and names the working files its procedures act on.
+The table is the whole permission for citations among these specs, code and `specs/AGENTS.md`. Files outside that set, the project's own root `AGENTS.md` among them, cite these specs under their own rules, and no spec cites a section of the root `AGENTS.md`, whose instructions are the project's rather than the method's. No spec other than `specs/methodology/working-files.md` names a working file (`specs/methodology/working-files.md § The Working Files`): none is committed, so the name would point a reader at nothing. `specs/AGENTS.md` is agent instructions rather than a spec, and names the working files its procedures act on.
 
 A product spec citing a technical spec would make a promise depend on its own implementation; that direction is served instead by the `technical-specs` frontmatter key (`specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability`), deliberately file-level and coarse so it cannot carry a dependency at heading precision. A methodology spec citing an application spec would make a rule depend on the document it governs.
 

@@ -6,6 +6,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 |---|---|
 | Adversarial DRR | A Design, Refactor, Refine run by a cold agent over a builder's design. |
 | Altitude | The level of a file, or of its content, within its directory, from the navigation that names what the directory holds down to the detail that states it. |
+| App-spec annotation | A citation written in governed code, as a plain comment line of its own, naming a spec, or a section of one, that the code carries out. Not a language's own annotation construct, such as a Java annotation or a C# attribute. |
 | Builder | The person or agent who does a piece of work and takes it through Design, Refactor, Refine. |
 | Canon | The part of the Spec of Record scope that states and applies the method's rules: the entry point to the specifications, the methodology, and the skills the methodology registers, each skill the specification of a procedure. Not a product's specifications, and not a canonical form or version. |
 | Citation | A pointer from one place in the Spec of Record scope to another, written in a fixed form a reader and a script can both follow. Not a bibliographic reference. |
@@ -15,6 +16,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Design, Refactor, Refine | A process by which work is brought to elegance: a draft that solves the problem, then structural change until the structure settles, then its wording. Abbreviated DRR. |
 | Elegance | A quality of a solution, the opposite of a Rube Goldberg machine, in which its objective is satisfied by the fewest rules, as a minimal proof reaches its theorem in the fewest steps, so that a skilled reader sees simple, recurring patterns, a rhythm and a beauty, where an unskilled reader sees only complexity. The complexity is reduced, never hidden: everything the objective truly requires is still there, in its simplest form. |
 | Field | A key-value pair written into a spec's or a working file's text. Not a table's column, a data field a data model defines, or a key in a file's frontmatter. |
+| Governed code | Code that carries out a spec. Not code a governance process approves. |
 | Home | The one place where a fact or a rule is stated. |
 | Key | The name of a field. Not a database key, and not a key in a file's frontmatter. |
 | Layer | A level in the order of what governs what among the specifications, each governed by those above it. Not a layer of the product's answer. |
@@ -34,6 +36,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Stamp | A field's value recording when a check passed and a hash of the content it passed on. Not a version number or a signature. |
 | Steering decision | A record of a decision the user made about what a design is: what it solves, decides, includes or leaves out, quoting the user's words, and kept in the design it decides. Not the request that opened the design, nor the user's direction about how the work proceeds, nor a tactical adjustment. |
 | Validation review | A review by a cold agent of whether a plan holds to the rules for its form and its record, run before the user approves it. Not an adversarial DRR, which reviews the design itself. |
+| Wiring code | Code that connects governed code into a working application, service or system, carrying out no spec of its own. |
 | Working file | A file that writing the specs leaves behind, serving whoever writes them. |
 | Workstack | The tree of design documents their Spawned By draws from one design that was not spawned, together with the blocking their Depends On records. Not a call stack or a task queue. |
 

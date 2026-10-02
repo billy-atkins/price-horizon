@@ -6,7 +6,7 @@ The specifications are layered by what governs what, each layer describing a dif
 specs/
 ├── AGENTS.md             the entry point to Spec of Record
 ├── index.md
-├── methodology/          the rules for writing specs
+├── methodology/          the rules for writing specs, and for the code the specs govern
 │   ├── index.md
 │   └── architecture.md
 └── application/          the product being specified
@@ -19,17 +19,17 @@ At the top of `specs/` sits `specs/AGENTS.md`, Spec of Record's entry point: the
 
 `specs/methodology/scope.md § The Shape of the Scope` draws the whole scope, down to each methodology file, and each directory's own `index.md` lists what it holds, so this tree names the layers and the files that fix them.
 
-**`specs/methodology/` —** the rules for writing a specification here: which spec a fact belongs in, which altitude, where an open question is recorded, how a section is titled and cited, when a structured construct is required instead of prose, when a capability owes acceptance scenarios, what a finished spec reads like, and the working files.
+**`specs/methodology/` —** the rules for writing a specification here: which spec a fact belongs in, which altitude, where an open question is recorded, how a section is titled and cited, when a structured construct is required instead of prose, when a capability owes acceptance scenarios, what a finished spec reads like, the working files, and the rules that reach the code the application specs govern.
 
 **`specs/application/` —** the specification of the product itself, split by what a reader can rely on versus how it is made true. `product/` covers what a user or an integrating caller can experience, rely on, or build against, stated as a capability or a guarantee rather than as an implementation choice. `technical/` covers how each of those facts is actually made true: the algorithms, schemas, service boundaries, models, and infrastructure.
 
 ## Spec-Driven for Itself
 
-The methodology is held to the rules it states, and a rule reaches a methodology file unless the rule itself scopes it away, as the rules on acceptance scenarios and `technical-specs` frontmatter do (`specs/methodology/scope.md § The Methodology Governs Itself`).
+The methodology is held to the rules it states, and a rule reaches a methodology file unless the rule itself scopes it away, as the rules on acceptance scenarios and `technical-specs` frontmatter do, and `code.md`'s, which reach only code (`specs/methodology/scope.md § The Methodology Governs Itself`).
 
 ## How the Rules Relate
 
-The detail files that govern what a spec says are not independent. Each answers a question another leaves open, and they apply to different subsets of what is written here. `index.md` lists what each contains; this section says how they fit together.
+The detail files that govern what a spec says, and the one governing code, are not independent. Each answers a question another leaves open, and they apply to different subsets of what is written here. `index.md` lists what each contains; this section says how they fit together.
 
 **The scope frames all of them —** `scope.md` states which files these rules reach, how the methodology governs itself, how rules and skills relate, how every rule is enforced, and how the method's instructions stay agnostic of the agent reading them, `skills.md` which skills belong to the method, how a skill is authored, and how the agent in use is set up to carry out what the method leaves to it, and `glossary.md` the terms the method gives meanings of its own; every rule here applies within that scope.
 
@@ -42,6 +42,8 @@ What happens after a fact changes outlives the writing. A fact stated once is of
 **Modeling constructs cut across both —** whether a passage is prose or a table is independent of which spec it sits in or how it is cited. `modeling-constructs.md` applies wherever a rule, a process, an entity's behavior, or an entry recorded repeatedly is being described, at any altitude, in either half of `specs/application/` and in these files, and a record form reaches the working files too. Its `specs/methodology/modeling-constructs.md § Fields` and `specs/methodology/modeling-constructs.md § Bold Lead-ins` govern every bold phrase opening a line, wherever it sits, its `specs/methodology/modeling-constructs.md § Emphasis` and `specs/methodology/modeling-constructs.md § Literal Text` what italic and backticks mark, and its Record Form gives an open question, placed by `spec-placement.md`, its form. Its diagram rules are the exception to that independence, and are read with `sourcing-and-citation.md`, as a record's citation form is.
 
 **Acceptance scenarios reach the narrowest scope —** `acceptance-scenarios.md` applies only to a product capability's own section, the narrowest reach of the files that govern what a spec says. It scopes itself to product specs in its own text, which is why no technical file owes any.
+
+**Code is reached by one file —** `code.md` holds the rules that reach the code the application specs govern, which code is governed and which is wiring, and how governed code names the specs it carries out, its annotation a citation written as `sourcing-and-citation.md` gives, without the backticks; no other file's rules reach code, but those it cites (`specs/methodology/scope.md § What Spec of Record Governs`).
 
 **Style applies last and to everything —** `spec-style.md` governs what any finished spec reads like, whatever it says and wherever it sits. It is the only detail file with no scope condition at all.
 

@@ -8,8 +8,9 @@ Spec of Record governs files by kind, each kind with what it holds and how its f
 | Specs | the specifications, the methodology among them | their place under `specs/`, `specs/AGENTS.md` aside |
 | Skills | the procedures that apply the method's rules | `specs/methodology/skills.md` |
 | Working files | the working files | `specs/methodology/working-files.md § The Working Files` |
+| Code | the application's code, governed code and the wiring connecting it | `specs/methodology/code.md § Governed Code and Wiring Code` |
 
-Whatever is not named so is outside the scope, and the method's rules do not reach it. The method's rules, the methodology's and `specs/AGENTS.md`'s, reach every file in scope, except where a rule scopes itself, in its own text rather than through an exemption granted elsewhere, to something a file is not. A project's own root `AGENTS.md` holds that project's instructions, whose reach is the project's to set.
+Whatever is not named so is outside the scope, and the method's rules do not reach it. The method's rules, the methodology's and `specs/AGENTS.md`'s, reach every file in scope but code, except where a rule scopes itself, in its own text rather than through an exemption granted elsewhere, to something a file is not. Code is reached by the rules in `specs/methodology/code.md`, and by the rules it cites for code, and by no other. A project's own root `AGENTS.md` holds that project's instructions, whose reach is the project's to set.
 
 ## The Shape of the Scope
 
@@ -18,10 +19,11 @@ AGENTS.md                      the project's own instructions, pointing to specs
 specs/
 ├── AGENTS.md                  the entry point to Spec of Record
 ├── index.md                   in every directory under specs/: what it holds
-├── methodology/               the rules for writing specs
+├── methodology/               the rules for writing specs, and for the code the specs govern
 │   ├── index.md
 │   ├── architecture.md
 │   ├── acceptance-scenarios.md
+│   ├── code.md
 │   ├── glossary.md
 │   ├── modeling-constructs.md
 │   ├── scope.md
@@ -38,7 +40,7 @@ specs/
 └── skills/<skill-name>/       a registered skill: SKILL.md, its entry point, references/ and scripts/
 ```
 
-The tree names the methodology's files, since they are the rules every task depends on, and describes none of them; it stops at `product/` and `technical/`, whose files grow with the product; and it leaves the working files to `specs/methodology/working-files.md § The Working Files`, which names them. What a file covers is its directory's `index.md` (`specs/methodology/spec-placement.md § Where a File Goes`), so before working in a directory an agent reads its `index.md`.
+The tree names the methodology's files, since they are the rules every task depends on, and describes none of them; it stops at `product/` and `technical/`, whose files grow with the product; it leaves the working files to `specs/methodology/working-files.md § The Working Files`, which names them; and it does not draw code, which sits wherever a project keeps it. What a file covers is its directory's `index.md` (`specs/methodology/spec-placement.md § Where a File Goes`), so before working in a directory an agent reads its `index.md`.
 
 ## Progressive Disclosure
 
@@ -50,7 +52,7 @@ Progressive disclosure governs when to read, not how much. Whatever is loaded is
 
 ## The Methodology Governs Itself
 
-The methodology is held to the rules it states: it has an `index.md`, and an `architecture.md` summarizing it, a rule that is a lookup is authored as a table, and its files meet the style rules they set. The rules on acceptance scenarios and on `technical-specs` frontmatter scope themselves to product specs, and so do not reach it: a methodology file has no product capability to prove and no technical counterpart to name.
+The methodology is held to the rules it states: it has an `index.md`, and an `architecture.md` summarizing it, a rule that is a lookup is authored as a table, and its files meet the style rules they set. The rules on acceptance scenarios and on `technical-specs` frontmatter scope themselves to product specs, and so do not reach it: a methodology file has no product capability to prove and no technical counterpart to name. The rules in `specs/methodology/code.md` reach only code, and so do not reach it either.
 
 ## Agent Agnostic
 
