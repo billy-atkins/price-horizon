@@ -253,7 +253,8 @@ def parse_records(body, lineage):
     -> (records, problems): each record a list of (key, value, line) in the order
     written; each problem (rule, line, message). A record section holds only fields: an
     optional Diagrams list, then Records, whose value is one list item per record, the
-    first field on the item's line and each later one a paragraph indented two spaces.
+    first field on the item's line and each later one on a line indented two spaces directly
+    beneath the one before, with no blank line inside a record.
     """
     lines = body.split("\n")
     h, end = sections(body)[lineage]
@@ -292,9 +293,14 @@ def parse_records(body, lineage):
         return records, problems
     k += 1
     current = None
+    gap = False
     for i, text in rows[k:]:
         if not text.strip():
+            gap = True
             continue
+        if gap and text.startswith("  ") and current is not None:
+            problems.append((RECORD_FORM, i, "a blank line inside a record: its fields are stacked"))
+        gap = False
         if text.startswith("- "):
             mm = FIELD_LINE.match(text)
             current = [(mm.group(3), text[mm.end():].strip(), i)] if mm else [(None, "", i)]
@@ -375,9 +381,9 @@ def field_findings(r, body, found):
             ok = title in RECORD_TYPES and key in RECORD_TYPES[title]["fields"] and bool(indent or dash)
         if not ok:
             found.append((FIELDS, r, i + 1, f"the {key} field outside the place its form gives it"))
-        # Record Form: a blank line precedes each field in a record section, or Markdown
-        # renders it inside the line above
-        if title in RECORD_TYPES and not dash and i > 0 and raw[i - 1].strip():
+        # Record Form: a blank line precedes each section field, at the left margin, or
+        # Markdown renders it inside the line above; a record's own fields are stacked
+        if title in RECORD_TYPES and not indent and not dash and i > 0 and raw[i - 1].strip():
             found.append((RECORD_FORM, r, i + 1, f"the {key} field directly after a non-blank line"))
 
 

@@ -24,11 +24,8 @@
 **Records:**
 
 - **Name:** {a short name}
-
   **Prompted By:** {the builder's question, proposal or account, a finding's ID, or the user's own initiative}
-
   **Steer:** {the user's words, quoted}
-
   **Decision:** {what it settles}
 
 ## The Design
