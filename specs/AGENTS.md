@@ -37,7 +37,7 @@ Running the procedure, rather than recalling the rules, is what puts each rule i
 | Recording a proposed change, a steer given it, or work to take up later | `specs/methodology/working-files.md § A Design Document`, `specs/methodology/working-files.md § A Steering Decision`, `specs/methodology/working-files.md § A Follow-up` |
 | Setting up the agent in use to apply a review's reasoning effort | `specs/methodology/skills.md § Setting Up an Agent`, then `.ai/skills/configure-spec-of-record/` |
 | Checking that the code carries out its specs | `specs/methodology/code.md`, `specs/methodology/spec-placement.md § The Technical Stack`, then `.ai/skills/verify-spec-implementation/` |
-| Designing and writing the code the application specs govern | `specs/methodology/code.md`, `specs/methodology/working-files.md § A Design Document § A Design Changing Code`, then `.ai/skills/implement-specs/` |
+| Designing and writing the code the application specs govern | `specs/methodology/code.md`, `specs/methodology/spec-placement.md § Environments`, `specs/methodology/working-files.md § A Design Document § A Design Changing Code`, then `.ai/skills/implement-specs/` |
 
 ## Ordinals and Counts
 

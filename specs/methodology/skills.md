@@ -8,7 +8,7 @@ A skill is part of Spec of Record when it is registered here, and only then; a s
 | `author-mermaid-diagram` | `specs/methodology/modeling-constructs.md § Diagrams` |
 | `configure-spec-of-record` | `§ Setting Up an Agent` |
 | `design-specs` | `specs/AGENTS.md`, `specs/methodology/` |
-| `implement-specs` | `specs/methodology/code.md`, `specs/methodology/working-files.md § A Design Document` |
+| `implement-specs` | `specs/methodology/code.md`, `specs/methodology/spec-placement.md § Environments`, `specs/methodology/working-files.md § A Design Document` |
 | `verify-spec-implementation` | `specs/methodology/code.md`, `specs/methodology/spec-placement.md § The Technical Stack` |
 
 ## Authoring a Skill

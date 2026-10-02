@@ -83,7 +83,10 @@ RECORD_TYPES = {
 # modeling-constructs.md § Fields: every key a form declares, and where that form places it.
 FIELDS = "modeling-constructs.md § Fields"
 FIELD_KEYS = {"Caption": "diagram", "Sources": "diagram",
-              "Diagrams": "record section", "Records": "record section"}
+              "Diagrams": "record section", "Records": "record section", "Kind": "environment"}
+# spec-placement.md § Environments: the environments file, and the closed set of kinds
+ENVIRONMENTS = "specs/application/technical/environments.md"
+KINDS = ("local", "integration", "shared", "production")
 for _type, _spec in RECORD_TYPES.items():
     for _key in _spec["fields"]:
         FIELD_KEYS[_key] = "record"
@@ -355,6 +358,39 @@ def record_findings(r, body, found):
                 found.append((home, r, at, "a record's Impacts carries no section citation"))
 
 
+def environment_findings(r, body, found):
+    """spec-placement.md § Environments: each environment's section opens with one Kind
+    field from the closed set, on a line of its own, and holds no other; exactly one
+    environment is local; and its tool and task tables carry the headers the rule sets."""
+    if r != ENVIRONMENTS:
+        return
+    rule = "spec-placement.md § Environments"
+    lines, local, opening = body.split("\n"), 0, set()
+    secs = sorted(sections(body).items(), key=lambda x: x[1][0])
+    # the environments are the file's top-level sections, or, where it has one, its children
+    depth = 1 if sum(" § " not in lin for lin, _ in secs) == 1 else 0
+    for lineage, (h, end) in secs:
+        if lineage.count(" § ") != depth:
+            continue
+        j = next((j for j in range(h + 1, end) if lines[j].strip()), None)
+        mm = re.fullmatch(r"\*\*Kind:\*\* (\S+)", lines[j].strip()) if j is not None else None
+        if not mm or mm.group(1) not in KINDS or (j + 1 < end and lines[j + 1].strip()):
+            found.append((rule, r, h + 1, "an environment does not open with a Kind field, on a line of its own, of local, integration, shared or production"))
+            continue
+        opening.add(j)
+        local += mm.group(1) == "local"
+    for i, line in enumerate(lines):
+        if line.lstrip().startswith("**Kind:**") and i not in opening:
+            found.append((rule, r, i + 1, "a Kind field other than the one opening an environment's section"))
+        cells = [c.strip() for c in line.strip().strip("|").split("|")] if line.startswith("| ") else []
+        if cells[:1] == ["Tool"] and (cells[:3] != ["Tool", "Version", "Purpose"] or len(cells) < 4):
+            found.append((rule, r, i + 1, "a tools table not headed Tool, Version and Purpose with at least one install column after them"))
+        if cells[:1] == ["Task"] and cells not in (["Task", "Command", "Does"], ["Task", "Command", "Does", "Runs On"]):
+            found.append((rule, r, i + 1, "a tasks table not headed Task, Command and Does, with Runs On after them where a task needs it"))
+    if local != 1:
+        found.append((rule, r, 0, f"{local} environments are local, not exactly one"))
+
+
 def field_findings(r, body, found):
     """modeling-constructs.md § Fields: each field's key is one a form declares, it sits
     where that form places it, and a key at the left margin follows a blank line."""
@@ -377,6 +413,8 @@ def field_findings(r, body, found):
             ok = any(raw[j].startswith("```mermaid") for j in range(h + 1, end))
         elif place == "record section":
             ok = title in RECORD_TYPES and not indent and not dash
+        elif place == "environment":
+            ok = r == ENVIRONMENTS and not indent and not dash
         else:
             ok = title in RECORD_TYPES and key in RECORD_TYPES[title]["fields"] and bool(indent or dash)
         if not ok:
@@ -695,6 +733,7 @@ def check(root):
             diagram_findings(r, body, text_of, known, lineage, found)
             record_findings(r, body, found)
             field_findings(r, body, found)
+            environment_findings(r, body, found)
             for m in re.finditer(r'^```mermaid\s*\n(.*?)^```', body, re.S | re.M):
                 # a diagram opens with a config frontmatter block, so scan the whole
                 # fence rather than its first line
