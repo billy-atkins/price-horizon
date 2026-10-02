@@ -2,7 +2,7 @@ The rules that reach the code the application specs govern: which code is govern
 
 ## Governed Code and Wiring Code
 
-Governed code carries out a spec, or checks one as a test does (`§ Tests`): it does what a product or technical spec states, or checks that it is done, and it names that spec with app-spec annotations (`§ Citing the Specs From Code`). Wiring code, the routing, configuration, dependency registration and glue that no spec states, carries no annotation. Wiring exists because the specs stop where more detail would no longer improve the code: the agent writing the code writes the wiring they leave to it, so that the whole delivers what they state.
+Governed code carries out a spec, or checks one as a test does (`§ Tests`): it does what a product or technical spec states, or checks that it is done, and it names that spec with app-spec annotations (`§ Citing the Specs From Code`). Wiring code, the routing, configuration, dependency registration and glue that no spec states, carries no annotation. A file in a format with no comments is never governed code: a contract a spec states, an API contract designed first, say, is itself a spec and lives with the technical specs; one a tool generates is among the paths the stack excludes, its tool named in the stack (`specs/methodology/spec-placement.md § The Technical Stack`); and any other is wiring. Wiring exists because the specs stop where more detail would no longer improve the code: the agent writing the code writes the wiring they leave to it, so that the whole delivers what they state.
 
 ## Citing the Specs From Code
 

@@ -33,6 +33,7 @@ SPECS_AGENTS = "specs/AGENTS.md"
 GLOSSARY = "specs/methodology/glossary.md"
 GLOSSARY_RULE = "glossary.md § Writing an Entry"
 AUDIT_SKILL = ".ai/skills/audit-specs/SKILL.md"
+CODE_CHECKS = ".ai/skills/verify-spec-implementation/SKILL.md"  # names the check enforcing each section of code.md
 COVERAGE_RULE = "scope.md § Rules and Skills"
 # The tables in the audit skill naming what reads or carries out each rule section:
 # (section heading, rule column header)
@@ -819,7 +820,8 @@ def workflow_citations(root):
 def coverage_findings(root):
     """Every section of specs/AGENTS.md and of the methodology's files, its overview aside, is
     named, itself or through a section it sits under, in the rule column of one of the audit
-    skill's coverage tables; and each operating rule is cited, itself or through a section it
+    skill's coverage tables, or, for a section of code.md, in the verify skill's table of checks;
+    and each operating rule is cited, itself or through a section it
     sits under, by a step of a registered skill's Workflow, which is where its step is found."""
     sk = root / AUDIT_SKILL
     if not sk.exists():
@@ -838,6 +840,15 @@ def coverage_findings(root):
                     named.add((path.strip(), target.strip()))
                     if title == COVERAGE_TABLES[1][0]:
                         operating.add((path.strip(), target.strip()))
+    # specs/methodology/scope.md § Rules and Skills: a section of code.md is named by the check on code
+    checks = root / CODE_CHECKS
+    table = first_table(checks.read_text(encoding="utf-8"), "The checks", "Enforces") if checks.exists() else None
+    for row in table[1] if table else []:
+        k = table[0].index("Enforces")
+        for m in CITATION.finditer(row[k] if k < len(row) else ""):
+            path, _, target = m.group(1).partition(" § ")
+            if target and path.strip() == "specs/methodology/code.md":
+                named.add((path.strip(), target.strip()))
     cited = workflow_citations(root)
     for path, target in sorted(operating):
         if not any(p == path and (s == target or target.startswith(s + " § ")) for p, s in cited):
