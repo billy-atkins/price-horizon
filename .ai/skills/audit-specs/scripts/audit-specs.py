@@ -21,9 +21,10 @@ from pathlib import Path, PurePosixPath
 # specs by their place under specs/, the agent instructions by the root AGENTS.md and
 # specs/AGENTS.md, and skills by the registry, read at run time. The places and names this
 # block defines are the ones scope.md's table gives, and scope_findings checks the table still says so;
-# the working files are outside the script, read by the Working-file form audit instead.
+# the working files are outside the script, read by the Working-file form audit instead, and code
+# is outside this skill, which audits every kind but code.
 SCOPE_HOME = "scope.md § What Spec of Record Governs"
-SCOPE_KINDS = {"Agent instructions", "Specs", "Skills", "Working files"}
+SCOPE_KINDS = {"Agent instructions", "Specs", "Skills", "Working files", "Code"}
 REGISTRY = "specs/methodology/skills.md"
 REGISTRY_RULE = "skills.md § Registered Skills"
 AUTHORING = "specs/methodology/skills.md § Authoring a Skill"
@@ -32,6 +33,7 @@ SPECS_AGENTS = "specs/AGENTS.md"
 GLOSSARY = "specs/methodology/glossary.md"
 GLOSSARY_RULE = "glossary.md § Writing an Entry"
 AUDIT_SKILL = ".ai/skills/audit-specs/SKILL.md"
+CODE_CHECKS = ".ai/skills/verify-spec-implementation/SKILL.md"  # names the check enforcing each section of code.md
 COVERAGE_RULE = "scope.md § Rules and Skills"
 # The tables in the audit skill naming what reads or carries out each rule section:
 # (section heading, rule column header)
@@ -165,9 +167,14 @@ def registry(root):
     return names, problems
 
 
+def skill_dirs(root):
+    """Each registered skill's directory name, and lib, the code their scripts share, where it is there."""
+    return registry(root)[0] + (["lib"] if (root / ".ai/skills/lib").is_dir() else [])
+
+
 def scope_paths(root):
-    """The files in scope: the root AGENTS.md, specs/, and each registered skill."""
-    return ["AGENTS.md", "specs"] + [".ai/skills/" + n for n in registry(root)[0]]
+    """The files in scope: the root AGENTS.md, specs/, each registered skill, and the code they share."""
+    return ["AGENTS.md", "specs"] + [".ai/skills/" + n for n in skill_dirs(root)]
 
 
 def md_files(root):
@@ -813,7 +820,8 @@ def workflow_citations(root):
 def coverage_findings(root):
     """Every section of specs/AGENTS.md and of the methodology's files, its overview aside, is
     named, itself or through a section it sits under, in the rule column of one of the audit
-    skill's coverage tables; and each operating rule is cited, itself or through a section it
+    skill's coverage tables, or, for a section of code.md, in the verify skill's table of checks;
+    and each operating rule is cited, itself or through a section it
     sits under, by a step of a registered skill's Workflow, which is where its step is found."""
     sk = root / AUDIT_SKILL
     if not sk.exists():
@@ -832,6 +840,15 @@ def coverage_findings(root):
                     named.add((path.strip(), target.strip()))
                     if title == COVERAGE_TABLES[1][0]:
                         operating.add((path.strip(), target.strip()))
+    # specs/methodology/scope.md § Rules and Skills: a section of code.md is named by the check on code
+    checks = root / CODE_CHECKS
+    table = first_table(checks.read_text(encoding="utf-8"), "The checks", "Enforces") if checks.exists() else None
+    for row in table[1] if table else []:
+        k = table[0].index("Enforces")
+        for m in CITATION.finditer(row[k] if k < len(row) else ""):
+            path, _, target = m.group(1).partition(" § ")
+            if target and path.strip() == "specs/methodology/code.md":
+                named.add((path.strip(), target.strip()))
     cited = workflow_citations(root)
     for path, target in sorted(operating):
         if not any(p == path and (s == target or target.startswith(s + " § ")) for p, s in cited):
@@ -911,7 +928,7 @@ def style_and_agent_candidates(root):
                 a, b = max(0, m.start() - 60), min(len(line), m.end() + 60)
                 out.append((rel, n, "a phrase that may be drafting residue", line[a:b].strip()))
     instructions = [root / "AGENTS.md", root / SPECS_AGENTS]
-    for name in registry(root)[0]:
+    for name in skill_dirs(root):
         base = root / ".ai/skills" / name
         if base.is_dir():
             instructions += sorted(p for p in base.rglob("*") if p.suffix in {".md"} | SCRIPT_SUFFIXES)
@@ -1133,7 +1150,7 @@ def candidates(root):
             patterns = CANDIDATE + ([("count in a heading", re.compile(rf"\b{_NUM}\b|\d", re.I))]
                                     if HEADING.match(line) else [])
             scan(rel, n, line, patterns)
-    for s in [".ai/skills/" + n for n in registry(root)[0]]:
+    for s in [".ai/skills/" + n for n in skill_dirs(root)]:
         base = root / s
         if not base.is_dir():
             continue
@@ -1178,7 +1195,7 @@ def direction_candidates(root):
             if m:
                 s, e = max(0, m.start() - 60), min(len(line), m.end() + 40)
                 out.append((rel, n, "pointed at by direction", line[s:e].strip()))
-    for base in [root / ".ai/skills" / n for n in registry(root)[0]]:
+    for base in [root / ".ai/skills" / n for n in skill_dirs(root)]:
         for f in sorted(base.rglob("*")) if base.is_dir() else []:
             if f.suffix in SCRIPT_SUFFIXES:
                 for n, line in script_lines(f):
@@ -1204,12 +1221,14 @@ def skill_candidates(root):
     stdlib = set(getattr(sys, "stdlib_module_names", ()))
     if not stdlib:
         out.append(("(this Python)", 0, "imports not checked", "sys.stdlib_module_names needs Python 3.10 or later"))
-    for n in sorted(names):
+    # specs/methodology/skills.md § Authoring a Skill: a skill's entry script may import the code the skills share
+    lib = {p.stem for p in (base / "lib").glob("*.py")} if (base / "lib").is_dir() else set()
+    for n in sorted(names) + (["lib"] if lib else []):
         for py in sorted((base / n).rglob("*.py")):
             for k, line in enumerate(py.read_text(encoding="utf-8").split("\n"), 1):
                 m = re.match(r'^\s*(?:import\s+([A-Za-z_]\w*)|from\s+([A-Za-z_]\w*)[\w.]*\s+import\b)', line)
                 mod = m and (m.group(1) or m.group(2))
-                if mod and stdlib and mod not in stdlib:
+                if mod and stdlib and mod not in stdlib and mod not in lib:
                     out.append((py.relative_to(root).as_posix(), k, "import from outside the standard library", line.strip()))
     return out
 

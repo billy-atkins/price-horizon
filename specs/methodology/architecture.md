@@ -6,7 +6,7 @@ The specifications are layered by what governs what, each layer describing a dif
 specs/
 ├── AGENTS.md             the entry point to Spec of Record
 ├── index.md
-├── methodology/          the rules for writing specs
+├── methodology/          the rules for writing specs, and for the code the specs govern
 │   ├── index.md
 │   └── architecture.md
 └── application/          the product being specified
@@ -15,21 +15,21 @@ specs/
     └── technical/
 ```
 
-At the top of `specs/` sits `specs/AGENTS.md`, Spec of Record's entry point: the skills every change and every check is sent to, each forking on whether the canon or the application specs are touched, where to find a rule mid-step, and the rules reaching every author, how work is designed and reviewed and how a list is numbered or counted. The project's own `AGENTS.md`, at its root, holds what the project is, how its product is positioned, and its conventions, and points to `specs/AGENTS.md`.
+At the top of `specs/` sits `specs/AGENTS.md`, Spec of Record's entry point: the skills every change and every check is sent to, each forking on whether the canon or the application specs are touched, and the skill designing and writing code, where to find a rule mid-step, and the rules reaching every author, how work is designed and reviewed and how a list is numbered or counted. The project's own `AGENTS.md`, at its root, holds what the project is, how its product is positioned, and its conventions, and points to `specs/AGENTS.md`.
 
 `specs/methodology/scope.md § The Shape of the Scope` draws the whole scope, down to each methodology file, and each directory's own `index.md` lists what it holds, so this tree names the layers and the files that fix them.
 
-**`specs/methodology/` —** the rules for writing a specification here: which spec a fact belongs in, which altitude, where an open question is recorded, how a section is titled and cited, when a structured construct is required instead of prose, when a capability owes acceptance scenarios, what a finished spec reads like, and the working files.
+**`specs/methodology/` —** the rules for writing a specification here: which spec a fact belongs in, which altitude, where an open question is recorded, how a section is titled and cited, when a structured construct is required instead of prose, when a capability owes acceptance scenarios, what a finished spec reads like, the working files, and the rules that reach the code the application specs govern.
 
 **`specs/application/` —** the specification of the product itself, split by what a reader can rely on versus how it is made true. `product/` covers what a user or an integrating caller can experience, rely on, or build against, stated as a capability or a guarantee rather than as an implementation choice. `technical/` covers how each of those facts is actually made true: the algorithms, schemas, service boundaries, models, and infrastructure.
 
 ## Spec-Driven for Itself
 
-The methodology is held to the rules it states, and a rule reaches a methodology file unless the rule itself scopes it away, as the rules on acceptance scenarios and `technical-specs` frontmatter do (`specs/methodology/scope.md § The Methodology Governs Itself`).
+The methodology is held to the rules it states, and a rule reaches a methodology file unless the rule itself scopes it away, as the rules on acceptance scenarios and `technical-specs` frontmatter do, and `code.md`'s, which reach only code (`specs/methodology/scope.md § The Methodology Governs Itself`).
 
 ## How the Rules Relate
 
-The detail files that govern what a spec says are not independent. Each answers a question another leaves open, and they apply to different subsets of what is written here. `index.md` lists what each contains; this section says how they fit together.
+The detail files that govern what a spec says, and the one governing code, are not independent. Each answers a question another leaves open, and they apply to different subsets of what is written here. `index.md` lists what each contains; this section says how they fit together.
 
 **The scope frames all of them —** `scope.md` states which files these rules reach, how the methodology governs itself, how rules and skills relate, how every rule is enforced, and how the method's instructions stay agnostic of the agent reading them, `skills.md` which skills belong to the method, how a skill is authored, and how the agent in use is set up to carry out what the method leaves to it, and `glossary.md` the terms the method gives meanings of its own; every rule here applies within that scope.
 
@@ -43,6 +43,8 @@ What happens after a fact changes outlives the writing. A fact stated once is of
 
 **Acceptance scenarios reach the narrowest scope —** `acceptance-scenarios.md` applies only to a product capability's own section, the narrowest reach of the files that govern what a spec says. It scopes itself to product specs in its own text, which is why no technical file owes any.
 
+**Code is reached by one file —** `code.md` holds the rules that reach the code the application specs govern, which code is governed and which is wiring, and how governed code names the specs it carries out, its annotation a citation written as `sourcing-and-citation.md` gives, without the backticks; no other file's rules reach code, but those it cites (`specs/methodology/scope.md § What Spec of Record Governs`).
+
 **Style applies last and to everything —** `spec-style.md` governs what any finished spec reads like, whatever it says and wherever it sits. It is the only detail file with no scope condition at all.
 
 **Working files govern no spec —** `working-files.md` sets the form of the working files, a design document carrying one change through review, with the steers that settled it and the designs it waits on, and a follow-up holding work not yet done; no spec but `working-files.md` names one (`specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`).
@@ -53,12 +55,16 @@ These files state the rules, and the skills `specs/methodology/skills.md` regist
 
 **`design-specs` sequences these rules and carries what they cannot —** it gives each rule a change applies a point-of-use citation, rather than restating any of it, which is the only way it can stay correct as these rules are amended, and forks at the kind of specification a change touches into a reference holding what only that kind owes. What it adds is the part no rule can hold: the failures that recur while applying them, a fact written before checking whether it already had a home, a qualifier lost while compressing one file into another, an edit anchored to text that does not exist. Its script checks that a proposal's quoted text and cited headings exist in the files, that a design document holds its form and its Target stays within its Specs, and that the workstack its design documents draw holds together, before the proposal is reviewed. A rule states what correct looks like; that skill records how people miss it.
 
-**`audit-specs` checks whether these rules, and `specs/AGENTS.md`'s, actually held —** by a script that decides what the files alone can, run first so a reading pass is never spent on a broken citation, and by reading audits, one per family of rules, each reading the files against the rules it names, the audits only one kind of specification owes read from a reference for that kind, as `design-specs` forks. For every rule section it names the reading audit enforcing it, or names it an operating rule, checked by the skill steps applying it and citing it (`specs/methodology/scope.md § Rules and Skills`), so a rule that changes takes its check with it and a finding points at the rule rather than only at a line.
+**`audit-specs` checks whether these rules, and `specs/AGENTS.md`'s, actually held —** by a script that decides what the files alone can, run first so a reading pass is never spent on a broken citation, and by reading audits, one per family of rules, each reading the files against the rules it names, the audits only one kind of specification owes read from a reference for that kind, as `design-specs` forks. For every rule section but `code.md`'s, whose checks `verify-spec-implementation` names, it names the reading audit enforcing it, or names it an operating rule, checked by the skill steps applying it and citing it (`specs/methodology/scope.md § Rules and Skills`), so a rule that changes takes its check with it and a finding points at the rule rather than only at a line.
 
 What it deliberately leaves unaudited it declines by name rather than by silence.
 
 **`author-mermaid-diagram` serves the diagram rules —** `specs/methodology/modeling-constructs.md § Diagrams` licenses exactly one kind of rendering for a human reader and leaves where it goes to the reader's need, and bounds its form, what it may show, and how it and its sources cite each other; that skill is how one gets authored, rendered, and checked, and that section points at it directly. It differs from `design-specs` and `audit-specs` in its subject, not in how it is governed: drawing a good diagram is craft, so the skill cites these files only where they govern a diagram, while `design-specs` and `audit-specs` exist to serve these rules and cite them throughout.
 
 **`configure-spec-of-record` sets up the agent in use —** the method's instructions name no agent, so what only the agent in use can carry out, applying a review's reasoning effort among it, it sets up for itself through that skill, as `specs/methodology/skills.md § Setting Up an Agent` has it, writing only what it needs, outside the scope.
+
+**`implement-specs` carries the specs into code —** it applies `code.md`'s rules, how governed code names what it carries out, how it changes and what a test is, designing the code and its tests from the specs as a design document, taken through the same reviews as a design changing the specs, which the user approves before any code is written, and checking its own work before `verify-spec-implementation` checks it.
+
+**`verify-spec-implementation` checks the code against its specs —** it is to code what `audit-specs` is to the specs: from the code roots the technical stack names, its script checks every app-spec annotation and lists the spec sections and files no annotation joins, and a cold reading judges whether each unit carries out what it cites and whether unannotated code is wiring. It reads; the project's tests run where its own pipeline runs them.
 
 A skill belongs to the method by being registered in `specs/methodology/skills.md`, which is also the boundary between the method's skills and any other skill under `.ai/skills/`.
