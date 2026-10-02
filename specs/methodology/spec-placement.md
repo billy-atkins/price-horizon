@@ -1,4 +1,4 @@
-Which spec a fact belongs in, which altitude, which file, how a product capability names the technical files that build it, and where and in what form an open question is recorded.
+Which spec a fact belongs in, which altitude, which file, how a product capability names the technical files that build it, what a product module is, and where and in what form an open question is recorded.
 
 ## Product or Technical
 
@@ -47,7 +47,7 @@ A directory's own mapping table, where it has one, is the exception that proves 
 
 ## Where a File Goes
 
-**Every directory gets an `index.md` —** one listing only its own direct contents. A parent's `index.md` names a subdirectory as a single row pointing at it, never expanding that subdirectory's files inline. This applies recursively, at every level.
+**Every directory gets an `index.md` —** one listing only its own direct contents, in the order a reader takes them, which is the order an agent loads them in (`specs/methodology/scope.md § Progressive Disclosure`). A parent's `index.md` names a subdirectory as a single row pointing at it, never expanding that subdirectory's files inline. This applies recursively, at every level.
 
 **Check the directory's `index.md` before adding a file —** prefer extending an existing spec over creating a new one that duplicates its content.
 
@@ -59,6 +59,8 @@ A directory's own mapping table, where it has one, is the exception that proves 
 | A sub-topic still needs the others' context to make sense | a heading inside one file |
 | A subject area stays one cohesive mechanism, however many internal facets it has | a loose file at the directory's root |
 | A subject area is cross-cutting, used by more than one other and owned by none | a loose file at the directory's root |
+
+**Why a domain earns a folder —** a capability domain that decomposes into sub-parts, each carrying its own promise, as the table's row for a subject area that decomposes into sub-parts has it, is a folder of files, one per sub-part, with an `index.md` naming them in reading order, rather than one file: each file loads only when a step needs it (`specs/methodology/scope.md § Progressive Disclosure`), a change to one sub-part leaves the others' files untouched, a reader takes in one sub-part at a time, edits to separate files rarely meet in version control, and work on the domain's code reads the sub-parts it needs. An agent, like a person, reasons better over named, related files and the indexes linking them than over one long stretch of prose.
 
 A section growing long, or gaining a second heading, is not a reason to split it. Being referenced as a single findable unit from everywhere that needs it matters more than how many headings a file holds, and a directory scatters exactly what needs to stay whole.
 
@@ -108,6 +110,10 @@ This is a label, not a citation. It names files, never headings, and is never wr
 **Reading it —** before working on a technical file, check whether a product file's `technical-specs` names it. If so, that product file's capabilities are what the technical file already fulfills, and what an edit has to keep true.
 
 **Writing it —** a product spec is usually written before any technical content implementing it exists: state the capability in prose with no technical reference of any kind, and leave `technical-specs` omitted. Naming a file before real technical work exists to name would be a guess dressed as a fact. When technical content is later written to fulfill a capability, add that file to the product file's list in its correct alphabetical place, and separately cite the specific product section from the technical prose itself. The list is the coarse pointer; that citation is the precise proof; both stay in place together.
+
+## A Product Module
+
+A product module is a capability domain as the product `architecture.md` names it: a folder directly under `specs/application/product/`, for a domain that decomposes into sub-parts, or a single file in its root, for a domain that is one cohesive mechanism (`§ Where a File Goes`); a root file belongs to the domain whose account in the product `architecture.md` names it. It is the scope a change to its code is bounded by, and what that change reads: its product specs, and the technical files they name in their `technical-specs` frontmatter (`§ Naming the Technical Files Behind a Capability`), a file only this module names read whole, and one several modules name read at the sections this module's code needs. Beside it, every module reads what no module owns: the files in the product root that hold no domain, its `index.md` and `architecture.md` among them and any vision or overview of the product, and the technical specs' own overview, their `architecture.md`. A product file or folder the architecture names under no domain, and technical content no module's frontmatter reaches, are gaps in the specs, put right in the specs before code is written for them.
 
 ## An Open Question
 

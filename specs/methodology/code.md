@@ -1,8 +1,8 @@
-The rules that reach the code the application specs govern: which code is governed and which is wiring, and how governed code names the specs it carries out.
+The rules that reach the code the application specs govern: which code is governed and which is wiring, how governed code names the specs it carries out, how it changes, and what a test is.
 
 ## Governed Code and Wiring Code
 
-Governed code carries out a spec: it does what a product or technical spec states, and it names that spec with app-spec annotations (`§ Citing the Specs From Code`). Wiring code, the routing, configuration, dependency registration and glue that no spec states, carries no annotation. Wiring exists because the specs stop where more detail would no longer improve the code: the agent writing the code writes the wiring they leave to it, so that the whole delivers what they state.
+Governed code carries out a spec, or checks one as a test does (`§ Tests`): it does what a product or technical spec states, or checks that it is done, and it names that spec with app-spec annotations (`§ Citing the Specs From Code`). Wiring code, the routing, configuration, dependency registration and glue that no spec states, carries no annotation. Wiring exists because the specs stop where more detail would no longer improve the code: the agent writing the code writes the wiring they leave to it, so that the whole delivers what they state.
 
 ## Citing the Specs From Code
 
@@ -27,3 +27,13 @@ In a language with block comments only, each annotation is a block comment of it
 **Why it is a citation —** an annotation makes the link one spec makes to another, so it is held to the same guarantee: it names a file, and a heading, that exist, and a heading retitled updates every annotation naming it in the same edit, per `specs/methodology/sourcing-and-citation.md § Titling a Heading`. Kept in the code it describes, it moves with that code through every refactor, where a map kept in a file of its own would drift.
 
 **A comment, not a language's own annotation —** it is not a Java annotation, a C# attribute or a decorator, so it compiles the same in every language and needs no tool to know it.
+
+## Changing Code
+
+What governed code does changes only as its specs do. A change to what it must do that no spec yet states starts in the specs, as a design document the user approves (`specs/methodology/working-files.md § A Design Document`), and reaches the code through a design changing code, which the user approves too (`specs/methodology/working-files.md § A Design Document § A Design Changing Code`); so does carrying applied specs into code for the first time, fixing code that does not do what its specs state, and restructuring governed code, so governed code is never edited outside a design changing code, its annotation lines alone aside, and the specs stay the record of what it does. An edit to annotation lines alone, as a retitled heading asks of every annotation naming it (`§ Citing the Specs From Code`), changes nothing the code does, and rides with the design that retitles the heading, its Target naming the files it touches; a change to the annotation's form is rolled out by a design changing code of its own, as a design leaving code out of step hands it on (`specs/methodology/working-files.md § A Design Document`). Wiring code changes as any other file does, as a direct edit when the change is small and the user approves it (`specs/AGENTS.md § Design, Refactor, Refine (DRR)`), or within a design changing code.
+
+**Annotations out of step stop the work —** existing annotations that do not follow the form `§ Citing the Specs From Code` gives, or cite what the specs no longer hold, stop any work on code that meets them, as schema on read stops at an entity that no longer fits, for triage: the user decides which side is wrong, the code, whose annotations are then brought in step by a design changing code of its own, or the specs, where a heading was retitled in error or a change was lost, as in a merge conflict, which a design changing the specs puts right; and the work resumes once that design is applied and finished.
+
+## Tests
+
+A test checks a spec rather than carrying it out, and is governed code all the same: it cites what it checks, as `§ Citing the Specs From Code` gives, a test generated from a capability's acceptance scenarios citing that capability's `Test Scenarios` section (`specs/methodology/acceptance-scenarios.md § Acceptance Scenarios`), and a test checking a mechanism the technical section stating it. A test's fixtures and the set-up that runs it, which check nothing a spec states, are wiring.

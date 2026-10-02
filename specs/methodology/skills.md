@@ -8,6 +8,7 @@ A skill is part of Spec of Record when it is registered here, and only then; a s
 | `author-mermaid-diagram` | `specs/methodology/modeling-constructs.md § Diagrams` |
 | `configure-spec-of-record` | `§ Setting Up an Agent` |
 | `design-specs` | `specs/AGENTS.md`, `specs/methodology/` |
+| `implement-specs` | `specs/methodology/code.md`, `specs/methodology/working-files.md § A Design Document` |
 
 ## Authoring a Skill
 
@@ -21,7 +22,9 @@ A skill captures a procedure this repo has already worked out, so the next agent
 
 **A skill gives each rule governing its work a point-of-use citation —** rather than restating it, per `specs/methodology/sourcing-and-citation.md § One Home Per Fact`, or leaving it out, which would send a cold agent to re-derive it. What it adds is what that section asks of a citing place. Those rules live in `specs/AGENTS.md` and `specs/methodology/`, never in another skill: what two skills share belongs above both, and a skill cites into `.ai/skills/` only its own files. `specs/application/` is different: it is where the work is done, not a body of rules, so a skill works on it rather than citing it for how to work.
 
-**Tooling goes in a `scripts/` child directory —** the entry-point script carries exactly the skill's own name: `.ai/skills/author-mermaid-diagram/scripts/author-mermaid-diagram.py`. Helpers sit beside it under their own names. Most skills will only ever have one script, and the convention costs nothing there; it earns itself in the rarer case of several, where a name matching the skill's own tells an agent listing the directory, or a person browsing it, which file is the way in without either having to read one. Apply it from the start rather than when another script appears, since by then the original is already named something else.
+**Tooling goes in a `scripts/` child directory —** the entry-point script carries exactly the skill's own name: `.ai/skills/author-mermaid-diagram/scripts/author-mermaid-diagram.py`. Helpers sit beside it under their own names. Most skills will only ever have one script, and the convention costs nothing there; it earns itself in the rarer case of several, where a name matching the skill's own tells an agent listing the directory, or a person browsing it, which file is the way in without either having to read one. Apply it from the start rather than when another script appears, since by then the original is already named something else. An agent runs no skill's script but its entry script, so whatever a skill does is reached through the skill.
+
+**Code two skills share goes in `.ai/skills/lib/` —** a module of its own, named for what it does in Python's module form, `design_documents.py`, imported by the skills' entry scripts and run by no agent directly. Two skills needing the same check share one copy of it rather than two that drift apart.
 
 **Instructions only some paths need go in a `references/` child directory —** a file of its own for each path, read at the step that forks to it, so a path that does not need them never loads them. Where a skill forks on the kind of specification, its references for the kinds are `references/app-specs.md` and `references/canon-specs.md`.
 
@@ -31,7 +34,7 @@ A skill captures a procedure this repo has already worked out, so the next agent
 
 **A script's actions are flags named verb-target —** as a skill is named, `--check-design-form`, `--show-workstack`, so an agent reads what a run does from the flag alone: the verb says what kind of action it is, a check reporting what is wrong, a show describing a state, and a verb changing a file, such as stamp, saying so; the target says what it acts on. A flag setting how an action runs, rather than choosing one, is named for what it holds, `--output-directory`. Flags combine in one run, so a capability added is a flag added. A run naming no action prints the script's usage and exits 2. A flag's words are whole words, and a flag is never taken abbreviated, since an abbreviation can mean more than one thing; so every run's command line says what it does.
 
-**Scripts are Python 3 —** standard library only wherever that is achievable. A script needing an install step is a script that will not run at the moment it is needed. Where a capability genuinely requires something external, degrade rather than fail: prefer a local tool when present, a documented remote or manual path when not, and report which one actually ran so a reader knows what they are trusting.
+**Scripts are Python 3 —** standard library only, and the code the skills share, wherever that is achievable. A script needing an install step is a script that will not run at the moment it is needed. Where a capability genuinely requires something external, degrade rather than fail: prefer a local tool when present, a documented remote or manual path when not, and report which one actually ran so a reader knows what they are trusting.
 
 Record what actually went wrong. A skill earns its length by naming the failures that motivated it, the trap that only shows up at the wrong moment, the fix that is not obvious from the symptom. Anything derivable from reading the underlying tool's own documentation does not need to be here.
 

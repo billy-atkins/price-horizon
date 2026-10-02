@@ -15,7 +15,7 @@ specs/
     └── technical/
 ```
 
-At the top of `specs/` sits `specs/AGENTS.md`, Spec of Record's entry point: the skills every change and every check is sent to, each forking on whether the canon or the application specs are touched, where to find a rule mid-step, and the rules reaching every author, how work is designed and reviewed and how a list is numbered or counted. The project's own `AGENTS.md`, at its root, holds what the project is, how its product is positioned, and its conventions, and points to `specs/AGENTS.md`.
+At the top of `specs/` sits `specs/AGENTS.md`, Spec of Record's entry point: the skills every change and every check is sent to, each forking on whether the canon or the application specs are touched, and the skill designing and writing code, where to find a rule mid-step, and the rules reaching every author, how work is designed and reviewed and how a list is numbered or counted. The project's own `AGENTS.md`, at its root, holds what the project is, how its product is positioned, and its conventions, and points to `specs/AGENTS.md`.
 
 `specs/methodology/scope.md § The Shape of the Scope` draws the whole scope, down to each methodology file, and each directory's own `index.md` lists what it holds, so this tree names the layers and the files that fix them.
 
@@ -62,5 +62,7 @@ What it deliberately leaves unaudited it declines by name rather than by silence
 **`author-mermaid-diagram` serves the diagram rules —** `specs/methodology/modeling-constructs.md § Diagrams` licenses exactly one kind of rendering for a human reader and leaves where it goes to the reader's need, and bounds its form, what it may show, and how it and its sources cite each other; that skill is how one gets authored, rendered, and checked, and that section points at it directly. It differs from `design-specs` and `audit-specs` in its subject, not in how it is governed: drawing a good diagram is craft, so the skill cites these files only where they govern a diagram, while `design-specs` and `audit-specs` exist to serve these rules and cite them throughout.
 
 **`configure-spec-of-record` sets up the agent in use —** the method's instructions name no agent, so what only the agent in use can carry out, applying a review's reasoning effort among it, it sets up for itself through that skill, as `specs/methodology/skills.md § Setting Up an Agent` has it, writing only what it needs, outside the scope.
+
+**`implement-specs` carries the specs into code —** it applies `code.md`'s rules, how governed code names what it carries out, how it changes and what a test is, designing the code and its tests from the specs as a design document, taken through the same reviews as a design changing the specs, which the user approves before any code is written, and checking its own work before the independent check on code.
 
 A skill belongs to the method by being registered in `specs/methodology/skills.md`, which is also the boundary between the method's skills and any other skill under `.ai/skills/`.

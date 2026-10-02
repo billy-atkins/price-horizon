@@ -6,7 +6,7 @@ Spec of Record governs files by kind, each kind with what it holds and how its f
 |---|---|---|
 | Agent instructions | the method's entry point, and a project's own instructions to an agent | `specs/AGENTS.md`, and `AGENTS.md` at the project's root |
 | Specs | the specifications, the methodology among them | their place under `specs/`, `specs/AGENTS.md` aside |
-| Skills | the procedures that apply the method's rules | `specs/methodology/skills.md` |
+| Skills | the procedures that apply the method's rules, and the code their scripts share | `specs/methodology/skills.md` |
 | Working files | the working files | `specs/methodology/working-files.md § The Working Files` |
 | Code | the application's code, governed code and the wiring connecting it | `specs/methodology/code.md § Governed Code and Wiring Code` |
 
@@ -37,7 +37,9 @@ specs/
     ├── product/               what a user can rely on
     └── technical/             how it is made true
 .ai/
-└── skills/<skill-name>/       a registered skill: SKILL.md, its entry point, references/ and scripts/
+└── skills/
+    ├── <skill-name>/          a registered skill: SKILL.md, its entry point, references/ and scripts/
+    └── lib/                   the code the registered skills' scripts share
 ```
 
 The tree names the methodology's files, since they are the rules every task depends on, and describes none of them; it stops at `product/` and `technical/`, whose files grow with the product; it leaves the working files to `specs/methodology/working-files.md § The Working Files`, which names them; and it does not draw code, which sits wherever a project keeps it. What a file covers is its directory's `index.md` (`specs/methodology/spec-placement.md § Where a File Goes`), so before working in a directory an agent reads its `index.md`.
@@ -48,7 +50,7 @@ An agent loads what its current step needs, when the step needs it, descending o
 
 The glossary is the one methodology file loaded ahead of need, read with `specs/AGENTS.md` before any step, since an agent cannot know a word is one of its terms without having read it.
 
-Progressive disclosure governs when to read, not how much. Whatever is loaded is read in full and never skimmed, and read fresh rather than recalled (`specs/AGENTS.md § Design, Refactor, Refine (DRR)`), and a task whose unit is a whole directory, an audit among them, loads the whole directory.
+What an agent loads from a directory it reads in the order the directory's `index.md` lists, a parent directory before the directories under it, the order its authors set (`specs/methodology/spec-placement.md § Where a File Goes`). Progressive disclosure governs when to read, not how much. Whatever is loaded is read in full and never skimmed, and read fresh rather than recalled (`specs/AGENTS.md § Design, Refactor, Refine (DRR)`), and a task whose unit is a whole directory, an audit among them, loads the whole directory.
 
 ## The Methodology Governs Itself
 
