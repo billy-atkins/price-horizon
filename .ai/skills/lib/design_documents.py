@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """The design document tooling the skills writing design documents share: checks what a proposal
-quotes and cites, and holds design documents to their form.
+quotes and cites, holds design documents to their form, and shows what a Refactor and Refine cycle
+changed.
 
 A proposal that says "replace X with Y" is applicable only if X appears in the
 target file, exactly, once, and only if every heading it cites exists; a design
@@ -9,7 +10,7 @@ draws must hold together. Its actions are flags per specs/methodology/skills.md
 § Authoring a Skill. The exit status is 0 when every check passes, 1 when one finds a problem, and 2 for a
 usage error.
 
-Standard library only, and run by no agent directly: each skill writing design documents calls
+Standard library only, git aside, which --show-refactor-and-refine-of-existing-specs reads through, and run by no agent directly: each skill writing design documents calls
 main from its own entry script with its own plans folder, per specs/methodology/skills.md
 § Authoring a Skill.
 
@@ -25,6 +26,7 @@ import argparse
 import datetime
 import hashlib
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -673,6 +675,62 @@ def stamp_validation(value):
     return 0
 
 
+REFACTOR_AND_REFINE_PATHS = ("specs", ".ai/skills")  # the canon's specs and skills, and the application's specs
+
+
+def refactor_and_refine_lines(text):
+    """-> the lines of text a Refactor and Refine cycle carries, blank lines and bare markup set
+    aside, and a heading read without its level, since a move raises or lowers it."""
+    # a table's separator row, a code fence or a frontmatter fence carries no text of its own
+    return [re.sub(r"^#+ ", "", l).strip() for l in text.replace("\r\n", "\n").split("\n")
+            if l.strip() and not re.fullmatch(r"[|:\- ]+|```\w*", l.strip())]
+
+
+def show_refactor_and_refine_of_existing_specs(baseline):
+    """What a Refactor and Refine cycle changed since its baseline commit, for a reader to trace:
+    every line of six words or more now repeated more often than at the baseline, every line now
+    held fewer times than at the baseline, and every line held more times, each with the files
+    holding it. It decides nothing, since whether a repeat is a second home or one made by design,
+    and whether a loss or a gain is a steer, is judgment."""
+    def git(*a):
+        return subprocess.run(["git", *a], capture_output=True, text=True, encoding="utf-8")
+    try:
+        top = git("rev-parse", "--show-toplevel")
+    except FileNotFoundError:
+        sys.stderr.write("show-refactor-and-refine-of-existing-specs: git is not installed, and this reads through it\n")
+        return 2
+    if top.returncode or Path(top.stdout.strip()).resolve() != Path.cwd().resolve():
+        sys.stderr.write("show-refactor-and-refine-of-existing-specs: run it from the repository's root\n")
+        return 2
+    if git("rev-parse", "--verify", "--quiet", baseline + "^{commit}").returncode:
+        sys.stderr.write("show-refactor-and-refine-of-existing-specs: no such commit: %s\n" % baseline)
+        return 2
+
+    def count(texts):
+        n, where = {}, {}
+        for path, text in texts:
+            for t in refactor_and_refine_lines(text):
+                n[t] = n.get(t, 0) + 1
+                where.setdefault(t, []).append(path)
+        return n, where
+    then_files = git("ls-tree", "-r", "--name-only", baseline, "--", *REFACTOR_AND_REFINE_PATHS).stdout.split()
+    now_files = sorted(set(git("ls-files", "--", *REFACTOR_AND_REFINE_PATHS).stdout.split())
+                       | set(git("ls-files", "--others", "--exclude-standard", "--", *REFACTOR_AND_REFINE_PATHS).stdout.split()))
+    then, then_where = count((f, git("show", "%s:%s" % (baseline, f)).stdout) for f in then_files)
+    now, where = count((f, Path(f).read_text(encoding="utf-8")) for f in now_files if Path(f).is_file())
+    # a line of six words or more repeats only by being copied or by design; a shorter line,
+    # a heading or a table's header, repeats by nature, so a gain in one is listed as new instead
+    repeated = sorted(t for t in now if now[t] > 1 and now[t] > then.get(t, 0) and len(t.split()) >= 6)
+    lost = sorted(t for t in then if then[t] > now.get(t, 0))
+    new = sorted(t for t in now if now[t] > then.get(t, 0) and t not in repeated)
+    print("== show-refactor-and-refine-of-existing-specs since %s" % baseline)
+    for label, lines, held in (("repeated", repeated, where), ("lost", lost, then_where), ("new", new, where)):
+        for t in lines:
+            print("%-10s %s\n           in %s" % (label, t, ", ".join(sorted(set(held[t])))))
+    print("%d repeated, %d lost, %d new; each for a reader to trace to a steer, the move map, or a repeat made by design\n" % (len(repeated), len(lost), len(new)))
+    return 0
+
+
 # Actions are flags per specs/methodology/skills.md § Authoring a Skill.
 FLAGS = (
     ("--check-quoted-text", "MANIFEST", check_quoted_text,
@@ -693,6 +751,8 @@ FLAGS = (
      "print a design document's stamped hash, its hash now, and whether it is validated, stale or never stamped"),
     ("--stamp-validation", "DESIGN", stamp_validation,
      "run every check on one design document and, if it passes, write its validation stamp; the validation review alone runs it"),
+    ("--show-refactor-and-refine-of-existing-specs", "BASELINE", show_refactor_and_refine_of_existing_specs,
+     "show what a Refactor and Refine cycle over existing specs changed since the baseline commit, for a reader to trace: lines now repeated, lost and new, each with the files holding it; decides nothing; run from the repository's root on a tree with the cycle's changes applied"),
 )
 
 
