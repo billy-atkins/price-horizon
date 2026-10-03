@@ -20,6 +20,7 @@ Running the procedure, rather than recalling the rules, is what puts each rule i
 | Finding which files Spec of Record governs, and how to find your way through them | `specs/methodology/scope.md § What Spec of Record Governs`, `specs/methodology/scope.md § Progressive Disclosure` |
 | Meeting a term Spec of Record gives a meaning of its own | `specs/methodology/glossary.md` |
 | Deciding product spec versus technical spec | `specs/methodology/spec-placement.md § Product or Technical` |
+| Writing a spec, or reviewing a design changing one, as its persona | `specs/methodology/spec-placement.md § Personas` |
 | Deciding index, architecture, or detail file | `specs/methodology/spec-placement.md § Index, Architecture, Detail` |
 | Placing a new file, or deciding whether a domain earns a subfolder | `specs/methodology/spec-placement.md § Where a File Goes` |
 | Naming a new product capability domain | `specs/methodology/spec-placement.md § Naming a Capability Domain` |
@@ -38,7 +39,7 @@ Running the procedure, rather than recalling the rules, is what puts each rule i
 | Refactoring and refining specs that have landed, the canon's or the application's | `specs/methodology/glossary.md`, `§ Design, Refactor, Refine`, then `.ai/skills/design-specs/` |
 | Setting up the agent in use to apply a review's reasoning effort | `specs/methodology/skills.md § Setting Up an Agent`, then `.ai/skills/configure-spec-of-record/` |
 | Checking that the code carries out its specs | `specs/methodology/code.md`, `specs/methodology/spec-placement.md § The Technical Stack`, then `.ai/skills/verify-spec-implementation/` |
-| Designing and writing the code the application specs govern | `specs/methodology/code.md`, `specs/methodology/spec-placement.md § Environments`, `specs/methodology/working-files.md § A Design Document § A Design Changing Code`, then `.ai/skills/implement-specs/` |
+| Designing and writing the code the application specs govern | `specs/methodology/code.md`, `specs/methodology/spec-placement.md § Personas`, `specs/methodology/spec-placement.md § Environments`, `specs/methodology/working-files.md § A Design Document § A Design Changing Code`, then `.ai/skills/implement-specs/` |
 
 ## Ordinals and Counts
 

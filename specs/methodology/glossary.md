@@ -21,9 +21,11 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Inside the house |  | A term or abbreviation coined or introduced by Spec of Record or the application specs, a norm of those working within them that the specs teach every agent and engineer who arrives, as a household's own words make sense only to those living in it. Not one known outside them. |
 | Key |  | The name of a field. Not a database key, and not a key in a file's frontmatter. |
 | Layer |  | A level in the order of what governs what among the specifications, each governed by those above it. Not a layer of the product's answer. |
+| Methodology owner |  | The persona the canon is written as, and a design changing it reviewed as. |
 | Open question |  | A decision the specs rely on but have not made, recorded with the answer in use until it is settled. Not a question merely unanswered in conversation. |
 | Operating rule |  | A rule about operating Spec of Record: how work on the specifications is done, reviewed, recorded and tooled, rather than what the specifications hold. Not a rule about how the product operates. |
 | Outside the house |  | A term or abbreviation common to many across the industry or the domain, a norm agents know from their training and engineers from experience. |
+| Persona |  | A character a specification is written as, described by how they see the work, what they care about and how they go about it, never by steps to follow, so an agent taking one up brings what it knows of such a person. Not a user persona of product design, an archetype of the people a product serves. |
 | Plan |  | A working file in which a skill describes a change before making it. Not a schedule, a project plan, or a plan the product's specifications describe, such as a competitor's. |
 | Point-of-use citation |  | A citation placed where the rule, definition or principle it names is applied, in the step or passage doing the work. |
 | Potemkin village |  | A front built to look complete with nothing behind it, as the painted village facades of the legend: a guarantee, rule or enforcement mechanism relied on as real that is stated but not specified or not checked. |

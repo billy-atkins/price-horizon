@@ -28,5 +28,5 @@ Before adding a sentence, check which conventions currently apply because of whe
 
 Some forks are craft and yours to settle: where content goes, how a rule is worded, whether to cite or restate.
 
-Some are not. What the product does, who may do it, what it promises a user, are decisions about the thing being specified rather than about specifying it. Present the options and consequences, recommend one, and let the person decide. Settling these quietly inside a proposal is how a specification acquires facts nobody chose.
+Some are not: the decisions about the thing being specified, which are the user's, per `specs/methodology/spec-placement.md § Personas`. Present the options and consequences, recommend one, and let the user decide. Settling these quietly inside a proposal is how a specification acquires facts nobody chose.
 
