@@ -30,6 +30,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Reasoning effort | A setting of the model an agent runs on: how far it reasons before it answers. Not how far a review reaches, nor how many reviewers run it. |
 | Record | An entry of a record type, written in the Record Form. Not the product's stored data. |
 | Record section | A section holding the records of one record type. |
+| Refactor and Refine cycle | The Refactor and Refine of Design, Refactor, Refine, run over specifications that have landed, their state at a baseline commit standing as the design: a change to their structure and wording that leaves what they state. Not the Refactor and Refine within a design still in flight. Abbreviated RR cycle. |
 | Rube Goldberg machine | A mechanism far more elaborate than the task it performs, as the cartoonist's contraptions chain many steps to do something simple: a mechanism, role or safeguard whose complexity no stated need justifies, where a light switch would do. |
 | Spec of Record | A methodology for the agentic SDLC, governed and spec-as-source, in which the specifications are the durable source a system is built from, and a human designs and steers while an AI agent assists. |
 | Spec of Record scope | The set of files Spec of Record governs, and nothing else. |
