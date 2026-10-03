@@ -46,7 +46,7 @@ An Algorithm, applied after the simulation engine (`§ Layered Output Synthesis 
 | 4 | If any single metric exceeds its threshold, the pair stays separate even if the rest agree, a real difference on one dimension is still a real choice |
 | 5 | Repeat from step 2 until no adjacent pair is at or under threshold, or the set reaches a floor of two options, whichever comes first |
 
-A Constraint on this Algorithm's output: the floor is two, not one. Consolidation can thin the set, it can never reduce Position to a single recommendation, that would violate the guarantee that Position stays framed as a choice. Enforced by step 5's floor, and by the API and UI contract, listed as its own Constraint in `specs/application/technical/risks-and-mitigations.md § Risks and Mitigations`, never exposing a single-option response.
+A Constraint on this Algorithm's output: the floor is two, not one. Consolidation can thin the set, it can never reduce Position to a single recommendation, that would violate the guarantee that Position stays framed as a choice. Enforced by step 5's floor, and by the API and UI contract, which never exposes a single-option response.
 
 This keeps the option count deterministic and evaluable, `specs/application/technical/evaluation-and-monitoring.md § Evaluation and monitoring`'s golden-question harness can assert both the seeded set for a given decision type and the consolidation outcome for a given pair of simulated results, while avoiding the false-choice failure mode of always forcing the same number of options regardless of whether the underlying numbers actually differ.
 
