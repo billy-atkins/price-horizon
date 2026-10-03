@@ -33,6 +33,7 @@ Running the procedure, rather than recalling the rules, is what puts each rule i
 | Writing a field, a bold lead-in, emphasis, literal text, or an entry of a repeated kind | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Emphasis`, `specs/methodology/modeling-constructs.md § Literal Text`, `specs/methodology/modeling-constructs.md § Constructs § Record Form` |
 | Writing or updating acceptance scenarios | `specs/methodology/acceptance-scenarios.md § Acceptance Scenarios` |
 | Removing drafting residue and hedged framing | `specs/methodology/spec-style.md § What a Finished Spec Reads Like` |
+| Writing prose its primary reader understands on the first read | `specs/methodology/spec-style.md § Clear Prose` |
 | Keeping a counterpart spec, an `architecture.md` or a diagram in step | `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step` |
 | Adding, changing, or re-checking a diagram | `specs/methodology/modeling-constructs.md § Diagrams`, then `.ai/skills/author-mermaid-diagram/` |
 | Recording a proposed change, a steer given it, or work to take up later | `specs/methodology/working-files.md § A Design Document`, `specs/methodology/working-files.md § A Steering Decision`, `specs/methodology/working-files.md § A Follow-up` |

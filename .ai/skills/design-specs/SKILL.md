@@ -77,9 +77,9 @@ Record it as an open question, per `specs/methodology/spec-placement.md § An Op
 
 A diagram is the easiest rendering to leave stale and the hardest to notice, because a wrong one is invisible in source and obvious only once rendered. Authoring or re-checking one follows `specs/methodology/modeling-constructs.md § Diagrams` through `.ai/skills/author-mermaid-diagram/`, which covers the altitude check that keeps a label inside what its host file actually states, and the render step that catches what reading the source will not.
 
-### Strip drafting residue
+### Strip drafting residue, and write clearly
 
-`specs/methodology/spec-style.md § What a Finished Spec Reads Like`, and `specs/methodology/spec-style.md § Trade-offs Are Not Journey Language` for a comparison kept.
+`specs/methodology/spec-style.md § What a Finished Spec Reads Like`, `specs/methodology/spec-style.md § Trade-offs Are Not Journey Language` for a comparison kept, and `specs/methodology/spec-style.md § Clear Prose` for prose its primary reader understands on the first read.
 
 ### Verify mechanically
 

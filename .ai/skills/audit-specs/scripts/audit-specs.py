@@ -961,6 +961,34 @@ def style_phrases(root):
     phrases = {q.strip(" ,.") for row in table[1] if k < len(row) for q in re.findall(r'"([^"]+)"', row[k])}
     phrases = sorted((p for p in phrases if p), key=len, reverse=True)
     return re.compile(r"\b(" + "|".join(map(re.escape, phrases)) + r")\b", re.I) if phrases else None
+
+
+# A sentence long enough, and chained enough, that it may need a second read: a candidate for
+# the reading of specs/methodology/spec-style.md § Clear Prose, never a finding.
+LONG_SENTENCE_WORDS, LONG_SENTENCE_MARKS = 40, 6
+SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+(?=[A-Z*`(])")
+
+
+def long_sentences(text):
+    """-> (line, sentence) for each sentence of prose over LONG_SENTENCE_WORDS words holding
+    LONG_SENTENCE_MARKS or more commas, semicolons and colons; headings, tables and fenced
+    blocks aside; a word holds a letter or a digit, so a dash or a list marker is none, and
+    inline code counts as one word whose marks are not counted."""
+    for n, line in enumerate(strip_fences(text).split("\n"), 1):
+        if not line.strip() or line.lstrip().startswith(("#", "|", "---")):
+            continue
+        # inline code masked at its own length, so a sentence is cut from the line as written
+        masked = re.sub(r"`[^`]*`", lambda m: "X" * len(m.group(0)), line)
+        start = 0
+        for m in list(SENTENCE_BREAK.finditer(masked)) + [None]:
+            end = m.start() if m else len(masked)
+            s = masked[start:end]
+            words = [w for w in s.split() if re.search(r"[A-Za-z0-9]", w)]
+            if len(words) > LONG_SENTENCE_WORDS and len(re.findall(r"[,;:]", s)) >= LONG_SENTENCE_MARKS:
+                yield n, line[start:end]
+            start = m.end() if m else end
+
+
 VENDOR_NAMES = re.compile(r"\b(Claude|Anthropic|OpenAI|Codex|GPT|Copilot|Cursor|Gemini)\b|CLAUDE\.md|\.claude/|\.cursor/")
 
 
@@ -991,6 +1019,12 @@ def style_and_agent_candidates(root):
             if m and not line.startswith("VENDOR_NAMES"):
                 a, b = max(0, m.start() - 60), min(len(line), m.end() + 60)
                 out.append((rel, n, "a line naming a vendor, model or tool", line[a:b].strip()))
+    for f in md_files(root):
+        rel = f.relative_to(root).as_posix()
+        if rel.startswith(".ai/skills/"):
+            continue
+        for n, s in long_sentences(f.read_text(encoding="utf-8")):
+            out.append((rel, n, "a long sentence of chained clauses, which may need a second read", s.strip()))
     return out
 
 
@@ -1318,7 +1352,8 @@ def skill_candidates(root):
     """An unregistered skill whose SKILL.md cites the method's rules, which may belong to the
     method or may simply follow Authoring a Skill; and a registered skill's script importing
     from outside the standard library, which the rule allows where the standard library
-    cannot serve. Places to read, never findings."""
+    cannot serve; and a skill's long sentence of chained clauses, for the Skill form audit's reading of
+    specs/methodology/spec-style.md § Clear Prose. Places to read, never findings."""
     out, names = [], set(registry(root)[0])
     base = root / ".ai/skills"
     if base.is_dir():
@@ -1338,6 +1373,10 @@ def skill_candidates(root):
                 mod = m and (m.group(1) or m.group(2))
                 if mod and stdlib and mod not in stdlib and mod not in lib:
                     out.append((py.relative_to(root).as_posix(), k, "import from outside the standard library", line.strip()))
+    for n in sorted(names) + (["lib"] if lib else []):
+        for f in sorted((base / n).rglob("*.md")):
+            for k, s in long_sentences(f.read_text(encoding="utf-8")):
+                out.append((f.relative_to(root).as_posix(), k, "a long sentence of chained clauses, which may need a second read", s.strip()))
     return out
 
 
