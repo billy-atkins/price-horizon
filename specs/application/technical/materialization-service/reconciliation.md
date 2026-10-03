@@ -23,3 +23,12 @@ Geography normalization solves the equivalent problem on geography, mapping each
 Once a price observation's geography is resolved by geography normalization, its own reported currency, a property of the feed itself, not something this pipeline assigns, is checked against that geography's own resolved currency (`specs/application/technical/data-model.md § Core Data Model § Reference and Master Data § Geography`); a mismatch is converted using the exchange rate captured in the same Data Vintage (`specs/application/technical/data-model.md § Core Data Model § Reference and Master Data § Data Vintage`) the observation itself was ingested under, the same versioning discipline already applied to every other macroeconomic indicator in the harmonized foundation, so re-computing against an unchanged vintage always uses the same rate, never today's, the same reproducibility discipline Realized Outcome's own `realized_data_vintage_id` (`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Realized Outcome`) already applies to a comparably dated fact. This is the mechanism behind `specs/application/product/answer-engine/position.md § Position — where Brand A should sit`'s promise that a price gap is always in the geography's own local currency. Currency normalization happens exactly once, here, immediately after the geography it depends on is known, never before it and never again afterward.
 
 `specs/application/technical/architecture.md § Architecture Overview § Diagrams § From Evidence to Answer` renders this.
+
+## Open Questions
+
+**Records:**
+
+- **Name:** Flagged Matches
+  **Open Question:** What does a match step 4 flags for review do to a price gap or comparison before a reviewer resolves it, and what catches a match that is wrong but scored as confident?
+  **Provisional Answer:** A flagged match is held back from every price gap, relative price index and comparison until a reviewer resolves it, the comparison shown as unavailable rather than computed on it; nothing catches a wrong match scored as confident.
+  **Impacts:** step 4 of reconciliation's own Algorithm (`§ Product and Geography Reconciliation`); the price gap and relative price index (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Price gap and relative price index, defined`); and the review queue a flagged match goes to (`specs/application/product/tenant-administration/review-queues.md § Review Queues`).
