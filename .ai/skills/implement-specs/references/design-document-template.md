@@ -34,7 +34,7 @@
 
 ## The Builder's Passes
 
-{what each pass and each review changed, each under a bold lead-in naming it, an adversarial DRR's opening Adversarial DRR and a post-apply audit's Post-apply audit, each review named with its report and the model and reasoning effort it ran on, and the flaws the user settled among its findings}
+{what each pass and each review changed, each under a bold lead-in naming it, an adversarial review's opening Adversarial review and a post-apply audit's Post-apply audit, each review named with its report and the model and reasoning effort it ran on, and the flaws the user settled among its findings}
 
 ## Deliberately Left Alone
 

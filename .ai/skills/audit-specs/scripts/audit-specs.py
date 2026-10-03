@@ -32,6 +32,10 @@ SCOPE_TREE = "specs/methodology/scope.md"
 SPECS_AGENTS = "specs/AGENTS.md"
 GLOSSARY = "specs/methodology/glossary.md"
 GLOSSARY_RULE = "glossary.md § Writing an Entry"
+ABBREVIATION_RULE = "glossary.md § Using an Abbreviation"
+RECORDED_ABBREVIATION = re.compile(r"\(abbreviated ([^)]*)\)")
+# the text a diagram shows its reader: a node's label, an edge's label, a quoted string
+DIAGRAM_LABEL = re.compile(r'\[[^\]]*\]|\([^)]*\)|\{[^}]*\}|"[^"]*"|\|[^|]*\|')
 AUDIT_SKILL = ".ai/skills/audit-specs/SKILL.md"
 CODE_CHECKS = ".ai/skills/verify-spec-implementation/SKILL.md"  # names the check enforcing each section of code.md
 COVERAGE_RULE = "scope.md § Rules and Skills"
@@ -778,6 +782,7 @@ def check(root):
 
     found += scope_findings(root)
     found += glossary_findings(root)
+    found += abbreviation_findings(root)
     found += coverage_findings(root)
     found += ignored_findings(root)
     found += reviewer_findings(root)
@@ -989,16 +994,16 @@ def style_and_agent_candidates(root):
     return out
 
 
-# A definition's other names are its trailing sentences: "Abbreviated X." with one name,
-# then "Also called X." or "Also called X, Y.", each optional.
-OTHER_NAMES = re.compile(r'(?:\s*Abbreviated ([^.,]+)\.)?(?:\s*Also called ([^.]+)\.)?\s*$')
+# A definition's other full names are its trailing sentence, "Also called X." or "Also called
+# X, Y.", optional; a term's abbreviation is in its own column.
+OTHER_NAMES = re.compile(r'(?:\s*Also called ([^.]+)\.)?\s*$')
 BARE_TERM = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ,'-]*$")
 TABLE_RULE = re.compile(r'^\|[\s|:-]+\|$', re.M)
 
 
 def glossary_terms(root):
-    """-> (header, [(line, term, other names, definition, where the other names start)]),
-    or None when there is no glossary."""
+    """-> (header, [(line, term, abbreviation, other names, definition, where the other names
+    start, cells)]), or None when there is no glossary."""
     g = root / GLOSSARY
     if not g.exists():
         return None
@@ -1010,17 +1015,18 @@ def glossary_terms(root):
         if header is None:
             header = cells
             continue
-        term, definition = cells[0], "|".join(cells[1:])
+        term, abbreviation, definition = cells[0], (cells[1] if len(cells) > 2 else ""), "|".join(cells[2:])
         m = OTHER_NAMES.search(definition)
-        others = ([m.group(1).strip()] if m.group(1) else []) + \
-                 ([x.strip() for x in m.group(2).split(",")] if m.group(2) else [])
-        rows.append((n, term, others, definition, m.start(), len(cells)))
+        others = ([abbreviation] if abbreviation else []) + \
+                 ([x.strip() for x in m.group(1).split(",")] if m.group(1) else [])
+        rows.append((n, term, abbreviation, others, definition, m.start(), len(cells)))
     return header, rows
 
 
 def glossary_findings(root):
-    """The glossary cites nothing and holds one table of bare terms, unique and sorted, each
-    definition ending with its other names in the fixed form, none shared or equal to a term."""
+    """The glossary cites nothing and holds one table of bare terms, unique and sorted, each with
+    its abbreviation in its own column and its definition ending with its other full names in the
+    fixed form, none shared or equal to a term."""
     got = glossary_terms(root)
     if got is None:
         return [(GLOSSARY_RULE, GLOSSARY, 0, "the glossary is missing")]
@@ -1029,26 +1035,29 @@ def glossary_findings(root):
     for n, line in enumerate(strip_fences(text).split("\n"), 1):
         if CITATION.search(line) or WHOLE_FILE.search(line):
             found.append((GLOSSARY_RULE, GLOSSARY, n, "the glossary cites nothing"))
-    if header != ["Term", "Definition"]:
-        found.append((GLOSSARY_RULE, GLOSSARY, 0, "the table's header is not | Term | Definition |"))
+    if header != ["Term", "Abbreviation", "Definition"]:
+        found.append((GLOSSARY_RULE, GLOSSARY, 0, "the table's header is not | Term | Abbreviation | Definition |"))
     if len(TABLE_RULE.findall(text)) != 1:
         found.append((GLOSSARY_RULE, GLOSSARY, 0, "the glossary does not hold exactly one table"))
-    folded = [t.casefold() for _, t, _, _, _, _ in rows]
+    folded = [t.casefold() for _, t, _, _, _, _, _ in rows]
     if folded != sorted(folded):
         found.append((GLOSSARY_RULE, GLOSSARY, 0, "the terms are not in sorted order"))
     owner = {}
-    for n, term, others, definition, trail, width in rows:
-        if width != 2:
-            found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: a row holds a term and a definition, nothing else"))
+    for n, term, abbreviation, others, definition, trail, width in rows:
+        if width != 3:
+            found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: a row holds a term, its abbreviation or none, and a definition, nothing else"))
+        if abbreviation and not BARE_TERM.match(abbreviation):
+            found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: not a bare abbreviation: {abbreviation}"))
         if not definition:
             found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: no definition"))
         if not BARE_TERM.match(term):
             found.append((GLOSSARY_RULE, GLOSSARY, n, f"not a bare term: {term}"))
         if folded.count(term.casefold()) > 1:
             found.append((GLOSSARY_RULE, GLOSSARY, n, f"the term is listed twice: {term}"))
-        if re.search(r'\b(?:Abbreviated|Also called)\b', definition[:trail]):
-            found.append((GLOSSARY_RULE, GLOSSARY, n,
-                          f"{term}: other names are the trailing sentences, Abbreviated with one name, then Also called"))
+        if re.search(r'\bAbbreviated\b', definition):
+            found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: an abbreviation goes in its Abbreviation column"))
+        if re.search(r'\bAlso called\b', definition[:trail]):
+            found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: other full names are the trailing sentence, Also called"))
         for o in others:
             k = o.casefold()
             if k in folded:
@@ -1058,6 +1067,60 @@ def glossary_findings(root):
     return found
 
 
+def abbreviation_findings(root):
+    """glossary.md § Using an Abbreviation: an abbreviation inside the house, in the glossary's
+    Abbreviation column or recorded in the application specs as "(abbreviated X)", is used in no
+    specification, AGENTS.md file or skill, its scripts among it, but where it is recorded, and is
+    recorded once; the term is spelled out everywhere else, and the short form is for people."""
+    got = glossary_terms(root)
+    names = [abbreviation for _, _, abbreviation, _, _, _, _ in got[1] if abbreviation] if got else []
+    found = []
+    app = sorted((root / "specs" / "application").rglob("*.md"))
+    for f in app:
+        for n, line in enumerate(f.read_text(encoding="utf-8").split("\n"), 1):
+            for m in RECORDED_ABBREVIATION.finditer(line):
+                if not re.fullmatch(r"[A-Za-z0-9]+", m.group(1)):
+                    found.append((ABBREVIATION_RULE, f.relative_to(root).as_posix(), n,
+                                  "not a bare abbreviation: " + m.group(1)))
+                    continue
+                if m.group(1) in names:
+                    found.append((ABBREVIATION_RULE, f.relative_to(root).as_posix(), n,
+                                  "an abbreviation inside the house recorded a second time: " + m.group(1)))
+                names.append(m.group(1))
+    if not names:
+        return []
+    used = re.compile(r"(?<![A-Za-z0-9])(?:%s)s?(?![A-Za-z0-9])" % "|".join(re.escape(n) for n in sorted(set(names), key=len, reverse=True)), re.I)
+    files = [root / "AGENTS.md"] + sorted((root / "specs").rglob("*.md"))
+    for name in skill_dirs(root):
+        base = root / ".ai/skills" / name
+        if base.is_dir():
+            files += sorted(p for p in base.rglob("*") if p.suffix in {".md"} | SCRIPT_SUFFIXES)
+    for f in files:
+        rel = f.relative_to(root).as_posix()
+        if not f.is_file():
+            continue
+        diagram = False
+        for n, line in enumerate(f.read_text(encoding="utf-8").split("\n"), 1):
+            if line.strip().startswith("```"):
+                diagram = line.strip() == "```mermaid"
+                continue
+            if diagram:
+                # a diagram's node ids are identifiers, not prose; only the text it shows is read
+                line = " ".join(m.group(0) for m in DIAGRAM_LABEL.finditer(line))
+            if rel == GLOSSARY and line.startswith("|"):
+                # the Abbreviation column is where the method's are recorded
+                cells = line.split("|")
+                if len(cells) > 3:
+                    line = "|".join(cells[:2] + [""] + cells[3:])
+            if f in app:
+                line = RECORDED_ABBREVIATION.sub("", line)
+            for m in used.finditer(line):
+                found.append((ABBREVIATION_RULE, rel, n,
+                              "an abbreviation inside the house, for people only; spell out its term: " + m.group(0)))
+    return found
+
+
+
 def glossary_candidates(root):
     """-> list of (path, line, kind, context), for the Glossary terms audit: a line outside the
     glossary where a term or one of its other names seems to be defined. Places to read."""
@@ -1065,7 +1128,7 @@ def glossary_candidates(root):
     if got is None:
         return out
     names = set()
-    for _, term, others, _, _, _ in got[1]:
+    for _, term, _, others, _, _, _ in got[1]:
         names.update([term] + others)
     alt = "|".join(sorted((r'\s+'.join(map(re.escape, x.split())) for x in names), key=len, reverse=True))
     name = rf"(?:{alt})s?"

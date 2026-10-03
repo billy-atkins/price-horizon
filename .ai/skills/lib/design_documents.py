@@ -45,10 +45,10 @@ IMPACT = "Impact on the Application Specs"  # a canon design's, and no other des
 SECTIONS = ("The Problem", "Scope", "Steering Decisions", "The Design", IMPACT, "The Builder's Passes", "Deliberately Left Alone")
 OPTIONAL = ("Steering Decisions",)
 STEER_FIELDS = ("Name", "Prompted By", "Steer", "Decision")
-# working-files.md § A Design Document: an adversarial DRR's or post-apply audit's pass,
+# working-files.md § A Design Document: an adversarial review's or post-apply audit's pass,
 # its lead-in and what follows it to the next, names the model and effort it ran on.
-REVIEW = re.compile(r"^\*\*(?:Adversarial DRR|Post-apply audit)\b", re.I)
-REVIEW_FORM = re.compile(r"^\*\*(?:Adversarial DRR|Post-apply audit)\b")
+REVIEW = re.compile(r"^\*\*(?:Adversarial review|Post-apply audit)\b", re.I)
+REVIEW_FORM = re.compile(r"^\*\*(?:Adversarial review|Post-apply audit)\b")
 RAN_ON = re.compile(r"\bon [^\s,;]+(?: [^\s,;]+)*? (?:at (?:light|medium|high) effort|as the agent allows)\b", re.I)
 STATES = ("not-started", "in-progress", "approved", "applying", "complete", "abandoned")
 FINISHED = ("complete", "abandoned")
@@ -193,11 +193,11 @@ def check_form(design):
         elif values.get("Status") in ("applying", "complete") and not STAMP.match(validated):
             problems.append((name, values["Status"] + ", but no validation review stamped it"))
         if values.get("Status") in ("approved", "applying", "complete"):
-            if not re.search(r"^\*\*Adversarial DRR\b", section(text, "The Builder's Passes") or "", re.M):
-                problems.append((name, values["Status"] + ", but its passes name no adversarial DRR"))
+            if not re.search(r"^\*\*Adversarial review\b", section(text, "The Builder's Passes") or "", re.M):
+                problems.append((name, values["Status"] + ", but its passes name no adversarial review"))
         for p in re.split(r"(?m)^(?=\*\*\S)", section(text, "The Builder's Passes") or ""):
             if REVIEW.match(p) and not REVIEW_FORM.match(p):
-                problems.append((name, "a review's lead-in is not written as the form sets it, Adversarial DRR or Post-apply audit: " + p[:40].strip()))
+                problems.append((name, "a review's lead-in is not written as the form sets it, Adversarial review or Post-apply audit: " + p[:40].strip()))
             if REVIEW.match(p) and not RAN_ON.search(p):
                 problems.append((name, "a review's pass names no model and reasoning effort, as on {model} at {effort} effort or on {model} as the agent allows: " + p[:60].strip()))
         want = [s for s in SECTIONS if (s in sections or s not in OPTIONAL) and (s != IMPACT or values.get("Specs") == "canon")]
