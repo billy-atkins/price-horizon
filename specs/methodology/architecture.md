@@ -19,7 +19,7 @@ At the top of `specs/` sits `specs/AGENTS.md`, Spec of Record's entry point: the
 
 `specs/methodology/scope.md § The Shape of the Scope` draws the whole scope, down to each methodology file, and each directory's own `index.md` lists what it holds, so this tree names the layers and the files that fix them.
 
-**`specs/methodology/` —** the rules for writing a specification here: which spec a fact belongs in, which altitude, where an open question is recorded, how a section is titled and cited, when a structured construct is required instead of prose, when a capability owes acceptance scenarios, what a finished spec reads like, the working files, and the rules that reach the code the application specs govern.
+**`specs/methodology/` —** the rules for writing a specification here: which spec a fact belongs in, which altitude, where an open question is recorded, how a section is titled and cited, when a structured construct is required instead of prose, when a capability owes acceptance scenarios, what a finished spec reads like and the clear prose it is written in, the working files, and the rules that reach the code the application specs govern.
 
 **`specs/application/` —** the specification of the product itself, split by what a reader can rely on versus how it is made true. `product/` covers what a user or an integrating caller can experience, rely on, or build against, stated as a capability or a guarantee rather than as an implementation choice. `technical/` covers how each of those facts is actually made true: the algorithms, schemas, service boundaries, models, and infrastructure.
 
@@ -47,7 +47,7 @@ What happens after a fact changes outlives the writing. A fact stated once is of
 
 **Code is reached by one file —** `code.md` holds the rules that reach the code the application specs govern, which code is governed and which is wiring, and how governed code names the specs it carries out, its annotation a citation written as `sourcing-and-citation.md` gives, without the backticks; no other file's rules reach code, but those it cites (`specs/methodology/scope.md § What Spec of Record Governs`).
 
-**Style applies last and to everything —** `spec-style.md` governs what any finished spec reads like, whatever it says and wherever it sits. It is the only detail file with no scope condition at all.
+**Style applies last, and to every spec —** `spec-style.md` governs what any finished spec reads like, whatever it says and wherever it sits, and its clear prose reaches the agent instructions and the skills too, each file written for its primary reader. It is the only detail file that reaches every spec with no scope condition.
 
 **Working files govern no spec —** `working-files.md` sets the form of the working files, a design document carrying one change through review, with the steers that settled it and the designs it waits on, and a follow-up holding work not yet done; no spec but `working-files.md` names one (`specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`).
 
