@@ -23,11 +23,11 @@ Where you apply reasoning effort only through a definition of your own, write on
 
 ### Tell the user how to load them
 
-Where you load such definitions only as a session starts, tell the user to restart you once they are written, even where they were there before, since you cannot tell which version this session loaded, and to resume the conversation where you offer that, so the work in hand is not lost. Until then, a review runs as you allow (`specs/AGENTS.md § Design, Refactor, Refine (DRR)`).
+Where you load such definitions only as a session starts, tell the user to restart you once they are written, even where they were there before, since you cannot tell which version this session loaded, and to resume the conversation where you offer that, so the work in hand is not lost. Until then, a review runs as you allow (`specs/AGENTS.md § Design, Refactor, Refine`).
 
 ## A reasoning effort that never reached the reviewer
 
-The agent took a reviewer's model as it started one, but its reasoning effort only from a definition file, and none existed, so the review ran at the agent's default reasoning effort while the user had chosen another. A reviewer definition for each level closes the gap; until one exists, the review runs as the agent allows (`specs/AGENTS.md § Design, Refactor, Refine (DRR)`).
+The agent took a reviewer's model as it started one, but its reasoning effort only from a definition file, and none existed, so the review ran at the agent's default reasoning effort while the user had chosen another. A reviewer definition for each level closes the gap; until one exists, the review runs as the agent allows (`specs/AGENTS.md § Design, Refactor, Refine`).
 
 ## Reviewer definitions the session could not see
 

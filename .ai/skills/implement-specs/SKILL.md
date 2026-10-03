@@ -1,6 +1,6 @@
 ---
 name: implement-specs
-description: Design and write the code that carries the application specs out. Use when specs have been applied and the code must follow them, the first time or after they change; when governed code or the tests that check a spec are to be written, fixed or restructured; or when wiring must connect them. It designs the code from the specs as a design document, taken through DRR, an adversarial DRR and a validation review for the user to approve or steer, then writes the governed code with its app-spec annotations, the wiring and the tests, and checks its own work before `verify-spec-implementation` reads it.
+description: Design and write the code that carries the application specs out. Use when specs have been applied and the code must follow them, the first time or after they change; when governed code or the tests that check a spec are to be written, fixed or restructured; or when wiring must connect them. It designs the code from the specs as a design document, taken through Design, Refactor, Refine, then an adversarial review and a validation review for the user to approve or steer, then writes the governed code with its app-spec annotations, the wiring and the tests, and checks its own work before `verify-spec-implementation` reads it.
 ---
 
 # Implementing the specs
@@ -13,7 +13,7 @@ Each step applying a rule carries its point-of-use citation (`specs/methodology/
 
 ### Start from the entry point
 
-Read `specs/AGENTS.md` and the glossary before any step, and descend only as far as a step needs, per `specs/methodology/scope.md § Progressive Disclosure`. Propose a new branch for the work, and create it only on the user's approval, per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`.
+Read `specs/AGENTS.md` and the glossary before any step, and descend only as far as a step needs, per `specs/methodology/scope.md § Progressive Disclosure`. Propose a new branch for the work, and create it only on the user's approval, per `specs/AGENTS.md § Design, Refactor, Refine`.
 
 ### Start from the specs
 
@@ -37,7 +37,7 @@ When `scripts/implement-specs.py --show-workstack` lists this design to revise, 
 
 ### Design, Refactor, Refine, then the reviews
 
-Take the design through `specs/AGENTS.md § Design, Refactor, Refine (DRR)`: get it working, refactor it until it stops moving, and refine it, reading each cited spec against the unit citing it, no unit carrying out more than it cites, and no wiring carrying out a rule a spec states. Check it mechanically with `scripts/implement-specs.py --check-design`, `--check-quoted-text` and `--check-cited-headings`, then check the whole design yourself, offer the user the reviewer's model and reasoning effort, and run a cold agent's adversarial DRR over it, briefed with the complete design and the specs it implements, per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`. Once its findings are taken in, a cold agent runs the validation review `specs/methodology/working-files.md § A Design Document` sets, and stamps the design with `scripts/implement-specs.py --stamp-validation`.
+Take the design through `specs/AGENTS.md § Design, Refactor, Refine`: get it working, refactor it until it stops moving, and refine it, reading each cited spec against the unit citing it, no unit carrying out more than it cites, and no wiring carrying out a rule a spec states. Check it mechanically with `scripts/implement-specs.py --check-design`, `--check-quoted-text` and `--check-cited-headings`, then check the whole design yourself, offer the user the reviewer's model and reasoning effort, and run a cold agent's adversarial review over it, briefed with the complete design and the specs it implements, per `specs/AGENTS.md § Design, Refactor, Refine`. Once its findings are taken in, a cold agent runs the validation review `specs/methodology/working-files.md § A Design Document` sets, and stamps the design with `scripts/implement-specs.py --stamp-validation`.
 
 ### Ask for approval
 
@@ -49,4 +49,4 @@ On the go-ahead, with nothing else uncommitted and no other design applying in t
 
 ### Check your own work, then verify-spec-implementation's
 
-Before anyone else reads the code, check it against the design, per `specs/AGENTS.md § Design, Refactor, Refine (DRR)`: every unit written, every annotation naming a heading that exists, sorted and as narrow as the unit, the wiring carrying no spec's rule, and, having run the targeted tests citing the specs it carries out as it worked, every build, lint and test task of the local environment passing, per `specs/methodology/spec-placement.md § Environments`, which says what to present where the specs give none. Record the check in the design's passes. Then `.ai/skills/verify-spec-implementation/` runs as its post-apply audit; settle each finding with the user as `specs/methodology/working-files.md § A Design Document` has changes after approval, reverting the code it wrote where a finding exposes a flaw in the design. Once each is settled, commit the code on the user's go-ahead, one commit for the design, and move its Status to complete.
+Before anyone else reads the code, check it against the design, per `specs/AGENTS.md § Design, Refactor, Refine`: every unit written, every annotation naming a heading that exists, sorted and as narrow as the unit, the wiring carrying no spec's rule, and, having run the targeted tests citing the specs it carries out as it worked, every build, lint and test task of the local environment passing, per `specs/methodology/spec-placement.md § Environments`, which says what to present where the specs give none. Record the check in the design's passes. Then `.ai/skills/verify-spec-implementation/` runs as its post-apply audit; settle each finding with the user as `specs/methodology/working-files.md § A Design Document` has changes after approval, reverting the code it wrote where a finding exposes a flaw in the design. Once each is settled, commit the code on the user's go-ahead, one commit for the design, and move its Status to complete.

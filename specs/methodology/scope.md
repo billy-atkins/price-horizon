@@ -50,7 +50,7 @@ An agent loads what its current step needs, when the step needs it, descending o
 
 The glossary is the one methodology file loaded ahead of need, read with `specs/AGENTS.md` before any step, since an agent cannot know a word is one of its terms without having read it.
 
-What an agent loads from a directory it reads in the order the directory's `index.md` lists, a parent directory before the directories under it, the order its authors set (`specs/methodology/spec-placement.md § Where a File Goes`). Progressive disclosure governs when to read, not how much. Whatever is loaded is read in full and never skimmed, and read fresh rather than recalled (`specs/AGENTS.md § Design, Refactor, Refine (DRR)`), and a task whose unit is a whole directory, an audit among them, loads the whole directory.
+What an agent loads from a directory it reads in the order the directory's `index.md` lists, a parent directory before the directories under it, the order its authors set (`specs/methodology/spec-placement.md § Where a File Goes`). Progressive disclosure governs when to read, not how much. Whatever is loaded is read in full and never skimmed, and read fresh rather than recalled (`specs/AGENTS.md § Design, Refactor, Refine`), and a task whose unit is a whole directory, an audit among them, loads the whole directory.
 
 ## The Methodology Governs Itself
 

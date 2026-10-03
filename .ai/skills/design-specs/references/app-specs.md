@@ -10,6 +10,8 @@ The steps a change to the application specs owes beyond the Workflow of `.ai/ski
 
 **Name its capability domain —** within `.ai/skills/design-specs/SKILL.md § Workflow § Decide its altitude, and its file`, for a product capability: `specs/methodology/spec-placement.md § Naming a Capability Domain` first, then `specs/methodology/spec-placement.md § Where a File Goes`'s test for subfolder versus root file.
 
+**Record an abbreviation the application coins —** within `.ai/skills/design-specs/SKILL.md § Workflow § Write the text in the form the rules give it`: once, beside its term's definition, and nowhere else, per `specs/methodology/glossary.md § Using an Abbreviation`.
+
 **Update the scenarios in the same pass —** after `.ai/skills/design-specs/SKILL.md § Workflow § Write the text in the form the rules give it`: `specs/methodology/acceptance-scenarios.md § Keeping a Scenario and Its Prose in Step`, each in the form `specs/methodology/acceptance-scenarios.md § Acceptance Scenarios` gives, covering what `specs/methodology/acceptance-scenarios.md § Deciding What to Write` asks, and never standing in for a construct, per `specs/methodology/acceptance-scenarios.md § Why a Scenario Is Not a Modeling Construct`.
 
 **Link a product file to the technical files building it —** within `.ai/skills/design-specs/SKILL.md § Workflow § Write the references`, when a technical file now fulfills a product file's capability, per `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability`.
