@@ -35,7 +35,7 @@ The detail files that govern what a spec says, and the one governing code, are n
 
 **Placement comes first and constrains everything after it —** `spec-placement.md` settles which spec a fact belongs in, at which altitude, in which file. Nothing downstream can be decided before that: a citation cannot be written until there is a file to cite, and a capability cannot owe scenarios until it is known to be a product capability.
 
-**A persona for each specification —** `spec-placement.md` also gives the persona the canon, product specs and technical specs are each written as, and the adversarial review of a design changing them framed as.
+**A persona for the methodology, the application specs and their code —** `spec-placement.md` also gives the persona the methodology, the product specs, the technical specs and the code they govern are each written as, and the adversarial review of a design changing them framed as.
 
 **Sourcing and citation depends on placement and feeds back into it —** `sourcing-and-citation.md` governs where a fact lives, how everywhere else points at it, and what happens afterward when it changes, and its layering rules are stated in terms of the directories placement defines. The dependency runs both ways in one respect: deciding a fact's one home is a placement decision made under a sourcing rule, which is why the two are the pair most often consulted together.
 

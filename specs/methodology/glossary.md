@@ -21,7 +21,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Inside the house |  | A term or abbreviation coined or introduced by Spec of Record or the application specs, a norm of those working within them that the specs teach every agent and engineer who arrives, as a household's own words make sense only to those living in it. Not one known outside them. |
 | Key |  | The name of a field. Not a database key, and not a key in a file's frontmatter. |
 | Layer |  | A level in the order of what governs what among the specifications, each governed by those above it. Not a layer of the product's answer. |
-| Methodology owner |  | The persona the canon is written as, and a design changing it reviewed as. |
+| Methodology owner |  | The persona the methodology is written as, and a design changing it reviewed as. |
 | Open question |  | A decision the specs rely on but have not made, recorded with the answer in use until it is settled. Not a question merely unanswered in conversation. |
 | Operating rule |  | A rule about operating Spec of Record: how work on the specifications is done, reviewed, recorded and tooled, rather than what the specifications hold. Not a rule about how the product operates. |
 | Outside the house |  | A term or abbreviation common to many across the industry or the domain, a norm agents know from their training and engineers from experience. |
