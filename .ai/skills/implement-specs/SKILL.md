@@ -41,7 +41,7 @@ Take the design through `specs/AGENTS.md § Design, Refactor, Refine`: get it wo
 
 ### Ask for approval
 
-Ask for approval as a choice of approved, approved and apply, or not approved, as `specs/methodology/working-files.md § A Design Document` has a design's lifecycle, approved and apply offered only once its Depends On names none.
+Ask for approval as a choice of approved, approved and apply, or not approved, as `specs/methodology/working-files.md § A Design Document`'s state machine has a design move, approved and apply offered only once its Depends On names none.
 
 ### Write the code
 
