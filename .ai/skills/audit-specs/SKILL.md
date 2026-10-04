@@ -87,7 +87,7 @@ This is the audit that catches the most and is the easiest to leave out, because
 
 Sweep by target, not by citer. Take a section that is cited from several places, gather every citation into it at once, and write down what each citer attributes to it before opening it. Then read the target and check each attribution off. Doing it citer-by-citer is what fails: one file attributing something absent looks like that file's own imprecision, and it takes the second citer to reveal that the target is what is thin.
 
-**A bare citation that needed more —** with every citer of a section gathered, read each as an agent reading only that place would, against the sentence of `specs/methodology/sourcing-and-citation.md § One Home Per Fact` on when a citing place states a rule's application and its reason, the one part of that section this audit reads. A citation that only routes or lists, a routing row, a Sources bullet or a `technical-specs` entry, applies no rule, and bare is enough there; an audit's Enforces cell is the citation the audit runs from, not one of these. A bare citation reads as correct because nothing in it is wrong, which is why it is missed.
+**A bare citation that needed more —** with every citer of a section gathered, read each as an agent reading only that place would, against the sentences of `specs/methodology/sourcing-and-citation.md § One Home Per Fact` on when a citing place states a rule's application and its reason, and when a bare citation is enough, the one part of that section this audit reads. A citation that only routes or lists, a routing row, a Sources bullet or a `technical-specs` entry, applies no rule, and bare is enough there; an audit's Enforces cell is the citation the audit runs from, not one of these. A bare citation reads as correct because nothing in it is wrong, which is why it is missed.
 
 Each shape this audit names is a finding, fixed on the side that is wrong rather than by weakening the citation:
 
@@ -107,7 +107,7 @@ The evidence for needing both is one pass in this repo where a change widened a 
 
 ### Ordinals and counts
 
-Run the script with `--list-candidates`, then read the files in scope in full, using the candidates as a guide to where numbers and directions are likely rather than as the boundary of the search. Judge every number against `specs/methodology/spec-style.md § Ordinals and Counts` as written: a violation gets a proposed rewrite, and a decline names that section's reason for keeping the number. Judge every reference to other text against `specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text`, the one part of `specs/methodology/sourcing-and-citation.md § Writing a Citation` this audit reads: a direction is fixed as that paragraph says, and a candidate it excepts is declined with its reason. A violation the patterns missed is reported like any other, and its phrasing is a candidate for a new pattern.
+Run the script with `--list-candidates`, then read the files in scope in full, using the candidates as a guide to where numbers and directions are likely rather than as the boundary of the search. Judge every number against `specs/methodology/spec-style.md § Ordinals and Counts` as written: a violation gets a proposed rewrite, and a decline names that section's reason for keeping the number. Judge every reference to other text against `specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text`, the one part of `specs/methodology/sourcing-and-citation.md § Writing a Citation` this audit reads: a direction is fixed as that section says, and a candidate its table of wordings excepts is declined with its reason. A violation the patterns missed is reported like any other, and its phrasing is a candidate for a new pattern.
 
 ### Markup
 
@@ -123,7 +123,7 @@ What reading passage by passage misses: prose that reads complete but that a con
 
 ### Placement
 
-What is easy to miss: a file named by a bare filename another directory shares, and an open question recorded in a file that cannot cite everything it impacts.
+What is easy to miss: one particular file named by a bare filename another directory shares, or a kind of file named by a path, and an open question recorded in a file that cannot cite everything it impacts.
 
 ### Finished style
 
