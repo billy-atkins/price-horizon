@@ -1,6 +1,6 @@
 ## Purpose
 
-This file defines the bounded, approved set of structured modeling constructs, rather than free prose, for authoring specs in this repo. Prose can describe anything, human language has no limit, but it cannot be checked for what it leaves out: a paragraph can describe a process while never mentioning what happens under some condition, and nothing about reading it flags the gap. Each construct `§ Constructs` defines can be checked for exactly that. A decision table's rows can be checked against every combination of its conditions. A decision tree's branches can be checked for one that goes nowhere. A state machine's states can be checked for one with no way out. A DAG's tasks can be checked for one that never runs or never completes. An algorithm's loops can be checked for a stated exit condition, and its comparisons for a stated outcome on every branch. A constraint can be checked for whether it is actually enforced somewhere, or only stated. A type's records can be checked for a missing field, or one their type does not define. Use one of the constructs `§ Constructs` defines when a rule, a process, an entity's behavior, or an entry written repeatedly into the specs or the working files needs that kind of checkable completeness, and use prose everywhere else. Extending this set is a deliberate decision, made by updating this file first, not an ad hoc addition inside a single spec.
+This file defines the bounded, approved set of structured modeling constructs, rather than free prose, for authoring specs in this repo. Prose can describe anything, human language has no limit, but it cannot be checked for what it leaves out: a paragraph can describe a process while never mentioning what happens under some condition, and nothing about reading it flags the gap. Each construct `§ Constructs` defines can be checked for exactly that. A decision table's rows can be checked against every combination of its conditions. A decision tree's branches can be checked for one that goes nowhere. A lifecycle's or a state machine's states can be checked for one with no way out. A DAG's tasks can be checked for one that never runs or never completes. An algorithm's loops can be checked for a stated exit condition, and its comparisons for a stated outcome on every branch. A constraint can be checked for whether it is actually enforced somewhere, or only stated. A type's records can be checked for a missing field, or one their type does not define. Use one of the constructs `§ Constructs` defines when a rule, a process, an entity's behavior, or an entry written repeatedly into the specs or the working files needs that kind of checkable completeness, and use prose everywhere else. Extending this set is a deliberate decision, made by updating this file first, not an ad hoc addition inside a single spec.
 
 The approved, bounded set is defined in `§ Constructs`. A new construct earns its place only by filling a real gap none of the existing ones cover, not by preference for a different notation. `§ Fields` and `§ Bold Lead-ins` state the form of the two things a bold phrase opening a line can be, which Record Form and a diagram's fields rely on, `§ Emphasis` how prose stresses a word, and `§ Literal Text` what backticks mark. `§ Constructs` defines each construct on its own. `§ When to Use Which` is itself modeled with one of the constructs defined here, a Decision Tree, so a reader applies the same discipline this file asks of every other spec.
 
@@ -86,7 +86,7 @@ This maps directly onto Airflow's, Dagster's, or Argo Workflows' own DAG definit
 
 A model of the states a system can be in, the transitions between them, and the guards, the conditions that permit or block a given transition. This is the general formalism Lifecycle is built on, technology-agnostic, with no tie to any specific serialization or execution engine.
 
-Authored as the same States and Transitions tables as Lifecycle, extended with guards.
+Authored as States and Transitions tables of Lifecycle's shape, its transitions carrying guards. What sets it apart is the need `§ When to Use Which` routes to it for, at steps 2 and 4.
 
 A States table:
 
@@ -102,7 +102,7 @@ A Transitions table:
 |---|---|---|
 | ... | ... | The condition or event that causes this transition |
 
-An exclusive choice is a state with more than one outgoing transition, each with its own guard. Steps that must run concurrently are expressed as a transition with more than one predecessor state, it does not fire until every predecessor has completed, the same effect a dedicated parallel construct would give, without needing one.
+An exclusive choice is a state with more than one outgoing transition, each with its own guard. Steps that must run concurrently join in a transition with more than one predecessor state, written as one Transitions row whose From joins its predecessors with `and`, where a From listing states separated by commas is a transition from any of them; a join does not fire until every predecessor has completed, the same effect a dedicated parallel construct would give, without needing one.
 
 ### Algorithm
 

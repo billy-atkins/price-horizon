@@ -30,7 +30,7 @@ Clear prose is measured by the effort it costs its primary reader, not by its co
 | The specs, the methodology among them | a person, the designer who must read and steer them | an agent |
 | The agent instructions and the skills | a cold agent | a person |
 
-The working files are outside this section. A person designs the agent instructions and the skills, deciding what they say and approving them, and an agent writes them for a cold agent. They are judged, in the end, by how an agent behaves under them.
+The working files are outside this section, since each serves the work in progress rather than a reader of the specs, and none is committed (`specs/methodology/working-files.md § The Working Files`). A person designs the agent instructions and the skills, deciding what they say and approving them, and an agent writes them for a cold agent. They are judged, in the end, by how an agent behaves under them.
 
 **Cut what carries nothing —** every word read costs the reader, and costs an agent tokens too. So filler, a point made twice, and commentary on the writing itself are cut; `§ What a Finished Spec Reads Like` covers the commentary.
 
@@ -45,4 +45,16 @@ The working files are outside this section. A person designs the agent instructi
 
 **A chain of qualifying clauses —** the usual way one sentence comes to hold several ideas: a main clause, then clause after clause joined by commas, each qualifying the one before. Each clause is easy to write, and the whole is hard to read. Split the chain into sentences, or into a list when its parts are alike.
 
+**An example in the canon —** an example maps what a reader does not yet know onto what it does. One from outside the house lands with any agent, from its training. One drawn from the application specs, their own files, domains or vocabulary, lands only with an agent that has already read them, which a cold agent loading only what its step needs often has not. So an example in the canon is never drawn from the application specs, unless it names the project the canon is checked in rather than illustrating a rule; the methodology may illustrate itself.
+
 **The test —** the primary reader, arriving cold, understands the passage on the first read.
+
+## Ordinals and Counts
+
+Avoid numbers that add nothing a reader cannot already see but create friction when the set changes. A number restating a list's order or its size goes stale silently the moment an item is added or moved, and so does everything that refers to it. Say what things are, what they mean, or cite where they are; whoever needs a count can count them when they do the work.
+
+- Nothing is numbered: not a heading, a bold lead-in, or a list item.
+- Nothing refers to an item by its position, by number or by word ("step 5", "the second", "the latter"). Refer to it by its name.
+- Nothing says how many things a list or the repo holds. Name them, describe them, or cite them.
+
+Numbers that carry value stay. Algorithm and Decision Tree tables keep their numbered steps, and references to those steps, because that numbering is an industry standard a cold agent reads without further instruction, as a software engineer would (`specs/methodology/modeling-constructs.md`). A Gherkin scenario states its own test case in full, and its numbers are that case's data. A value is not a count: a two-week window, a floor of two options, exactly one home. Neither is naming a pair, "both", "either" or "the two". Where something sits on the page is no count, and no way to refer to it either: other text is cited (`specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text`).

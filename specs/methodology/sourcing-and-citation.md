@@ -1,5 +1,3 @@
-Where a fact lives, how the place holding it is named, and how everywhere else points at it.
-
 ## One Home Per Fact
 
 Every rule, definition, or design principle that could matter in more than one place has exactly one home: the file whose subject matter it most specifically belongs to. Every other place that needs it cites that home rather than restating it in its own words.
@@ -32,11 +30,12 @@ Cited down a layer, a citation directs the reader where to look for a specific r
 |---|---|
 | A product spec | another product spec |
 | A technical spec | another technical spec, a product spec |
-| A methodology spec | another methodology spec; `specs/AGENTS.md` |
-| `specs/AGENTS.md` | any spec |
-| Code | a product spec, a technical spec, or a section of one, never a record, naming what it carries out in the form `specs/methodology/code.md § Citing the Specs From Code` gives, governed by the specs rather than a layer of them |
+| A methodology spec | another methodology spec; `specs/AGENTS.md`; the skills' directory, a registered skill or a file of one, and the code the skills share, naming what applies its rules |
+| `specs/AGENTS.md` | any spec; a registered skill or a file of one |
+| Any spec | the project's root `AGENTS.md` as a whole file, never a section of it |
+| Code | a product spec, a technical spec, or a section of one, never a record, naming what it carries out or checks in the form `specs/methodology/code.md § Citing the Specs From Code` gives, governed by the specs rather than a layer of them |
 
-The table is the whole permission for citations among these specs, code and `specs/AGENTS.md`. Files outside that set, the project's own root `AGENTS.md` among them, cite these specs under their own rules, and no spec cites a section of the root `AGENTS.md`, whose instructions are the project's rather than the method's. No spec other than `specs/methodology/working-files.md` names a working file (`specs/methodology/working-files.md § The Working Files`): none is committed, so the name would point a reader at nothing. `specs/AGENTS.md` is agent instructions rather than a spec, and names the working files its procedures act on.
+The table is the whole permission for citations from these specs, code and `specs/AGENTS.md`. Files outside that set, the project's own root `AGENTS.md` among them, cite these specs under their own rules, the root `AGENTS.md`'s instructions being the project's rather than the method's. No spec other than `specs/methodology/working-files.md` names a working file (`specs/methodology/working-files.md § The Working Files`): none is committed, so the name would point a reader at nothing. `specs/AGENTS.md` is agent instructions rather than a spec, and names the working files its procedures act on.
 
 A product spec citing a technical spec would make a promise depend on its own implementation; that direction is served instead by the `technical-specs` frontmatter key (`specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability`), deliberately file-level and coarse so it cannot carry a dependency at heading precision. A methodology spec citing an application spec would make a rule depend on the document it governs.
 
@@ -44,7 +43,7 @@ An application spec does not cite a methodology spec. Direction is not the reaso
 
 ## Titling a Heading
 
-A heading's title is a stable slug for whatever the section covers, not prose to be refined later. Every citation depends on that exact text, so a title chosen well the first time is what keeps a citation from ever needing to change. If a title does change, update every citation naming it in the same edit; nothing else will catch one left pointing at a title that no longer exists.
+A heading's title is a stable slug for whatever the section covers, not prose to be refined later. Every citation depends on that exact text, so a title chosen well the first time is what keeps a citation from ever needing to change. If a title does change, update every citation naming it in the same edit; a citation left naming the old title is broken until it is updated.
 
 | Rule | Form |
 |---|---|
@@ -53,9 +52,9 @@ A heading's title is a stable slug for whatever the section covers, not prose to
 | Unique among headings sharing its parent | two headings under different parents may share a title |
 | A file's top-level headings unique across the file | they have no parent but the file |
 
-A numbered heading, or one counting its children, is the heading case of `specs/AGENTS.md § Ordinals and Counts`. A heading pays for it twice, since its title is also the text of every citation naming it: renumbering sections, or retitling one whose count went stale, changes those citations as well.
+A numbered heading, or one counting its children, is the heading case of `specs/methodology/spec-style.md § Ordinals and Counts`. A heading pays for it twice, since its title is also the text of every citation naming it: renumbering sections, or retitling one whose count went stale, changes those citations as well.
 
-**Bold lead-ins are not headings —** a bold lead-in (`specs/methodology/modeling-constructs.md § Bold Lead-ins`) has none of the guarantees a heading carries, starting with enforced uniqueness. It has no citation form either, per `§ Writing a Citation`, so a paragraph that is or needs to be a citation's target is authored as a child heading instead, which gets every rule this section sets rather than needing a workaround. A record (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) is the one exception, cited in the form `§ Writing a Citation` gives for it. Do not promote one pre-emptively on the chance it might be cited; only once it actually is, or once its section states that its entries exist to be cited.
+**Bold lead-ins are not headings —** a bold lead-in (`specs/methodology/modeling-constructs.md § Bold Lead-ins`) has none of the guarantees a heading carries, starting with enforced uniqueness. It has no citation form either, per `§ Writing a Citation`, so a paragraph that is or needs to be a citation's target is authored as a child heading instead, which gets every rule this section sets rather than needing a workaround. A record (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) is the one exception, cited in the form `§ Writing a Citation` gives for it. Do not promote one pre-emptively on the chance it might be cited, only once it actually is. Entries that exist to be cited are records instead.
 
 ## Writing a Citation
 
@@ -79,7 +78,7 @@ A section is named by its full lineage of heading titles, one segment per level 
 
 A record (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) is named by the citation of the record section holding it, then a space and, in square brackets inside the same span, each of its identifying fields as `Key: value`, in the order its type's table gives them, separated by a semicolon and a space, like a query parameter selecting one record from the section: `[Name: Retry Policy]` after an Open Questions section's citation, or `[Region: Texas; Horizon: 6 Months]` for a type identified by two fields. An identifying value holds no semicolon (`specs/methodology/modeling-constructs.md § Constructs § Record Form`), so each pair is split at `; `, and each value is compared with the record's after trimming the space around it, and must match exactly, as a title does.
 
-**What cannot be cited —** there is no form for citing a bold lead-in or any other non-heading content but a record; `§ Titling a Heading` says when such content becomes a heading. A directory's `index.md` carries no heading lineage of its own, and it is not a place a citation is written either.
+**What cannot be cited —** there is no form for citing a bold lead-in or any other non-heading content but a record; `§ Titling a Heading` says when such content becomes a heading. A directory's `index.md` carries no heading lineage of its own.
 
 **A title that names a kind of section rather than one particular section —** it resolves to no single heading anywhere, so it is not a citation and takes no `§`. A rule referring to `Test Scenarios` generally, where the level varies by context, names a kind; a rule referring to one file's own `## Diagrams` names a section.
 

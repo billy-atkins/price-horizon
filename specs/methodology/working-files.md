@@ -5,7 +5,7 @@ A working file is never committed, since no reader of the specs needs it. Which 
 | File | Holds |
 |---|---|
 | `.ai/plans/` | the plans the skills write, a design document among them (`§ A Design Document`) |
-| `.ai/follow-ups.md` | work on the specs that should be done and is not yet, each as a follow-up (`§ A Follow-up`) |
+| `.ai/follow-ups.md` | work on the specs or the code that should be done and is not yet, each as a follow-up (`§ A Follow-up`) |
 | `.ai/tmp/` | the skills' own output, review and audit reports among it |
 
 **A skill's scratch space is `.ai/tmp/<skill-name>/` —** created by the skill if it is not there. One directory per skill so that one skill's output is never mistaken for another's, and under `.ai/tmp/` so none of it is ever committed. A skill does not delete its own output when it finishes: the output is usually the whole point, and something downstream, an agent or a person, is about to read it. What a skill should clean is its own *stale* output, the file left behind from a previous run that no longer corresponds to anything, since a reader has no way to tell that from a current one.
@@ -110,7 +110,7 @@ The form a stamp is used in names the field holding it and the fields it leaves 
 
 ## A Follow-up
 
-A follow-up records work on the specs that should be done and is not yet, with enough context for someone arriving cold to take it up. It is kept until the work is done, however many changes pass in between, so nothing that should be worked is lost. Each sits under a priority heading: `## High`, the work to take up next; `## Medium`, which waits until High is settled; or `## Low`, worth doing once nothing more pressing is open. Each holds its parts, in this order:
+A follow-up records work on the specs or the code that should be done and is not yet, with enough context for someone arriving cold to take it up. It is kept until the work is done, however many changes pass in between, so nothing that should be worked is lost. Each sits under a priority heading: `## High`, the work to take up next; `## Medium`, which waits until High is settled; or `## Low`, worth doing once nothing more pressing is open. Each holds its parts, in this order:
 
 | Part | Form | Holds |
 |---|---|---|
