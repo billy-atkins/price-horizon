@@ -8,6 +8,8 @@ The steps a change to the canon owes beyond the Workflow of `.ai/skills/design-s
 
 **Coin a term only once it passes the test —** within `.ai/skills/design-specs/SKILL.md § Workflow § Write the text in the form the rules give it`: `specs/methodology/glossary.md § Writing an Entry`, and in the form it gives, any abbreviation it is given used only as `specs/methodology/glossary.md § Using an Abbreviation` allows.
 
+**Draw no example from the application specs —** within `.ai/skills/design-specs/SKILL.md § Workflow § Write the text in the form the rules give it`: per `specs/methodology/spec-style.md § Clear Prose`, its rule on an example in the canon.
+
 **Add or change a skill —** within `.ai/skills/design-specs/SKILL.md § Workflow § Write the text in the form the rules give it`: in the form `specs/methodology/skills.md § Authoring a Skill` gives, registered by the test `specs/methodology/skills.md § Registered Skills` states. A skill's instructions, and both `AGENTS.md` files, stay as `specs/methodology/scope.md § Agent Agnostic` asks.
 
 **Give an added or changed rule its check —** after `.ai/skills/design-specs/SKILL.md § Workflow § Write the text in the form the rules give it`: `specs/methodology/scope.md § Rules and Skills`, in `.ai/skills/audit-specs/`' audits table or its table of operating rules carried out by a step, an operating rule's check being complete only once the step carrying it out cites it.

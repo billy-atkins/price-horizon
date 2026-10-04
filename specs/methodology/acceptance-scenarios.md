@@ -15,7 +15,7 @@ The title is the same every time and does not restate the capability, because th
 
 **Concrete values, not categories —** a scenario's `Given` and `When` steps use a named entity, a real geography, a stated horizon. A scenario proves one specific case actually produces the promised outcome; a step written in the abstract proves nothing a reader could check.
 
-**Actors are named by role —** a `Given` names its actor by the exact role name the product spec's role table defines, never an informal stand-in. That table already distinguishes populations precisely for this reason. If a scenario needs an actor no row names, the table is what is incomplete: add the role there first, as a real decision about the access model, then write the scenario against the corrected table.
+**Actors are named by role —** a `Given` names its actor by the exact role name the product specs define, never an informal stand-in. If a scenario needs an actor no defined role names, the roles are what is incomplete: define the role first, as a real decision about the access model, then write the scenario against it.
 
 ## Deciding What to Write
 
@@ -32,7 +32,7 @@ If a scenario would need a case the section's own prose does not already assert,
 
 A capability whose own section states no guardrail gets only its promise scenarios, and owes no happy-path-plus-guardrail pair.
 
-A guarantee stated only in a cross-cutting file, rather than in one capability's own section, does not get a scenario under that capability. It gets one under that file's own scenarios, if and when it has them.
+A guarantee stated only in a cross-cutting file, rather than in one capability's own section, does not get a scenario under that capability. It gets one only where the section stating it is a capability of its own, in that section's `Test Scenarios`.
 
 **A cross-cutting lens —** it needs no different scenario shape, only more scenarios: each axis's own stated promise and each axis's own stated boundary gets the same treatment as any other capability. Where such a lens acts on an answer that already exists rather than producing a first one, its `Given` states that prior answer as a precondition before the `When` acts on it.
 

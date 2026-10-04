@@ -1,5 +1,3 @@
-Which spec a fact belongs in, the persona the methodology, the product specs, the technical specs and the code they govern are each written as, which altitude, which file, how a product capability names the technical files that build it, what a product module is, what the technical stack and the environments hold, and where and in what form an open question is recorded.
-
 ## Product or Technical
 
 | Spec | Covers |
@@ -19,9 +17,9 @@ The two drawings also do not divide the building the same way. An architect orga
 
 **When a fact needs both —** state the plain form in the product spec, the exact mechanism in the technical spec, and have each name the other, so the two cannot drift apart silently.
 
-**Different renderings, not two levels of detail —** a construct modeling one fact renders differently on each side. For a process modeled as a DAG or a State Machine, the product spec gets the business-readable table of steps, decision points, and outcomes; the technical spec gets the DAG or State Machine that carries it out. For a Constraint, the product spec states the plain guarantee and the technical spec states its enforcement, which step actually guarantees it. Algorithm is the one exception: it has no product-spec rendering, since a business reader has no use for step-by-step computation. Because the two sides do not decompose alike, a traceability table tying each product-facing capability to the mechanism producing it is the usual way to keep them in view at once.
+**Different renderings, not two levels of detail —** a construct modeling one fact may render differently on each side. For a process modeled as a DAG or a State Machine, the product spec gets the business-readable table of steps, decision points, and outcomes; the technical spec gets the DAG or State Machine that carries it out. For a Constraint, the product spec states the plain guarantee and the technical spec states its enforcement, which step actually guarantees it. Lifecycle, Decision Table, Decision Tree and Record Form render the same on both sides. Algorithm is the one exception: it has no product-spec rendering, since a business reader has no use for step-by-step computation. Because the two sides do not decompose alike, a traceability table tying each product-facing capability to the mechanism producing it is the usual way to keep them in view at once.
 
-**A promise that cannot be built —** writing the technical spec is how a product promise gets tested against what is actually possible. A promise no mechanism can make true is amended in the product spec rather than left standing, and the technical spec is usually where that is discovered.
+**A promise that cannot be built —** writing the technical spec is how a product promise gets tested against what is actually possible. A promise no mechanism can make true is amended in the product spec, as the user decides (`§ Personas`), rather than left standing, and the technical spec is usually where that is discovered.
 
 ## Personas
 
@@ -33,7 +31,7 @@ The methodology, the product specs, the technical specs and the code they govern
 
 **The chief architect, for technical specs and the code carrying them out —** someone who came up through software engineering and spent years as a principal engineer, battle-tested in production. They know the ideal design is a mirage and realistic greatness is the goal. They weigh each trade-off for what it buys now and for the foundation it lays for where the application is going. They grow the technical architecture deliberately, never by drift.
 
-**A persona shapes the work, never its decisions —** what the product does, who may do it, and what it promises are decisions about the thing being specified, not about specifying it, and they are the user's. The product owner proposes and challenges them, and leaves them to the user.
+**A persona shapes the work, never its decisions —** decisions about the thing being specified are the user's: what the product does, who may do it and what it promises; how it is made true; and what the methodology's rules are. Each persona proposes and challenges them, and leaves them to the user.
 
 ## Index, Architecture, Detail
 
@@ -41,7 +39,7 @@ Every directory under `specs/` organizes its files by altitude. New content belo
 
 | Altitude | File | Holds |
 |---|---|---|
-| Navigation | `index.md` | a file-name-to-description table and front matter, no content of its own |
+| Navigation | `index.md` | a title and a table naming each file and subdirectory with its description, no content of its own |
 | Overview | `architecture.md` | where a directory's shape is worth describing as a whole, which not every directory's is: a self-contained description of the whole directory's shape, naming every major piece and how they relate, in its own words |
 | Detail | everything else | one file per functional area, holding the actual mechanism, schema, or experience, at whatever depth the subject needs |
 
@@ -125,11 +123,11 @@ This is a label, not a citation. It names files, never headings, and is never wr
 
 ## A Product Module
 
-A product module is a capability domain as the product `architecture.md` names it: a folder directly under `specs/application/product/`, for a domain that decomposes into sub-parts, or a single file in its root, for a domain that is one cohesive mechanism (`§ Where a File Goes`); a root file belongs to the domain whose account in the product `architecture.md` names it. It is the scope a change to its code is bounded by, and what that change reads: its product specs, and the technical files they name in their `technical-specs` frontmatter (`§ Naming the Technical Files Behind a Capability`), a file only this module names read whole, and one several modules name read at the sections this module's code needs. Beside it, every module reads what no module owns: the files in the product root that hold no domain, its `index.md` and `architecture.md` among them and any vision or overview of the product, and the technical specs' own overview, their `architecture.md`, their stack, `stack.md` (`§ The Technical Stack`), and their environments, `environments.md` (`§ Environments`). A product file or folder the architecture names under no domain, and technical content no module's frontmatter reaches, are gaps in the specs, put right in the specs before code is written for them.
+A product module is a capability domain as the product `architecture.md` names it: a folder directly under `specs/application/product/`, for a domain that decomposes into sub-parts, or a single file in its root, for a domain that is one cohesive mechanism (`§ Where a File Goes`); a module also holds each root file its domain's account in the product `architecture.md` names. It is the scope a change to its code is bounded by, and what that change reads: its product specs, and the technical files they name in their `technical-specs` frontmatter (`§ Naming the Technical Files Behind a Capability`), a file only this module names read whole, and one several modules name read at the sections this module's code needs. Beside it, every module reads what no module owns: the product root's `index.md` and `architecture.md`, any vision or overview of the product, and each root file the product `architecture.md` names as held by no domain, and the technical specs' own overview, their `architecture.md`, their stack, `stack.md` (`§ The Technical Stack`), and their environments, `environments.md` (`§ Environments`). Any other product file or folder the product `architecture.md` does not name, and technical content no module's frontmatter reaches, are gaps in the specs, put right in the specs before code is written for them.
 
 ## The Technical Stack
 
-The technical specs hold one stack file, `stack.md` at their root, saying what the system is built with, what it relies on, and where its code lives, so each technology and how the system uses it has one home, and a technical spec relying on one cites the stack file rather than introducing it where it is used (`specs/methodology/sourcing-and-citation.md § One Home Per Fact`). It holds two tables.
+The technical specs hold one stack file, `stack.md` at their root, saying what the system is built with, what it relies on, and where its code lives, so each technology and how the system uses it has one home, and a technical spec relying on one cites the stack file rather than introducing it where it is used (`specs/methodology/sourcing-and-citation.md § One Home Per Fact`). It holds two tables, each technology in them given with its version.
 
 **The parts —** a table headed Part, Language, Framework, Build Tool, Test Framework, Code Roots and Excluded, one row for each part of the system, a user interface and a backend, say, or a single service: the language it is written in, the framework it builds on, the tools that build it, any tool generating files among them, the framework its tests are written in, such as a browser automation framework like Playwright or Selenium for a user interface, the executable copies of the acceptance scenarios among them (`specs/methodology/code.md § Tests`), the directories holding its code, its tests' directories among them, and the paths under them that are not the application's own, code vendored from elsewhere or generated by a tool, each path from the project root and in backticks. A code root is never the project root itself, nor sits under another, so the specs and the working files stay outside the application's code and no file is the code of two parts. The code roots, less what is excluded, name the application's code (`specs/methodology/scope.md § What Spec of Record Governs`), so a check on code knows where to look, and a file outside them is no concern of `specs/methodology/code.md`'s rules.
 

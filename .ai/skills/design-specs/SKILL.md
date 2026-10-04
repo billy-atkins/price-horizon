@@ -61,7 +61,7 @@ Anything compressed from another file is compared against it clause by clause, n
 
 ### Write the text in the form the rules give it
 
-A field, a bold lead-in, emphasis and literal text as `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Emphasis` and `specs/methodology/modeling-constructs.md § Literal Text` give them, an entry of a repeated kind as `specs/methodology/modeling-constructs.md § Constructs § Record Form` does, and a number only where `specs/AGENTS.md § Ordinals and Counts` keeps one.
+A field, a bold lead-in, emphasis and literal text as `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Emphasis` and `specs/methodology/modeling-constructs.md § Literal Text` give them, an entry of a repeated kind as `specs/methodology/modeling-constructs.md § Constructs § Record Form` does, and a number only where `specs/methodology/spec-style.md § Ordinals and Counts` keeps one.
 
 ### Record what the specs rely on but have not decided
 

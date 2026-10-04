@@ -64,7 +64,8 @@ LOOSE_SECTION = re.compile(r'(?<!`)§')
 HEADING = re.compile(r'^(#{1,6})\s+(.*?)\s*$', re.M)
 FENCE = re.compile(r'^```', re.M)
 
-# specs/AGENTS.md § Ordinals and Counts. The findings are the forms a pattern decides alone.
+# specs/methodology/spec-style.md § Ordinals and Counts. The findings are the forms a pattern decides alone.
+ORDINALS_RULE = "spec-style.md § Ordinals and Counts"
 NUMBERED_LEAD_IN = re.compile(r'^\*\*\d+[.)]\s')
 NUMBERED_ITEM = re.compile(r'^\s*\d+[.)]\s')
 WORKING_FILE = re.compile(r'\.ai/(?:plans\b|follow-ups\.md|tmp\b)')
@@ -620,9 +621,9 @@ def check(root):
             if ODD_EMPHASIS.search(prose):
                 found.append((EMPHASIS, r, i, "bold italic or underscore bold"))
             if NUMBERED_LEAD_IN.match(line):
-                found.append(("specs/AGENTS.md § Ordinals and Counts", r, i, "bold lead-in carries a number"))
+                found.append((ORDINALS_RULE, r, i, "bold lead-in carries a number"))
             elif NUMBERED_ITEM.match(line):
-                found.append(("specs/AGENTS.md § Ordinals and Counts", r, i, "list item carries a number"))
+                found.append((ORDINALS_RULE, r, i, "list item carries a number"))
             if r.startswith("specs/") and r not in (WORKING_FILES_HOME, SPECS_AGENTS):
                 for m in WORKING_FILE.finditer(line):
                     found.append(("sourcing-and-citation.md § Which Citations Are Allowed", r, i,
@@ -969,6 +970,28 @@ LONG_SENTENCE_WORDS, LONG_SENTENCE_MARKS = 40, 6
 SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+(?=[A-Z*`(])")
 
 
+# A path into the application specs, which in the canon may be an example drawn from inside the
+# house: a candidate for the reading of specs/methodology/spec-style.md § Clear Prose, never a
+# finding. The files every project's application specs hold, by the methodology's own rules,
+# and paths written as examples, are no candidates.
+APPLICATION_PATH = re.compile(r"specs/application/[\w./-]+\.md")
+GENERIC_APPLICATION_FILES = {"specs/application/index.md", "specs/application/product/index.md",
+                             "specs/application/product/architecture.md", "specs/application/technical/index.md",
+                             "specs/application/technical/architecture.md", "specs/application/technical/stack.md",
+                             "specs/application/technical/environments.md"}
+EXAMPLE_PATH = re.compile(r"/example[\w-]*(?:/|\.md$)")
+
+
+def application_paths(text):
+    """-> (line, path) for each path into the application specs naming a file of a project's
+    own, fenced blocks included, since an example is often fenced."""
+    for n, line in enumerate(text.split("\n"), 1):
+        for m in APPLICATION_PATH.finditer(line):
+            path = m.group(0)
+            if path not in GENERIC_APPLICATION_FILES and not EXAMPLE_PATH.search(path):
+                yield n, path
+
+
 def long_sentences(text):
     """-> (line, sentence) for each sentence of prose over LONG_SENTENCE_WORDS words holding
     LONG_SENTENCE_MARKS or more commas, semicolons and colons; headings, tables and fenced
@@ -1025,6 +1048,9 @@ def style_and_agent_candidates(root):
             continue
         for n, s in long_sentences(f.read_text(encoding="utf-8")):
             out.append((rel, n, "a long sentence of chained clauses, which may need a second read", s.strip()))
+        if rel == SPECS_AGENTS or rel.startswith("specs/methodology/"):
+            for n, path in application_paths(f.read_text(encoding="utf-8")):
+                out.append((rel, n, "a path into the application specs, which may be an example from inside the house", path))
     return out
 
 
@@ -1352,7 +1378,8 @@ def skill_candidates(root):
     """An unregistered skill whose SKILL.md cites the method's rules, which may belong to the
     method or may simply follow Authoring a Skill; and a registered skill's script importing
     from outside the standard library, which the rule allows where the standard library
-    cannot serve; and a skill's long sentence of chained clauses, for the Skill form audit's reading of
+    cannot serve; and a skill's long sentence of chained clauses, and a path into the application
+    specs in a skill, for the Skill form audit's reading of
     specs/methodology/spec-style.md § Clear Prose. Places to read, never findings."""
     out, names = [], set(registry(root)[0])
     base = root / ".ai/skills"
@@ -1377,6 +1404,11 @@ def skill_candidates(root):
         for f in sorted((base / n).rglob("*.md")):
             for k, s in long_sentences(f.read_text(encoding="utf-8")):
                 out.append((f.relative_to(root).as_posix(), k, "a long sentence of chained clauses, which may need a second read", s.strip()))
+            for k, path in application_paths(f.read_text(encoding="utf-8")):
+                out.append((f.relative_to(root).as_posix(), k, "a path into the application specs, which may be an example from inside the house", path))
+        for f in sorted(p for p in (base / n).rglob("*") if p.suffix in SCRIPT_SUFFIXES):
+            for k, path in application_paths(f.read_text(encoding="utf-8")):
+                out.append((f.relative_to(root).as_posix(), k, "a path into the application specs, which may be an example from inside the house", path))
     return out
 
 

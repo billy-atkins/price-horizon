@@ -6,14 +6,14 @@ The entry point to Spec of Record for these specifications. Read it before any w
 
 `specs/methodology/` holds the rules for writing a specification, and for the code the specs govern, which reach the files in Spec of Record's scope as `specs/methodology/scope.md § What Spec of Record Governs` sets, its own files included, and so do the rules in this file.
 
-Every change is to the canon, to the application specs, to code, or to neither, the kinds `specs/methodology/working-files.md § A Design Document` defines, and its design document says which before any file is edited, a change needing two kinds being split, a canon design from the application work it leaves and a design changing the specs from the code it leaves; a direct edit, which needs no design document, is of a kind all the same (`§ Design, Refactor, Refine`). The same two skills serve every kind of specification, each forking on it where the work differs, and `.ai/skills/implement-specs/` designs and writes code:
+Every change is to the canon, to the application specs, to code, or to neither, the kinds `specs/methodology/working-files.md § A Design Document` defines, and its design document says which before any file is edited, a change needing two kinds being split, a canon design from the application work it leaves and a design changing the specs from the code it leaves. The same two skills serve every kind of specification, each forking on it where the work differs, and `.ai/skills/implement-specs/` designs and writes code:
 
 - **Changing a specification —** `.ai/skills/design-specs/`, whose Workflow gives each rule it applies a point-of-use citation and forks into the reference for the change's kind.
 - **Checking one —** `.ai/skills/audit-specs/`, whose Workflow forks the same way.
 
 Before doing by hand a kind of work a registered skill covers, read its `SKILL.md`.
 
-Running the procedure, rather than recalling the rules, is what puts each rule in mind at the step it governs (`specs/methodology/sourcing-and-citation.md § One Home Per Fact`). This section's index finds a rule an author of application specs applies, mid-step; it routes, and stands in for no step of a procedure.
+Running the procedure, rather than recalling the rules, is what puts each rule in mind at the step it governs (`specs/methodology/sourcing-and-citation.md § One Home Per Fact`). This section's index finds a rule mid-step, whatever the work; it routes, and stands in for no step of a procedure.
 
 | Doing this | The rule is here |
 |---|---|
@@ -34,6 +34,7 @@ Running the procedure, rather than recalling the rules, is what puts each rule i
 | Writing or updating acceptance scenarios | `specs/methodology/acceptance-scenarios.md § Acceptance Scenarios` |
 | Removing drafting residue and hedged framing | `specs/methodology/spec-style.md § What a Finished Spec Reads Like` |
 | Writing prose its primary reader understands on the first read | `specs/methodology/spec-style.md § Clear Prose` |
+| Writing a number, a count, or a reference to an item | `specs/methodology/spec-style.md § Ordinals and Counts` |
 | Keeping a counterpart spec, an `architecture.md` or a diagram in step | `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step` |
 | Adding, changing, or re-checking a diagram | `specs/methodology/modeling-constructs.md § Diagrams`, then `.ai/skills/author-mermaid-diagram/` |
 | Recording a proposed change, a steer given it, or work to take up later | `specs/methodology/working-files.md § A Design Document`, `specs/methodology/working-files.md § A Steering Decision`, `specs/methodology/working-files.md § A Follow-up` |
@@ -41,16 +42,6 @@ Running the procedure, rather than recalling the rules, is what puts each rule i
 | Setting up the agent in use to apply a review's reasoning effort | `specs/methodology/skills.md § Setting Up an Agent`, then `.ai/skills/configure-spec-of-record/` |
 | Checking that the code carries out its specs | `specs/methodology/code.md`, `specs/methodology/spec-placement.md § The Technical Stack`, then `.ai/skills/verify-spec-implementation/` |
 | Designing and writing the code the application specs govern | `specs/methodology/code.md`, `specs/methodology/spec-placement.md § Personas`, `specs/methodology/spec-placement.md § Environments`, `specs/methodology/working-files.md § A Design Document § A Design Changing Code`, then `.ai/skills/implement-specs/` |
-
-## Ordinals and Counts
-
-Avoid numbers that add nothing a reader cannot already see but create friction when the set changes. A number restating a list's order or its size goes stale silently the moment an item is added or moved, and so does everything that refers to it. Say what things are, what they mean, or cite where they are; whoever needs a count can count them when they do the work.
-
-- Nothing is numbered: not a heading, a bold lead-in, or a list item.
-- Nothing refers to an item by its position, by number or by word ("step 5", "the second", "the latter"). Refer to it by its name.
-- Nothing says how many things a list or the repo holds. Name them, describe them, or cite them.
-
-Numbers that carry value stay. Algorithm and Decision Tree tables keep their numbered steps, and references to those steps, because that numbering is an industry standard a cold agent reads without further instruction, as a software engineer would (`specs/methodology/modeling-constructs.md`). A Gherkin scenario states its own test case in full, and its numbers are that case's data. A value is not a count: a two-week window, a floor of two options, exactly one home. Neither is naming a pair, "both", "either" or "the two". Where something sits on the page is no count, and no way to refer to it either: other text is cited (`specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text`).
 
 ## Design, Refactor, Refine
 
