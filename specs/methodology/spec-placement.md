@@ -93,7 +93,7 @@ A section growing long, or gaining headings, is no reason to split it: being cit
 
 ## Naming a Capability Domain
 
-A product specification is organized by capability domain, the durable areas a product owner defines, rather than by file. A capability domain is a standing part of what the product does or governs for as long as the product exists. An epic or a sprint is the wrong mental model: those describe work with an end date, not a boundary meant to outlive any single change.
+A product specification is organized by capability domain (`specs/methodology/glossary.md`), rather than by file.
 
 Before writing or extending a product spec, ask what a product owner, or a salesperson pitching the system, would call the capability domain it belongs to, never which open file already talks about something similar.
 
