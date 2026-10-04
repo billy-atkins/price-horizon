@@ -13,13 +13,16 @@ Content that only makes sense to someone present for the discussion that produce
 
 ## Trade-offs Are Not Journey Language
 
-This is not a rule against explaining trade-offs. A genuine engineering trade-off belongs in the spec with its reasoning, because it teaches a reader how to make the same kind of call correctly in a new situation.
+`§ What a Finished Spec Reads Like` is not a rule against explaining trade-offs. A genuine engineering trade-off belongs in the spec with its reasoning, because it teaches a reader how to make the same kind of call correctly in a new situation.
 
-**The test —** does the comparison state a timeless design principle a cold reader can apply elsewhere, or does it only make sense to someone who watched the alternative get proposed and rejected?
+**The test —** a comparison passes when either holds:
 
-Choosing a star schema over a snowflake schema passes: the reasoning transfers to the next schema decision. Choosing a DAG over a state machine for an acyclic process passes for the same reason. Ruling out a technology the document never otherwise mentions fails: nothing in the document gave a cold reader anything to reject.
+- it states a timeless design principle a cold reader can apply elsewhere;
+- it is drawn against something the reader has a live, document-supported reason to ask about, an alternative the reader could plausibly have arrived at themselves, whether or not an author once did.
 
-A distinction drawn against something a reader has a live, document-supported reason to ask about also passes. The question is whether the reader could plausibly have arrived at the alternative themselves, not whether an author once did.
+It fails when it makes sense only to someone who watched the alternative get proposed and rejected.
+
+Choosing a star schema over a snowflake schema passes: the reasoning transfers to the next schema decision. Choosing a DAG over a State Machine for an acyclic process passes for the same reason. Ruling out a technology the document never otherwise mentions fails: nothing in the document gave a cold reader anything to reject.
 
 ## Clear Prose
 
@@ -30,7 +33,9 @@ Clear prose is measured by the effort it costs its primary reader, not by its co
 | The specs, the methodology among them | a person, the designer who must read and steer them | an agent |
 | The agent instructions and the skills | a cold agent | a person |
 
-The working files are outside this section, since each serves the work in progress rather than a reader of the specs, and none is committed (`specs/methodology/working-files.md § The Working Files`). A person designs the agent instructions and the skills, deciding what they say and approving them, and an agent writes them for a cold agent. They are judged, in the end, by how an agent behaves under them.
+The working files are outside this section, since each serves the work in progress rather than a reader of the specs, and none is committed (`specs/methodology/working-files.md § The Working Files`).
+
+A person designs the agent instructions and the skills, deciding what they say and approving them, and an agent writes them for a cold agent. They are judged, in the end, by how an agent behaves under them.
 
 **Cut what carries nothing —** every word read costs the reader, and costs an agent tokens too. So filler, a point made twice, and commentary on the writing itself are cut; `§ What a Finished Spec Reads Like` covers the commentary.
 

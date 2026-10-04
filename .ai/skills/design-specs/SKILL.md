@@ -21,7 +21,7 @@ Each step applying a rule carries its point-of-use citation (`specs/methodology/
 
 ### Scope the change
 
-Scope it per `specs/AGENTS.md § Design, Refactor, Refine`, and draft it as a design document in `.ai/plans/design-specs/`, copied from `.ai/skills/design-specs/references/design-document-template.md`, per `specs/methodology/working-files.md § A Design Document`, its Specs field settling the change's kind before any file is edited. Set its Status as that section's lifecycle moves it, here and at each step that moves it. Where the work wants a new branch, propose it, and create it only once the user approves it, per `specs/AGENTS.md § Design, Refactor, Refine`. A Refactor and Refine cycle (`specs/methodology/glossary.md`) also reads `.ai/skills/design-specs/references/refactor-and-refine-existing-specs.md` here, whose steps join this Workflow's from this one on.
+Scope it per `specs/AGENTS.md § Design, Refactor, Refine`, and draft it as a design document in `.ai/plans/design-specs/`, copied from `.ai/skills/design-specs/references/design-document-template.md`, per `specs/methodology/working-files.md § A Design Document`, its Specs field settling the change's kind before any file is edited. Set its Status as that section's state machine moves it, here and at each step that moves it. Where the work wants a new branch, propose it, and create it only once the user approves it, per `specs/AGENTS.md § Design, Refactor, Refine`. A Refactor and Refine cycle (`specs/methodology/glossary.md`) also reads `.ai/skills/design-specs/references/refactor-and-refine-existing-specs.md` here, whose steps join this Workflow's from this one on.
 
 ### Hand a change of its own to the user to spawn or log
 

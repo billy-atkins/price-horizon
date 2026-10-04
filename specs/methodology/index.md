@@ -12,4 +12,4 @@
 | `acceptance-scenarios.md` | When a product capability owes Gherkin scenarios, which ones its promises and guardrails call for, what form they take, and how they stay in step with the prose they test |
 | `code.md` | The rules that reach the code the application specs govern: governed code and wiring code, how governed code names, by app-spec annotations, the specs it carries out or checks, how it changes, and what a test is |
 | `spec-style.md` | What a finished spec reads like, the drafting residue that does not belong in one; the clear prose the specs, the agent instructions and the skills are written in, each for its primary reader; where an example in the canon is drawn from; and when a number or a count belongs in the text |
-| `working-files.md` | The working files, the form and lifecycle of a design document and of a follow-up, a design document's steering decisions, and a stamp |
+| `working-files.md` | The working files, the form of a design document and of a follow-up with the states each moves through, a design document's steering decisions, and a stamp |
