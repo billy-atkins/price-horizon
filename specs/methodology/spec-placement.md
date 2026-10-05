@@ -120,7 +120,7 @@ Traps worth checking for before finalizing any new product file:
 
 ## Naming the Technical Files Behind a Capability
 
-A product spec file may open with a YAML frontmatter block naming which technical files build its capabilities:
+A product spec file may open with a YAML frontmatter block (`specs/methodology/external-references.md § External References [Name: YAML]`) naming which technical files build its capabilities:
 
 ```yaml
 ---

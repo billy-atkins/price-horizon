@@ -192,7 +192,7 @@ A decision about other work is recorded where that work is held, so whoever take
 
 A stamp lets a later reader tell whether content has changed since a check passed on it, so nothing has to be cleared by hand. It is written as a UTC timestamp and a content hash separated by a space, `2026-09-29T14:05:12Z sha256:3f9a0c1b2d4e5f60`:
 
-- **The timestamp —** ISO 8601 in UTC, to the second, ending in `Z`, as `YYYY-MM-DDThh:mm:ssZ`, so stamps written on different machines compare without a time zone.
+- **The timestamp —** a date and time as RFC 3339 writes one (`specs/methodology/external-references.md § External References [Name: RFC 3339]`), in UTC, to the second, ending in `Z`, as `YYYY-MM-DDThh:mm:ssZ`, so stamps written on different machines compare without a time zone.
 - **The content hash —** SHA-256 of the file's text, encoded as UTF-8 with line-feed line endings, after dropping the lines that hold the fields the form leaves out; written as `sha256:` followed by the digest's first sixteen hexadecimal characters, lower case. It detects a change, and is not meant to resist tampering.
 
 The form a stamp is used in names the field holding it and the fields it leaves out: its own field always, since writing the stamp must not change the hash, and any field whose change the check does not concern, as a design document's Validated field leaves out its Status (`§ A Design Document`).

@@ -123,6 +123,27 @@ Whether a wording is a direction:
 
 A sentence introducing the block under it says what the block is for, never where it is: "the following Algorithm" and "these parts" are dropped, not kept. Nothing goes between such a sentence and its block, since the reader would hear one thing introduced and see another. Text that must introduce something further away is no such sentence: the content it introduces is given a section of its own and cited.
 
+## An External Reference
+
+The canon adopts an outside standard where an agent or a software engineer already knows it from training or experience, so a form or a meaning the canon relies on reads without the canon teaching it. A standard is registered where a rule adopts it, or maps the rule's own forms onto it, for something an author writes or an agent reads by. It is registered once, as a record of the type named External References in `specs/methodology/external-references.md § External References`, pinned to the version or revision the canon relies on, so what the canon means holds still as the standard moves on, and an author reaching for the name finds the one text it means.
+
+**What is not registered —** a digest or an encoding a script computes, as SHA-256 and UTF-8, named in the rule using it; a convention no one publishes, as kebab-case, defined where it is used; a standard a registered one adopts in turn, as GFM extends CommonMark, which that record covers; and a tool or a product a rule names only as an example of what one of its forms maps onto.
+
+**Citing it —** the section whose rule adopts a registered standard, or maps onto it, cites its record where it first names the standard, and states no version or link of its own, so the record is the one home of both (`§ One Home Per Fact`); a section using that rule's forms relies on the rule, and cites the rule's section, not the record, where it needs to. The section states what it narrows, adds to or changes in the standard, which the standard's own text cannot tell a reader; the standard is cited for the rest, and for what the section's forms mean where it is silent.
+
+**Moving a version —** relying on another version of a standard, or on more of it than its record covers, is a change to the canon that changes the record, each section citing it, and the checks of what those sections state, together.
+
+A record gives these fields, in this order:
+
+| Field | Identifies | Required | Default Value | Holds |
+|---|---|---|---|---|
+| Name | yes | yes | | the standard's short name, as its readers know it |
+| Title | no | yes | | its full title, and who publishes or stewards it |
+| Version | no | yes | | the version relied on, or, for a standard publishing none, the revision relied on, named by its date |
+| URL | no | yes | | a link to the text of that version or revision, never to whatever is current, written as literal text |
+| Relation | no | yes | | how the canon relies on it: `adopts`, the canon's forms being the standard's own; or `maps onto`, the canon's forms being its own, each mapping onto one of the standard's, and the canon's rules holding wherever they differ |
+| Covers | no | yes | | the part of the standard the canon relies on |
+
 ## Keeping Renderings in Step
 
 Some facts are stated once and rendered in more than one place. Those renderings are not second homes, and they do not keep themselves current.

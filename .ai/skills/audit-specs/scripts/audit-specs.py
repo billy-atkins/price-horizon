@@ -86,6 +86,13 @@ RECORD_TYPES = {
         "home": "spec-placement.md § An Open Question",
         "last_top_level": True,
     },
+    "External References": {
+        "fields": ["Name", "Title", "Version", "URL", "Relation", "Covers"],
+        "identifying": ["Name"],
+        "section_fields": [],
+        "home": "sourcing-and-citation.md § An External Reference",
+        "last_top_level": False,
+    },
 }
 # modeling-constructs.md § Fields: every key a form declares, and where that form places it.
 FIELDS = "modeling-constructs.md § Fields"
@@ -1324,6 +1331,10 @@ def skill_findings(root, names):
             found.append((AUTHORING, rel, 1, f"front matter name is not the kebab-case directory name {n}"))
         if not meta.get("description", "").strip():
             found.append((AUTHORING, rel, 1, "front matter has no description"))
+        if len(meta.get("description", "").strip()) > 1024:
+            found.append((AUTHORING, rel, 1, "front matter description is longer than 1024 characters"))
+        if len(n) > 64:
+            found.append((AUTHORING, rel, 1, f"skill name is longer than 64 characters: {n}"))
         if level2_section(strip_fences((d / "SKILL.md").read_text(encoding="utf-8")), "Workflow") is None:
             found.append((AUTHORING, rel, 0, "SKILL.md has no ## Workflow section"))
         if (d / "scripts").is_dir() and not (d / "scripts" / (n + ".py")).exists():

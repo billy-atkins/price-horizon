@@ -17,7 +17,7 @@ A skill captures a procedure this repo has already worked out, so the next agent
 
 **Name it verb-target, in kebab-case —** `author-mermaid-diagram`, not `mermaid` or `diagrams`. The verb states the action, the target states what it acts on, and someone scanning the directory can tell whether a skill applies without opening it. That directory name is the skill's name everywhere else it appears.
 
-**`SKILL.md` is the entry point —** it opens with YAML front matter carrying `name`, matching the directory, and `description`. Write the description to answer "when would someone reach for this", not "what is this about": a description that only names the subject leaves a reader guessing at the trigger, which is the one thing it exists to remove.
+**`SKILL.md` is the entry point —** a skill takes the Agent Skills format (`specs/methodology/external-references.md § External References [Name: Agent Skills]`), its `SKILL.md` opening with YAML front matter carrying `name`, matching the directory and at most 64 characters, and `description`, at most 1,024 characters. Write the description to answer "when would someone reach for this", not "what is this about": a description that only names the subject leaves a reader guessing at the trigger, which is the one thing it exists to remove.
 
 **A skill's steps sit under a `## Workflow` heading —** in its `SKILL.md`, and in each reference adding steps, in the order they run, each step a `###` heading or a bold lead-in. The check on an operating rule finds the step carrying it out there, by the citation the step carries (`specs/methodology/scope.md § Rules and Skills`).
 

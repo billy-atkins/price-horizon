@@ -4,7 +4,7 @@ Spec of Record governs files by kind, each kind with what it holds and what name
 
 | Kind | Holds | Named by |
 |---|---|---|
-| Agent instructions | the method's entry point, and a project's own instructions to an agent | `specs/AGENTS.md`, and `AGENTS.md` at the project's root |
+| Agent instructions | the method's entry point, and a project's own instructions to an agent, each an AGENTS.md file (`specs/methodology/external-references.md § External References [Name: AGENTS.md]`) | `specs/AGENTS.md`, and `AGENTS.md` at the project's root |
 | Specs | the specifications, the methodology among them | their place under `specs/`, `specs/AGENTS.md` aside |
 | Skills | the procedures that apply the method's rules, and the code their scripts share | `specs/methodology/skills.md` |
 | Working files | the working files | `specs/methodology/working-files.md § The Working Files` |
@@ -24,6 +24,7 @@ specs/
 │   ├── architecture.md
 │   ├── acceptance-scenarios.md
 │   ├── code.md
+│   ├── external-references.md
 │   ├── glossary.md
 │   ├── modeling-constructs.md
 │   ├── scope.md

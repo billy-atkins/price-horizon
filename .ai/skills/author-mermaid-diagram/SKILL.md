@@ -73,7 +73,7 @@ Left unpinned, a preview extension, a hosted renderer and a local CLI can each p
 
 ## When a render surprises you
 
-The trap table covers what has already bitten this project. For anything else, the upstream documentation is the place to look, starting from <https://mermaid.ai/open-source/intro/getting-started.html> and following through to the flowchart syntax and configuration pages.
+The trap table covers what has already bitten this project. For anything else, the upstream documentation is the place to look: the flowchart syntax, and a diagram's front matter configuration, at the version `specs/methodology/external-references.md § External References [Name: Mermaid]` pins, and the pages it links to.
 
 Treat what you find there as a candidate, not an answer. Documented behaviour and observed behaviour diverge often enough to matter: the `direction` keyword inside a subgraph is documented as being ignored when any of that subgraph's nodes link outside it, and one engine honours it anyway while another does not, so a diagram can look correct and be one renderer away from reflowing. Invisible links are documented as altering node positioning, and testing showed they do nothing at all to subgraph placement. Both of those cost less to test than to argue about. Render it and look.
 

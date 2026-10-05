@@ -32,7 +32,7 @@ The project's own `AGENTS.md`, at its root, holds that project's own instruction
 - which spec a fact belongs in, at which altitude and in which file, and the persona each spec, and the code they govern, is written as;
 - how a capability domain is named, how a product file names the technical files behind it, what a product module is and what a change to its code reads, and where an open question is recorded;
 - what the technical stack and the environments hold;
-- where a fact has its one home, which citations are allowed, how a section is titled and cited, and which renderings of a fact are kept in step;
+- where a fact has its one home, which citations are allowed, how a section is titled and cited, how an outside standard the canon relies on is registered and cited, and which renderings of a fact are kept in step;
 - when a structured construct is required instead of prose, how markup is written, and how a diagram is drawn and sourced;
 - when a capability owes acceptance scenarios;
 - what a finished spec reads like and the trade-off that belongs in one, the clear prose it is written in, where an example is drawn from and how a number is used;
@@ -59,7 +59,7 @@ The detail files that govern what a spec says, and the one governing code, are n
 
 **A persona for the methodology, the application specs and their code —** `spec-placement.md` also gives the persona the methodology, the product specs, the technical specs and the code they govern are each written as, and the adversarial review of a design changing them framed as.
 
-**Sourcing and citation depends on placement and feeds back into it —** `sourcing-and-citation.md` governs where a fact lives, how everywhere else points at it, by a citation to a stable heading and never by direction, and what happens afterward when the fact changes. Its layering rules are stated in terms of the directories placement defines. The dependency runs both ways in one respect: deciding a fact's one home is a placement decision made under a sourcing rule, which is why the two are the pair most often consulted together.
+**Sourcing and citation depends on placement and feeds back into it —** `sourcing-and-citation.md` governs where a fact lives, how everywhere else points at it, by a citation to a stable heading and never by direction, how an outside standard the canon relies on is registered, its records held in `external-references.md` and cited by each section adopting one, and what happens afterward when the fact changes. Its layering rules are stated in terms of the directories placement defines. The dependency runs both ways in one respect: deciding a fact's one home is a placement decision made under a sourcing rule, which is why the two are the pair most often consulted together.
 
 A fact stated once is often rendered in more than one place: a counterpart spec on the other side of the product and technical split, a directory's own `architecture.md`, a diagram wherever it sits. None of those renderings keeps itself current, so each is a place to revisit when the fact it restates changes, an obligation that outlasts the writing of the file.
 
