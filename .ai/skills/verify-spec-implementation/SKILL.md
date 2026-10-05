@@ -33,7 +33,7 @@ For each annotated unit, read the sections it cites, and judge whether the unit 
 
 ### Report, and settle as an audit
 
-Write the report to `.ai/tmp/verify-spec-implementation/`, one file per run, clearing an earlier report of the same scope, per `specs/methodology/working-files.md § The Working Files`. Name each finding with its file, its line, what it fails and the rule or spec it fails. Run as a design changing code's post-apply audit, its findings are settled with the user as `specs/methodology/working-files.md § A Design Document` has changes after approval.
+Write the report to `.ai/tmp/verify-spec-implementation/`, one file per run, clearing an earlier report of the same scope, per `specs/methodology/working-files.md § The Working Files`. Name each finding with its file, its line, what it fails and the rule or spec it fails. Run as a design changing code's post-apply audit, its findings are settled with the user by `specs/methodology/working-files.md § A Design Document § Changes After Approval`.
 
 ## The checks
 

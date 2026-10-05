@@ -141,11 +141,16 @@ Run only once the script's diagram check passes; if it fails, the work is fixing
 
 A run states the unit it covered and a verdict on it: current, current with named fixes, or drifted. Findings are rows in one of the shapes this section gives, depending on what kind of defect it is.
 
+**Construct:** Decision Table
+
+**Conditions:** Defect
+
 | Defect | Row |
 |---|---|
 | A summary disagrees with what it summarizes | the file, the claim, the source, and which compression distortion it is |
 | A required thing is absent, or sits on the wrong side | the location, the rule it breaks, and what is missing or misplaced |
 | A rule has two homes | both statements, the home chosen, and, where it was hoisted, the usages that forced its height |
+| Any other rule broken | the location, the rule it breaks, and what is wrong |
 
 A report also carries what was examined and declined: the candidate that had the shape of a defect and turned out not to be one, with the reason it failed the test. This is not padding and not optional. An audit's expensive half is arriving at the judgment that something suspicious is correct, and a report that keeps only the findings throws that half away, so the next run pays for it again and may reach the opposite answer. Declining a candidate in writing is also what makes an over-eager audit reviewable: a reader can check a rejection as easily as a finding.
 
@@ -158,6 +163,10 @@ A finding becomes a design document (`specs/methodology/working-files.md § A De
 `specs/AGENTS.md § Design, Refactor, Refine` covers briefing a reader, verifying findings before acting on them, and who runs an audit. All of it applies. What an audit run by the content's own author costs here is a confident sweep that misses the section its author forgot existed.
 
 ## Scoping a run
+
+**Construct:** Decision Table
+
+**Conditions:** Audit
 
 | Audit | Unit |
 |---|---|
@@ -214,7 +223,7 @@ Each row describes, in the script's own terms, what it checks for the rule it na
 | No file under `specs/` other than `specs/methodology/working-files.md` and `specs/AGENTS.md` names a working file | `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` |
 | Every bold span opens a line, after any list marker, quote marker and indentation, and closes on a colon inside the bold, a field, or a space and an em dash inside the bold, a bold lead-in; bold italic and underscore bold are reported wherever they appear | `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Emphasis` |
 | No line opens with italic, after any list marker, quote marker and indentation; underscore italic goes unchecked, since it cannot be told apart from an identifier such as retention_purge written outside backticks | `specs/methodology/modeling-constructs.md § Emphasis` |
-| Every record citation resolves to a record section, names each of its type's identifying fields in the type's order and no other, separated by `; `, and matches exactly one record; brackets on a section that is not a record section are a malformed record citation; and an identifying value holds no `;` | `specs/methodology/sourcing-and-citation.md § Writing a Citation` |
+| Every record citation resolves to a record section, names each of its type's identifying fields in the type's order and no other, separated by `; `, and matches exactly one record; brackets on a section that is not a record section name a part of the construct the section declares, one State, Step, Task or Name that construct has and a part of it holds, and are malformed on a section declaring none; and an identifying value holds no `;` | `specs/methodology/sourcing-and-citation.md § Writing a Citation` |
 | No heading title contains `[` | `specs/methodology/sourcing-and-citation.md § Titling a Heading` |
 | Under `specs/`, an `Open Questions` section is its file's last top-level section and holds an optional `**Diagrams:**` field, then a `**Records:**` field of at least one record, one list item each, and nothing else; a blank line precedes each section field and each record, and none falls inside a record; each record is its `**Name:**`, `**Open Question:**`, `**Provisional Answer:**` and `**Impacts:**` fields in that order, the later ones indented two spaces, its Impacts carrying at least one section citation, and no two records share a Name | `specs/methodology/modeling-constructs.md § Constructs § Record Form`, `specs/methodology/spec-placement.md § An Open Question` |
 | In `specs/application/technical/environments.md`, every environment's section opens with one `**Kind:**` field, on a line of its own, whose value is local, integration, shared or production, no other Kind field appears, exactly one environment is local, and every tools table is headed Tool, Version and Purpose with at least one install column after them, and every tasks table Task, Command and Does, with Runs On after them where a task needs it | `specs/methodology/spec-placement.md § Environments` |

@@ -17,13 +17,17 @@ The two drawings also do not divide the building the same way. An architect orga
 
 **When a fact needs both —** state the plain form in the product spec, the exact mechanism in the technical spec, and have each name the other, so the two cannot drift apart silently.
 
-**Different renderings, not two levels of detail —** a construct modeling one fact may render differently on each side. How it renders on each is a Decision Table:
+**Different renderings, not two levels of detail —** a construct modeling one fact may render differently on each side:
+
+**Construct:** Decision Table
+
+**Conditions:** Construct
 
 | Construct | Product spec | Technical spec |
 |---|---|---|
-| DAG or State Machine, for a process | a business-readable table of its steps, decision points and outcomes | the DAG or State Machine that carries it out |
+| "DAG", "State Machine for a process" | a business-readable table of its steps, decision points and outcomes | the DAG or State Machine that carries it out |
 | Constraint | the plain guarantee | its enforcement, what its Enforced by names |
-| Lifecycle, State Machine for an entity's or a system's status, Decision Table, Decision Tree or Record Form | the construct itself | the same construct |
+| "Lifecycle", "State Machine for an entity's or a system's status", "Decision Table", "Decision Tree", "Record Form" | the construct itself | the same construct |
 | Algorithm | no rendering, since a business reader has no use for step-by-step computation | the Algorithm |
 
 **A promise that cannot be built —** writing the technical spec tests a product promise against what is actually possible. A promise no mechanism can make true is amended in the product spec, as the user decides (`§ Personas`), rather than left standing.
@@ -70,12 +74,18 @@ A directory's own mapping table, where it has one, is the exception that proves 
 
 **Check the directory's `index.md` before adding a file —** prefer extending an existing spec over creating a new one that duplicates its content.
 
-**When a subject earns its own file, and when a directory earns a subfolder —** a subject area here means a product capability domain on the product side and a service on the technical side; the test is the same for both. Where a subject area goes is a Decision Table:
+**When a subject earns its own file, and when a directory earns a subfolder —** a subject area here means a product capability domain on the product side and a service on the technical side; the test is the same for both:
+
+**Construct:** Decision Table
+
+**Conditions:** Does the subject area decompose into sub-parts each substantial enough to carry its own promise and its own scenarios independently of the others?
 
 | Does the subject area decompose into sub-parts each substantial enough to carry its own promise and its own scenarios independently of the others? | Placement |
 |---|---|
 | Yes | its own subfolder, one file per such sub-part |
-| No, it stays one cohesive mechanism, however many internal facets it has | a loose file at the directory's root |
+| No | a loose file at the directory's root |
+
+A subject area that does not decompose so stays one cohesive mechanism, however many internal facets it has.
 
 A sub-topic that still needs another sub-topic's context to make sense is a heading inside the file of the one whose context it needs. A subject area that is cross-cutting, used by more than one other and owned by none, sits at the directory's root, never inside another's subfolder, and is its own subfolder or a loose file as the table decides.
 
@@ -187,7 +197,13 @@ A technology only some environments use is stated in those environments instead 
 
 The technical specs hold one environments file, `environments.md` at their root beside the stack file, with a section for each environment the system is built, tested or run in, titled with the name the project gives it. An environment states only what differs from the stack (`§ The Technical Stack`), so the stack stays the home of each technology every environment uses, and of each version, and no environment restates them. An environment holds no secret value, credential or host name; it names at most the vault or configuration they come from.
 
-Each environment's section opens with a `**Kind:**` field (`specs/methodology/modeling-constructs.md § Fields`), its value one of a closed set, so what this section asks of an environment follows from its role, never from its name. What each kind owes is a Decision Table:
+Each environment's section opens with a required `**Kind:**` field (`specs/methodology/modeling-constructs.md § Fields`), its value one of a closed set, so what this section asks of an environment follows from its role, never from its name:
+
+**Construct:** Decision Table
+
+**Conditions:** Kind
+
+**Annotations:** Holds
 
 | Kind | What it owes | Holds |
 |---|---|---|
@@ -215,12 +231,12 @@ As it works, the agent writing code runs the targeted form of a test task on the
 
 An open question is recorded in the spec whose area it applies to, methodology, product or technical, and in the file whose scope covers everything the question impacts. That file must be able to cite every section the question's Impacts names (`specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`). A file's open questions sit in a record section titled `Open Questions`, the file's last top-level section, so a reader finds them all in one place, after the settled content they qualify. Each is a record in the Record Form (`specs/methodology/modeling-constructs.md § Constructs § Record Form`), of the type named Open Questions:
 
-| Field | Identifies | Holds |
-|---|---|---|
-| Name | yes | a short name for what is undecided |
-| Open Question | no | what is undecided, asked as a question |
-| Provisional Answer | no | what the specs rely on until it is settled, stated as settled prose would state it |
-| Impacts | no | prose naming each thing that relies on the provisional answer, with a citation of the section holding it; where that section holds more, also the step, row or data field that relies on it, named by what it says, or by its number for an Algorithm's or a Decision Tree's step |
+| Field | Identifies | Required | Default Value | Holds |
+|---|---|---|---|---|
+| Name | yes | yes | | a short name for what is undecided |
+| Open Question | no | yes | | what is undecided, asked as a question |
+| Provisional Answer | no | yes | | what the specs rely on until it is settled, stated as settled prose would state it |
+| Impacts | no | yes | | prose naming each thing that relies on the provisional answer, with a citation of the section holding it, or, where that section holds more, of the part of a construct that relies on it (`specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct`); a data field that relies on it is named by what it says beside its section's citation |
 
 A sentence that relies on the provisional answer, and would otherwise read as settled, cites the record wherever `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` allows that citation, so a reader meets the question from the text that depends on it.
 

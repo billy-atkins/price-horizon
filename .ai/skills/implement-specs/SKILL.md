@@ -41,7 +41,7 @@ Take the design through `specs/AGENTS.md § Design, Refactor, Refine`: get it wo
 
 ### Ask for approval
 
-Ask for approval as a choice of approved, approved and apply, or not approved, as `specs/methodology/working-files.md § A Design Document`'s state machine has a design move, approved and apply offered only once its Depends On names none.
+Ask for approval as a choice of approved, approved and apply, or not approved, as `specs/methodology/working-files.md § A Design Document § The States It Moves Through` has a design move, approved and apply offered only once its Depends On names none.
 
 ### Write the code
 
@@ -49,4 +49,4 @@ On the go-ahead, with nothing else uncommitted and no other design applying in t
 
 ### Check your own work, then verify-spec-implementation's
 
-Before anyone else reads the code, check it against the design, per `specs/AGENTS.md § Design, Refactor, Refine`: every unit written, every annotation naming a heading that exists, sorted and as narrow as the unit, the wiring carrying no spec's rule, and, having run the targeted tests citing the specs it carries out as it worked, every build, lint and test task of the local environment passing, per `specs/methodology/spec-placement.md § Environments`, which says what to present where the specs give none. Record the check in the design's passes. Then `.ai/skills/verify-spec-implementation/` runs as its post-apply audit; settle each finding with the user as `specs/methodology/working-files.md § A Design Document` has changes after approval, reverting the code it wrote where a finding exposes a flaw in the design or the user does not approve a tactical fix to that code. Once each is settled, commit the code on the user's go-ahead, one commit for the design, and move its Status to complete.
+Before anyone else reads the code, check it against the design, per `specs/AGENTS.md § Design, Refactor, Refine`: every unit written, every annotation naming a heading that exists, sorted and as narrow as the unit, the wiring carrying no spec's rule, and, having run the targeted tests citing the specs it carries out as it worked, every build, lint and test task of the local environment passing, per `specs/methodology/spec-placement.md § Environments`, which says what to present where the specs give none. Record the check in the design's passes. Then `.ai/skills/verify-spec-implementation/` runs as its post-apply audit; settle each finding with the user by `specs/methodology/working-files.md § A Design Document § Changes After Approval`, reverting the code it wrote where a finding exposes a flaw in the design or the user does not approve a tactical fix to that code. Once each is settled, commit the code on the user's go-ahead, one commit for the design, and move its Status to complete.

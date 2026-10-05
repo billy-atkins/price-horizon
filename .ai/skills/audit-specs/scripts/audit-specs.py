@@ -88,7 +88,10 @@ RECORD_TYPES = {
 # modeling-constructs.md § Fields: every key a form declares, and where that form places it.
 FIELDS = "modeling-constructs.md § Fields"
 FIELD_KEYS = {"Caption": "diagram", "Sources": "diagram",
-              "Diagrams": "record section", "Records": "record section", "Kind": "environment"}
+              "Diagrams": "record section", "Records": "record section", "Kind": "environment",
+              "Construct": "construct", "Hit Policy": "construct", "Conditions": "construct",
+              "Annotations": "construct", "Input Values": "construct", "Output Values": "construct",
+              "Default Output": "construct", "Inputs": "construct", "Output": "construct"}
 # spec-placement.md § Environments: the environments file, and the closed set of kinds
 ENVIRONMENTS = "specs/application/technical/environments.md"
 KINDS = ("local", "integration", "shared", "production")
@@ -420,6 +423,9 @@ def field_findings(r, body, found):
             ok = title in RECORD_TYPES and not indent and not dash
         elif place == "environment":
             ok = r == ENVIRONMENTS and not indent and not dash
+        elif place == "construct":
+            # modeling-constructs.md § Constructs § Declaring a Construct: a paragraph of its own
+            ok = not indent and not dash
         else:
             ok = title in RECORD_TYPES and key in RECORD_TYPES[title]["fields"] and bool(indent or dash)
         if not ok:
@@ -430,6 +436,53 @@ def field_findings(r, body, found):
             found.append((RECORD_FORM, r, i + 1, f"the {key} field directly after a non-blank line"))
 
 
+# modeling-constructs.md § Constructs § Declaring a Construct: a part of a construct is named by
+# its construct's section and one identifier, read from the column its construct's tables give it,
+# and each construct holds only the kinds of part it has.
+PART_COLUMNS = {"State": "state", "Step": "Step", "Task": "task", "Name": "Name"}
+PART_KEYS = {"Lifecycle": {"State", "Name"}, "State Machine": {"State", "Name"},
+             "Decision Table": {"Name"}, "Decision Tree": {"Step"}, "DAG": {"Task"},
+             "Algorithm": {"Step"}, "Constraint": {"Name"}}
+
+
+def part_citation(sel, path, target, text_of, r, line, found):
+    """sourcing-and-citation.md § Writing a Citation: a part's citation names one identifier
+    of the construct its section declares, and a part of that construct holds it."""
+    rule = "sourcing-and-citation.md § Writing a Citation"
+    body = text_of[path]
+    h, end = sections(body)[target]
+    own = strip_fences(body).split("\n")[h + 1:end]
+    start = next((k for k, l in enumerate(own) if l.startswith("**Construct:**")), None)
+    if start is None:
+        found.append((rule, r, line, f"a bracket on a section that is no record section and declares no construct: § {target}"))
+        return
+    construct = own[start][len("**Construct:**"):].strip()
+    # the block: the declaration, its fields and its tables, up to the first other line
+    block = []
+    for l in own[start:]:
+        if l.strip() and not l.startswith("|") and not FIELD_LINE.match(l) and not l.startswith("- "):
+            break
+        block.append(l)
+    m = KEY_VALUE.match(sel.strip())
+    if not m or m.group(1) not in PART_KEYS.get(construct, set()) or ";" in sel:
+        found.append((rule, r, line, f"a part citation not written as one identifier a {construct} has: [{sel}]"))
+        return
+    column, value = PART_COLUMNS[m.group(1)], m.group(2).strip()
+    header, values = None, []
+    for row in block:
+        if not row.startswith("|"):
+            header = None
+            continue
+        cells = [c.strip() for c in row.strip().strip("|").split("|")]
+        if header is None:
+            header = cells
+        elif not set(row.replace("|", "").strip()) <= set("-: ") and column in header:
+            values.append(cells[header.index(column)])
+    # a Decision Tree's step is named by the number its branches share before the dot
+    if not [v for v in values if v == value or (column == "Step" and v.startswith(value + "."))]:
+        found.append((rule, r, line, f"a part citation matches no part: § {target} [{sel}]"))
+
+
 def record_citation(sel, path, target, text_of, r, line, found):
     """sourcing-and-citation.md § Writing a Citation: a record citation names every
     identifying field of its type, in order, and matches exactly one record."""
@@ -437,7 +490,7 @@ def record_citation(sel, path, target, text_of, r, line, found):
     title = target.split(" § ")[-1]
     spec = RECORD_TYPES.get(title)
     if not spec:
-        found.append((rule, r, line, f"a record citation on a section that is no record section: § {target}"))
+        part_citation(sel, path, target, text_of, r, line, found)
         return
     pairs = [KEY_VALUE.match(p.strip()) for p in sel.split("; ")]
     if not all(pairs):
