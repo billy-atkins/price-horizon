@@ -30,6 +30,8 @@ specs/AGENTS.md
 
 A citation pointing down a layer sends the reader somewhere for a specific purpose; one pointing up a layer gives background that benefits the local text.
 
+What a citation may name is a Decision Table whose hit policy is Collect, every row its source matches granting what that row lists:
+
 | From | May cite |
 |---|---|
 | A product spec | another product spec |
@@ -93,15 +95,16 @@ Other text is cited, never pointed at by direction. A sentence referring to text
 
 A direction holds only while nothing moves. Reorder steps, insert a section or move a table, and every direction pointing across the change silently points at the wrong text. A citation follows its heading wherever it moves under the same parent, and once the heading moves elsewhere or is retitled, the citation fails loudly, reported by the audit script. A spec written with directions leaves that trap for whoever edits it next; one written with citations can be reordered freely. Text worth referring to sits in a section of its own; where it does not, it is given a heading before it is cited (`§ Titling a Heading`).
 
-These wordings are not directions:
+Whether a wording is a direction is a Decision Table whose hit policy is First:
 
-| Wording | Why it is no direction |
-|---|---|
-| containment, naming what a section or file containing the text holds: "this section's lifecycle", "this Workflow's steps" | text moved within what it names stays within it |
-| a word whose subject is where something sits: a heading one level below another, a node drawn above the flow | it sends the reader to no text |
-| a sentence introducing the block directly under it: a table, a list, a code block or a construct | its place joins the two |
+| Wording | A direction | Why |
+|---|---|---|
+| containment, naming what a section or file containing the text holds: "this section's lifecycle", "this Workflow's steps" | no | text moved within what it names stays within it |
+| a word whose subject is where something sits: a heading one level below another, a node drawn above the flow | no | it sends the reader to no text |
+| a sentence introducing the block directly under it: a table, a list, a code block or a construct | no | its place joins the two |
+| any other word sending the reader to other text, however it is phrased | yes | it holds only while nothing moves |
 
-Any other word sending the reader to other text is a direction, however it is phrased. A sentence introducing the block under it says what the block is for, never where it is: "the following Algorithm" and "these parts" are dropped, not kept. Nothing goes between such a sentence and its block, since the reader would hear one thing introduced and see another. Text that must introduce something further away is no such sentence: the content it introduces is given a section of its own and cited.
+A sentence introducing the block under it says what the block is for, never where it is: "the following Algorithm" and "these parts" are dropped, not kept. Nothing goes between such a sentence and its block, since the reader would hear one thing introduced and see another. Text that must introduce something further away is no such sentence: the content it introduces is given a section of its own and cited.
 
 ## Keeping Renderings in Step
 

@@ -19,14 +19,14 @@ The title is the same every time and does not restate the capability, because th
 
 ## Deciding What to Write
 
-A capability's own section is the only source for its scenarios: never another file's prose about the same subject, and never a case invented from imagination.
+A capability's own section is the only source for its scenarios: never another file's prose about the same subject, and never a case invented from imagination. Which scenarios it owes is a Decision Table:
 
 | Write one scenario for | Proving |
 |---|---|
 | Each promise the section states the capability delivers | that one concrete case reaches the promised outcome |
-| Each guardrail or exception the same section states | that the guardrail actually triggers in place of the promise |
+| Each guardrail the same section states | that the guardrail actually triggers in place of the promise |
 
-A promise is a claim of the form "the output includes X" or "the system does Y." A guardrail is a stated boundary, a stated fallback, or a stated "instead of" clause.
+A guardrail is a stated boundary, exception or fallback, or a stated "instead of" clause. A promise is any other claim the section states, such as "the output includes X" or "the system does Y."
 
 If a scenario would need a case the section's own prose does not already assert, the prose is what is incomplete: fix that first, in whichever section governs the behavior, then write the scenario against the corrected prose.
 

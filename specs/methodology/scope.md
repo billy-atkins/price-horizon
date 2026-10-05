@@ -72,7 +72,7 @@ An agent reads what it loads from a directory in the order the directory's `inde
 The methodology is held to the rules it states:
 
 - it has an `index.md`, and an `architecture.md` summarizing it;
-- a rule that is a lookup is authored as a table;
+- a rule that is a lookup is authored as a Decision Table (`specs/methodology/modeling-constructs.md § Constructs § Decision Table`);
 - its files meet the style rules they set.
 
 The rules on acceptance scenarios and on `technical-specs` frontmatter scope themselves to product specs, and so do not reach it: a methodology file has no product capability to prove and no technical counterpart to name. The rules in `specs/methodology/code.md` reach only code, and so do not reach it either.

@@ -36,7 +36,7 @@ Each design document is a file of its own, one per change taken through `specs/A
 | The Builder's Passes | a `## The Builder's Passes` section | what each pass and each review changed, each under a bold lead-in naming it, and each review named with its report. An adversarial review's lead-in opens `Adversarial review`, and a post-apply audit's `Post-apply audit`. Each of those two names the model and reasoning effort it ran on, as `on {model} at {effort} effort`, the effort one of the levels `specs/AGENTS.md § Design, Refactor, Refine` names, or as `on {model} as the agent allows` where the agent could not apply the effort chosen, and records the flaws the user settled among its findings |
 | Deliberately Left Alone | a `## Deliberately Left Alone` section | each change considered and declined, with the reason, and each piece of work deferred, named by the design document spawned for it or the follow-up logging it |
 
-**The kinds —**
+**The kinds, a Decision Table of what each bounds a change to —**
 
 | Specs | Bounds the change to |
 |---|---|
@@ -66,16 +66,17 @@ Every file a design's Target names is of its declared kind or of `neither`, or i
 
 It reports what it finds, and edits nothing but the Validated field, which it stamps once the document passes. The stamp is its record in the design, and its report is named in no pass, since naming it would change what it stamped. The adversarial review reviews the design, and the validation review the record of it, so each keeps its own focus. A design changed after its stamp no longer matches it, so a stale validation is read from the file and never cleared by hand.
 
-**A change needing both kinds is split —** its canon design reviews the application specs for what it leaves out of step there, records that in its Impact on the Application Specs, and edits none of them. That application work goes to the application design the canon design was spawned from, where there is one, or else is spawned or logged as this section's spawning paragraph has it, and the canon and application designs may be worked in concert. A design changing the specs that leaves code out of step edits none of the code either: it records the code its change leaves out of step in its Scope, and that work goes to a design changing code, spawned or logged the same way. What the canon design's post-apply audit finds in the application specs is application work too, added to what its review handed on or handed on the same way, so the canon design completes without editing them. Where the application work finds the canon design wrong, the canon design takes the change while it is in progress or approved, the user reopening an approved one. For any other canon change the application work needs, a change to the canon design once that design is applying or complete among them, the application design spawns a canon design, which blocks it, the user reopening the application design first where it is approved. An application design already applying keeps to what was approved, the canon change spawned or logged without blocking it, as the user decides.
+**A change needing both kinds is split —** its canon design reviews the application specs for what it leaves out of step there, records that in its Impact on the Application Specs, and edits none of them. That application work goes to the application design the canon design was spawned from, where there is one, or else is spawned or logged as this section's spawning paragraph has it, and the canon and application designs may be worked in concert. A design changing the specs that leaves code out of step edits none of the code either: it records the code its change leaves out of step in its Scope, and that work goes to a design changing code, spawned or logged the same way. What the canon design's post-apply audit finds in the application specs settles by this section's table of changes after approval, and what that table hands on is application work too, added to what its review handed on or handed on the same way, so the canon design completes without editing them. Where the application work finds the canon design wrong, the canon design takes the change while it is in progress or approved, the user reopening an approved one. For any other canon change the application work needs, a change to the canon design once that design is applying or complete among them, the application design spawns a canon design, which blocks it, the user reopening the application design first where it is approved. An application design already applying keeps to what was approved, the canon change spawned or logged without blocking it, as the user decides.
 
-**Changes after approval —** once the user approves a design, every change it makes to the files is one the user approved and one the design describes. Each finding of its post-apply audit is presented to the user, and settles by what it is:
+**Changes after approval —** once the user approves a design, every change it makes to the files is one the user approved and one the design describes. Each finding of its post-apply audit is presented to the user, and settles by what it is, in a Decision Table whose hit policy is First:
 
 | Finding | Settles |
 |---|---|
-| a tactical fix the user approves | made as a direct edit (`specs/AGENTS.md § Design, Refactor, Refine`), and recorded in the audit's pass |
-| a canon design's, in the application specs | handed on as application work, as this section's paragraph on a change needing both kinds has it |
 | one the user judges wrong | set aside, and recorded in the pass with the reason |
-| one exposing a flaw in the design, or a fix the user does not approve | sends the design back to in progress: its changes to the files are reverted, and it is revised and worked afresh from the files as they stood before its apply, with what was learned |
+| one exposing a flaw in the design, or proposing a tactical fix to the design's own edits that the user does not approve | sends the design back to in progress: its changes to the files are reverted, and it is revised and worked afresh from the files as they stood before its apply, with what was learned |
+| a canon design's, in the application specs | handed on as application work, as this section's paragraph on a change needing both kinds has it |
+| one outside the design's own edits | settled as the user chooses, and recorded in the pass: folded in as a direct edit (`specs/AGENTS.md § Design, Refactor, Refine`); dropped; logged as a follow-up; or given a design, one of its own, standing apart or spawned from this one, or an existing design not yet applied taking it in, as `§ A Steering Decision` records a decision about other work |
+| a tactical fix the user approves | made as a direct edit (`specs/AGENTS.md § Design, Refactor, Refine`), and recorded in the audit's pass |
 
 **Applying and committing —** a design's apply begins only once nothing else is uncommitted and no other design is applying in the same checkout. Its changes are committed on their own, one commit for each design even where a branch holds several, so a revert takes exactly that design's changes; where the project has no version control, they are reverted by hand. A design abandoned while applying has the edits it wrote reverted.
 
@@ -98,7 +99,7 @@ Transitions:
 | in-progress | approved | the user approves it | its adversarial review is taken in, with another after any revision that changed its structure (`specs/AGENTS.md § Design, Refactor, Refine`), its validation review has stamped it, and each design its Depends On names is approved or applying |
 | approved | in-progress | the user reopens it, a design its Depends On names goes back to in progress, or one finishes | none |
 | approved | applying | the user gives the go-ahead to apply | its Depends On names none |
-| applying | in-progress | a finding of its post-apply audit exposes a flaw in the design, or the user does not approve its fix | none |
+| applying | in-progress | a finding of its post-apply audit exposes a flaw in the design, or proposes a tactical fix to the design's own edits that the user does not approve | none |
 | applying | complete | the user approves its commit | its edits are written, and each finding of its post-apply audit is settled without sending it back to in progress |
 | applying | complete | none | its edits are written, each finding of its post-apply audit is settled without sending it back to in progress, and the project has no version control |
 | not-started | abandoned | the user abandons it | none |
@@ -124,24 +125,24 @@ Its post-apply audit is `.ai/skills/verify-spec-implementation/`, reading the co
 
 ## A Steering Decision
 
-A design's Steering Decisions record only the user's steers, the decisions a steering decision records (`specs/methodology/glossary.md`), new scope or a flaw's fix among them. A steer differs from the user's direction about how the work proceeds, and from a decision about other work, which is no steer of the design being worked:
+A design's Steering Decisions record only the user's steers, the decisions a steering decision records (`specs/methodology/glossary.md`), new scope or a flaw's fix among them. A steer differs from the user's direction about how the work proceeds, and from a decision about other work, which is no steer of the design being worked. How each is recorded, an answer carrying more than one taken a part at a time, is a Decision Table:
 
-| | A steer | Direction about the work | A decision about other work |
+| What the user decides | Recorded | Tells a reviewer | Sounds like |
 |---|---|---|---|
-| Sounds like | "split the canon and application work", "count each review phase apart", "yes, take in the new scope we found" | "yes, fold in the tactical fixes", "rerun the validation review", "approved and apply", "create the branch", "medium effort", "G1 to G6 are flaws" | "the implement-specs design should weigh renaming the workstack", "keep the billing service stateless when we design it" |
-| Recorded | in Steering Decisions, its Steer quoting the words that decide the design | not as a steer; where the record needs it, in the passes, as the Builder's Passes row of `§ A Design Document` has them, or in the Status field | where that work is held |
-| Tells a reviewer | how the design was formed | nothing about what the design is | nothing about the design being worked |
+| A steer | in Steering Decisions, its Steer quoting the words that decide the design | how the design was formed | "split the canon and application work", "count each review phase apart", "yes, take in the new scope we found" |
+| Direction about the work | not as a steer; where the record needs it, in the passes, as the Builder's Passes row of `§ A Design Document` has them, or in the Status field | nothing about what the design is | "yes, fold in the tactical fixes", "rerun the validation review", "approved and apply", "create the branch", "medium effort", "G1 to G6 are flaws" |
+| A decision about other work | where that work is held | nothing about the design being worked | "the implement-specs design should weigh renaming the workstack", "keep the billing service stateless when we design it" |
 
 **A go-ahead to take in findings —** is a steer for the findings that change what the design is and direction for the tactical ones; an answer carrying both is recorded for the part that decides the design.
 
-**A decision about other work —** is recorded where that work is held, so whoever takes the work up finds it in the files rather than in one agent's memory, and a decision about more than one design is recorded in each:
+**A decision about other work —** is recorded where that work is held, so whoever takes the work up finds it in the files rather than in one agent's memory, and a decision about more than one design is recorded in each. What becomes of the decision, by where the work is held, is a Decision Table:
 
 | Where the work is held | The decision |
 |---|---|
-| a design not yet approved | is its steer, applied when that design is worked |
+| a not-started or in-progress design | is its steer, applied when that design is worked |
 | an approved or applying design | is put to the user, who decides whether to reopen that design for it, an applying one only as a flaw in what it applies (`§ A Design Document`): reopened, the design takes it as its steer; not reopened, it is dropped, or, where the user wants it kept for later, logged as a follow-up |
-| only a follow-up (`§ A Follow-up`) | goes in the follow-up's body, and the design taking up the follow-up records it as its steer |
-| nothing | the user chooses between a not-started design recorded for it, the decision its Source where it asks for the work and its steer otherwise, and a new follow-up |
+| a follow-up (`§ A Follow-up`), and no open design | goes in the follow-up's body, and the design taking up the follow-up records it as its steer |
+| no follow-up, and no open design, only a complete or abandoned design or nothing | the user chooses between a not-started design recorded for it, the decision its Source where it asks for the work and its steer otherwise, and a new follow-up |
 
 **Each steer is recorded when it is given —** and the design is revised to apply it before its work goes on, so the design carries how it was formed and never lags a steer it records. The adversarial review reads the steers as background, checking fidelity to them rather than reopening them, and a later revision does not reopen what the user decided. The request that opened the design is its Source, and The Builder's Passes record what each pass changed, never a steer, so each steer is recorded once.
 
