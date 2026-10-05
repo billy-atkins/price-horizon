@@ -7,7 +7,7 @@ specs/methodology/scope.md § Rules and Skills. `--check-scope` runs the checks,
 `--list-candidates` lists places for a reading audit to look, printed apart from any
 finding and never affecting the exit status.
 
-Standard library only. See SKILL.md.
+Standard library and this skill's own helper, constructs.py, only. See SKILL.md.
 """
 
 import argparse
@@ -16,6 +16,8 @@ import re
 import subprocess
 import sys
 from pathlib import Path, PurePosixPath
+
+import constructs
 
 # specs/methodology/scope.md § What Spec of Record Governs names where each kind is named:
 # specs by their place under specs/, the agent instructions by the root AGENTS.md and
@@ -440,6 +442,8 @@ def field_findings(r, body, found):
 # its construct's section and one identifier, read from the column its construct's tables give it,
 # and each construct holds only the kinds of part it has.
 PART_COLUMNS = {"State": "state", "Step": "Step", "Task": "task", "Name": "Name"}
+# the (path, lineage) of each construct a part's citation by Name names, from outside its section
+NAME_CITED = set()
 PART_KEYS = {"Lifecycle": {"State", "Name"}, "State Machine": {"State", "Name"},
              "Decision Table": {"Name"}, "Decision Tree": {"Step"}, "DAG": {"Task"},
              "Algorithm": {"Step"}, "Constraint": {"Name"}}
@@ -450,37 +454,23 @@ def part_citation(sel, path, target, text_of, r, line, found):
     of the construct its section declares, and a part of that construct holds it."""
     rule = "sourcing-and-citation.md § Writing a Citation"
     body = text_of[path]
-    h, end = sections(body)[target]
-    own = strip_fences(body).split("\n")[h + 1:end]
-    start = next((k for k, l in enumerate(own) if l.startswith("**Construct:**")), None)
-    if start is None:
+    declared = [d for d in constructs.declarations(strip_fences(body), sections(body)) if d[4] == target]
+    if not declared:
         found.append((rule, r, line, f"a bracket on a section that is no record section and declares no construct: § {target}"))
         return
-    construct = own[start][len("**Construct:**"):].strip()
-    # the block: the declaration, its fields and its tables, up to the first other line
-    block = []
-    for l in own[start:]:
-        if l.strip() and not l.startswith("|") and not FIELD_LINE.match(l) and not l.startswith("- "):
-            break
-        block.append(l)
+    _, construct, _, tables, _ = declared[0]
     m = KEY_VALUE.match(sel.strip())
     if not m or m.group(1) not in PART_KEYS.get(construct, set()) or ";" in sel:
         found.append((rule, r, line, f"a part citation not written as one identifier a {construct} has: [{sel}]"))
         return
     column, value = PART_COLUMNS[m.group(1)], m.group(2).strip()
-    header, values = None, []
-    for row in block:
-        if not row.startswith("|"):
-            header = None
-            continue
-        cells = [c.strip() for c in row.strip().strip("|").split("|")]
-        if header is None:
-            header = cells
-        elif not set(row.replace("|", "").strip()) <= set("-: ") and column in header:
-            values.append(cells[header.index(column)])
+    values = [row[t["header"].index(column)] for t in tables if column in t["header"]
+              for _, row in t["rows"] if len(row) == len(t["header"])]
     # a Decision Tree's step is named by the number its branches share before the dot
     if not [v for v in values if v == value or (column == "Step" and v.startswith(value + "."))]:
         found.append((rule, r, line, f"a part citation matches no part: § {target} [{sel}]"))
+    elif m.group(1) == "Name" and (path != r or not sections(body)[target][0] < line - 1 < sections(body)[target][1]):
+        NAME_CITED.add((path, target))
 
 
 def record_citation(sel, path, target, text_of, r, line, found):
@@ -657,6 +647,8 @@ def check(root):
         r, body = rel[f], text[f]
         live = strip_fences(body)
         src_layer = layer_of(r)
+        # modeling-constructs.md § Constructs: each declared construct's structure
+        constructs.construct_findings(r, live, found, sections(body))
 
         # Fenced blocks are stripped: a citation shown inside an example is an
         # illustration, not a dependency, and linting one produces a finding
@@ -834,6 +826,8 @@ def check(root):
         for extra in sorted(named - present):
             found.append(("spec-placement.md § Where a File Goes", rel_d + "/index.md", 0, f"a row names {extra}, which is not here"))
 
+    # a Name column, present exactly where a part of its table is cited from outside its section
+    constructs.name_column_findings(text_of, NAME_CITED, found, sections, strip_fences)
     found += scope_findings(root)
     found += glossary_findings(root)
     found += abbreviation_findings(root)
@@ -1444,14 +1438,14 @@ def skill_candidates(root):
     stdlib = set(getattr(sys, "stdlib_module_names", ()))
     if not stdlib:
         out.append(("(this Python)", 0, "imports not checked", "sys.stdlib_module_names needs Python 3.10 or later"))
-    # specs/methodology/skills.md § Authoring a Skill: a skill's entry script may import the code the skills share
+    # specs/methodology/skills.md § Authoring a Skill: a skill's script may import its own helpers beside it and the code the skills share
     lib = {p.stem for p in (base / "lib").glob("*.py")} if (base / "lib").is_dir() else set()
     for n in sorted(names) + (["lib"] if lib else []):
         for py in sorted((base / n).rglob("*.py")):
             for k, line in enumerate(py.read_text(encoding="utf-8").split("\n"), 1):
                 m = re.match(r'^\s*(?:import\s+([A-Za-z_]\w*)|from\s+([A-Za-z_]\w*)[\w.]*\s+import\b)', line)
                 mod = m and (m.group(1) or m.group(2))
-                if mod and stdlib and mod not in stdlib and mod not in lib:
+                if mod and stdlib and mod not in stdlib and mod not in lib and not (py.parent / f"{mod}.py").exists():
                     out.append((py.relative_to(root).as_posix(), k, "import from outside the standard library", line.strip()))
     for n in sorted(names) + (["lib"] if lib else []):
         for f in sorted((base / n).rglob("*.md")):
@@ -1553,6 +1547,10 @@ def main(argv):
             print(f"  {path}:{line}  [{name}]\n    {context}")
         print("\nCandidates for the Ordinals and counts audit: text pointed at by direction, places to read, not findings")
         for path, line, name, context in direction_candidates(root):
+            print(f"  {path}:{line}  [{name}]\n    {context}")
+        print("\nCandidates for the Construct choice and form audit: places to read, not findings")
+        files = [(f.relative_to(root).as_posix(), f.read_text(encoding="utf-8")) for f in md_files(root)]
+        for path, line, name, context in constructs.construct_candidates(files, sections, strip_fences):
             print(f"  {path}:{line}  [{name}]\n    {context}")
     return status
 

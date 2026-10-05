@@ -48,7 +48,7 @@ It leaves the rule setting the form to its home.
 
 A flag setting how an action runs, rather than choosing one, is named for what it holds, `--output-directory`. Flags combine in one run, so a capability added is a flag added. A run naming no action prints the script's usage and exits 2. A flag's words are whole words, and a flag is never taken abbreviated, since an abbreviation can mean more than one thing; so every run's command line says what it does.
 
-**Scripts are Python 3 —** importing only the standard library and the code the skills share, wherever that is achievable. A script needing an install step is a script that will not run at the moment it is needed. Where a capability genuinely requires something external, degrade rather than fail: prefer a local tool when present, a documented remote or manual path when not, and report which one actually ran so a reader knows what they are trusting.
+**Scripts are Python 3 —** importing only the standard library, the skill's own helpers beside its entry script, and the code the skills share, wherever that is achievable. A script needing an install step is a script that will not run at the moment it is needed. Where a capability genuinely requires something external, degrade rather than fail: prefer a local tool when present, a documented remote or manual path when not, and report which one actually ran so a reader knows what they are trusting.
 
 **Record what actually went wrong —** a skill earns its length by naming the failures that motivated it, the trap that only shows up at the wrong moment, the fix that is not obvious from the symptom. Anything derivable from reading the underlying tool's own documentation does not need to be here.
 
