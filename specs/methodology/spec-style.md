@@ -26,7 +26,7 @@ Choosing a star schema over a snowflake schema passes: the reasoning transfers t
 
 ## Clear Prose
 
-Clear prose is measured by the effort it costs its primary reader, not by its count of words. Each kind of file this section reaches is written for a primary reader, without failing its secondary one:
+Clear prose is measured by the effort it costs its primary reader, not by its count of words. Each kind of file this section reaches is written for a primary reader, without failing its secondary one. Which reader each kind is written for is a Decision Table:
 
 | Files | Primary reader | Secondary reader |
 |---|---|---|

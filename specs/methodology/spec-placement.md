@@ -17,13 +17,13 @@ The two drawings also do not divide the building the same way. An architect orga
 
 **When a fact needs both —** state the plain form in the product spec, the exact mechanism in the technical spec, and have each name the other, so the two cannot drift apart silently.
 
-**Different renderings, not two levels of detail —** a construct modeling one fact may render differently on each side:
+**Different renderings, not two levels of detail —** a construct modeling one fact may render differently on each side. How it renders on each is a Decision Table:
 
 | Construct | Product spec | Technical spec |
 |---|---|---|
 | DAG or State Machine, for a process | a business-readable table of its steps, decision points and outcomes | the DAG or State Machine that carries it out |
-| Constraint | the plain guarantee | its enforcement, the step that actually guarantees it |
-| Lifecycle, State Machine for an entity's status, Decision Table, Decision Tree or Record Form | the construct itself | the same construct |
+| Constraint | the plain guarantee | its enforcement, what its Enforced by names |
+| Lifecycle, State Machine for an entity's or a system's status, Decision Table, Decision Tree or Record Form | the construct itself | the same construct |
 | Algorithm | no rendering, since a business reader has no use for step-by-step computation | the Algorithm |
 
 **A promise that cannot be built —** writing the technical spec tests a product promise against what is actually possible. A promise no mechanism can make true is amended in the product spec, as the user decides (`§ Personas`), rather than left standing.
@@ -70,14 +70,14 @@ A directory's own mapping table, where it has one, is the exception that proves 
 
 **Check the directory's `index.md` before adding a file —** prefer extending an existing spec over creating a new one that duplicates its content.
 
-**When a subject earns its own file, and when a directory earns a subfolder —** a subject area here means a product capability domain on the product side and a service on the technical side; the test is the same for both.
+**When a subject earns its own file, and when a directory earns a subfolder —** a subject area here means a product capability domain on the product side and a service on the technical side; the test is the same for both. Where a subject area goes is a Decision Table:
 
-| Situation | Placement |
+| Does the subject area decompose into sub-parts each substantial enough to carry its own promise and its own scenarios independently of the others? | Placement |
 |---|---|
-| A subject area decomposes into multiple sub-parts, each substantial enough to carry its own promise and its own scenarios independently of the others | its own subfolder, one file per sub-part |
-| A sub-topic still needs the others' context to make sense | a heading inside one file |
-| A subject area stays one cohesive mechanism, however many internal facets it has | a loose file at the directory's root |
-| A subject area is cross-cutting, used by more than one other and owned by none | a loose file at the directory's root |
+| Yes | its own subfolder, one file per such sub-part |
+| No, it stays one cohesive mechanism, however many internal facets it has | a loose file at the directory's root |
+
+A sub-topic that still needs another sub-topic's context to make sense is a heading inside the file of the one whose context it needs. A subject area that is cross-cutting, used by more than one other and owned by none, sits at the directory's root, never inside another's subfolder, and is its own subfolder or a loose file as the table decides.
 
 **Why a domain earns a folder —** a folder of files, one per sub-part, serves better than one file:
 
@@ -187,14 +187,14 @@ A technology only some environments use is stated in those environments instead 
 
 The technical specs hold one environments file, `environments.md` at their root beside the stack file, with a section for each environment the system is built, tested or run in, titled with the name the project gives it. An environment states only what differs from the stack (`§ The Technical Stack`), so the stack stays the home of each technology every environment uses, and of each version, and no environment restates them. An environment holds no secret value, credential or host name; it names at most the vault or configuration they come from.
 
-Each environment's section opens with a `**Kind:**` field (`specs/methodology/modeling-constructs.md § Fields`), its value one of a closed set, so what this section asks of an environment follows from its role, never from its name:
+Each environment's section opens with a `**Kind:**` field (`specs/methodology/modeling-constructs.md § Fields`), its value one of a closed set, so what this section asks of an environment follows from its role, never from its name. What each kind owes is a Decision Table:
 
-| Kind | Holds | What it owes |
+| Kind | What it owes | Holds |
 |---|---|---|
-| local | developers' own machines or a development container, where code is written | it names each operating system its developers may use, and the project supports only those; it has tools, a build task, a lint task, and a test task for every kind of test the project has, its acceptance tests among them |
-| integration | continuous integration | it runs every build, lint and test task of the local environment, naming the operating systems it runs them on; a local operating system it does not run them on is supported as stated, not as shown |
-| shared | a deployed environment people or tests use, development, quality assurance, staging or a hotfix environment, say | nothing beyond every environment's own sections |
-| production | the environment serving real users | where a product spec specifies the production environment, a customer's own installation, say, it cites that spec and adds only what the stack and that spec leave open |
+| local | it names each operating system its developers may use, and the project supports only those; it has tools, a build task, a lint task, and a test task for every kind of test the project has, its acceptance tests among them | developers' own machines or a development container, where code is written |
+| integration | it runs every build, lint and test task of the local environment, naming the operating systems it runs them on; a local operating system it does not run them on is supported as stated, not as shown | continuous integration |
+| shared | nothing beyond every environment's own sections | a deployed environment people or tests use, development, quality assurance, staging or a hotfix environment, say |
+| production | where a product spec specifies the production environment, a customer's own installation, say, it cites that spec and adds only what the stack and that spec leave open | the environment serving real users |
 
 Exactly one environment is local.
 

@@ -20,7 +20,7 @@ The steps a change to the application specs owes beyond the Workflow of `.ai/ski
 
 ## Adding a statement changes which rules apply to it
 
-Conventions here are often conditional. `specs/methodology/acceptance-scenarios.md § Deciding What to Write` exempts a guarantee stated *only* in a cross-cutting file from needing a scenario under each capability relying on it. Add that guarantee to a capability's own section and the condition stops holding: it is now a guardrail stated in that section, and a scenario is owed.
+Conventions here are often conditional. `specs/methodology/acceptance-scenarios.md § Deciding What to Write` exempts a guarantee stated *only* in a cross-cutting file from needing a scenario under each capability relying on it. Add that guarantee to a capability's own section and the condition stops holding: it is now a promise or a guardrail stated in that section, and a scenario is owed.
 
 Before adding a sentence, check which conventions currently apply because of where the fact is *not* stated. Citing the existing statement rather than restating it usually keeps the condition intact and owes nothing further, which is also what `specs/methodology/sourcing-and-citation.md § One Home Per Fact` asks for anyway.
 

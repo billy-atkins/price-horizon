@@ -1,12 +1,12 @@
 ## Purpose
 
-This file defines the bounded, approved set of structured modeling constructs, rather than free prose, for authoring specs in this repo. Prose can describe anything, since human language has no limit, but it cannot be checked for what it leaves out: a paragraph can describe a process while never mentioning what happens under some condition, and nothing about reading it flags the gap. Each construct can be checked for exactly that:
+This file defines the bounded, approved set of structured modeling constructs, rather than free prose, for authoring specs in this repo. Prose can describe anything, since human language has no limit, but it cannot be checked for what it leaves out: a paragraph can describe a process while never mentioning what happens under some condition, and nothing about reading it flags the gap. Each construct can be checked for exactly that. What each is checked for is a Decision Table:
 
 | Construct | Checked for |
 |---|---|
 | Lifecycle | a state that is not terminal with no way out, a terminal state with one, or a trigger leading from one state to two |
 | State Machine | a state that is not terminal with no way out, a terminal state with one, two transitions from one state on the same trigger, or on none, that can both be taken at once, a state that cannot stay where, once its work is done, some case takes no transition out of it, a fork no join closes, or a join no fork opens |
-| Decision Table | a combination of its conditions no row covers |
+| Decision Table | a case no row matches, or a row that gives no case its outcome; and, by its hit policy, a case two rows match where it is Unique, or a case two rows match whose outcomes cannot both be carried out where it is Collect |
 | Decision Tree | a branch that goes nowhere |
 | DAG | a task that never runs or never completes |
 | Algorithm | a loop with no stated exit condition, or a comparison with a branch whose outcome is unstated |
@@ -73,13 +73,32 @@ Whether a lifecycle is modeled as a State Machine instead is step 2 of `§ When 
 
 ### Decision Table
 
-A table mapping combinations of largely independent conditions to an outcome.
+A table deciding what follows for a case. Each row states, in its condition columns, the cases it matches, and in its outcome columns what follows for them; its conditions are largely independent of one another. A rule that is a lookup, one condition deciding the outcome, is authored as a Decision Table with a single condition column.
 
-| Condition | Condition | ... | Outcome |
+| Condition | ... | Outcome | ... |
 |---|---|---|---|
 | ... | ... | ... | ... |
 
-State whether a match requires all its conditions to hold, or any one of them.
+Its form is DMN's, the Decision Model and Notation standard for decision tables. Its condition columns come first and its outcome columns after, one or more of each. Columns that only describe or illustrate a row, DMN's annotations, come last; none is a condition or an outcome, so neither the match nor the check reads them. A row matches a case only when all its conditions hold, as in DMN. Each cell tests its own condition as a DMN cell does:
+
+- by a value;
+- by a list of values, any one of which matches;
+- by `not` before a value or a list of values, matching any value but those;
+- by `-`, any value, for a condition the row does not test.
+
+**What is one —** a table that defines each case of a closed set and states what follows for it is a Decision Table, since it decides, unless it is another construct's own table, a Lifecycle's transitions or a Decision Tree's steps, say. A table saying only what a term, a value, a form or an example is, or where something is stated, decides nothing: it is a definition, an index or a catalogue, and no construct. So is a table whose rows sample an open set of cases, since it cannot be checked for a case it leaves out.
+
+**Its hit policy —** which of the rows a case matches give it its outcome, one of the hit policies DMN defines, under DMN's name for it:
+
+| Hit policy | A case |
+|---|---|
+| Unique | matches one row at most, since no two rows can match one case |
+| First | takes the outcome of the first row it matches, so the rows' order states which takes precedence |
+| Collect | takes the outcome of every row it matches, the outcomes combining |
+
+A Collect table's rows are written so that, wherever one case matches two of them, both their outcomes can be carried out. A table's hit policy is Unique, DMN's default, unless the text introducing it names another. That text names the table a Decision Table, so a reader and an audit know it as one.
+
+An outcome decided when any one of several conditions holds is written as a row for each; under Unique, the rows are written so no case matches two. For an outcome decided when condition A is a or condition B is b, one row tests A for a, with `-` for B, and another tests A by `not a` and B for b.
 
 ### Decision Tree
 
@@ -145,7 +164,7 @@ Authored as a table.
 
 | Constraint | Applies to | Enforced by |
 |---|---|---|
-| ... | What the rule constrains | Which Algorithm, DAG, State Machine, or Decision Table step actually guarantees it |
+| ... | What the rule constrains | Which step of an Algorithm, task of a DAG, transition of a State Machine or row of a Decision Table actually guarantees it |
 
 A constraint with nothing in its Enforced by column is an aspiration, not a guarantee: it is treated as an open gap, never left as though stating the rule enforced it.
 
@@ -189,7 +208,7 @@ A Decision Tree. Start at step 1.
 | 1.6 | | An entry of one kind written repeatedly into the specs or the working files, each stating the same named fields, not data the product stores | Use Record Form |
 | 2.1 | Can what holds when the entity would move refuse the move or decide where it goes, or can the entity be in several states at once? | No, every move follows from its trigger alone, and the entity is in one state at a time | Use Lifecycle |
 | 2.2 | | Yes | Use State Machine |
-| 3.1 | Do the conditions have a genuine order of evaluation, where a later condition only makes sense once an earlier one has been answered a certain way? | No, the conditions are independent | Use Decision Table |
+| 3.1 | Do the conditions have a genuine order of evaluation, where a later condition only makes sense once an earlier one has been answered a certain way? | No, each condition makes sense on its own, whichever row takes precedence | Use Decision Table |
 | 3.2 | | Yes | Use Decision Tree |
 | 4.1 | Does the process ever repeat a step under some condition, branch into materially different downstream handling, or have an intentional conditional stop that is not an error case? | No | Use DAG |
 | 4.2 | | Yes | Use State Machine |
