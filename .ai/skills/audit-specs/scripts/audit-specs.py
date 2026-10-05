@@ -7,7 +7,7 @@ specs/methodology/scope.md § Rules and Skills. `--check-scope` runs the checks,
 `--list-candidates` lists places for a reading audit to look, printed apart from any
 finding and never affecting the exit status.
 
-Standard library only. See SKILL.md.
+Standard library and this skill's own helper, constructs.py, only. See SKILL.md.
 """
 
 import argparse
@@ -16,6 +16,8 @@ import re
 import subprocess
 import sys
 from pathlib import Path, PurePosixPath
+
+import constructs
 
 # specs/methodology/scope.md § What Spec of Record Governs names where each kind is named:
 # specs by their place under specs/, the agent instructions by the root AGENTS.md and
@@ -84,11 +86,21 @@ RECORD_TYPES = {
         "home": "spec-placement.md § An Open Question",
         "last_top_level": True,
     },
+    "External References": {
+        "fields": ["Name", "Title", "Version", "URL", "Relation", "Covers"],
+        "identifying": ["Name"],
+        "section_fields": [],
+        "home": "sourcing-and-citation.md § An External Reference",
+        "last_top_level": False,
+    },
 }
 # modeling-constructs.md § Fields: every key a form declares, and where that form places it.
 FIELDS = "modeling-constructs.md § Fields"
 FIELD_KEYS = {"Caption": "diagram", "Sources": "diagram",
-              "Diagrams": "record section", "Records": "record section", "Kind": "environment"}
+              "Diagrams": "record section", "Records": "record section", "Kind": "environment",
+              "Construct": "construct", "Hit Policy": "construct", "Conditions": "construct",
+              "Annotations": "construct", "Input Values": "construct", "Output Values": "construct",
+              "Default Output": "construct", "Inputs": "construct", "Output": "construct"}
 # spec-placement.md § Environments: the environments file, and the closed set of kinds
 ENVIRONMENTS = "specs/application/technical/environments.md"
 KINDS = ("local", "integration", "shared", "production")
@@ -420,6 +432,9 @@ def field_findings(r, body, found):
             ok = title in RECORD_TYPES and not indent and not dash
         elif place == "environment":
             ok = r == ENVIRONMENTS and not indent and not dash
+        elif place == "construct":
+            # modeling-constructs.md § Constructs § Declaring a Construct: a paragraph of its own
+            ok = not indent and not dash
         else:
             ok = title in RECORD_TYPES and key in RECORD_TYPES[title]["fields"] and bool(indent or dash)
         if not ok:
@@ -430,6 +445,41 @@ def field_findings(r, body, found):
             found.append((RECORD_FORM, r, i + 1, f"the {key} field directly after a non-blank line"))
 
 
+# modeling-constructs.md § Constructs § Declaring a Construct: a part of a construct is named by
+# its construct's section and one identifier, read from the column its construct's tables give it,
+# and each construct holds only the kinds of part it has.
+PART_COLUMNS = {"State": "state", "Step": "Step", "Task": "task", "Name": "Name"}
+# the (path, lineage) of each construct a part's citation by Name names, from outside its section
+NAME_CITED = set()
+PART_KEYS = {"Lifecycle": {"State", "Name"}, "State Machine": {"State", "Name"},
+             "Decision Table": {"Name"}, "Decision Tree": {"Step"}, "DAG": {"Task"},
+             "Algorithm": {"Step"}, "Constraint": {"Name"}}
+
+
+def part_citation(sel, path, target, text_of, r, line, found):
+    """sourcing-and-citation.md § Writing a Citation: a part's citation names one identifier
+    of the construct its section declares, and a part of that construct holds it."""
+    rule = "sourcing-and-citation.md § Writing a Citation"
+    body = text_of[path]
+    declared = [d for d in constructs.declarations(strip_fences(body), sections(body)) if d[4] == target]
+    if not declared:
+        found.append((rule, r, line, f"a bracket on a section that is no record section and declares no construct: § {target}"))
+        return
+    _, construct, _, tables, _ = declared[0]
+    m = KEY_VALUE.match(sel.strip())
+    if not m or m.group(1) not in PART_KEYS.get(construct, set()) or ";" in sel:
+        found.append((rule, r, line, f"a part citation not written as one identifier a {construct} has: [{sel}]"))
+        return
+    column, value = PART_COLUMNS[m.group(1)], m.group(2).strip()
+    values = [row[t["header"].index(column)] for t in tables if column in t["header"]
+              for _, row in t["rows"] if len(row) == len(t["header"])]
+    # a Decision Tree's step is named by the number its branches share before the dot
+    if not [v for v in values if v == value or (column == "Step" and v.startswith(value + "."))]:
+        found.append((rule, r, line, f"a part citation matches no part: § {target} [{sel}]"))
+    elif m.group(1) == "Name" and (path != r or not sections(body)[target][0] < line - 1 < sections(body)[target][1]):
+        NAME_CITED.add((path, target))
+
+
 def record_citation(sel, path, target, text_of, r, line, found):
     """sourcing-and-citation.md § Writing a Citation: a record citation names every
     identifying field of its type, in order, and matches exactly one record."""
@@ -437,7 +487,7 @@ def record_citation(sel, path, target, text_of, r, line, found):
     title = target.split(" § ")[-1]
     spec = RECORD_TYPES.get(title)
     if not spec:
-        found.append((rule, r, line, f"a record citation on a section that is no record section: § {target}"))
+        part_citation(sel, path, target, text_of, r, line, found)
         return
     pairs = [KEY_VALUE.match(p.strip()) for p in sel.split("; ")]
     if not all(pairs):
@@ -604,6 +654,8 @@ def check(root):
         r, body = rel[f], text[f]
         live = strip_fences(body)
         src_layer = layer_of(r)
+        # modeling-constructs.md § Constructs: each declared construct's structure
+        constructs.construct_findings(r, live, found, sections(body))
 
         # Fenced blocks are stripped: a citation shown inside an example is an
         # illustration, not a dependency, and linting one produces a finding
@@ -781,6 +833,8 @@ def check(root):
         for extra in sorted(named - present):
             found.append(("spec-placement.md § Where a File Goes", rel_d + "/index.md", 0, f"a row names {extra}, which is not here"))
 
+    # a Name column, present exactly where a part of its table is cited from outside its section
+    constructs.name_column_findings(text_of, NAME_CITED, found, sections, strip_fences)
     found += scope_findings(root)
     found += glossary_findings(root)
     found += abbreviation_findings(root)
@@ -1277,6 +1331,10 @@ def skill_findings(root, names):
             found.append((AUTHORING, rel, 1, f"front matter name is not the kebab-case directory name {n}"))
         if not meta.get("description", "").strip():
             found.append((AUTHORING, rel, 1, "front matter has no description"))
+        if len(meta.get("description", "").strip()) > 1024:
+            found.append((AUTHORING, rel, 1, "front matter description is longer than 1024 characters"))
+        if len(n) > 64:
+            found.append((AUTHORING, rel, 1, f"skill name is longer than 64 characters: {n}"))
         if level2_section(strip_fences((d / "SKILL.md").read_text(encoding="utf-8")), "Workflow") is None:
             found.append((AUTHORING, rel, 0, "SKILL.md has no ## Workflow section"))
         if (d / "scripts").is_dir() and not (d / "scripts" / (n + ".py")).exists():
@@ -1391,14 +1449,14 @@ def skill_candidates(root):
     stdlib = set(getattr(sys, "stdlib_module_names", ()))
     if not stdlib:
         out.append(("(this Python)", 0, "imports not checked", "sys.stdlib_module_names needs Python 3.10 or later"))
-    # specs/methodology/skills.md § Authoring a Skill: a skill's entry script may import the code the skills share
+    # specs/methodology/skills.md § Authoring a Skill: a skill's script may import its own helpers beside it and the code the skills share
     lib = {p.stem for p in (base / "lib").glob("*.py")} if (base / "lib").is_dir() else set()
     for n in sorted(names) + (["lib"] if lib else []):
         for py in sorted((base / n).rglob("*.py")):
             for k, line in enumerate(py.read_text(encoding="utf-8").split("\n"), 1):
                 m = re.match(r'^\s*(?:import\s+([A-Za-z_]\w*)|from\s+([A-Za-z_]\w*)[\w.]*\s+import\b)', line)
                 mod = m and (m.group(1) or m.group(2))
-                if mod and stdlib and mod not in stdlib and mod not in lib:
+                if mod and stdlib and mod not in stdlib and mod not in lib and not (py.parent / f"{mod}.py").exists():
                     out.append((py.relative_to(root).as_posix(), k, "import from outside the standard library", line.strip()))
     for n in sorted(names) + (["lib"] if lib else []):
         for f in sorted((base / n).rglob("*.md")):
@@ -1500,6 +1558,10 @@ def main(argv):
             print(f"  {path}:{line}  [{name}]\n    {context}")
         print("\nCandidates for the Ordinals and counts audit: text pointed at by direction, places to read, not findings")
         for path, line, name, context in direction_candidates(root):
+            print(f"  {path}:{line}  [{name}]\n    {context}")
+        print("\nCandidates for the Construct choice and form audit: places to read, not findings")
+        files = [(f.relative_to(root).as_posix(), f.read_text(encoding="utf-8")) for f in md_files(root)]
+        for path, line, name, context in constructs.construct_candidates(files, sections, strip_fences):
             print(f"  {path}:{line}  [{name}]\n    {context}")
     return status
 

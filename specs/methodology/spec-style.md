@@ -26,14 +26,18 @@ Choosing a star schema over a snowflake schema passes: the reasoning transfers t
 
 ## Clear Prose
 
-Clear prose is measured by the effort it costs its primary reader, not by its count of words. Each kind of file this section reaches is written for a primary reader, without failing its secondary one. Which reader each kind is written for is a Decision Table:
+Clear prose is measured by the effort it costs its primary reader, not by its count of words. Each kind of file this section reaches is written for a primary reader, without failing its secondary one:
+
+**Construct:** Decision Table
+
+**Conditions:** Files
 
 | Files | Primary reader | Secondary reader |
 |---|---|---|
-| The specs, the methodology among them | a person, the designer who must read and steer them | an agent |
-| The agent instructions and the skills | a cold agent | a person |
+| The specs | a person, the designer who must read and steer them | an agent |
+| "The agent instructions", "The skills" | a cold agent | a person |
 
-The working files are outside this section, since each serves the work in progress rather than a reader of the specs, and none is committed (`specs/methodology/working-files.md § The Working Files`).
+The methodology is among the specs. The working files are outside this section, since each serves the work in progress rather than a reader of the specs, and none is committed (`specs/methodology/working-files.md § The Working Files`).
 
 A person designs the agent instructions and the skills, deciding what they say and approving them, and an agent writes them for a cold agent. They are judged, in the end, by how an agent behaves under them.
 

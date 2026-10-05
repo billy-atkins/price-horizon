@@ -30,7 +30,13 @@ specs/AGENTS.md
 
 A citation pointing down a layer sends the reader somewhere for a specific purpose; one pointing up a layer gives background that benefits the local text.
 
-What a citation may name is a Decision Table whose hit policy is Collect, every row its source matches granting what that row lists:
+What a citation may name, every row its source matches granting what that row lists:
+
+**Construct:** Decision Table
+
+**Hit Policy:** Collect
+
+**Conditions:** From
 
 | From | May cite |
 |---|---|
@@ -38,7 +44,7 @@ What a citation may name is a Decision Table whose hit policy is Collect, every 
 | A technical spec | another technical spec, a product spec |
 | A methodology spec | another methodology spec; `specs/AGENTS.md`; the skills' directory, a registered skill or a file of one, and the code the skills share, naming what applies its rules |
 | `specs/AGENTS.md` | any spec; a registered skill or a file of one |
-| Any spec | the project's root `AGENTS.md` as a whole file, never a section of it |
+| "A product spec", "A technical spec", "A methodology spec" | the project's root `AGENTS.md` as a whole file, never a section of it |
 | Code | a product spec, a technical spec, or a section of one, never a record, naming what it carries out or checks in the form `specs/methodology/code.md § Citing the Specs From Code` gives |
 
 Code is governed by the specs rather than a layer of them. The table is the whole permission for citations from these specs, code and `specs/AGENTS.md`. Files outside that set, the project's own root `AGENTS.md` among them, cite these specs under their own rules, the root `AGENTS.md`'s instructions being the project's rather than the method's. No spec other than `specs/methodology/working-files.md` names a working file (`specs/methodology/working-files.md § The Working Files`): none is committed, so the name would point a reader at nothing. `specs/AGENTS.md` is agent instructions rather than a spec, and names the working files its procedures act on.
@@ -54,7 +60,7 @@ A heading's title is a stable slug for whatever the section covers, not prose to
 | Rule | Form |
 |---|---|
 | No `§` in the heading itself | `## Vision`, never `## § Vision` |
-| No `[` in the heading itself, which opens a record's identifying values in a citation | `## Session Timeout`, never `## Session Timeout [draft]` |
+| No `[` in the heading itself, which opens a record's identifying values, or a part's identifier, in a citation | `## Session Timeout`, never `## Session Timeout [draft]` |
 | Unique among headings sharing its parent, a top-level heading's parent being its file | two headings under different parents may share a title |
 
 A numbered heading, or one counting its children, is the heading case of `specs/methodology/spec-style.md § Ordinals and Counts`. A heading pays for it twice, since its title is also the text of every citation naming it: renumbering sections, or retitling one whose count went stale, changes those citations as well.
@@ -72,6 +78,7 @@ A section in the same file           § Title
 A nested section in the same file    § Parent § Child
 A record                             § Type [Key: value]
 A record in another file             path/from/root.md § Type [Key: value; Key: value]
+A part of a construct                path/from/root.md § Section [Key: value]
 A section in another file            path/from/root.md § Parent § Child
 A whole file                         path/from/root.md
 An index.md                          never a citation target
@@ -83,7 +90,9 @@ A section is named by its full lineage of heading titles, one segment per level 
 
 A record (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) is named by the citation of the record section holding it, then a space and, in square brackets inside the same span, its identifying fields, like a query parameter selecting one record from the section. Each is written `Key: value`, in the order its type's table gives them, separated by a semicolon and a space: `[Name: Session Timeout]` after an `Open Questions` section's citation, or `[Country: Canada; Tax Year: 2025]` for a type identified by two fields. An identifying value holds no semicolon (`specs/methodology/modeling-constructs.md § Constructs § Record Form`), so the pairs are split at `; `. Each value is compared with the record's after trimming the space around it, and must match exactly, as a title does.
 
-**What cannot be cited —** there is no form for citing a bold lead-in or any other non-heading content but a record; `§ Titling a Heading` says when such content becomes a heading. A directory's `index.md` carries no heading lineage of its own.
+A part of a construct (`specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct`) is named the same way, by its construct's section and its identifier.
+
+**What cannot be cited —** there is no form for citing a bold lead-in or any other non-heading content but a record or a part of a construct; `§ Titling a Heading` says when such content becomes a heading. A directory's `index.md` carries no heading lineage of its own.
 
 **A title that names a kind of section rather than one particular section —** it resolves to no single heading anywhere, so it is not a citation and takes no `§`. A rule referring to `Test Scenarios` generally, where the level varies by context, names a kind; a rule referring to one file's own `## Glossary` names a section.
 
@@ -95,16 +104,45 @@ Other text is cited, never pointed at by direction. A sentence referring to text
 
 A direction holds only while nothing moves. Reorder steps, insert a section or move a table, and every direction pointing across the change silently points at the wrong text. A citation follows its heading wherever it moves under the same parent, and once the heading moves elsewhere or is retitled, the citation fails loudly, reported by the audit script. A spec written with directions leaves that trap for whoever edits it next; one written with citations can be reordered freely. Text worth referring to sits in a section of its own; where it does not, it is given a heading before it is cited (`§ Titling a Heading`).
 
-Whether a wording is a direction is a Decision Table whose hit policy is First:
+Whether a wording is a direction:
 
-| Wording | A direction | Why |
-|---|---|---|
-| containment, naming what a section or file containing the text holds: "this section's lifecycle", "this Workflow's steps" | no | text moved within what it names stays within it |
-| a word whose subject is where something sits: a heading one level below another, a node drawn above the flow | no | it sends the reader to no text |
-| a sentence introducing the block directly under it: a table, a list, a code block or a construct | no | its place joins the two |
-| any other word sending the reader to other text, however it is phrased | yes | it holds only while nothing moves |
+**Construct:** Decision Table
+
+**Hit Policy:** First
+
+**Conditions:** Wording
+
+**Annotations:** Why, Such as
+
+| Wording | A direction | Why | Such as |
+|---|---|---|---|
+| containment, naming what a section or file containing the text holds | no | text moved within what it names stays within it | "this section's lifecycle", "this Workflow's steps" |
+| a word whose subject is where something sits | no | it sends the reader to no text | a heading one level below another, a node drawn above the flow |
+| a sentence introducing the block directly under it: a table, a list, a code block or a construct | no | its place joins the two | |
+| any other word sending the reader to other text, however it is phrased | yes | it holds only while nothing moves | |
 
 A sentence introducing the block under it says what the block is for, never where it is: "the following Algorithm" and "these parts" are dropped, not kept. Nothing goes between such a sentence and its block, since the reader would hear one thing introduced and see another. Text that must introduce something further away is no such sentence: the content it introduces is given a section of its own and cited.
+
+## An External Reference
+
+The canon adopts an outside standard where an agent or a software engineer already knows it from training or experience, so a form or a meaning the canon relies on reads without the canon teaching it. A standard is registered where a rule adopts it, or maps the rule's own forms onto it, for something an author writes or an agent reads by. It is registered once, as a record of the type named External References in `specs/methodology/external-references.md § External References`, pinned to the version or revision the canon relies on, so what the canon means holds still as the standard moves on, and an author reaching for the name finds the one text it means.
+
+**What is not registered —** a digest or an encoding a script computes, as SHA-256 and UTF-8, named in the rule using it; a convention no one publishes, as kebab-case, defined where it is used; a standard a registered one adopts in turn, as GFM extends CommonMark, which that record covers; and a tool or a product a rule names only as an example of what one of its forms maps onto.
+
+**Citing it —** the section whose rule adopts a registered standard, or maps onto it, cites its record where it first names the standard, and states no version or link of its own, so the record is the one home of both (`§ One Home Per Fact`); a section using that rule's forms relies on the rule, and cites the rule's section, not the record, where it needs to. The section states what it narrows, adds to or changes in the standard, which the standard's own text cannot tell a reader; the standard is cited for the rest, and for what the section's forms mean where it is silent.
+
+**Moving a version —** relying on another version of a standard, or on more of it than its record covers, is a change to the canon that changes the record, each section citing it, and the checks of what those sections state, together.
+
+A record gives these fields, in this order:
+
+| Field | Identifies | Required | Default Value | Holds |
+|---|---|---|---|---|
+| Name | yes | yes | | the standard's short name, as its readers know it |
+| Title | no | yes | | its full title, and who publishes or stewards it |
+| Version | no | yes | | the version relied on, or, for a standard publishing none, the revision relied on, named by its date |
+| URL | no | yes | | a link to the text of that version or revision, never to whatever is current, written as literal text |
+| Relation | no | yes | | how the canon relies on it: `adopts`, the canon's forms being the standard's own; or `maps onto`, the canon's forms being its own, each mapping onto one of the standard's, and the canon's rules holding wherever they differ |
+| Covers | no | yes | | the part of the standard the canon relies on |
 
 ## Keeping Renderings in Step
 

@@ -2,13 +2,20 @@
 
 The harmonized foundation (`specs/application/technical/data-model.md § Core Data Model § Harmonized quantitative foundation`) lands two independently-sourced views of the market, the competitor's syndicated data and Brand A's own internal data, and neither the forecast, the price gap, nor the simulated outcomes mean anything until the two are reconciled to a common product and geography reference. Product matching is an Algorithm.
 
+**Construct:** Algorithm
+
+**Inputs:** the competitor's product, and Brand A's catalog
+
+**Output:** the product's match, flagged for review where its confidence falls below the review threshold, or a whitespace signal
+
 | Step | Action |
 |---|---|
 | 1 | Attempt structured attribute matching between the competitor's product and Brand A's catalog (category, pack size, unit count, formulation, wherever both sources report comparable attributes) |
-| 2 | If step 1 finds a match, set match_method to structured attribute matching and record its confidence, go to step 4 |
-| 3 | If step 1 finds no match, attempt semantic matching as a fallback; set match_method to semantic matching and record its confidence |
-| 4 | If match_confidence falls below the review threshold, flag the match for review rather than accepting it silently, the same governance discipline the business glossary (`specs/application/technical/glossary-and-grounding.md § Guaranteed grounding`) applies to an unresolvable term |
-| 5 | If neither pass finds a match, record the competitor product as a whitespace signal, not an error |
+| 2 | If step 1 finds a match, set match_method to structured attribute matching and record its confidence, Go to step 5; otherwise, continue |
+| 3 | Attempt semantic matching as a fallback |
+| 4 | If step 3 finds a match, set match_method to semantic matching and record its confidence; otherwise, record the competitor product as a whitespace signal, not an error, End |
+| 5 | If match_confidence falls below the review threshold, flag the match for review rather than accepting it silently, the same governance discipline the business glossary (`specs/application/technical/glossary-and-grounding.md § Guaranteed grounding`) applies to an unresolvable term; otherwise, continue |
+| 6 | Record the match, flagged or not. End |
 
 A whitespace signal is kept rather than silently dropped or forced into a false match, though deciding what Brand A should add to its own lineup is an assortment decision outside what this system answers. Each match is recorded as a Product and Geography Match (`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Product and Geography Match`).
 
@@ -29,6 +36,6 @@ Once a price observation's geography is resolved by geography normalization, its
 **Records:**
 
 - **Name:** Flagged Matches
-  **Open Question:** What does a match step 4 flags for review do to a price gap or comparison before a reviewer resolves it, and what catches a match that is wrong but scored as confident?
+  **Open Question:** What does a match flagged for review (`§ Product and Geography Reconciliation [Step: 5]`) do to a price gap or comparison before a reviewer resolves it, and what catches a match that is wrong but scored as confident?
   **Provisional Answer:** A flagged match is held back from every price gap, relative price index and comparison until a reviewer resolves it, the comparison shown as unavailable rather than computed on it; nothing catches a wrong match scored as confident.
-  **Impacts:** step 4 of reconciliation's own Algorithm (`§ Product and Geography Reconciliation`); the price gap and relative price index (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Price gap and relative price index, defined`); and the review queue a flagged match goes to (`specs/application/product/tenant-administration/review-queues.md § Review Queues`).
+  **Impacts:** the flag `§ Product and Geography Reconciliation [Step: 5]` sets; the price gap and relative price index (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Price gap and relative price index, defined`); and the review queue a flagged match goes to (`specs/application/product/tenant-administration/review-queues.md § Review Queues`).

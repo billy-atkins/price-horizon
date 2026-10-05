@@ -1,12 +1,12 @@
 ## Acceptance Scenarios
 
-A product capability's spec gets acceptance scenarios in Gherkin form, co-located inside that capability's own section, never in a separate scenarios file. This applies to every product capability with its own section in a product spec file, whether or not it already has a scenario block.
+A product capability's spec gets acceptance scenarios in Gherkin form (`specs/methodology/external-references.md § External References [Name: Gherkin]`), co-located inside that capability's own section, never in a separate scenarios file. This applies to every product capability with its own section in a product spec file, whether or not it already has a scenario block.
 
 | Rule | Form |
 |---|---|
 | Where they live | under a child heading titled `Test Scenarios`, one level below the capability's own heading, whatever level that is |
 | What the section holds | a single fenced code block tagged `gherkin`, containing every scenario for that capability |
-| Syntax | literal Gherkin: `Scenario:`, `Given`, `When`, `Then`, `And`, not prose formatted to resemble it |
+| Syntax | literal Gherkin scenarios, with no `Feature:` line, the capability's own heading standing in for one: each `Scenario:` followed by at least one `Given`, `When` and `Then` step, `And` continuing any of them, not prose formatted to resemble it |
 | Individual scenarios | not their own headings; a citation names the whole `Test Scenarios` section |
 
 The title is the same every time and does not restate the capability, because the capability's own heading is already the parent every citation carries. A repeated title lets a reader or a search recognize the pattern once and rely on it everywhere.
@@ -19,7 +19,11 @@ The title is the same every time and does not restate the capability, because th
 
 ## Deciding What to Write
 
-A capability's own section is the only source for its scenarios: never another file's prose about the same subject, and never a case invented from imagination. Which scenarios it owes is a Decision Table:
+A capability's own section is the only source for its scenarios: never another file's prose about the same subject, and never a case invented from imagination. The scenarios it owes:
+
+**Construct:** Decision Table
+
+**Conditions:** Write one scenario for
 
 | Write one scenario for | Proving |
 |---|---|

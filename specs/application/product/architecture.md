@@ -77,6 +77,8 @@ flowchart TD
 **Sources:**
 - `specs/application/product/answer-engine/drill-down.md § Drill-down — cross-cutting, available at every stage`
 - `specs/application/product/answer-engine/position.md § Position — where Brand A should sit`
+- `specs/application/product/answer-engine/position.md § Position — where Brand A should sit § Options by Kind of Decision`
+- `specs/application/product/answer-engine/position.md § Position — where Brand A should sit § The Strategies`
 - `specs/application/product/answer-engine/predict.md § Predict — what will the competitor do`
 - `specs/application/product/answer-engine/simulate.md § Simulate — what follows for the business`
 - `specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`
