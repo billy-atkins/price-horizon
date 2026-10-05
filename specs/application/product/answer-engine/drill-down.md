@@ -11,14 +11,25 @@ technical-specs:
 Independent axes, and a user can move along either one without leaving the analysis:
 
 - **Granularity —** country to state or province to major metro, matching how the competitor's own pricing data is actually reported.
+- **Metric —** price is the default lens, but a user can pivot the same drill-down to volume, margin, or share without re-asking the question.
 
-| Granularity | Figure shown | Decomposition graph |
-|---|---|---|
-| Within that range (country, state or province, major metro) | The same analysis re-run at a narrower filter, guaranteed consistent with the broader figure it was drilled from | Available |
-| Below that range (county, store) | An allocation of the major metro number, or the state's where no metro is reported, labeled as an estimate, not shown with the confidence of a directly sourced forecast, and opening to the forecast it was allocated from and the weighting used, population or retail footprint | Not available, an allocated figure has no causal story of its own to tell |
+What a granularity drill-down shows depends on whether it stays within the range the competitor's data is reported at:
+
+**Construct:** Decision Table
+
+**Conditions:** Granularity
+
+**Annotations:** Such as
+
+**Input Values:**
+- Granularity: "Within the reported range", "Below the reported range"
+
+| Granularity | Figure shown | Decomposition graph | Such as |
+|---|---|---|---|
+| Within the reported range | The same analysis re-run at a narrower filter, guaranteed consistent with the broader figure it was drilled from | Available | country, state or province, major metro |
+| Below the reported range | An allocation of the major metro number, or the state's where no metro is reported, labeled as an estimate, not shown with the confidence of a directly sourced forecast, and opening to the forecast it was allocated from and the weighting used, population or retail footprint | Not available, an allocated figure has no causal story of its own to tell | county, store |
 
 That boundary reflects which competitor data is currently licensed and ingested, not a permanent limit, a more granular data source would move it.
-- **Metric —** price is the default lens, but a user can pivot the same drill-down to volume, margin, or share without re-asking the question.
 
 The narrative layer's job throughout every stage (`specs/application/product/answer-engine/predict.md § Predict — what will the competitor do`, `specs/application/product/answer-engine/position.md § Position — where Brand A should sit`, `specs/application/product/answer-engine/simulate.md § Simulate — what follows for the business`) is fluent explanation of numbers that already exist, not generation of new ones. That distinction is what keeps the answer defensible in front of a retailer or a CFO.
 

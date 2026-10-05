@@ -4,30 +4,46 @@ The genuinely query-service-only part of the live path: handling an incoming que
 
 ### Intent parsing and decoupling
 
-The incoming question is parsed into a Question Intent (`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Question Intent`): business unit, metric (price), entities (Competitor Brand, Brand A), geography (Texas), horizon (6 months), implied granularity, and decision type (the session's, strategic). Business unit is resolved first, since which glossary and competitor set apply depends on it, by a Decision Tree.
+The incoming question is parsed into a Question Intent (`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Question Intent`): business unit, metric (price), entities (Competitor Brand, Brand A), geography (Texas), horizon (6 months), implied granularity, and decision type (the session's, strategic). Business unit is resolved first, since which glossary and competitor set apply depends on it (`§ Dynamic Retrieval and Weighting (when the question is asked) § Intent parsing and decoupling § Business unit`), and decision type last (`§ Dynamic Retrieval and Weighting (when the question is asked) § Intent parsing and decoupling § Decision type`).
+
+Once its business unit is resolved, the rest of the plan is validated against that business unit's glossary before anything executes. An unresolvable entity stops the pipeline and asks for clarification instead of proceeding on a guess, the same rule business unit's own resolution applies.
+
+The business units the user's IdP-asserted access contains also bound every retrieval this query makes, filtered to business units the IdP actually granted, not merely used to guess intent, and a clarification prompt can never reveal a business unit outside that set, someone with access to one business unit is never told a second one exists just because the installation happens to host it.
+
+`specs/application/technical/architecture.md § Architecture Overview § Diagrams § Trust Boundaries` and `specs/application/technical/architecture.md § Architecture Overview § Diagrams § The Answer` render this.
+
+#### Business unit
+
+Business unit is resolved from the access the user's IdP asserts (`specs/application/technical/identity-and-access.md § Business unit access, federated`), by a Decision Tree:
+
+**Construct:** Decision Tree
 
 | Step | Question | Answer | Result |
 |---|---|---|---|
-| 1.1 | How many business units does the user's IdP-asserted access (`specs/application/technical/identity-and-access.md § Business unit access, federated`) contain? | None | Deny the query; no claim mapping grants this identity access to any business unit |
+| 1.1 | How many business units does the user's IdP-asserted access contain? | None | Deny the query; no claim mapping grants this identity access to any business unit |
 | 1.2 | | Exactly one | Use it as the query's business unit |
 | 1.3 | | More than one | Go to step 2 |
 | 2.1 | Does a brand or competitor in the question resolve uniquely against one business unit's glossary? | Yes | Use that business unit |
-| 2.2 | | No, it resolves against more than one or against none | Use the session's business unit the request carries (`§ Dynamic Retrieval and Weighting (when the question is asked) § Session context`), if the access the IdP grants includes it; otherwise stop the pipeline and ask for clarification |
+| 2.2 | | No, it resolves against more than one or against none | Go to step 3 |
+| 3.1 | Does the request carry a session business unit (`§ Dynamic Retrieval and Weighting (when the question is asked) § Session context`) that the IdP-asserted access includes? | Yes | Use the session's business unit |
+| 3.2 | | No | Stop the pipeline and ask for clarification |
 
-The rest of the plan is then validated against the resolved business unit's glossary before anything executes. An unresolvable entity stops the pipeline and asks for clarification instead of proceeding on a guess, the same rule this section's Decision Tree applies to business unit itself.
+#### Decision type
 
-The access set also enforces that every retrieval this query makes is filtered to business units the IdP actually granted, not merely used to guess intent, and a clarification prompt can never reveal a business unit outside that set, someone with access to one business unit is never told a second one exists just because the installation happens to host it.
+Decision type is settled once the plan is validated, as `specs/application/product/answer-engine/decision-context.md § Decision Context` promises, since the positioning engine seeds its candidates by it (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Positioning engine § Seeding`). `A kind of decision for this question alone?` reads Yes where the request carries one, the answer to an earlier clarification about it. A cue is one of a fixed set of decision words, held here and never extended by a business unit: "promotion", "promo", "retailer" and "retail account" for tactical; "list price", "price position", "brand-wide" and "national price" for strategic. A cue counts in any grammatical form, "promotional" or "promotions" as well as "promotion", and only where it describes Brand A's own decision, never the competitor's price, which intent parsing tells apart by what the word refers to in the question. Neither a retailer's name nor a time the question gives for its forecast, its horizon, is ever a cue, and a decision word is never itself an unresolved term needing clarification. `A tactical cue?` reads Yes where any tactical cue counts, and `A strategic cue?` where any strategic cue does.
 
-Decision type is settled next, as `specs/application/product/answer-engine/decision-context.md § Decision Context` promises, since the positioning engine seeds its candidates by it (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Positioning engine`). A kind of decision the request carries for this question alone, the answer to an earlier clarification about it, settles it first; otherwise this section's table of cues does. A cue is one of a fixed set of decision words, held here and never extended by a business unit: "promotion", "promo", "retailer" and "retail account" for tactical; "list price", "price position", "brand-wide" and "national price" for strategic. A cue counts in any grammatical form, "promotional" or "promotions" as well as "promotion", and only where it describes Brand A's own decision, never the competitor's price, which intent parsing tells apart by what the word refers to in the question. Neither a retailer's name nor a time the question gives for its forecast, its horizon, is ever a cue, and a decision word is never itself an unresolved term needing clarification. A column reads Yes when any cue of that kind counts, and a row applies when both its columns match.
+**Construct:** Decision Table
 
-| Tactical cue | Strategic cue | Decision type |
-|---|---|---|
-| Yes | No | Tactical, for this question only |
-| No | Yes | Strategic, for this question only |
-| No | No | The session's kind of decision, where the request carries one (`§ Dynamic Retrieval and Weighting (when the question is asked) § Session context`); with none, stop the pipeline and ask for clarification |
-| Yes | Yes | Stop the pipeline and ask for clarification |
+**Conditions:** A kind of decision for this question alone?, A tactical cue?, A strategic cue?, A session kind of decision?
 
-`specs/application/technical/architecture.md § Architecture Overview § Diagrams § Trust Boundaries` and `specs/application/technical/architecture.md § Architecture Overview § Diagrams § The Answer` render this.
+| A kind of decision for this question alone? | A tactical cue? | A strategic cue? | A session kind of decision? | Decision type |
+|---|---|---|---|---|
+| Yes | - | - | - | The kind of decision the request carries for this question alone |
+| No | Yes | No | - | Tactical, for this question only |
+| No | No | Yes | - | Strategic, for this question only |
+| No | No | No | Yes | The session's kind of decision, which the request carries (`§ Dynamic Retrieval and Weighting (when the question is asked) § Session context`) |
+| No | No | No | No | Stop the pipeline and ask for clarification |
+| No | Yes | Yes | - | Stop the pipeline and ask for clarification |
 
 ### Session context
 
