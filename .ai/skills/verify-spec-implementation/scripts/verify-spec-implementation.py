@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """verify-spec-implementation's entry script: checks the app-spec annotations in the application's code
-against specs/methodology/code.md § Citing the Specs From Code, and lists places for the reading to look.
+against specs/methodology/code.md § Citing the Specs From Code and the form it cites, and lists places
+for the reading to look.
 
 The application's code is the code roots, less what is excluded, that the technical specs' stack.md
 names, per specs/methodology/spec-placement.md § The Technical Stack. Standard library only, and the
@@ -17,9 +18,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "lib"))
 from design_documents import lineages  # noqa: E402
 
 STACK = "specs/application/technical/stack.md"
+# @canon-spec specs/methodology/code.md § Citing the Specs From Code
 SPECS = ("specs/application/product/", "specs/application/technical/")
 RULE = "code.md § Citing the Specs From Code"
-# a line naming the tag at all; then the form § Citing the Specs From Code sets for it
+# a line naming the tag at all; then the form sourcing-and-citation.md § Writing a Citation § Citing From Code sets for it
+# @canon-spec specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code
 TAG = re.compile(r"@app-spec\b")
 # a plain comment line only: a documentation comment, /// or //! or /** or /*!, is never one
 FORM = re.compile(r"^\s*(?://(?![/!])|#+|--|;+|%+|<!--|/\*(?![*!]))\s*@app-spec (\S.*?)\s*(?:-->|\*/)?\s*$")

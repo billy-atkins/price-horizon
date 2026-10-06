@@ -21,7 +21,7 @@ Read the code roots the technical specs' `stack.md` names, per `specs/methodolog
 
 ### Run the script first
 
-`scripts/verify-spec-implementation.py --check-annotations` reports each annotation in the code roots that does not follow `specs/methodology/code.md § Citing the Specs From Code`: a malformed line, a citation naming no section or file that exists, one citing anything but a product or technical spec, and a list out of order; and a code root the stack names that does not exist. `--list-candidates` lists the spec sections no annotation cites and the files in the code roots carrying none, places for the reading to look, deciding nothing.
+`scripts/verify-spec-implementation.py --check-annotations` reports each annotation in the code roots that does not follow `specs/methodology/code.md § Citing the Specs From Code`, or the form `specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code` gives it: a malformed line, a citation naming no section or file that exists, one citing anything but a product or technical spec, and a list out of order; and a code root the stack names that does not exist. `--list-candidates` lists the spec sections no annotation cites and the files in the code roots carrying none, places for the reading to look, deciding nothing.
 
 ### Stop at annotations out of step
 
@@ -29,7 +29,7 @@ Where the script's findings show existing annotations out of step with the specs
 
 ### Read the code against its specs
 
-For each annotated unit, read the sections it cites, and judge whether the unit carries them out, or checks them as a test does, no more and no less, per `specs/methodology/code.md § Governed Code and Wiring Code` and `specs/methodology/code.md § Tests`, and whether its annotations sit where `specs/methodology/code.md § Citing the Specs From Code` sets, as narrow as the unit and never in a documentation comment, which the script cannot judge. For each file the script lists as citing no spec, judge whether it is wiring or governed code missing its annotations; a file in a format with no comments is never governed code, and is judged as `specs/methodology/code.md § Governed Code and Wiring Code` sets. For each section it lists as cited by no code, judge whether it states something code must carry out, and so is not yet implemented, or something no code carries out, as an overview does.
+For each annotated unit, read the sections it cites, and judge whether the unit carries them out, or checks them as a test does, no more and no less, per `specs/methodology/code.md § Governed Code and Wiring Code` and `specs/methodology/code.md § Tests`, and whether its annotations sit where `specs/methodology/code.md § Citing the Specs From Code` sets, as narrow as the unit, and never in a documentation comment, as `specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code` has it, which the script cannot judge. For each file the script lists as citing no spec, judge whether it is wiring or governed code missing its annotations; a file in a format with no comments is never governed code, and is judged as `specs/methodology/code.md § Governed Code and Wiring Code` sets. For each section it lists as cited by no code, judge whether it states something code must carry out, and so is not yet implemented, or something no code carries out, as an overview does.
 
 ### Report, and settle as an audit
 

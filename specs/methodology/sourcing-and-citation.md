@@ -45,9 +45,10 @@ What a citation may name, every row its source matches granting what that row li
 | A methodology spec | another methodology spec; `specs/AGENTS.md`; the skills' directory, a registered skill or a file of one, and the code the skills share, naming what applies its rules |
 | `specs/AGENTS.md` | any spec; a registered skill or a file of one |
 | "A product spec", "A technical spec", "A methodology spec" | the project's root `AGENTS.md` as a whole file, never a section of it |
-| Code | a product spec, a technical spec, or a section of one, never a record, naming what it carries out or checks in the form `specs/methodology/code.md § Citing the Specs From Code` gives |
+| Code the application specs govern | a product spec, a technical spec, or a section of one, never a record, naming what it carries out or checks with an app-spec annotation (`§ Writing a Citation § Citing From Code`) |
+| A registered skill's script, or the code the skills share | `specs/AGENTS.md` or a methodology spec, or a section of one, naming where a copy it holds takes its values from with a canon-spec annotation (`§ Writing a Citation § Citing From Code`) |
 
-Code is governed by the specs rather than a layer of them. The table is the whole permission for citations from these specs, code and `specs/AGENTS.md`. Files outside that set, the project's own root `AGENTS.md` among them, cite these specs under their own rules, the root `AGENTS.md`'s instructions being the project's rather than the method's. No spec other than `specs/methodology/working-files.md` names a working file (`specs/methodology/working-files.md § The Working Files`): none is committed, so the name would point a reader at nothing. `specs/AGENTS.md` is agent instructions rather than a spec, and names the working files its procedures act on.
+Code is governed by the specs rather than a layer of them. The table is the whole permission for citations from these specs, code, the skills' scripts and `specs/AGENTS.md`. Files outside that set, the project's own root `AGENTS.md` among them, cite these specs under their own rules, the root `AGENTS.md`'s instructions being the project's rather than the method's. No spec other than `specs/methodology/working-files.md` names a working file (`specs/methodology/working-files.md § The Working Files`): none is committed, so the name would point a reader at nothing. `specs/AGENTS.md` is agent instructions rather than a spec, and names the working files its procedures act on.
 
 A product spec citing a technical spec would make a promise depend on its own implementation; that direction is served instead by the `technical-specs` frontmatter key (`specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability`), deliberately file-level and coarse so it cannot carry a dependency at heading precision. A methodology spec citing an application spec would make a rule depend on the document it governs.
 
@@ -122,6 +123,26 @@ Whether a wording is a direction:
 | any other word sending the reader to other text, however it is phrased | yes | it holds only while nothing moves | |
 
 A sentence introducing the block under it says what the block is for, never where it is: "the following Algorithm" and "these parts" are dropped, not kept. Nothing goes between such a sentence and its block, since the reader would hear one thing introduced and see another. Text that must introduce something further away is no such sentence: the content it introduces is given a section of its own and cited.
+
+### Citing From Code
+
+Code names a spec it relies on with a spec annotation: a plain comment line of its own, in the comment syntax of the code's language, never a documentation comment, holding a tag, a space, and a citation. The citation takes the form `§ Writing a Citation` gives for a section in another file or for a whole file, without the backticks a citation takes in a spec, since the tag marks where it begins and the line where it ends. Each tag has a rule of its own saying what carries one, and `§ Which Citations Are Allowed` what each may cite:
+
+- `@app-spec`, in the code the application specs govern, as `specs/methodology/code.md § Citing the Specs From Code` has it;
+- `@canon-spec`, in a registered skill's scripts and the code the skills share, as `specs/methodology/skills.md § Authoring a Skill` has it.
+
+```
+// @app-spec specs/application/technical/example-service/example.md § Parent § Child
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
+```
+
+In a language with block comments only, each annotation is a block comment of its own on one line, its citation ending before the closer, and a heading holding that language's comment closer cannot be cited from it.
+
+**A list, one line per citation, sorted —** a unit or a copy answering to several specs, a product promise and the technical section making it true among them, carries an annotation for each, on consecutive lines. They are sorted in plain character order of the citation, so the list has one order whoever writes it, and two changes to it collide less often. One citation to a line keeps each readable, makes its change a line of its own in a diff, and leaves a heading free to hold any punctuation.
+
+**Why it is a citation —** an annotation makes the link one spec makes to another, so it is held to the same guarantee. It names a file, and a heading, that exist, and a heading retitled updates every annotation naming it in the same edit, per `§ Titling a Heading`. Kept in the code it describes, it moves with that code through every refactor, where a map kept in a file of its own would drift.
+
+**A comment, not a language's own annotation —** it is not a Java annotation, a C# attribute or a decorator, so it compiles the same in every language and needs no tool to know it.
 
 ## An External Reference
 

@@ -6,9 +6,10 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 |---|---|---|
 | Adversarial review |  | A Design, Refactor, Refine run by a cold agent over a builder's design. |
 | Altitude |  | The level of a file, or of its content, within its directory, from the navigation that names what the directory holds down to the detail that states it. |
-| App-spec annotation |  | A citation written in governed code, as a plain comment line of its own, naming a spec, or a section of one, that the code carries out or, as a test, checks. Not a language's own annotation construct, such as a Java annotation or a C# attribute. |
+| App-spec annotation |  | A spec annotation in governed code, naming a spec, or a section of one, that the code carries out or, as a test, checks. |
 | Builder |  | The person or agent who does a piece of work and takes it through Design, Refactor, Refine. |
 | Canon |  | The part of the Spec of Record scope that states and applies the method's rules: the entry point to the specifications, the methodology, and the skills the methodology registers, each skill the specification of a procedure, with the code their scripts share. Not a product's specifications, and not a canonical form or version. |
+| Canon-spec annotation |  | A spec annotation in a registered skill's script, or the code the skills share, naming the area of the method's own specifications that a copy the script holds takes its values from. |
 | Capability domain |  | A standing part of what a product does or governs for as long as the product exists, defined by its product owner: a boundary meant to outlive any single change. Not an epic or a sprint, which describe work with an end date. |
 | Citation |  | A pointer from one place in the Spec of Record scope to another, written in a fixed form a reader and a script can both follow. Not a bibliographic reference. |
 | Cold agent |  | An agent arriving with no context but what it reads, and so with no attachment to the decisions of whoever did the work before it. |
@@ -37,6 +38,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Record section |  | A section holding the records of one record type. |
 | Refactor and Refine cycle | RR cycle | The Refactor and Refine of Design, Refactor, Refine, run over specifications that have landed, their state at a baseline commit standing as the design: a change to their structure and wording that leaves what they state. Not the Refactor and Refine within a design still in flight. |
 | Rube Goldberg machine |  | A mechanism far more elaborate than the task it performs, as the cartoonist's contraptions chain many steps to do something simple: a mechanism, role or safeguard whose complexity no stated need justifies, where a light switch would do. |
+| Spec annotation |  | A citation written in code as a plain comment line of its own, a tag and then the citation, naming a spec, or a section of one, that the code relies on. Not a language's own annotation construct, such as a Java annotation or a C# attribute. |
 | Spec of Record |  | A methodology for the agentic SDLC, governed and spec-as-source, in which the specifications are the durable source a system is built from, and a human designs and steers while an AI agent assists. |
 | Spec of Record scope |  | The set of files Spec of Record governs, and nothing else. |
 | Specification rule |  | A rule governing what the specifications and the code they govern hold, and how they are written. Not a rule a specification states about the product. |

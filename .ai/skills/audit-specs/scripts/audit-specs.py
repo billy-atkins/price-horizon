@@ -26,6 +26,7 @@ import constructs
 # the working files are outside the script, read by the Working-file form audit instead, and code
 # is outside this skill, which audits every kind but code.
 SCOPE_HOME = "scope.md § What Spec of Record Governs"
+# @canon-spec specs/methodology/scope.md § What Spec of Record Governs
 SCOPE_KINDS = {"Agent instructions", "Specs", "Skills", "Working files", "Code"}
 REGISTRY = "specs/methodology/skills.md"
 REGISTRY_RULE = "skills.md § Registered Skills"
@@ -49,6 +50,7 @@ IMAGE = re.compile(r"!\[[^\]]*\][(\[]|<img\b", re.I)
 WORKING_FILES = "specs/methodology/working-files.md"
 WORKING_FILES_RULE = "working-files.md § The Working Files"
 SCRIPT_SUFFIXES = {".py", ".ps1", ".sh"}
+# @canon-spec specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed
 LAYER = {"methodology": "specs/methodology/", "product": "specs/application/product/",
          "technical": "specs/application/technical/"}
 ROLE_TABLE = "specs/application/product/roles.md"
@@ -70,39 +72,51 @@ FENCE = re.compile(r'^```', re.M)
 ORDINALS_RULE = "spec-style.md § Ordinals and Counts"
 NUMBERED_LEAD_IN = re.compile(r'^\*\*\d+[.)]\s')
 NUMBERED_ITEM = re.compile(r'^\s*\d+[.)]\s')
+# @canon-spec specs/methodology/working-files.md § The Working Files
 WORKING_FILE = re.compile(r'\.ai/(?:plans\b|follow-ups\.md|tmp\b)')
 WORKING_FILES_HOME = "specs/methodology/working-files.md"
 
-# modeling-constructs.md § Constructs § Record Form. The record-type registry: each type's
-# name, which titles its record sections, its record fields in order, and which of them
-# identify a record, and any section fields of its own beyond Diagrams. Adding a type
-# means adding it here; FIELD_KEYS takes its keys from this registry.
+# modeling-constructs.md § Constructs § Record Form. The record types this script checks: each type's
+# name, which titles its record sections, the section defining it, and its table of record fields,
+# copied here as this script reads it, each row's Field, Identifies, Required and Default Value
+# cells; record_type_findings holds each copy to its home. Any section fields beyond Diagrams, and
+# a type's own placement, are this script's to carry out. A type with no entry here is read by
+# the Construct choice and form audit alone.
 RECORD_FORM = "modeling-constructs.md § Constructs § Record Form"
+# @canon-spec specs/methodology/sourcing-and-citation.md § An External Reference
+# @canon-spec specs/methodology/spec-placement.md § An Open Question
 RECORD_TYPES = {
     "Open Questions": {
-        "fields": ["Name", "Open Question", "Provisional Answer", "Impacts"],
-        "identifying": ["Name"],
+        "table": (("Name", "yes", "yes", ""), ("Open Question", "no", "yes", ""),
+                  ("Provisional Answer", "no", "yes", ""), ("Impacts", "no", "yes", "")),
         "section_fields": [],
         "home": "spec-placement.md § An Open Question",
         "last_top_level": True,
     },
     "External References": {
-        "fields": ["Name", "Title", "Version", "URL", "Relation", "Covers"],
-        "identifying": ["Name"],
+        "table": (("Name", "yes", "yes", ""), ("Title", "no", "yes", ""), ("Version", "no", "yes", ""),
+                  ("URL", "no", "yes", ""), ("Relation", "no", "yes", ""), ("Covers", "no", "yes", "")),
         "section_fields": [],
         "home": "sourcing-and-citation.md § An External Reference",
         "last_top_level": False,
     },
 }
+for _spec in RECORD_TYPES.values():
+    _spec["fields"] = [f for f, _, _, _ in _spec["table"]]
+    _spec["identifying"] = [f for f, ident, _, _ in _spec["table"] if ident == "yes"]
+    _spec["required"] = [f for f, _, req, _ in _spec["table"] if req == "yes"]
+    _spec["defaults"] = {f: d for f, _, _, d in _spec["table"] if d}
 # modeling-constructs.md § Fields: every key a form declares, and where that form places it.
 FIELDS = "modeling-constructs.md § Fields"
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
+# @canon-spec specs/methodology/modeling-constructs.md § Diagrams
+# @canon-spec specs/methodology/spec-placement.md § Environments
 FIELD_KEYS = {"Caption": "diagram", "Sources": "diagram",
               "Diagrams": "record section", "Records": "record section", "Kind": "environment",
-              "Construct": "construct", "Hit Policy": "construct", "Conditions": "construct",
-              "Annotations": "construct", "Input Values": "construct", "Output Values": "construct",
-              "Default Output": "construct", "Inputs": "construct", "Output": "construct"}
+              **{f: "construct" for f, _, _, _ in constructs.FIELD_TABLE}}
 # spec-placement.md § Environments: the environments file, and the closed set of kinds
 ENVIRONMENTS = "specs/application/technical/environments.md"
+# @canon-spec specs/methodology/spec-placement.md § Environments
 KINDS = ("local", "integration", "shared", "production")
 for _type, _spec in RECORD_TYPES.items():
     for _key in _spec["fields"]:
@@ -124,7 +138,8 @@ ODD_EMPHASIS = re.compile(r'\*\*\*|__[^_\s][^_]*__')
 BOLD_LEAD_INS = "modeling-constructs.md § Bold Lead-ins"
 EMPHASIS = "modeling-constructs.md § Emphasis"
 KEY_VALUE = re.compile(r'^([A-Z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*(?: [A-Z0-9][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*)*): (.+)$')
-UNPLAIN = re.compile(r'[*_`§;\]\[]')
+# an identifying value's form: constructs.py's copy, so a record and a part are read alike
+UNPLAIN = constructs.UNPLAIN
 
 # The candidates are likely places, not decisions: a reading audit judges each one.
 _NUM = (r"(?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|"
@@ -360,10 +375,17 @@ def record_findings(r, body, found):
         for rec in records:
             keys = [key for key, _, _ in rec]
             at = rec[0][2] + 1
-            if keys != spec["fields"]:
-                found.append((home, r, at, f"a record's fields are {keys}, not {spec['fields']}"))
+            if keys != [f for f in spec["fields"] if f in keys] or any(k not in spec["fields"] for k in keys):
+                found.append((home, r, at, f"a record's fields are {keys}, not {spec['fields']} in that order"))
+                continue
+            missing = [f for f in spec["required"] if f not in keys]
+            if missing:
+                found.append((home, r, at, f"a record without the field its type requires: {', '.join(missing)}"))
                 continue
             values = {key: value for key, value, _ in rec}
+            for key, value in values.items():
+                if spec["defaults"].get(key) == value:
+                    found.append((FIELDS, r, at, f"the {key} field written at its default value, {value}"))
             for key in spec["identifying"]:
                 if not values[key] or UNPLAIN.search(values[key]):
                     found.append((RECORD_FORM, r, at, f"an identifying value is not plain text: {key}: {values[key]}"))
@@ -445,12 +467,14 @@ def field_findings(r, body, found):
             found.append((RECORD_FORM, r, i + 1, f"the {key} field directly after a non-blank line"))
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
 # modeling-constructs.md § Constructs § Declaring a Construct: a part of a construct is named by
 # its construct's section and one identifier, read from the column its construct's tables give it,
 # and each construct holds only the kinds of part it has.
 PART_COLUMNS = {"State": "state", "Step": "Step", "Task": "task", "Name": "Name"}
 # the (path, lineage) of each construct a part's citation by Name names, from outside its section
 NAME_CITED = set()
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
 PART_KEYS = {"Lifecycle": {"State", "Name"}, "State Machine": {"State", "Name"},
              "Decision Table": {"Name"}, "Decision Tree": {"Step"}, "DAG": {"Task"},
              "Algorithm": {"Step"}, "Constraint": {"Name"}}
@@ -835,6 +859,8 @@ def check(root):
 
     # a Name column, present exactly where a part of its table is cited from outside its section
     constructs.name_column_findings(text_of, NAME_CITED, found, sections, strip_fences)
+    found += record_type_findings(root)
+    found += canon_spec_findings(root)
     found += scope_findings(root)
     found += glossary_findings(root)
     found += abbreviation_findings(root)
@@ -845,6 +871,7 @@ def check(root):
     return found
 
 
+# @canon-spec specs/methodology/skills.md § Setting Up an Agent
 # specs/methodology/skills.md § Setting Up an Agent names the reviewers an agent writes to set
 # itself up, and specs/methodology/scope.md § Agent Agnostic keeps what it writes out of git.
 REVIEWERS = ("review-light", "review-medium", "review-high")
@@ -1029,6 +1056,9 @@ SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+(?=[A-Z*`(])")
 # finding. The files every project's application specs hold, by the methodology's own rules,
 # and paths written as examples, are no candidates.
 APPLICATION_PATH = re.compile(r"specs/application/[\w./-]+\.md")
+# @canon-spec specs/methodology/spec-placement.md § Environments
+# @canon-spec specs/methodology/spec-placement.md § Index, Architecture, Detail
+# @canon-spec specs/methodology/spec-placement.md § The Technical Stack
 GENERIC_APPLICATION_FILES = {"specs/application/index.md", "specs/application/product/index.md",
                              "specs/application/product/architecture.md", "specs/application/technical/index.md",
                              "specs/application/technical/architecture.md", "specs/application/technical/stack.md",
@@ -1262,6 +1292,83 @@ def glossary_candidates(root):
             if m:
                 a, b = max(0, m.start() - 40), min(len(line), m.end() + 60)
                 out.append((rel, n, "a glossary term that may be defined here", line[a:b].strip()))
+    return out
+
+
+def record_type_findings(root):
+    """modeling-constructs.md § Constructs § Record Form and § Constructs § Declaring a Construct: this
+    script's copy of each record type's fields table, and constructs.py's of the fields a construct
+    declares, each against its table where it is defined, row by row, so a change to either is a
+    finding until the copy is brought into step."""
+    out = []
+    for title, spec in RECORD_TYPES.items():
+        name, lineage = spec["home"].split(" § ", 1)
+        path = "specs/methodology/" + name
+        text = (root / path).read_text(encoding="utf-8")
+        span = sections(text).get(lineage)
+        lines = text.split("\n")[span[0]:span[1]] if span else []
+        rows, h = [], next((i for i, l in enumerate(lines) if l.startswith("| Field | Identifies | Required | Default Value |")), None)
+        if h is None:
+            out.append((RECORD_FORM, path, (span[0] + 1) if span else 0, f"no table of the {title} type's record fields"))
+            continue
+        for l in lines[h + 2:]:
+            if not l.startswith("|"):
+                break
+            rows.append(tuple(c.strip() for c in l.strip().strip("|").split("|"))[:4])
+        if tuple(rows) != spec["table"]:
+            out.append((RECORD_FORM, path, span[0] + h + 1,
+                        f"the {title} type's fields table differs from the audit script's copy: {rows} against {list(spec['table'])}"))
+    path = "specs/methodology/modeling-constructs.md"
+    text = (root / path).read_text(encoding="utf-8")
+    span = sections(text).get("Constructs § Declaring a Construct") or (0, 0)
+    for rule, line, msg in constructs.field_table_findings("\n".join(text.split("\n")[span[0]:span[1]])):
+        out.append((rule, path, span[0] + line if line else span[0] + 1, msg))
+    return out
+
+
+# sourcing-and-citation.md § Writing a Citation § Citing From Code: a comment line naming the tag, and the
+# form it takes in a script, a comment of its own holding the tag, a space and a citation
+CITING_FROM_CODE = "sourcing-and-citation.md § Writing a Citation § Citing From Code"
+# @canon-spec specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code
+CANON_SPEC_TAG = "@canon-spec"
+# a comment naming the tag anywhere on a line, a line of code's trailing one among them; then its form
+CANON_SPEC = re.compile(r"#.*" + CANON_SPEC_TAG + r"\b")
+CANON_SPEC_FORM = re.compile(r"^\s*# " + CANON_SPEC_TAG + r" (\S.*?)\s*$")
+
+
+def canon_spec_findings(root):
+    """Each canon-spec annotation in a registered skill's scripts or the code the skills share: in its
+    form, citing `specs/AGENTS.md` or a methodology file, or a section of one, that exists, and each
+    run of them on consecutive lines sorted in plain character order."""
+    out = []
+    for name in skill_dirs(root):
+        for f in sorted((root / ".ai/skills" / name).rglob("*")):
+            if f.suffix not in SCRIPT_SUFFIXES or "__pycache__" in f.parts:
+                continue
+            rel = f.relative_to(root).as_posix()
+            run = []
+            for i, line in enumerate(f.read_text(encoding="utf-8").split("\n") + [""], 1):
+                if not CANON_SPEC.search(line):
+                    if run and [c for _, c in run] != sorted(c for _, c in run):
+                        out.append((CITING_FROM_CODE, rel, run[0][0], "canon-spec annotations not sorted in plain character order"))
+                    run = []
+                    continue
+                m = CANON_SPEC_FORM.match(line)
+                if not m:
+                    out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation not in its form: " + line.strip()))
+                    continue
+                cite = m.group(1)
+                run.append((i, cite))
+                path, _, lineage = cite.partition(" § ")
+                target = root / path
+                if not (path == SPECS_AGENTS or path.startswith("specs/methodology/")) or not path.endswith(".md"):
+                    out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation citing outside the canon's specs: " + cite))
+                elif path.endswith("/index.md"):
+                    out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation citing an index.md, never a citation target: " + cite))
+                elif not target.is_file():
+                    out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation naming no file: " + path))
+                elif lineage and lineage not in sections(target.read_text(encoding="utf-8")):
+                    out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation naming no heading: " + cite))
     return out
 
 

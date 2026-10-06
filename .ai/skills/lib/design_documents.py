@@ -32,25 +32,45 @@ from pathlib import Path
 
 
 REGISTRY = "specs/methodology/skills.md"
+# @canon-spec specs/methodology/working-files.md § A Design Document § The Kinds of Change
 KINDS = ("canon", "application", "code", "neither")
 # working-files.md § A Design Document and § A Steering Decision
 PLANS = ".ai/plans/design-specs"  # set by the entry script calling main
+# @canon-spec specs/methodology/working-files.md § A Design Document
 CODE_PLANS = "implement-specs"  # the plans folder of the designs changing code, whose kind is code
+# @canon-spec specs/methodology/working-files.md § A Design Document
 FIELDS = ("Name", "Status", "Source", "Specs", "Target", "Spawned By", "Depends On", "Validated")
 # working-files.md § A Stamp: a UTC timestamp and a content hash; a design document's
 # Validated stamp leaves out the Validated and Status fields.
 STAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z sha256:[0-9a-f]{16}$")
+# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files.md § A Stamp
 UNSTAMPED = ("Validated", "Status")
+# @canon-spec specs/methodology/working-files.md § A Design Document
 IMPACT = "Impact on the Application Specs"  # a canon design's, and no other design's
+# @canon-spec specs/methodology/working-files.md § A Design Document
 SECTIONS = ("The Problem", "Scope", "Steering Decisions", "The Design", IMPACT, "The Builder's Passes", "Deliberately Left Alone")
+# @canon-spec specs/methodology/working-files.md § A Design Document
 OPTIONAL = ("Steering Decisions",)
-STEER_FIELDS = ("Name", "Prompted By", "Steer", "Decision")
+# @canon-spec specs/methodology/working-files.md § A Steering Decision
+# the type's table of record fields, copied here as this tooling reads it, each row's Field, Identifies,
+# Required and Default Value cells; steer_table_problems holds the copy to that section's table, STEER_HOME
+STEER_TABLE = (("Name", "yes", "yes", ""), ("Prompted By", "no", "yes", ""),
+               ("Steer", "no", "yes", ""), ("Decision", "no", "yes", ""))
+STEER_FIELDS = tuple(f for f, _, _, _ in STEER_TABLE)
+STEER_HOME = ("specs/methodology/working-files.md", "A Steering Decision")
 # working-files.md § A Design Document: an adversarial review's or post-apply audit's pass,
 # its lead-in and what follows it to the next, names the model and effort it ran on.
+# @canon-spec specs/methodology/working-files.md § A Design Document
 REVIEW = re.compile(r"^\*\*(?:Adversarial review|Post-apply audit)\b", re.I)
+# @canon-spec specs/methodology/working-files.md § A Design Document
 REVIEW_FORM = re.compile(r"^\*\*(?:Adversarial review|Post-apply audit)\b")
+# @canon-spec specs/AGENTS.md § Design, Refactor, Refine
+# @canon-spec specs/methodology/working-files.md § A Design Document
 RAN_ON = re.compile(r"\bon [^\s,;]+(?: [^\s,;]+)*? (?:at (?:light|medium|high) effort|as the agent allows)\b", re.I)
+# @canon-spec specs/methodology/working-files.md § A Design Document § The States It Moves Through
 STATES = ("not-started", "in-progress", "approved", "applying", "complete", "abandoned")
+# @canon-spec specs/methodology/working-files.md § A Design Document
 FINISHED = ("complete", "abandoned")
 # A field's value runs to the next line opening with a field's key, or to a blank line.
 KEY = r"\*\*([A-Z][A-Za-z ]*):\*\*"
@@ -159,6 +179,23 @@ def check_steers(body):
             problems.append("two steering decisions share the Name " + name)
         seen.add(name)
     return problems
+
+
+def steer_table_problems(root):
+    """-> problems where STEER_TABLE, this tooling's copy of the Steering Decisions record fields,
+    differs from their table in working-files.md § A Steering Decision, on any of its four columns."""
+    path, title = STEER_HOME
+    text = (root / path).read_text(encoding="utf-8").replace("\r\n", "\n")
+    lines = (section(text, title) or "").split("\n")
+    head = next((i for i, l in enumerate(lines) if l.startswith("| Field | Identifies | Required | Default Value |")), None)
+    rows = []
+    for l in lines[head + 2:] if head is not None else []:
+        if not l.startswith("|"):
+            break
+        rows.append(tuple(c.strip() for c in l.strip().strip("|").split("|"))[:4])
+    if tuple(rows) != STEER_TABLE:
+        return [(path, "the Steering Decisions fields table in § %s is %s, the tooling's copy %s" % (title, rows or "none", list(STEER_TABLE)))]
+    return []
 
 
 def check_form(design):
@@ -534,7 +571,7 @@ def design_problems(design):
     """Every check on one design: its form, its Target's kind, and what the workstack
     finds wrong with it. Any problem the form and kind checks report counts, whatever it
     is filed under, so a skills registry that cannot be read stops a stamp."""
-    found = check_form(design)[1] + check_specs(design, Path.cwd())[1]
+    found = check_form(design)[1] + check_specs(design, Path.cwd())[1] + steer_table_problems(Path.cwd())
     return found + [(t, p) for t, p in check_stack(design.parent)[1] if t == design.stem]
 
 
