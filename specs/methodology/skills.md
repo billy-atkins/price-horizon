@@ -50,6 +50,8 @@ A flag setting how an action runs, rather than choosing one, is named for what i
 
 **Scripts are Python 3 —** importing only the standard library, the skill's own helpers beside its entry script, and the code the skills share, wherever that is achievable. A script needing an install step is a script that will not run at the moment it is needed. Where a capability genuinely requires something external, degrade rather than fail: prefer a local tool when present, a documented remote or manual path when not, and report which one actually ran so a reader knows what they are trusting.
 
+**A script's copy of values the canon states points to the area they come from —** a script keeps its own copy of the values it checks against, so it decides without reading prose, and each copy carries a canon-spec annotation above it (`specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code`), a pointer to the area of the canon its values come from, so a cold agent finds what the copy stands for and the audit confirms the area is still there.
+
 **Record what actually went wrong —** a skill earns its length by naming the failures that motivated it, the trap that only shows up at the wrong moment, the fix that is not obvious from the symptom. Anything derivable from reading the underlying tool's own documentation does not need to be here.
 
 ## Setting Up an Agent

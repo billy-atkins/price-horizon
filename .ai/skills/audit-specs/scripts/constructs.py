@@ -11,18 +11,47 @@ from datetime import datetime, timedelta, timezone
 RULE = "modeling-constructs.md § Constructs"
 DECLARING = "modeling-constructs.md § Constructs § Declaring a Construct"
 
-# § Constructs § Declaring a Construct: the constructs a **Construct:** field may name, the fields each
-# sets for itself in their order, and those it requires; a Record Form is declared by its titles
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs
+# modeling-constructs.md § Constructs § Declaring a Construct: the constructs a **Construct:** field may name; a Record Form is
+# declared by its titles
 NAMES = ("Lifecycle", "State Machine", "Decision Table", "Decision Tree", "DAG", "Algorithm", "Constraint")
-OWN_FIELDS = {"Decision Table": ("Hit Policy", "Conditions", "Annotations", "Input Values", "Output Values", "Default Output"),
-              "Algorithm": ("Inputs", "Output")}
-REQUIRED = {"Algorithm": ("Inputs", "Output"), "Decision Table": ("Conditions",)}
-# DMN's hit policies; Unique is the default value, so it is never written
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
+# its table of the fields a construct declares, copied here as this script reads it, in its order: each
+# field's Construct, Required and Default Value cells; field_table_findings holds the copy to the table
+FIELD_TABLE = (
+    ("Construct", "every construct but a Record Form", "yes", ""),
+    ("Hit Policy", "Decision Table", "no", "Unique"),
+    ("Conditions", "Decision Table", "yes", ""),
+    ("Annotations", "Decision Table", "no", "none"),
+    ("Input Values", "Decision Table", "no", "none"),
+    ("Output Values", "Decision Table", "where its hit policy is Priority or Output order", ""),
+    ("Default Output", "Decision Table", "no", "none"),
+    ("Inputs", "Algorithm", "yes", ""),
+    ("Output", "Algorithm", "yes", ""),
+)
+OWN_FIELDS = {c: tuple(f for f, fc, _, _ in FIELD_TABLE if fc == c) for c in NAMES if any(fc == c for _, fc, _, _ in FIELD_TABLE)}
+REQUIRED = {c: tuple(f for f, fc, req, _ in FIELD_TABLE if fc == c and req == "yes") for c in OWN_FIELDS}
+DEFAULTS = {f: d for f, _, _, d in FIELD_TABLE if d}
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
+# the fields whose value is a list, each item beneath the field's key; a Default Output is one where
+# its table has several outcome columns
+LIST_FIELDS = ("Input Values", "Output Values")
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
+# DMN's hit policies; Unique is the default value, reported where it is written
 POLICIES = ("Any", "Priority", "First", "Rule order", "Output order",
             "Collect", "Collect sum", "Collect count", "Collect min", "Collect max")
 
-# each construct's tables, by their headers; None where a Decision Table's columns are its own
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Lifecycle
+# a States table's headers, a Lifecycle's and a State Machine's alike
 STATES = ["state", "description", "initial", "terminal"]
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Constraint
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § DAG
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Tree
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Lifecycle
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
+# each construct's tables, by their headers; None where a Decision Table's columns are its own
 FORMS = {
     "Lifecycle": [STATES, ["From", "To", "Trigger"]],
     "State Machine": [STATES, ["From", "To", "Trigger", "Guard"]],
@@ -32,14 +61,25 @@ FORMS = {
     "Constraint": [["Constraint", "Applies to", "Enforced by"]],
     "Decision Table": [None],
 }
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § DAG
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Lifecycle
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
 # the columns whose form gives `none`, or whose own check reports it; no form here gives `-`, a
 # Decision Table's `-` being its cells' own and a Lifecycle's trigger reported by its own check
 NONE_COLUMNS = {("State Machine", "Trigger"), ("State Machine", "Guard"), ("DAG", "depends_on"), ("Lifecycle", "Trigger")}
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
 # the tables a Name column may open: a Transitions table, a Decision Table, a Constraint table
 NAMEABLE = {"Lifecycle": {1}, "State Machine": {1}, "Decision Table": {0}, "Constraint": {0}}
 
 FIELD = re.compile(r'^\*\*([^*`]+?):\*\*\s*(.*)$')
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
+# § Constructs § Record Form: an identifying value holds no Markdown, backtick, `§`, `;` or `]`; an
+# underscore within a word, as in a state's name, is no markup
+UNPLAIN = re.compile(r'[*`§;\[\]]|(?:^|\W)_|_(?:\W|$)')
 JUMP = re.compile(r'Go to step (\d+(?:\.\d+)?)')
+# an End that ends a step or a branch: the whole of it, or after a comma or a sentence's end, with punctuation or
+# nothing after it, so a step opening with the verb, End the run, or a word, End-of-day, is no End
+END = re.compile(r'(?:^|[,.] )End(?=[.,;]|\s*$)')
 SEPARATOR = re.compile(r',| and ')
 
 
@@ -165,6 +205,7 @@ def overlap(a, b):
     return any(matches(a, x) and matches(b, x) for x in _points(a, b))
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
 FORM_OPENING = re.compile(r'not\(|[<>=!\[\]\("]|-$|(?:date and time|date|time|duration)\(')
 
 
@@ -268,6 +309,9 @@ def construct_findings(r, body, found, sections):
     """modeling-constructs.md § Constructs: each declared construct checked for what its form
     lets a script decide. `body` is the file's live text, its fences stripped."""
     decls = declarations(body, sections)
+    lines = body.split(chr(10))
+    for line, name, fields, tables, lineage in decls:
+        _paragraphs(r, lines, line, fields, found)
     # a field a construct sets, outside the block a Construct field opens
     owned = {ln for _, _, fields, _, _ in decls for ln, _, _ in fields}
     own_keys = {k for keys in OWN_FIELDS.values() for k in keys}
@@ -301,6 +345,11 @@ def construct_findings(r, body, found, sections):
             if form is not None and cols != form:
                 found.append((DECLARING, r, table["line"], f"{_a(name)} table headed {header}, not {form}"))
                 ok = False
+            for ln, row in table["rows"]:
+                ident = [row[0]] if named or (name in ("Lifecycle", "State Machine") and k == 0) or name == "DAG" else []
+                for v in ident:
+                    if UNPLAIN.search(v):
+                        found.append((DECLARING, r, ln, f"a part's identifier that is not plain text: {v}"))
             if named:
                 names = [row[1][0] for row in table["rows"]]
                 if any(not n for n in names) or len(set(names)) != len(names):
@@ -325,6 +374,25 @@ def construct_findings(r, body, found, sections):
         check(r, line, name, fields, tables, found)
 
 
+def _paragraphs(r, lines, line, fields, found):
+    """§ Constructs § Declaring a Construct: the Construct field and each field it sets open a paragraph of
+    their own, a field whose value is a list its key on a line of its own and its items beneath."""
+    for ln, key, value in [(line, "Construct", "")] + fields:
+        i = ln - 1
+        inline = re.sub(r"^\*\*[^*]+:\*\*", "", lines[i]).strip()
+        j = i + 1
+        if not inline and key != "Construct":
+            while j < len(lines) and lines[j].startswith("- "):
+                j += 1
+        if i > 0 and lines[i - 1].strip() or j < len(lines) and lines[j].strip():
+            found.append((DECLARING, r, ln, f"the {key} field not a paragraph of its own"))
+        elif key in LIST_FIELDS and inline:
+            found.append((DECLARING, r, ln, f"the {key} field's list written on its key's line, not beneath it"))
+        elif key == "Default Output" and not inline and j - i - 1 < 2:
+            # one outcome column takes a value on the key's line; several, an item for each
+            found.append((DECLARING, r, ln, "a Default Output written beneath its key with fewer than two items"))
+
+
 def _fields(r, line, name, fields, found):
     allowed = OWN_FIELDS.get(name, ())
     keys = [k for _, k, _ in fields]
@@ -337,14 +405,15 @@ def _fields(r, line, name, fields, found):
     for key in REQUIRED.get(name, ()):
         if key not in keys:
             found.append((DECLARING, r, line, f"{_a(name)} with no {key} field"))
+    for ln, key, value in fields:
+        if key in DEFAULTS and value == DEFAULTS[key]:
+            found.append((DECLARING, r, ln, f"the {key} field written at its default value, {value}"))
     values = dict((k, v) for _, k, v in fields)
     if values.get("Hit Policy") in ("Priority", "Output order") and "Output Values" not in values:
         found.append((DECLARING, r, line, f"a {values['Hit Policy']} table with no Output Values field"))
     for ln, key, value in fields:
-        if key == "Hit Policy" and value not in POLICIES:
-            found.append((RULE + " § Decision Table", r, ln,
-                          "a Hit Policy written at its default value, Unique" if value == "Unique"
-                          else f"a Hit Policy that is none of DMN's: {value}"))
+        if key == "Hit Policy" and value not in POLICIES + (DEFAULTS["Hit Policy"],):
+            found.append((RULE + " § Decision Table", r, ln, f"a Hit Policy that is none of DMN's: {value}"))
 
 
 # ---------------------------------------------------------------- Lifecycle and State Machine
@@ -460,6 +529,9 @@ def guard(text):
         if not m:
             return None
         cell = feel(m.group(2))
+        inner = re.sub(r"^not\((.*)\)$", r"\1", m.group(2).strip())
+        if cell is not None and not FORM_OPENING.match(inner) and re.search(r"[:,]", inner):
+            return None  # a value written plain, without quotes, holds no colon or comma
         if cell is None or m.group(1).strip() in out:
             return None  # a row tests each of its facts once, in a form the section lists
         out[m.group(1).strip()] = cell
@@ -532,9 +604,6 @@ def _decision_table(r, line, name, fields, tables, found):
     if any(c not in cols for c in notes + conds):
         found.append((rule, r, line, "a Conditions or Annotations field naming no column of its table"))
         return
-    for key in ("Annotations", "Default Output", "Input Values"):
-        if values.get(key) == "none":
-            found.append((rule, r, line, f"the {key} field written at its default value, none"))
     n, m = len(conds), len(notes)
     # § Its columns: its conditions first, then one or more outcomes, then its annotations
     if cols[:n] != conds or (m and cols[len(cols) - m:] != notes) or len(cols) - n - m < 1:
@@ -542,6 +611,14 @@ def _decision_table(r, line, name, fields, tables, found):
         return
     idx = list(range(off, off + n))
     outs = list(range(off + n, len(header) - m))
+    if "Default Output" in values and values["Default Output"] != DEFAULTS["Default Output"]:
+        items = values["Default Output"].split("\n")
+        named = [i.partition(":")[0].strip() for i in items]
+        if len(outs) == 1 and (len(items) != 1 or values["Default Output"].startswith(header[outs[0]] + ":")):
+            found.append((rule, r, line, "a Default Output that is not one value, for its one outcome column"))
+        elif len(outs) > 1 and (sorted(named) != sorted(header[k] for k in outs)
+                                or any(not i.partition(":")[2].strip() for i in items)):
+            found.append((rule, r, line, "a Default Output that is not an item for each outcome column, its header, a colon and its value"))
     # an aggregating Collect: one outcome column, of numbers but for a count
     if policy.startswith("Collect ") and (len(outs) != 1 or policy != "Collect count"
                                           and any(_num(row[outs[0]]) is None for _, row in table["rows"])):
@@ -734,6 +811,10 @@ def _algorithm(r, line, name, fields, tables, found):
         if comparison and action.count("; otherwise, ") != 1:
             found.append((rule, r, ln, f"a comparison not written in its form: step {step}"))
         branches = action.split("; otherwise, ") if comparison else [action]
+        for b in branches:
+            tail = b.rstrip(". ")
+            if JUMP.search(b) and not re.search(r"Go to step \d+(?:\.\d+)?$", tail) or END.search(b) and not re.search(r"(?:^|[,.] )End$", tail):
+                found.append((rule, r, ln, f"a jump or an End that does not end its branch: step {step}"))
         for target in JUMP.findall(action):
             if not target.isdigit() or not 1 <= int(target) <= len(rows):
                 found.append((rule, r, ln, f"a jump to a step the table does not hold: {target}"))
@@ -777,6 +858,7 @@ def name_column_findings(text_of, cited, found, sections, strip_fences):
 
 # ---------------------------------------------------------------- candidates for the reading audit
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs
 # a construct's tables known by their leading columns, so one written in an earlier form is found too
 LEADS = (("state", "description"), ("From", "To"), ("Step", "Question"), ("task",), ("Step", "Action"),
          ("Constraint", "Applies to"))
@@ -837,3 +919,26 @@ def _settled(fields, table):
     if len(idx) == 1 and any(row[0][0] for row in rows):
         return all(any(matches(row[0], x) for row in rows) for x in _points(*[row[0] for row in rows]))
     return False
+
+
+# ---------------------------------------------------------------- the fields table, held to its home
+
+def field_table_findings(text):
+    """§ Constructs § Declaring a Construct: FIELD_TABLE, this script's copy of the table of the fields a
+    construct declares, against that table in `text`, modeling-constructs.md as it stands: each row's
+    Field, Construct, Required and Default Value, in its order."""
+    lines = text.split("\n")
+    try:
+        h = next(i for i, l in enumerate(lines) if l.startswith("| Field | Construct | Required | Default Value |"))
+    except StopIteration:
+        return [(DECLARING, 0, "no table of the fields a construct declares")]
+    rows = []
+    for i in range(h + 2, len(lines)):
+        if not lines[i].startswith("|"):
+            break
+        rows.append((i + 1, tuple(_cells(lines[i])[:4])))
+    found = [(DECLARING, ln, f"the fields table's row {row} differs from the script's copy {copy}")
+             for (ln, row), copy in zip(rows, FIELD_TABLE) if row != copy]
+    if len(rows) != len(FIELD_TABLE):
+        found.append((DECLARING, h + 1, f"the fields table holds {len(rows)} fields, the script's copy {len(FIELD_TABLE)}"))
+    return found
