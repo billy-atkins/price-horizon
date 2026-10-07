@@ -13,9 +13,19 @@
 
 {the problem}
 
-## Scope
+## The Design Frame
 
-{the sweep and what it found}
+### Scope
+
+{the cases the change governs and what tells them apart; then the sweep and what it found}
+
+### Approach
+
+{the principle the solution applies}
+
+### Outcomes
+
+{what a successful solution achieves, and how that is judged}
 
 ## Steering Decisions
 
@@ -26,7 +36,7 @@
 - **Name:** {a short name}
   **Prompted By:** {the builder's question, proposal or account, a finding's ID, or the user's own initiative}
   **Steer:** {the user's words, quoted}
-  **Decision:** {what it settles}
+  **Decision:** {the essence of what the steer decided}
 
 ## The Design
 

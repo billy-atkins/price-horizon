@@ -49,9 +49,14 @@ UNSTAMPED = ("Validated", "Status")
 # @canon-spec specs/methodology/working-files.md § A Design Document
 IMPACT = "Impact on the Application Specs"  # a canon design's, and no other design's
 # @canon-spec specs/methodology/working-files.md § A Design Document
-SECTIONS = ("The Problem", "Scope", "Steering Decisions", "The Design", IMPACT, "The Builder's Passes", "Deliberately Left Alone")
+SECTIONS = ("The Problem", "The Design Frame", "Steering Decisions", "The Design", IMPACT, "The Builder's Passes", "Deliberately Left Alone")
 # @canon-spec specs/methodology/working-files.md § A Design Document
 OPTIONAL = ("Steering Decisions",)
+# @canon-spec specs/methodology/working-files.md § A Design Document
+# the design frame's level-three headings, in order, and the text a part not yet stated holds, which no design
+# approved or further holds
+FRAME = ("Scope", "Approach", "Outcomes")
+NOT_YET_STATED = "Not yet stated."
 # @canon-spec specs/methodology/working-files.md § A Steering Decision
 # the type's table of record fields, copied here as this tooling reads it, each row's Field, Identifies,
 # Required and Default Value cells; steer_table_problems holds the copy to that section's table, STEER_HOME
@@ -160,6 +165,12 @@ def section(text, title):
     return rest[:nxt.start()] if nxt else rest
 
 
+def frame_parts(text):
+    """The design frame's parts, each heading with what it holds."""
+    parts = re.split(r"^### (.+?)\s*$", section(text, "The Design Frame") or "", flags=re.M)[1:]
+    return dict(zip(parts[::2], (p.strip() for p in parts[1::2])))
+
+
 def check_steers(body):
     """-> problems with a Steering Decisions section: a Records field, and each record its
     type's fields in order, no two sharing a Name."""
@@ -240,6 +251,13 @@ def check_form(design):
         want = [s for s in SECTIONS if (s in sections or s not in OPTIONAL) and (s != IMPACT or values.get("Specs") == "canon")]
         if sections != want:
             problems.append((name, "its sections are %s, not %s" % (", ".join(sections), ", ".join(want))))
+        frame = frame_parts(text)
+        heads = re.findall(r"^### (.+?)\s*$", section(text, "The Design Frame") or "", re.M)
+        if "The Design Frame" in sections and heads != list(FRAME):
+            problems.append((name, "its design frame's headings are %s, not %s" % (", ".join(heads) or "none", ", ".join(FRAME))))
+        if values.get("Status") in ("approved", "applying", "complete"):
+            for part in [p for p in FRAME if frame.get(p) == NOT_YET_STATED]:
+                problems.append((name, values["Status"] + ", but its design frame's " + part + " is not yet stated"))
         body = section(text, "Steering Decisions")
         for p in check_steers(body) if body is not None else []:
             problems.append((name, p))
@@ -699,6 +717,10 @@ def stamp_validation(value):
         return 0
     # every check but the stamp's own absence, which this is about to write
     problems = [(t, p) for t, p in design_problems(design) if "validation review" not in p]
+    # working-files.md § A Design Document: no design approved or further holds a part of its frame not yet stated
+    if dict(fields).get("Status") not in ("approved", "applying", "complete"):
+        problems += [(name, "its design frame's %s is not yet stated" % p) for p in FRAME
+                     if frame_parts(text).get(p) == NOT_YET_STATED]
     if problems:
         report("stamp-validation, not stamped", problems)
         return 1

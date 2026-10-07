@@ -15,6 +15,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Cold agent |  | An agent arriving with no context but what it reads, and so with no attachment to the decisions of whoever did the work before it. |
 | Construct |  | A structured form, one of a bounded set the method approves, in which a rule, a process, an entity's behavior or a repeated entry is written rather than in free prose. Not the programming sense. |
 | Design document |  | A plan describing one change to the specifications or to code taken through Design, Refactor, Refine, from the problem it solves to the edits that make it. Not a design the product's architecture describes. |
+| Design frame |  | A statement of a change, made by its builder: its scope, the cases the change governs and what tells them apart; its approach, the principle the solution applies; and its outcomes, what a successful solution achieves and how that is judged. Not a frame of a user interface, nor a frame of reference. After Kees Dorst's account of framing in design reasoning, in "Frame Innovation" (2015) and "The core of 'design thinking' and its application", in "Design Studies" (2011). |
 | Design, Refactor, Refine | DRR | A process by which work is brought to elegance: a draft that solves the problem, then structural change until the structure settles, then its wording. |
 | Elegance |  | A quality of a solution, the opposite of a Rube Goldberg machine, in which its objective is satisfied by the fewest rules, as a minimal proof reaches its theorem in the fewest steps. So a skilled reader sees in it simple, recurring patterns, a rhythm and a beauty, where an unskilled reader sees only complexity. The complexity is reduced, never hidden: everything the objective truly requires is still there, in its simplest form. |
 | Field |  | A key-value pair written into a spec's or a working file's text. Not a table's column, a data field a data model defines, or a key in a file's frontmatter. |
@@ -56,6 +57,8 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 **The term —** the bare term, without markup or any of its other names, listed once, the table sorted by term.
 
 **The definition —** it opens with its genus, the broader kind the term belongs to, a term of this glossary wherever one fits, so a term builds on the terms it rests on rather than restating them. It then states what sets the term apart, and a use it must not be mistaken for opens with `Not`.
+
+**A borrowed term —** a term defined in one author's or one body's published work, rather than common to many, ends its definition, before its other names, with that work, as `After {whose account}, in {work}.`: named in prose, never cited.
 
 **Other names —** a term's one abbreviation goes in its Abbreviation column, left empty where it has none. A definition ends with the term's other full names, as `Also called X.`, several separated by commas. Each name belongs to that term alone, never to another term.
 
