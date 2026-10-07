@@ -71,7 +71,10 @@ NONE_COLUMNS = {("State Machine", "Trigger"), ("State Machine", "Guard"), ("DAG"
 # the tables a Name column may open: a Transitions table, a Decision Table, a Constraint table
 NAMEABLE = {"Lifecycle": {1}, "State Machine": {1}, "Decision Table": {0}, "Constraint": {0}}
 
-FIELD = re.compile(r'^\*\*([^*`]+?):\*\*\s*(.*)$')
+# @canon-spec specs/methodology/modeling-constructs.md § Fields
+# a field: a line opening with its key in bold, the colon inside the bold, then a space and its value or nothing;
+# a list marker and indentation before the key are no part of it; the one copy, which audit-specs.py reads too
+FIELD = re.compile(r'^(?P<indent>\s*)(?P<marker>-\s+)?\*\*(?P<key>[^*`]+?):\*\*(?: (?P<value>.*)|$)')
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
 # § Constructs § Record Form: an identifying value holds no Markdown, backtick, `§`, `;` or `]`; an
 # underscore within a word, as in a state's name, is no markup
@@ -108,11 +111,24 @@ def _cells(row):
     return [c.strip() for c in row.strip().strip("|").split("|")]
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Literal Text
+# literal text: a code span, one backtick to the next, literal text holding no backtick; the one reading of a
+# span, which audit-specs.py reads too
+CODE_SPAN = re.compile(r'`(?P<text>[^`]+)`')
+
+
+def _margin_field(line):
+    """A field at the left margin, as a construct's own fields stand, opening a paragraph of their own
+    (modeling-constructs.md § Constructs § Declaring a Construct); a field in a list item or indented is none."""
+    m = FIELD.match(line)
+    return m if m and not m["indent"] and not m["marker"] else None
+
+
 def _form_of(text):
-    """A text with the contents of each code span blanked to spaces, its backticks kept and its runs of backticks
-    paired as CommonMark pairs them, so a form check never reads a jump, a separator or an End quoted as literal text
-    as the text's own, and a span still stands between the words around it; places in the text are kept."""
-    return re.sub(r'(`+)(.+?)(?<!`)\1(?!`)', lambda m: m.group(1) + " " * len(m.group(2)) + m.group(1), text)
+    """A text with the contents of each code span, as CODE_SPAN reads one, blanked to spaces, its backticks kept,
+    so a form check never reads a jump, a separator or an End quoted as literal text as the text's own, and a span
+    still stands between the words around it; places in the text are kept."""
+    return CODE_SPAN.sub(lambda m: "`" + " " * len(m["text"]) + "`", text)
 
 
 def jumps(text):
@@ -160,7 +176,11 @@ def feel(text):
 NUMBER = re.compile(r'-?(?:\d+(?:\.\d+)?|\.\d+)')
 DATE = re.compile(r'date\("(\d{4})-(\d{2})-(\d{2})"\)')
 DATE_TIME = re.compile(r'date and time\("(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d+)?(Z|[+-]\d{2}:\d{2})"\)')
-QUOTED_LIST = re.compile(r'\s*"[^"]*"(\s*,\s*"[^"]*")*\s*')
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
+# a list of values: each in double quotes, separated by commas; the one copy, which a quoted list and a list or a
+# range are built from
+QUOTED = r'"[^"]*"(?:\s*,\s*"[^"]*")*'
+QUOTED_LIST = re.compile(r'\s*' + QUOTED + r'\s*')
 
 
 def _value(s):
@@ -306,7 +326,7 @@ def _ranked(value):
     out = {}
     for item in value.split("\n"):
         h, _, v = item.partition(":")
-        if not re.fullmatch(r'\s*"[^"]*"(\s*,\s*"[^"]*")*\s*', v):
+        if not QUOTED_LIST.fullmatch(v):
             return None
         out[h.strip()] = re.findall(r'"([^"]*)"', v)
     return out
@@ -319,16 +339,16 @@ def declarations(body, sections):
     secs = sorted(sections.items(), key=lambda x: x[1][0])
     out, problems = [], []
     for i, line in enumerate(lines):
-        m = FIELD.match(line)
-        if not m or m.group(1) != "Construct":
+        m = _margin_field(line)
+        if not m or m["key"] != "Construct":
             continue
-        name = m.group(2).strip()
+        name = (m["value"] or "").strip()
         owner = [lin for lin, (h, end) in secs if h < i < end]
         lineage = owner[-1] if owner else ""
         fields, tables, table, j = [], [], None, i + 1
         while j < len(lines):
             l = lines[j]
-            f = FIELD.match(l)
+            f = _margin_field(l)
             if l.startswith("|"):
                 if table is None:
                     table = {"header": _cells(l), "rows": [], "line": j + 1}
@@ -341,7 +361,7 @@ def declarations(body, sections):
                 if name in FORMS and len(tables) == len(FORMS[name]):
                     break
             elif f and not tables:
-                fields.append((j + 1, f.group(1), f.group(2).strip()))
+                fields.append((j + 1, f["key"], (f["value"] or "").strip()))
             elif l.startswith("- ") and fields and not tables:
                 # a field whose value is a list: its items sit beneath its key
                 ln, k, v = fields[-1]
@@ -364,9 +384,9 @@ def construct_findings(r, body, found, sections):
     owned = {ln for _, _, fields, _, _ in decls for ln, _, _ in fields}
     own_keys = {k for keys in OWN_FIELDS.values() for k in keys}
     for i, l in enumerate(body.split(chr(10)), 1):
-        f = FIELD.match(l)
-        if f and f.group(1) in own_keys and i not in owned:
-            found.append((DECLARING, r, i, f"a {f.group(1)} field outside a construct's block"))
+        f = _margin_field(l)
+        if f and f["key"] in own_keys and i not in owned:
+            found.append((DECLARING, r, i, f"a {f['key']} field outside a construct's block"))
     seen = {}
     for line, name, fields, tables, lineage in decls:
         if name not in NAMES:
@@ -427,7 +447,7 @@ def _paragraphs(r, lines, line, fields, found):
     their own, a field whose value is a list its key on a line of its own and its items beneath."""
     for ln, key, value in [(line, "Construct", "")] + fields:
         i = ln - 1
-        inline = re.sub(r"^\*\*[^*]+:\*\*", "", lines[i]).strip()
+        inline = (FIELD.match(lines[i])["value"] or "").strip()
         j = i + 1
         if not inline and key != "Construct":
             while j < len(lines) and lines[j].startswith("- "):
@@ -623,7 +643,7 @@ def _choices(r, rule, transitions, off, found):
 
 # ---------------------------------------------------------------- Decision Table
 
-LIST_OR_RANGE = re.compile(r'"[^"]*"(\s*,\s*"[^"]*")*|[\[\(].+\.\..+[\]\)]')
+LIST_OR_RANGE = re.compile(QUOTED + r'|[\[\(].+\.\..+[\]\)]')
 
 
 def _named(value):

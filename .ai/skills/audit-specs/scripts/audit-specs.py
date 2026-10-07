@@ -58,9 +58,6 @@ LAYER = {"methodology": "specs/methodology/", "product": "specs/application/prod
          "technical": "specs/application/technical/"}
 ROLE_TABLE = "specs/application/product/roles.md"
 
-# A citation is `§ Title` or `path/to.md § Title`. A backtick span merely containing the
-# section token is not one: `§` alone, or `## § Vision` shown as a forbidden heading form,
-# are the token being discussed rather than used.
 CITATION = constructs.CITATION  # the form written once, in constructs.py, which its construct checks read too
 # A whole file is a valid citation form and carries no section token, so CITATION
 # never sees one. Only the direction check applies to it: naming a file in another
@@ -126,9 +123,7 @@ for _type, _spec in RECORD_TYPES.items():
         FIELD_KEYS[_key] = "record"
     for _key in _spec["section_fields"]:
         FIELD_KEYS[_key] = "record section"
-# A field opens a line with its key in bold, the colon inside the bold; a list marker and
-# indentation before the key are no part of it.
-FIELD_LINE = re.compile(r'^(\s*)(-\s+)?\*\*([^*`]+?):\*\*(?:\s|$)')
+FIELD_LINE = constructs.FIELD  # the form written once, in constructs.py
 RECORD_SELECTOR = re.compile(r'^(.*?)\s+\[(.*)\]$')
 # modeling-constructs.md § Bold Lead-ins and § Emphasis: bold marks only a field or a dash
 # label, both opening a line, and italic, the one emphasis, never opens one.
@@ -140,6 +135,7 @@ ITALIC_OPENING = re.compile(r'^' + LIST_OR_QUOTE + r'\*(?!\*)\S')
 ODD_EMPHASIS = re.compile(r'\*\*\*|__[^_\s][^_]*__')
 BOLD_LEAD_INS = "modeling-constructs.md § Bold Lead-ins"
 EMPHASIS = "modeling-constructs.md § Emphasis"
+LITERAL_TEXT = "modeling-constructs.md § Literal Text"
 KEY_VALUE = re.compile(r'^([A-Z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*(?: [A-Z0-9][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*)*): (.+)$')
 # an identifying value's form: constructs.py's copy, so a record and a part are read alike
 UNPLAIN = constructs.UNPLAIN
@@ -341,14 +337,14 @@ def parse_records(body, lineage):
         gap = False
         if text.startswith("- "):
             mm = FIELD_LINE.match(text)
-            current = [(mm.group(3), text[mm.end():].strip(), i)] if mm else [(None, "", i)]
+            current = [(mm["key"], (mm["value"] or "").strip(), i)] if mm else [(None, "", i)]
             records.append(current)
             if not mm:
                 problems.append((RECORD_FORM, i, "a record does not open with a field"))
         elif text.startswith("  ") and current is not None:
             mm = FIELD_LINE.match(text)
-            if mm and len(mm.group(1)) == 2 and not mm.group(2):
-                current.append((mm.group(3), text[mm.end():].strip(), i))
+            if mm and len(mm["indent"]) == 2 and not mm["marker"]:
+                current.append((mm["key"], (mm["value"] or "").strip(), i))
             elif current:
                 key, value, at = current[-1]
                 current[-1] = (key, (value + " " + text.strip()).strip(), at)
@@ -443,7 +439,7 @@ def field_findings(r, body, found):
         mm = FIELD_LINE.match(line)
         if not mm:
             continue
-        indent, dash, key = mm.group(1), mm.group(2), mm.group(3)
+        indent, dash, key = mm["indent"], mm["marker"], mm["key"]
         owner = [(lin, s) for lin, s in secs if s[0] < i < s[1]]
         lineage, (h, end) = owner[-1] if owner else ("", (-1, len(raw)))
         title = lineage.split(" § ")[-1]
@@ -688,11 +684,17 @@ def check(root):
         # illustration, not a dependency, and linting one produces a finding
         # nobody can act on.
         for i, line in enumerate(live.split("\n"), 1):
+            # modeling-constructs.md § Literal Text: a code span opens and closes with one backtick; a line indented
+            # four spaces or a tab is an indented code block, literal as a fenced one is
+            if "``" in line and not line.startswith(("    ", "\t")):
+                found.append((LITERAL_TEXT, r, i, "a run of backticks, where literal text opens and closes with one"))
             # a code span is literal text, so markup inside one is never bold or italic
-            prose = re.sub(r'`[^`]*`', lambda m: "x" * len(m.group(0)), line)
+            prose = constructs.CODE_SPAN.sub(lambda m: "x" * len(m.group(0)), line)
             for m in BOLD_SPAN.finditer(prose):
                 if not LINE_OPENING.match(prose[:m.start()]):
                     found.append((EMPHASIS, r, i, f"bold outside a line's opening: {line[m.start():m.end()][:60]}"))
+                elif m.group(1).endswith(":") and not FIELD_LINE.match(line):
+                    found.append((FIELDS, r, i, f"a field not in its form, its key in bold, then a space, any list marker a hyphen: {line[m.start():m.end() + 10][:60]}"))
                 elif not (m.group(1).endswith(":") or m.group(1).endswith(" —")):
                     found.append((BOLD_LEAD_INS, r, i, f"bold opening a line closes on neither a colon nor a dash: {line[m.start():m.end()][:60]}"))
             if ITALIC_OPENING.match(prose):
@@ -753,7 +755,7 @@ def check(root):
         # bare § outside a backtick span. Every inline span is stripped, not only the
         # ones that parse as citations, since the rule is about the span and not the form.
         for i, line in enumerate(live.split("\n"), 1):
-            stripped = re.sub(r'`[^`]*`', "", line)
+            stripped = constructs.CODE_SPAN.sub("", line)
             if LOOSE_SECTION.search(stripped):
                 found.append(("sourcing-and-citation.md § Writing a Citation", r, i,
                               "a § outside a backtick span"))
@@ -900,7 +902,7 @@ def image_findings(root):
         if not rel.startswith("specs/"):
             continue
         for n, line in enumerate(strip_fences(f.read_text(encoding="utf-8")).split("\n"), 1):
-            if IMAGE.search(re.sub(r'`[^`]*`', "", line)):
+            if IMAGE.search(constructs.CODE_SPAN.sub("", line)):
                 found.append((DIAGRAMS_RULE, rel, n, "embeds an image rather than a diagram's source"))
     return found
 
@@ -1088,7 +1090,7 @@ def long_sentences(text):
         if not line.strip() or line.lstrip().startswith(("#", "|", "---")):
             continue
         # inline code masked at its own length, so a sentence is cut from the line as written
-        masked = re.sub(r"`[^`]*`", lambda m: "X" * len(m.group(0)), line)
+        masked = constructs.CODE_SPAN.sub(lambda m: "X" * len(m.group(0)), line)
         start = 0
         for m in list(SENTENCE_BREAK.finditer(masked)) + [None]:
             end = m.start() if m else len(masked)
@@ -1283,7 +1285,7 @@ def glossary_candidates(root):
     # in apposition, "Spec of Record, the method"; "is written" or "is missing" states a rule
     # about the term instead, and a term after an article or a comma is an item in a list.
     defining = re.compile(
-        rf"(?:(?:^|[.!?:]\s+|\|\s*|—\s*)|\b(?:a|an|the)\s+){name}\b(?:\s*\([^)]*\)|\s*`[^`]*`)?"
+        rf"(?:(?:^|[.!?:]\s+|\|\s*|—\s*)|\b(?:a|an|the)\s+){name}\b(?:\s*\([^)]*\)|\s*{constructs.CODE_SPAN.pattern})?"
         rf"\s+(?:(?:is|are)\s+(?:a|an|the|one|what|where|how)\b|means\b|names\s+\w)"
         rf"|(?<!\ba\s)(?<!\ban\s)(?<!\bthe\s)(?<!,\s)\b{name},\s+(?:a|an|the)\b", re.I)
     for f in md_files(root):
@@ -1600,12 +1602,12 @@ def literal_candidates(root):
     for f in md_files(root):
         rel = f.relative_to(root).as_posix()
         for n, line in enumerate(strip_fences(f.read_text(encoding="utf-8")).split("\n"), 1):
-            for m in re.finditer(r'`([^`]+)`', line):
-                span = m.group(1)
+            for m in constructs.CODE_SPAN.finditer(line):
+                span = m["text"]
                 if span in known or literal.search(span) or span in fenced_words or span in fenced_text:
                     continue
                 out.append((rel, n, "backtick span that may be a name", span))
-            prose = re.sub(r'`[^`]*`', "", line)
+            prose = constructs.CODE_SPAN.sub("", line)
             for m in re.finditer(r'(?<![*\w])\*(?!\*)([^*]+?)\*(?!\*)', prose):
                 if len(m.group(1).split()) > 6:
                     out.append((rel, n, "italic span longer than a short phrase", m.group(1)[:80]))

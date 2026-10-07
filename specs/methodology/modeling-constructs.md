@@ -31,7 +31,7 @@ Each construct is authored as a table, a Record Form as a table of its fields an
 
 ## Fields
 
-A field is written as a line opening with its key in bold, the colon inside the bold, then a space and its value: `**Field Name:** value`. It opens a paragraph, a line of its own within one, or a list item; a list marker and any indentation before the key are no part of it.
+A field is written as a line opening with its key in bold, the colon inside the bold, then a space and its value: `**Field Name:** value`. It opens a paragraph, a line of its own within one, or a list item, its marker a hyphen; the hyphen and any indentation before the key are no part of it.
 
 **Its key —** one the form defining the field declares, so a reader or a script looks a field up by a name it already knows. An unknown key is an error, not a new field, and a field appears only where the form declaring its key places it. A key is one or more words separated by single spaces. Each word begins with a capital and is made of letters or digits, a hyphen joining two parts of one word as in `Sign-off`, and the key holds no other punctuation, so it stays plain and matches exactly wherever it is written.
 
@@ -49,7 +49,7 @@ Emphasis is italic, `*word*`, on a word or a short phrase inside a sentence, whe
 
 ## Literal Text
 
-Backticks mark literal text: something written exactly so elsewhere, a path, a citation, an identifier, a field's key, a heading's title, a value, or a command, so a reader can copy it and a script can match it. A name is not literal text: a product, a method, a company, or a role is written plain, capitalized as a proper noun. A record type's name is literal where it stands for a section's title, `Open Questions`; the idea it names is plain prose, an open question.
+Backticks mark literal text: something written exactly so elsewhere, a path, a citation, an identifier, a field's key, a heading's title, a value, or a command, so a reader can copy it and a script can match it. A span opens and closes with one backtick, so literal text holds no backtick. A name is not literal text: a product, a method, a company, or a role is written plain, capitalized as a proper noun. A record type's name is literal where it stands for a section's title, `Open Questions`; the idea it names is plain prose, an open question.
 
 ## Constructs
 
