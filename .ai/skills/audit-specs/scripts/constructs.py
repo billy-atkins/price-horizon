@@ -76,10 +76,27 @@ FIELD = re.compile(r'^\*\*([^*`]+?):\*\*\s*(.*)$')
 # § Constructs § Record Form: an identifying value holds no Markdown, backtick, `§`, `;` or `]`; an
 # underscore within a word, as in a state's name, is no markup
 UNPLAIN = re.compile(r'[*`§;\[\]]|(?:^|\W)_|_(?:\W|$)')
-JUMP = re.compile(r'Go to step (\d+(?:\.\d+)?)')
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Tree
+# a jump as the form writes it, and the parser reading every jump: the phrase in any letters and the step number
+# after it, a whole number or a branch's dotted one, ending at a space, a punctuation mark or the text's end
+JUMP_WORDS = "Go to step"
+JUMP = re.compile(r'(?i)\b' + re.escape(JUMP_WORDS) + r'\b(?:\s+(\d+(?:\.\d+)?)(?=$|[^\w.]|\.(?!\d)))?')
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
+# the opening of a comparison, and the separator of its two branches, as the form writes them
+COMPARISON_OPENING = "If "
+SEPARATOR_OF_BRANCHES = "; otherwise, "
+# the separator as it stands in any wording, and the words a comparison is written with, which a step that is no
+# comparison may fold one by
+SEPARATOR_MARK = SEPARATOR_OF_BRANCHES.strip(" ")
+COMPARISON_WORDS = re.compile(r"(?i)\b(?:" + SEPARATOR_MARK.strip("; ,") + "|" + COMPARISON_OPENING.strip() + r")\b")
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
 # an End that ends a step or a branch: the whole of it, or after a comma or a sentence's end, with punctuation or
-# nothing after it, so a step opening with the verb, End the run, or a word, End-of-day, is no End
-END = re.compile(r'(?:^|[,.] )End(?=[.,;]|\s*$)')
+# nothing after it, so a step opening with the verb, End the run, or a word, End-of-day, is no End; and an End
+# ending a text, after its closing punctuation is trimmed
+END_WORD = "End"
+END = re.compile(r'(?:^|[,.] )' + END_WORD + r'(?=[.,;]|\s*$)')
+END_AT_TAIL = re.compile(r'(?:^|[,.] )' + END_WORD + r'$')
 SEPARATOR = re.compile(r',| and ')
 
 
@@ -89,6 +106,37 @@ def _a(name):
 
 def _cells(row):
     return [c.strip() for c in row.strip().strip("|").split("|")]
+
+
+def _form_of(text):
+    """A text with the contents of each code span blanked to spaces, its backticks kept and its runs of backticks
+    paired as CommonMark pairs them, so a form check never reads a jump, a separator or an End quoted as literal text
+    as the text's own, and a span still stands between the words around it; places in the text are kept."""
+    return re.sub(r'(`+)(.+?)(?<!`)\1(?!`)', lambda m: m.group(1) + " " * len(m.group(2)) + m.group(1), text)
+
+
+def jumps(text):
+    """Each jump in a text: (its phrase as written, its step number or None, where it starts, where it ends)."""
+    return [(m.group(0), m.group(1), m.start(), m.end()) for m in JUMP.finditer(text)]
+
+
+def _jump_form(rule, r, ln, text, raw, found):
+    """A jump whose letters are not those of `Go to step`, or that names no step by its number, as `Go to step nine`;
+    a jump naming no step has no place to end at, and is reported for its form alone. `text` is the form read, `raw`
+    the cell as written, of the same length, from which a finding quotes."""
+    for phrase, target, start, end in jumps(text):
+        if not phrase.startswith(JUMP_WORDS):
+            found.append((rule, r, ln, f"a jump not written `{JUMP_WORDS}`: {raw[start:end]}"))
+        if target is None:
+            shown = " ".join(raw[start:].split()[:4]).rstrip(".,;:)!?")
+            found.append((rule, r, ln, f"a jump naming no step by its number: {shown}"))
+
+
+def _ends_in_jump(text):
+    """Whether a text's last words are its one jump naming a step, its closing punctuation aside."""
+    tail = text.rstrip(" .,;:)!?")
+    named = [j for j in jumps(tail) if j[1]]
+    return len(named) == 1 and named[0][3] == len(tail)
 
 
 def _rule_row(row):
@@ -720,11 +768,12 @@ def _decision_table(r, line, name, fields, tables, found):
 def _tree(r, line, name, fields, tables, found):
     rule = f"{RULE} § Decision Tree"
     rows = tables[0]["rows"]
-    steps, first, jumps = {}, {}, []
+    steps, first = {}, {}
     ids = [row[0] for _, row in rows]
     if len(set(ids)) != len(ids):
         found.append((rule, r, tables[0]["line"], "two branches sharing a number"))
     for ln, row in rows:
+        result = _form_of(row[3])
         m = re.fullmatch(r'(\d+)\.(\d+)', row[0])
         if not m:
             found.append((rule, r, ln, f"a branch numbered other than step and branch: {row[0]}"))
@@ -739,13 +788,17 @@ def _tree(r, line, name, fields, tables, found):
         steps.setdefault(step, set())
         if not row[3]:
             found.append((rule, r, ln, "a branch with no result"))
-        elif JUMP.search(row[3]) and not JUMP.fullmatch(row[3]):
+        elif any(j[1] for j in jumps(result)) and not (_ends_in_jump(result)
+                                                       and result.lower().startswith(JUMP_WORDS.lower())):
             found.append((rule, r, ln, f"a result holding a jump and more: {row[3]}"))
-        steps[step] |= set(JUMP.findall(row[3]))
+        _jump_form(rule, r, ln, result, row[3], found)
+        steps[step] |= {j[1] for j in jumps(result) if j[1]}
     numbers = {i.split(".")[0] for i in ids}
     for ln, row in rows:
-        for target in JUMP.findall(row[3]):
-            if target not in numbers:
+        for target in [j[1] for j in jumps(_form_of(row[3])) if j[1]]:
+            if "." in target:
+                found.append((rule, r, ln, f"a jump naming a branch, not a step: {target}"))
+            elif target not in numbers:
                 found.append((rule, r, ln, f"a jump to a step the table does not hold: {target}"))
     if "1" not in steps:
         found.append((rule, r, tables[0]["line"], "no step 1 to start at"))
@@ -806,31 +859,48 @@ def _algorithm(r, line, name, fields, tables, found):
         found.append((rule, r, tables[0]["line"], "steps not numbered from 1 in order"))
         return
     for ln, row in rows:
-        step, action = int(row[0]), row[1]
-        comparison = action.startswith("If ")
-        if comparison and action.count("; otherwise, ") != 1:
+        step, action = int(row[0]), _form_of(row[1])
+        comparison = action.startswith(COMPARISON_OPENING)
+        if comparison and action.count(SEPARATOR_OF_BRANCHES) != 1:
             found.append((rule, r, ln, f"a comparison not written in its form: step {step}"))
-        branches = action.split("; otherwise, ") if comparison else [action]
+        branches = action.split(SEPARATOR_OF_BRANCHES) if comparison else [action]
+        _jump_form(rule, r, ln, action, row[1], found)
+        # the separator of a comparison's branches in a step that is no comparison: a comparison folded into it
+        if not comparison and SEPARATOR_MARK in action:
+            found.append((rule, r, ln, f"a comparison's `{SEPARATOR_MARK}` in a step that is no comparison: step {step}"))
         for b in branches:
             tail = b.rstrip(". ")
-            if JUMP.search(b) and not re.search(r"Go to step \d+(?:\.\d+)?$", tail) or END.search(b) and not re.search(r"(?:^|[,.] )End$", tail):
+            # a branch's jump naming a step ends it, alone; a jump naming none is reported for its form alone
+            if any(j[1] for j in jumps(b)) and not _ends_in_jump(b) or END.search(b) and not END_AT_TAIL.search(tail):
                 found.append((rule, r, ln, f"a jump or an End that does not end its branch: step {step}"))
-        for target in JUMP.findall(action):
+        for target in [j[1] for j in jumps(action) if j[1]]:
             if not target.isdigit() or not 1 <= int(target) <= len(rows):
                 found.append((rule, r, ln, f"a jump to a step the table does not hold: {target}"))
             elif int(target) <= step and not comparison:
                 found.append((rule, r, ln, f"a step that is no comparison going back: step {step}"))
         if comparison:
-            back = [b for b in branches if any(t.isdigit() and int(t) <= step for t in JUMP.findall(b))]
+            back = [b for b in branches if any(j[1] and j[1].isdigit() and int(j[1]) <= step for j in jumps(b))]
             if back and len(back) == len(branches):
                 found.append((rule, r, ln, f"a comparison going back on every branch, with none going forward: step {step}"))
         if step == len(rows):
             for b in branches:
-                if not (b.rstrip(". ").endswith("End") or JUMP.search(b)):
+                if not (b.rstrip(". ").endswith(END_WORD) or jumps(b)):
                     found.append((rule, r, ln, "a last step, or a branch of it, that neither ends nor jumps"))
 
 
 # ---------------------------------------------------------------- Constraint
+
+# @canon-spec specs/methodology/sourcing-and-citation.md § Writing a Citation
+# a citation: a section token and a title in one backtick span, after a file's path where it cites another file,
+# never the token alone; the one copy of the form, which audit-specs.py reads as its own and an Enforced by names
+# what enforces its rule by
+CITATION = re.compile(r'`((?:[\w./-]+\.md\s*)?§\s+[^`]+)`')
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Constraint
+# the words an Enforced by opens with where its value is that nothing enforces the rule, the canon's "nothing in its
+# Enforced by column", and the pattern matching them and the colon ending that value
+NOTHING_WORDS = "nothing|none"
+NOTHING_ENFORCES = re.compile(r'(?i)\s*(?:' + NOTHING_WORDS + r')\s*:')
+
 
 def _constraint(r, line, name, fields, tables, found):
     rule = f"{RULE} § Constraint"
@@ -838,8 +908,13 @@ def _constraint(r, line, name, fields, tables, found):
     off = 1 if table["header"][:1] == ["Name"] else 0
     for ln, row in table["rows"]:
         enforced = row[off + 2]
-        if not re.search(r'`[^`]*§[^`]*`', enforced):
+        nothing = NOTHING_ENFORCES.match(_form_of(enforced))
+        if not CITATION.search(enforced):
             found.append((rule, r, ln, "a rule stated but enforced nowhere: its Enforced by cites nothing"))
+        # a cell whose value is that nothing enforces the rule, `nothing:` or `none:`, whatever it cites after
+        elif nothing:
+            word = enforced[nothing.start():nothing.end()].replace(" ", "").lower()
+            found.append((rule, r, ln, f"a rule stated but enforced nowhere: its Enforced by opens `{word}`"))
 
 
 # ---------------------------------------------------------------- a Name column, present where it is cited
@@ -866,8 +941,9 @@ LEADS = (("state", "description"), ("From", "To"), ("Step", "Question"), ("task"
 
 def construct_candidates(files, sections, strip_fences):
     """-> [(path, line, pattern, context)] for the Construct choice and form audit: a Decision
-    Table whose cells do not settle that every case is matched, and a table shaped as a construct's
-    with no declaration. `files` holds (path, body) pairs."""
+    Table whose cells do not settle that every case is matched, a table shaped as a construct's
+    with no declaration, an Algorithm's step that may fold a comparison, and an Enforced by that may
+    say nothing enforces its rule. `files` holds (path, body) pairs."""
     out = []
     for r, body in files:
         live = strip_fences(body)
@@ -877,6 +953,23 @@ def construct_candidates(files, sections, strip_fences):
             if name == "Decision Table" and tables and not _settled(fields, tables[0]):
                 out.append((r, line, "coverage the cells do not settle",
                             f"§ {lineage}: whether every case matches a row is read"))
+            # wording a script cannot judge, listed for the reading audit to read: a step that is no comparison
+            # holding a comparison's words, its separator aside, which the Algorithm's check reports; and an
+            # Enforced by opening nothing or none and holding a citation, its opening `nothing:` or `none:` aside,
+            # which the Constraint's check reports
+            if name == "Algorithm" and tables:
+                for ln, row in tables[0]["rows"]:
+                    text = _form_of(row[1])
+                    if not text.startswith(COMPARISON_OPENING) and SEPARATOR_MARK not in text \
+                            and COMPARISON_WORDS.search(text):
+                        out.append((r, ln, "a comparison a step may fold", f"§ {lineage}: {row[1][:100]}"))
+            if name == "Constraint" and tables:
+                off = 1 if tables[0]["header"][:1] == ["Name"] else 0
+                for ln, row in tables[0]["rows"]:
+                    cell = row[off + 2] if len(row) > off + 2 else ""
+                    if re.match(r'(?i)\s*(?:' + NOTHING_WORDS + r')\b', _form_of(cell)) and CITATION.search(cell) \
+                            and not NOTHING_ENFORCES.match(_form_of(cell)):
+                        out.append((r, ln, "an Enforced by that may say nothing enforces it", f"§ {lineage}: {cell[:100]}"))
         lines = live.split("\n")
         for i, l in enumerate(lines):
             if l.startswith("|") and (i == 0 or not lines[i - 1].startswith("|")) and i + 1 not in declared:

@@ -17,7 +17,10 @@ import subprocess
 import sys
 from pathlib import Path, PurePosixPath
 
-import constructs
+# its own helper sits beside it, found from the script's own place, so the script runs the same from any working
+# directory and under an interpreter that leaves the script's directory off the import path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import constructs  # noqa: E402
 
 # specs/methodology/scope.md § What Spec of Record Governs names where each kind is named:
 # specs by their place under specs/, the agent instructions by the root AGENTS.md and
@@ -58,7 +61,7 @@ ROLE_TABLE = "specs/application/product/roles.md"
 # A citation is `§ Title` or `path/to.md § Title`. A backtick span merely containing the
 # section token is not one: `§` alone, or `## § Vision` shown as a forbidden heading form,
 # are the token being discussed rather than used.
-CITATION = re.compile(r'`((?:[\w./-]+\.md\s*)?§\s+[^`]+)`')
+CITATION = constructs.CITATION  # the form written once, in constructs.py, which its construct checks read too
 # A whole file is a valid citation form and carries no section token, so CITATION
 # never sees one. Only the direction check applies to it: naming a file in another
 # layer is the same dependency whether or not a section is named. The span must
