@@ -8,8 +8,7 @@ This file defines the bounded, approved set of structured modeling constructs, r
 
 | Construct | Checked for |
 |---|---|
-| Lifecycle | two states sharing a name; no initial state, or more than one; a From or To naming a state its States table does not hold; a state the initial state cannot reach; a state that is not terminal with no way out, or a terminal state with one; a trigger leading from one state to two; or a transition with no trigger |
-| State Machine | two states sharing a name; no initial state, or more than one; a From or To naming a state its States table does not hold; a state the initial state cannot reach; a state that is not terminal with no way out, or a terminal state with one; two transitions from one state on the same trigger, or on none, whose guards, read as a Unique Decision Table, can both hold, or a guard no case meets; a state that cannot stay where, once its work is done, some case takes no transition out of it; or a fork no join closes, or a join no fork opens |
+| State Machine | two states sharing a name; no initial state, or more than one; a From or To naming a state its States table does not hold; a state the initial state cannot reach; a state that is not terminal with no way out, or a terminal state with one; two transitions from one state on the same trigger, or on none, whose guards, read as a Unique Decision Table, can both hold, or a guard no case meets; a state that cannot stay where, once its work is done, some case takes no transition out of it; a fork no join closes, or a join no fork opens; a Transitions table's columns other than From, To and Trigger, then a Guard, an Effect or both in that order, or such a column every cell of which is none; a guard's cell ending at a fact no guard of its choice tests and no Facts record declares, or at a fact of another kind; an Effect cell citing no Algorithm or Decision Table; a Recorded In field that is not a fact's name, a colon and the citation of a Facts record, a record it cites whose Values are no quoted list, or a state not among them; or a protocol machine with an Effect column, a transition with no trigger or a governed state; and of a submachine state, a state governed by more than one machine, a machine governing itself, a governed state that is terminal or not left as its machine's exits have it, the words `governed by` naming no machine or a part of one, or naming none, and a description citing a machine's whole section without them |
 | Decision Table | a cell in none of its forms, or a condition column testing values of more than one kind; a condition's header neither a fact's name nor a computation; a cell, a computed header or a computed outcome naming a fact nothing declares, or combining values of two kinds, or a cell ending at a fact of another kind than its column; a Reads item that is no fact's name, a colon and a citation, or a Computed field naming no outcome column; a cell testing another kind than its fact's Type, or `null` where its fact may not be absent; Input Values given for a fact a Facts record declares, or naming a fact; a cell outside its column's values; where it takes one row's outcome and gives no Default Output, a case no row matches; a First table falling through by a Default Output; a row that gives no case its outcome; an outcome cell outside a Computed column written as a test or a list; and, by its hit policy, a case two rows match where it is Unique, two rows a case matches giving different outcomes where it is Any, an outcome missing from its Output Values where it is Priority or Output order, an aggregating Collect's outcome other than one column, of numbers but for a count, or a case two rows match whose outcomes cannot both be carried out where it is Rule order, Output order or a Collect that does not aggregate |
 | Decision Tree | a branch with no result; a jump to a step the table does not hold; a step no path from step 1 reaches; a step that leads back to itself; or a question whose answers overlap, or leave a case with no answer |
 | DAG | two tasks sharing a name; a dependency naming a task the table does not hold; or a task that depends on itself, directly or through others, and so never runs |
@@ -17,7 +16,7 @@ This file defines the bounded, approved set of structured modeling constructs, r
 | Constraint | a rule stated but enforced nowhere, or an Enforced by citing nothing that resolves |
 | Record Form | a record missing a field its type requires, holding one its type does not define, holding a value its type's Values do not allow, or giving its fields out of their order; or two records in one section sharing the values of their identifying fields; and a Facts record whose name is no fact's name, a boolean fact's that asks no question, or whose Values name a fact |
 
-Use one of the constructs `§ Constructs` defines when a rule, a process, an entity's behavior, or an entry written repeatedly into the specs or the working files needs that kind of checkable completeness, and use prose everywhere else. The set is bounded and approved: a new construct earns its place only by filling a real gap none of the existing ones cover, not by preference for a different notation, and extending the set is a deliberate decision, made by updating this file first, never an ad hoc addition inside a single spec. Each construct is a definition (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`): its section in `§ Constructs`, with `§ Constructs § Declaring a Construct`, defines what each use of it sets, each use an instance the audit checks against it, as `specs/methodology/scope.md § Rules and Skills` has a rule's checks made. The Record Form is defined through its record types instead (`§ Constructs § Record Form`). The Decision Table is DMN's whole decision table (`specs/methodology/external-references.md § External References [Name: DMN]`), with the information requirements chaining one decision to another, written as a table's Reads field; DMN's other parts, its Decision Requirements Diagrams, its Business Knowledge Models, its decision services and its boxed expressions, are outside the set, and a project needing one adds it so. The State Machine, and the Lifecycle as one, map onto UML's state machine (`specs/methodology/external-references.md § External References [Name: UML]`); the Decision Tree, the DAG, the Algorithm, the Constraint and the Record Form follow no outside standard, since none meets their need: a decision tree's standards describe trees learned from data rather than questions an author writes, a DAG's are whole workflow notations, an algorithm has no standard pseudocode, and a constraint language as wide as the Object Constraint Language is far more than a Constraint needs. The Facts record type relies on DMN's item definitions, as `§ Constructs § Declaring a Construct § A Fact` states.
+Use one of the constructs `§ Constructs` defines when a rule, a process, an entity's behavior, or an entry written repeatedly into the specs or the working files needs that kind of checkable completeness, and use prose everywhere else. The set is bounded and approved: a new construct earns its place only by filling a real gap none of the existing ones cover, not by preference for a different notation, and extending the set is a deliberate decision, made by updating this file first, never an ad hoc addition inside a single spec. Each construct is a definition (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`): its section in `§ Constructs`, with `§ Constructs § Declaring a Construct`, defines what each use of it sets, each use an instance the audit checks against it, as `specs/methodology/scope.md § Rules and Skills` has a rule's checks made. The Record Form is defined through its record types instead (`§ Constructs § Record Form`). The Decision Table is DMN's whole decision table (`specs/methodology/external-references.md § External References [Name: DMN]`), with the information requirements chaining one decision to another, written as a table's Reads field; DMN's other parts, its Decision Requirements Diagrams, its Business Knowledge Models, its decision services and its boxed expressions, are outside the set, and a project needing one adds it so. The State Machine adopts UML's state machine (`specs/methodology/external-references.md § External References [Name: UML]`); the Decision Tree, the DAG, the Algorithm, the Constraint and the Record Form follow no outside standard, since none meets their need: a decision tree's standards describe trees learned from data rather than questions an author writes, a DAG's are whole workflow notations, an algorithm has no standard pseudocode, and a constraint language as wide as the Object Constraint Language is far more than a Constraint needs. The Facts record type relies on DMN's item definitions, as `§ Constructs § Declaring a Construct § A Fact` states.
 
 This file also sets the form of markup, wherever it is written, each Markdown file in scope being written in GitHub Flavored Markdown (`specs/methodology/external-references.md § External References [Name: GFM]`):
 
@@ -25,7 +24,7 @@ This file also sets the form of markup, wherever it is written, each Markdown fi
 - `§ Emphasis`, how prose stresses a word;
 - `§ Literal Text`, what backticks mark.
 
-`§ When to Use Which` is itself modeled with a Decision Tree, so a reader applies the same discipline this file asks of every other spec.
+`§ When to Use Which` is itself modeled with a Decision Tree, so a reader applies the same discipline this file asks of every other spec. `§ Time` says how a construct reads time.
 
 Each construct is authored as a table, a Record Form as a table of its fields and a list of records (`§ Constructs § Record Form`). A table is the one representation that is precise, referable row by row, readable in plain text with no rendering step, and parseable without ambiguity, and a record list keeps those properties for entries whose fields hold prose. A diagram never substitutes for either, since checkable completeness is a construct's job alone; `§ Diagrams` states the one disciplined way a rendering for a human reader is checked in beside them.
 
@@ -55,7 +54,7 @@ Backticks mark literal text: something written exactly so elsewhere, a path, a c
 
 ### Declaring a Construct
 
-Each construct is declared where it is used, so a reader and an audit know it as one. Its declaration is a `**Construct:**` field (`§ Fields`) opening a paragraph of its own before the construct's first table. Its value is the construct's name, as its section under `§ Constructs` is titled: `Lifecycle`, say. The fields a construct sets for itself, a Decision Table's `**Hit Policy:**` or an Algorithm's `**Inputs:**` and `**Output:**`, follow it in the order this section's table and then its own section's table give them, each opening a paragraph of its own, and its tables follow them. The declaration, its fields and its tables make one block, ending with the last table its form gives: a sentence introducing the construct ends before its `**Construct:**` field, and nothing else sits among them (`specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text`). A Record Form is declared by its titles and its record sections' fields instead (`§ Constructs § Record Form`). It is also the precedent the rest follow. A record section's title names its type, as a section's `**Construct:**` field names its construct. A record is named by its identifying fields, as a part is by its identifier.
+Each construct is declared where it is used, so a reader and an audit know it as one. Its declaration is a `**Construct:**` field (`§ Fields`) opening a paragraph of its own before the construct's first table. Its value is the construct's name, as its section under `§ Constructs` is titled: `State Machine`, say. The fields a construct sets for itself, a Decision Table's `**Hit Policy:**` or an Algorithm's `**Inputs:**` and `**Output:**`, follow it in the order this section's table and then its own section's table give them, each opening a paragraph of its own, and its tables follow them. The declaration, its fields and its tables make one block, ending with the last table its form gives: a sentence introducing the construct ends before its `**Construct:**` field, and nothing else sits among them (`specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text`). A Record Form is declared by its titles and its record sections' fields instead (`§ Constructs § Record Form`). It is also the precedent the rest follow. A record section's title names its type, as a section's `**Construct:**` field names its construct. A record is named by its identifying fields, as a part is by its identifier.
 
 Each construct's section defines the fields its instances declare (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`), in a table of the shape `§ Constructs § Record Form` sets for a construct's fields. The fields every construct but a Record Form declares, its own section adding its own:
 
@@ -66,9 +65,9 @@ Each construct's section defines the fields its instances declare (`specs/method
 
 A fact several constructs test is declared as `§ Constructs § Declaring a Construct § A Fact` has it.
 
-**One construct to a section —** a section holds at most one construct of its own, not counting its subsections', so a citation of the section names the construct. Whatever prose the section needs sits between its heading and the `**Construct:**` field, or after the construct's last table, never inside its block, and another construct, a Constraint on an Algorithm's output say, takes a section of its own. A construct's several tables, a Lifecycle's States and Transitions, are one construct, and a table that is no construct, a definition, an index or a catalogue, may sit beside it.
+**One construct to a section —** a section holds at most one construct of its own, not counting its subsections', so a citation of the section names the construct. Whatever prose the section needs sits between its heading and the `**Construct:**` field, or after the construct's last table, never inside its block, and another construct, a Constraint on an Algorithm's output say, takes a section of its own. A construct's several tables, a State Machine's States and Transitions, are one construct, and a table that is no construct, a definition, an index or a catalogue, may sit beside it.
 
-**Its columns —** a construct's tables hold every column its form gives and no other, a Name column and a Decision Table's annotations aside, and every cell holds a value, or `none` or `-` where its form gives one, but for a Decision Tree's Question on a branch other than the first and a Decision Table's annotation, which may be left empty.
+**Its columns —** a construct's tables hold every column its form gives and no other, a Name column, a Decision Table's annotations and a State Machine's Guard and Effect, where its section gives them, aside, and every cell holds a value, or `none` or `-` where its form gives one, but for a Decision Tree's Question on a branch other than the first and a Decision Table's annotation, which may be left empty.
 
 **A part of a construct —** is named by a citation of the construct's section followed, in square brackets inside the same span, by the part's identifier written `Key: value`, as a record is named by its identifying fields (`specs/methodology/sourcing-and-citation.md § Writing a Citation`), so a reader and an audit can find the part and check it is there. A part is named so wherever it is named from outside its construct's section; within the section, the construct's cells and the prose around it name it by its identifier alone, as a jump names a step. A citation names one part, and several parts take a citation each:
 
@@ -99,31 +98,6 @@ A fact several constructs test, where it is one fact by `specs/methodology/sourc
 | Unit | no | no | none | text | the unit a number is counted in |
 | May Be Absent | no | no | No | "Yes", "No" | whether it may have no value |
 | Means | no | yes | | text | what the fact is |
-
-### Lifecycle
-
-A model of the states one entity moves through over its lifetime, and what moves it from one to the next: it answers where the entity is in its journey.
-
-Authored as a States table and a Transitions table.
-
-A States table:
-
-| Column | Description |
-|---|---|
-| state | The name of the state |
-| description | What it means for an entity to be in this state |
-| initial | Whether the entity starts in this state, Yes or No, one state alone being initial |
-| terminal | Whether this state ends the lifecycle, Yes or No |
-
-A Transitions table:
-
-| From | To | Trigger |
-|---|---|---|
-| ... | ... | What happens to move the entity on: an actor's action, an event, or a time elapsing |
-
-A transition is taken whenever its trigger happens while the entity is in its From state: nothing that holds at that moment can refuse the move or send the entity elsewhere, and a move that can be refused or sent elsewhere is a State Machine's (`§ Constructs § State Machine`). A trigger names only what happens: whatever must hold when it happens for the move to be taken is a guard, never a qualifier written into the trigger. A trigger is written in the same words wherever it recurs, since two triggers are the same only where their words are. Each distinct thing that can happen is a trigger of its own: each action an actor may take, such as approving or rejecting, and each outcome of an event from outside the entity, such as a payment clearing or bouncing. Each trigger takes a row of its own, as each of several conditions deciding one outcome takes a Decision Table row of its own (`§ Constructs § Decision Table`), so no row lists triggers. A From names one state, so transitions from several states to one on the same trigger take a row for each From. A transition may lead back to an earlier state, a reopened item, say: what makes a model a lifecycle is that every move follows from its trigger alone, not that every move goes forward.
-
-Whether a lifecycle is modeled as a State Machine instead is `§ When to Use Which [Step: 2]`.
 
 ### Decision Table
 
@@ -171,7 +145,7 @@ An outcome decided when any one of several conditions holds is written as a row 
 
 **Its values —** an `**Input Values:**` field gives a condition's possible values, as DMN's input values do, for each condition it names. A question takes no item, Its facts giving its values. A cell naming a value they do not hold, or matching none they hold, is outside them. Where every condition gives them, the table takes one row's outcome and no cell tests against a fact, whether every case matches a row is decided rather than read. An `**Output Values:**` field gives, for each outcome column a Priority or an Output order table ranks by, its values as a list, highest priority first, and is written for no other hit policy; where it names several columns, rows rank by the first, then by the next where they tie. A case matching no row takes the table's Default Output where it gives one, and `null` where it does not, under every hit policy (DMN 10.3.2.10); a `**Default Output:**` field, optional, gives that outcome. A table taking every row a case matches, Rule order, Output order or a Collect, is not checked for a case no row matches, `null` there meaning that no row applies. Under First, the outcome where no other row matches is a last row testing nothing, `-` in every condition, which a Name can cite, never a Default Output, the one of DMN's two writings the section keeps. A Default Output written `none` is the field absent, so an outcome meaning that nothing follows takes a word of its own.
 
-**What is one —** a table that defines each case of a closed set and states what follows for it is a Decision Table, since it decides, unless it is another construct's own table, a Lifecycle's transitions or a Decision Tree's steps, say. A table saying only what a term, a value, a form or an example is, or where something is stated, decides nothing: it is a definition, an index or a catalogue, and no construct. So is a table whose rows sample an open set of cases, since it cannot be checked for a case it leaves out.
+**What is one —** a table that defines each case of a closed set and states what follows for it is a Decision Table, since it decides, unless it is another construct's own table, a State Machine's transitions or a Decision Tree's steps, say. A table saying only what a term, a value, a form or an example is, or where something is stated, decides nothing: it is a definition, an index or a catalogue, and no construct. So is a table whose rows sample an open set of cases, since it cannot be checked for a case it leaves out.
 
 **Its hit policy —** which of the rows a case matches give it its outcome, named in a `**Hit Policy:**` field as DMN names it, its default value DMN's default, as its table of fields gives:
 
@@ -213,26 +187,134 @@ This maps directly onto Airflow's, Dagster's, or Argo Workflows' own DAG definit
 
 ### State Machine
 
-A model of the states a system or an entity can be in, the transitions between them, and the conditions under which each is taken. It answers what happens when something happens in a given state, and under what conditions, so a reviewer can check that every case is covered. It is the general formalism, a UML state machine written as tables (`specs/methodology/external-references.md § External References [Name: UML]`), with no tie to any serialization or execution engine. Each of its parts maps onto one of UML's: a state onto a state, a trigger onto a trigger, a guard onto a guard, a transition with no trigger onto a completion transition, its initial state onto the target of the initial pseudostate's transition, a terminal state onto a final state, and a fork and a join onto UML's fork and join pseudostates, each branch between them an orthogonal region. Where its rules differ from UML's, its rules hold: an exclusive choice's guards never both hold, where UML would take either; a terminal state reached in one of a fork's branches ends the machine, as UML's terminate pseudostate does; and a join may carry a trigger, where UML's join takes none. A Lifecycle is a State Machine whose transitions carry a trigger alone, with no guard, fork or join.
+A model of the states a system or an entity can be in, the transitions between them, and the conditions under which each is taken: it answers where the entity is in its journey, and what happens when something happens in a given state, so a reviewer can check that every case is covered. It is UML's state machine (`specs/methodology/external-references.md § External References [Name: UML]`), adopted whole and written as tables, with no tie to any serialization or execution engine; `§ Constructs § State Machine § What It Means` states what UML means for what its tables write, and names each departure the canon makes from UML. A machine whose every transition is taken on its trigger alone, an entity's plain lifecycle, is a State Machine leaving its optional parts unused, no construct of its own (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`).
 
-Authored as a States table and a Transitions table. The States table is Lifecycle's (`§ Constructs § Lifecycle`), for a system or an entity, a terminal state ending the machine. A Transitions table:
+**Its fields —** after those every construct declares (`§ Constructs § Declaring a Construct`):
 
-| From | To | Trigger | Guard |
-|---|---|---|---|
-| ... | ... | What happens, as a Lifecycle's trigger, or none | What must hold when the trigger happens for the transition to be taken, or none |
+| Field | Required | Default Value | Values | Holds |
+|---|---|---|---|---|
+| Protocol | no | No | "Yes", "No" | whether it says which actions an actor may take in each state, UML's protocol state machine, rather than what the entity does, its behavioral state machine |
+| Recorded In | no | none | text | the fact the entity records its state in, its name, a colon and the citation of the Facts record declaring it, as a Decision Table's Reads item is written, each state's name one of that record's Values |
 
-A transition with a trigger and no guard is taken as a Lifecycle's is. One with no trigger is taken once its From state's work is done, and its guard, where it has one, holds. A state's own work being done is not a trigger: a transition taken on it carries none. A state's work is what its description says goes on in it. A state whose description states no work, one that only waits, has done its work once it is entered. A state whose description gives it nothing to wait for cannot stay once its work is done. What a State Machine expresses beyond a lifecycle:
+Authored as a States table and a Transitions table.
+
+A States table:
+
+| Column | Description |
+|---|---|
+| state | The name of the state |
+| description | What it means for an entity to be in this state |
+| initial | Whether the entity starts in this state, Yes or No, one state alone being initial |
+| terminal | Whether this state ends the machine's run, Yes or No |
+
+A Transitions table:
+
+| From | To | Trigger |
+|---|---|---|
+| ... | ... | What happens to move the entity on, of a kind `§ Constructs § State Machine § What It Means` names, or none |
+
+After its Trigger, a Transitions table adds a Guard column, each cell what must hold when the trigger happens for the transition to be taken, or none, where any of its transitions has a guard, and then an Effect column, each cell the citation of the Algorithm or the Decision Table the transition runs, or none, where any runs an effect; a column every cell of which would be none is not written.
+
+A trigger names only what happens: whatever must hold when it happens for the move to be taken is a guard, never a qualifier written into the trigger. A trigger is written in the same words wherever it recurs, since two triggers are the same only where their words are. Each distinct thing that can happen is a trigger of its own, each action an actor may take and each outcome of an event from outside the entity, so each takes a row of its own, and no row lists triggers; a class of occurrences, named once in the section's prose with each of its members, is one trigger, UML's trigger accepting any event of a class (UML 14.2.3.9.2). A From names one state, or, for a join, joins several with `and`, so transitions from several states to one on the same trigger take a row for each From. A transition may lead back to an earlier state, a reopened item, say. A state's own work being done is not a trigger: a transition taken on it carries none. A state whose description gives it nothing to wait for cannot stay once its work is done.
+
+What a State Machine expresses beyond a move its trigger alone decides:
 
 - a guard, which lets a transition's trigger happen, or its From state's work be done, without the transition being taken;
-- an exclusive choice: two or more transitions from one state on the same trigger, or on none. Each of their guards is written as a Decision Table's row is. It tests named facts, each fact and the cell testing it joined by a colon, as `receipt: attached`, and the facts joined by the word `and`; it names only the facts it tests, and a guard of none tests no fact. Each cell tests its fact as a Decision Table's cell does (`§ Constructs § Decision Table`), but naming no other fact, and a fact's name, and a value written without quotes, hold no colon, no comma and not the word `and`, but for the `date and time(…)` FEEL writes a date and time in. Read together, the guards are a Unique Decision Table over those facts, a fact a guard does not test being `-`, so no two of them can hold at once. Where the state's work is done and it cannot stay, together they also cover every case. A guard on a transition alone on its trigger, or alone with none, is prose, and once another transition joins it, both guards take this form;
+- an exclusive choice: two or more transitions from one state on the same trigger, on none, or on conditions one occurrence makes true together, whose guards never both hold, a departure where UML would take either. Each of their guards is written as a Decision Table's row is. It tests named facts, each fact and the cell testing it joined by a colon, as `receipt: attached`, and the facts joined by the word `and`; it names only the facts it tests, and a guard of none tests no fact. Each cell tests its fact as a Decision Table's cell does (`§ Constructs § Decision Table`), a comparison's or a range's end naming another fact only where a guard of the choice tests it or a Facts section declares it, of the kind of the fact the cell tests; and a fact's name, and a value written without quotes, hold no colon, no comma and not the word `and`, but for the `date and time(…)` FEEL writes a date and time in. Read together, the guards are a Unique Decision Table over those facts, a fact a guard does not test being `-`. Where the state's work is done and it cannot stay, together they also cover every case. A guard on a transition alone on its trigger, or alone with none, is prose, and once another transition joins it, both guards take this form;
+- an effect, an Algorithm or a Decision Table a transition runs as it is taken;
 - a fork, a transition into several states that then run concurrently, written as one row whose To joins them with `and`;
-- a join, a transition from several states running concurrently, written as one row whose From joins them with `and`. A join is taken only once every one of them has done its work: the effect a dedicated parallel construct would give, without needing one.
+- a join, a transition from several states running concurrently, written as one row whose From joins them with `and`, taken once every one of them has done its work.
 
-Every fork is closed by one join, from states its branches reach, and a join closes one fork; a terminal state reached in any branch ends the machine.
-
-A From names one state, as a Lifecycle's does (`§ Constructs § Lifecycle`), or, for a join, joins several with `and`.
+Every fork is closed by one join, from states its branches reach, and a join closes one fork.
 
 Over a DAG, a State Machine adds what `§ When to Use Which [Step: 4]` routes to it for.
+
+#### What It Means
+
+A State Machine means what UML's state machine means for what its tables write, each statement citing the section of UML it rests on, so neither an author nor a reader needs to recall the standard. The canon's rules beyond UML are its departures, each named where it is stated: an action a protocol machine does not take refused; a protocol machine's transitions taken on an actor's action alone; conditions one occurrence makes true together taken in one step; an exclusive choice's guards never both holding; relative time counted from entering the state; a terminal state in a fork's branch ending the run; a join carrying a trigger; `exit:` testing which terminal state the machine governing a state reached; and, in `§ Time`, an instant already past taken at once and an instant following its fact.
+
+**One occurrence at a time —** the machine handles each thing that happens fully before it takes the next, taking the transitions it enables until it reaches states where it waits, UML's run-to-completion, its section 14.2.3.9.1. An occurrence no transition is enabled by is discarded, but in a protocol machine. A state's work being done is handled ahead of anything else waiting. Conditions one occurrence makes true together are taken in its one step, a departure, UML dispatching each event on its own, the transitions they enable from one state an exclusive choice.
+
+**A state and its initial state —** a state is UML's state; the initial state is the one the machine enters as its run begins, the target of UML's initial Pseudostate's transition, its section 14.2.3.7. Before its run begins and once it has ended, a machine is in no state, its sections 14.2.3.4.2 and 14.2.3.8.3. What must outlast a run is a fact the entity records: its status, named by the entity, as `loan status`, declared in a Facts section (`§ Constructs § Declaring a Construct § A Fact`), its Values the complete list of the values it may take, their one home; the machine names that fact in its Recorded In field, and its states are those of the values it uses, a terminal state's among them, a value it does not use left out.
+
+**A state's work —** what its description says goes on in it, begun when the state is entered, UML's entry and doActivity Behaviors, its section 14.2.3.4.3; done, it lets a transition with no trigger be taken, UML's completion transition, its section 14.2.3.8.3, at once for a state whose description states no work, and once the run of the machine governing it ends for a submachine state. A transition taken while the work runs cuts it short. A transition from a state to itself leaves the state and enters it again, UML's external transition, its section 14.2.3.8.1, its work, the run of the machine governing it and its relative times starting afresh.
+
+**A terminal state —** the machine's run is complete, UML's final state, its section 14.2.3.6. It has no work: what its description says is the run's outcome, and work that ends a run is the effect of the transition entering it.
+
+**A fact —** held by the entity, or by another, and set by a state's work, a transition's effect or an occurrence's data, or from outside the machine, as a payment received lowers a balance, declared in a Facts section where a guard's cell ends at it.
+
+**A trigger —** names what happens, UML's event, its sections 13.3.3.2 to 13.3.3.4, its kind decided by what moves the entity:
+
+**Construct:** Decision Table
+
+**Hit Policy:** First
+
+**Conditions:** What moves the entity
+
+| What moves the entity | Its trigger |
+|---|---|
+| "the state's own work being done, whatever it found" | none: a transition with no trigger, guarded by what the work found where that decides where it goes |
+| "a periodic job's run, detecting a time or a condition" | something done: the job's run, as `§ Time` has it |
+| "time, counted from entering the state the transition leaves" | time passing, relative |
+| "time, counted from anything else" | time passing, an absolute instant computed from a fact |
+| "a fact reaching a value, whatever changed it" | a condition becoming true |
+| "a part of another construct being reached, or another machine's state being entered" | that part reached, or that state entered |
+| "an action of an actor, or a message from another system, by its happening" | something done |
+
+- **Something done —** an action of an actor, a message from another system, or a periodic job's run: a user approving, a payment arriving, UML's message event, its section 13.3.3.2. What it carries, a payment's amount, say, is a fact its occurrence sets, the data its message carries, its section 13.3.3.2, declared in a Facts section, which its transition's guard may test. A delayed message whose time is fixed when it is sent is something done, written as the message.
+- **A part reached, or a state entered —** another construct's part completing, or another machine's state being entered, written as the part's citation and `is reached` or `is entered`, in the same words wherever it recurs, UML's signal event, its section 13.3.3.2; two machines may each be triggered by the other's. Another machine's state is cited, and a state of another instance of the same machine named by its identifier, as a part within its own section is, either followed by its instance after `of` where it matters, as `active of another sale of its loan is entered`.
+- **A condition becoming true —** taken the moment it goes from false to true, never while it stays true: a balance reaching zero, UML's change event, its section 13.3.3.3.
+- **Time passing —** relative, as 30 days passing, counted from entering the state the transition leaves, a departure where the machine waited elsewhere first, UML counting from the time event's activation; or an absolute instant, as month end, or a payment's due date and 30 days, UML's time event, its section 13.3.3.4. What clock it reads is `§ Time`'s.
+
+**A guard —** tested when its trigger happens, or when its state's work is done, against the facts as they then stand, a transition whose guard does not hold being no transition at all for that occurrence, its section 14.2.3.9.2, a transition with no guard having one always true. It may test any fact about the entity or another, another entity's recorded status among them, `loan status: closed`, a terminal state's name included; the state a machine governs is left by which terminal state that machine reached, tested by `exit:` alone, a departure, UML telling its ends apart by exit points, its section 14.2.3.4.6.
+
+**Two transitions one occurrence enables —** at most one is taken from a state, its section 14.2.3.9.3; the exclusive choice decides which. Where a governed state and a state of the machine governing it both leave on one occurrence, the inner machine's transition is taken, the more deeply nested, its sections 14.2.3.9.4 and 14.2.3.9.5.
+
+**An effect —** the Algorithm or the Decision Table a transition's Effect cell cites, run as the transition is taken, after its From state is left and before its To state is entered, UML's effect Behavior, its sections 14.2.3.8 and 14.2.3.9.6. An action whose outcome decides where the entity goes is no effect but a state's work, the transitions from that state routing on what it found. One occurrence moving several entities in order is written in the machine it reaches first, its effect an Algorithm whose steps move the others, each moved machine's trigger citing that step and each step's move complete before the next.
+
+**A fork and a join —** UML's fork and join Pseudostates, its section 14.2.3.7, the branches between them its orthogonal regions, its section 14.2.3.2, each running at once, one occurrence able to take one transition in each, its section 14.2.3.9.1. A terminal state reached in one branch ends the machine's run, its other branches cut short, a departure, UML's final state completing that branch's region alone, its section 14.2.3.6; and a join may carry a trigger, a departure, UML's join taking none, its section 14.2.3.7.
+
+**A protocol machine —** a machine whose Protocol field is `Yes` is UML's protocol state machine, its section 14.4: its states hold no work, its section 14.4.3.1, so it takes no Effect column, no transition with no trigger and no governed state; each transition is taken on an actor's action, saying the state allows it, a departure where UML allows other events, its section 14.4.3.2.4; and an action no transition from the state takes is refused, a departure, UML leaving it undefined, its section 14.4.3.2.1, and leaving an operation no transition refers to callable in any state, its section 14.4.3.2.3, which the canon does not write. Where the system tells an actor why, the reasons it distinguishes are a Decision Table over the request, and no other reasons are written. Whether the machine allows an action in the entity's state is a fact, named `{entity} permits {action}?`, a question, as `loan permits disbursal?`, which any construct may test, citing the machine.
+
+**Resuming where it left off —** UML returns to where a machine was through a history Pseudostate, its section 14.2.3.4.4; the canon writes it with a fact the entity records, guarding the transitions from the machine's initial state.
+
+**What the tables do not write —** each part of UML's state machine named in this list, and the writing the canon uses instead:
+
+- **A composite state —** which its section 14.2.3.4.7 calls semantically equivalent to a submachine state: a nested machine is a section of its own, governing a state as `§ Constructs § State Machine § A Submachine State` has it.
+- **Entry and exit points —** its sections 14.2.3.4.6 and 14.2.3.7: a machine is entered at its initial state and left by its terminal states, told apart by `exit:`.
+- **History Pseudostates, and deferred events —** its section 14.2.3.4.4: written with a fact the entity records.
+- **Internal and local transitions —** its section 14.2.3.8.1: an occurrence that moves the entity nowhere is no transition; what it changes is a fact.
+- **Exit Behaviors —** its section 14.2.3.4.3: the effect of the transitions leaving the state.
+- **Choice and junction Pseudostates, and compound transitions —** its sections 14.2.3.7 and 14.2.3.8.4: a state whose work decides, its transitions an exclusive choice.
+- **A terminate Pseudostate —** its section 14.2.3.7: a terminal state.
+- **An AnyReceiveEvent —** its section 13.3.3.2: a class of occurrences, named once.
+- **A state invariant, and a protocol transition's postcondition —** its sections 14.2.3.4 and 14.4.3.2.3: a Constraint (`§ Constructs § Constraint`), a protocol transition's precondition being its guard.
+- **A guard testing another object's state —** its section 14.2.3.8.3: a test of that entity's recorded status.
+- **Protocol conformance —** its section 14.4.3.3: not written.
+
+A design adds a form for one where a spec needs what these writings cannot say.
+
+#### A Submachine State
+
+A State Machine's state whose work is the run of another State Machine, started by entering the state, is UML's submachine state, its section 14.2.3.4.7, governed by that machine. A machine run apart from the state, another entity's or one started elsewhere, is no state's work: a state waiting on it is left on a trigger, a part of it being reached. Its description says it is governed: the words `governed by`, which name only a machine, then that machine's section cited. A description citing another machine's whole section always says them, so a state referring to a machine it is not governed by cites one of its parts.
+
+- **Its machine —** one at most; a machine never governs itself, directly or through those it governs; a governed state is never terminal, a terminal state having no work.
+- **Entering it —** at the governing machine's initial state, by however many transitions reach it, the transitions from that initial state guarded by why it was entered, where that matters.
+- **Leaving it by its machine's end —** by transitions with no trigger, as its table of exits has them, `exit:` testing nothing else: a holder that routes on a fact as well leads each `exit:` transition to a state with no work, whose own transitions route on that fact.
+- **Leaving it on a trigger —** a transition with a trigger, taken from whatever state the governing machine is in, UML's group Transition, its sections 14.2.3.4.7 and 14.2.3.8.2. A trigger every state of the work leaves the same way, to one state outside it, is written once, on the outermost governed state whose every state it so leaves, and on no state inside it; one only some states of the work take, or take differently, is written inside the work, on each state taking it, leading to a terminal state where it ends the work.
+
+Its table of exits:
+
+**Construct:** Decision Table
+
+**Conditions:** Its machine's terminal states, Where it stands
+
+| Its machine's terminal states | Where it stands | Left by |
+|---|---|---|
+| "none" | - | its triggers alone, its machine never ending |
+| "one" | "outside a join's From" | one transition with no trigger and no guard |
+| "more than one" | "outside a join's From" | one transition with no trigger for each, guarded `exit: {terminal state}`, naming the terminal state reached, so together they are an exclusive choice covering every end |
+| "one", "more than one" | "in a join's From" | the join alone, taken once every branch's work is done |
 
 ### Algorithm
 
@@ -292,28 +374,44 @@ A blank line separates one section field from the next, and one record from the 
 
 **Why a list —** records are not table rows, because a field holds prose a table cell cannot carry readably. They are not headings, because a heading's section admits any content and further headings, where a list item holding only its fields is bounded, so a reader and a script can tell where one record ends and whether it holds exactly its type's fields.
 
+## Time
+
+How a construct reads time, wherever a cell, a guard, a trigger or a step reads a date, a time or a duration.
+
+**The clock —** a date or a time is read on a clock: the wall clock, unless a construct names another. A clock other than the wall clock, as a business date a job advances, is a fact of the Type date or date and time, declared once, in the Facts section of the file whose subject owns it (`§ Constructs § Declaring a Construct § A Fact`), and named by that fact's name wherever a cell, a guard, a trigger or a step reads it, in any file, its time zone, where it matters, stated in the fact's Means.
+
+**The value in force —** a value that changes from a date on, as a rate or a limit does, is a fact read at an instant: a construct reads it at the start of the period it computes unless its prose names another instant, and a period a change falls within says how it is split. A rule changed from a date is one construct testing the period's date, not two.
+
+**Backdated and withdrawn —** an instant computed from a fact follows the fact while the machine waits on it, so it moves when the fact changes and is withdrawn when the fact is removed, a departure where UML leaves a time event fixed once activated. A status that may change on past dates is derived from its facts each time it is read, never a machine's state.
+
+**Calendars —** date and time arithmetic is FEEL's, in the Gregorian calendar (`specs/methodology/external-references.md § External References [Name: DMN]`, its section 10.3.2.15, Table 57). An end-of-month rule other than FEEL's is named where it is used; another calendar, a business-day calendar among them, is a named input; and a length counting both its first and its last day is written with `+ 1`.
+
+**An instant already past —** an absolute instant already past when its state is entered is taken at once, a departure, UML leaving it unsaid (`specs/methodology/external-references.md § External References [Name: UML]`, its section 13.3.3.4).
+
+**A relative amount —** the amount of relative time passing may be a fact, read each time its state is entered; and time counted from a condition becoming true is an absolute instant computed from the recorded fact of when it did.
+
+**A job's run —** a time or a condition a periodic job detects, as a close of business does, is written as the job's run, something done: the trigger names the run, as `the close of business for a date` does, and the section of the construct it runs says what a missed run and a late run do, catching up each date missed, only the latest, or losing it.
+
 ## When to Use Which
 
-Choose the simplest construct that meets the need. State Machine is the most general of the constructs, able to express anything Lifecycle, Decision Table, Decision Tree or DAG can, and that generality is why it is not the default. This section's Decision Tree defaults each path to the simpler construct. It routes to State Machine only when a specific need forces it. Over a lifecycle, that need is a move its trigger alone does not decide, a guard or an exclusive choice, or an entity in several states at once, a fork and its join. Over a DAG, it is a genuine cycle, a materially branching choice, or an intentional conditional stop.
+Choose the simplest construct that meets the need. State Machine is the most general of the constructs, able to express anything Decision Table, Decision Tree or DAG can, and that generality is why it is not the default. This section's Decision Tree defaults each path to the simpler construct. It routes to State Machine only when a specific need forces it, or when what is described is an entity's status over time, which a State Machine writes using only the parts its case needs. Over a DAG, the need is a genuine cycle, a materially branching choice, or an intentional conditional stop.
 
 **Construct:** Decision Tree
 
 | Step | Question | Answer | Result |
 |---|---|---|---|
-| 1.1 | What is being described? | An entity's status over time, not the steps of a process that acts on it | Go to step 2 |
+| 1.1 | What is being described? | An entity's status over time, not the steps of a process that acts on it | Use State Machine |
 | 1.2 | | A rule that determines an outcome | Go to step 3 |
 | 1.3 | | A multi-step process orchestrating tasks or services to produce a result | Go to step 4 |
 | 1.4 | | A computational procedure that produces a value or a transformation | Use Algorithm |
 | 1.5 | | An invariant that must always hold, regardless of which path was taken | Use Constraint |
 | 1.6 | | An entry of one kind written repeatedly into the specs or the working files, each stating the same named fields, not data the product stores | Use Record Form |
-| 2.1 | Can what holds when the entity would move refuse the move or decide where it goes, or can the entity be in several states at once? | No, every move follows from its trigger alone, and the entity is in one state at a time | Use Lifecycle |
-| 2.2 | | Yes | Use State Machine |
 | 3.1 | Do the conditions have a genuine order of evaluation, where a later condition only makes sense once an earlier one has been answered a certain way? | No, each condition makes sense on its own, whichever row takes precedence | Use Decision Table |
 | 3.2 | | Yes | Use Decision Tree |
 | 4.1 | Does the process ever repeat a step under some condition, branch into materially different downstream handling, or have an intentional conditional stop that is not an error case? | No | Use DAG |
 | 4.2 | | Yes | Use State Machine |
 
-**Combining constructs —** these are not mutually exclusive inside one spec. A single task in a DAG or a state in a State Machine can itself be governed by a Decision Table, a Decision Tree, or an Algorithm. In an expense approval process, the step that routes a claim is a Decision Table over independent conditions: the claim's amount band, its category, and whether a receipt is attached. The step that works out the reimbursable total is an Algorithm: it sums the line items, applies each category's own cap, and deducts any advance already paid. A Lifecycle's transition can be triggered by a process completing a step, a claim moving from under review to approved when the approval step approves it. A Constraint can bound what any of the others is allowed to produce: a reimbursable total is never negative, however far the caps and the advance deduction reduce it, enforced by that Algorithm's own step flooring the total at zero rather than left as an expectation. Use as many constructs as a spec needs, and never force one to do a job another is built for.
+**Combining constructs —** these are not mutually exclusive inside one spec. A single task in a DAG or a state in a State Machine can itself have its work done by a Decision Table, a Decision Tree, or an Algorithm. In an expense approval process, the step that routes a claim is a Decision Table over independent conditions: the claim's amount band, its category, and whether a receipt is attached. The step that works out the reimbursable total is an Algorithm: it sums the line items, applies each category's own cap, and deducts any advance already paid. A State Machine's transition can be triggered by a process completing a step, a claim moving from under review to approved when the approval step approves it. A Constraint can bound what any of the others is allowed to produce: a reimbursable total is never negative, however far the caps and the advance deduction reduce it, enforced by that Algorithm's own step flooring the total at zero rather than left as an expectation. Use as many constructs as a spec needs, and never force one to do a job another is built for.
 
 ## Diagrams
 
