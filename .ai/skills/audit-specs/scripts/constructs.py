@@ -8,6 +8,8 @@ chosen stay with the Construct choice and form reading audit (modeling-construct
 import re
 from datetime import datetime, timedelta, timezone
 
+import expressions
+
 RULE = "modeling-constructs.md § Constructs"
 DECLARING = "modeling-constructs.md § Constructs § Declaring a Construct"
 
@@ -28,7 +30,9 @@ FIELD_TABLES = {
     ),
     "Constructs § Decision Table": (
         ("Hit Policy", "no", "Unique", "`§ Constructs § Decision Table`"),
+        ("Reads", "no", "none", "text"),
         ("Conditions", "yes", "", "text"),
+        ("Computed", "no", "none", "text"),
         ("Annotations", "no", "none", "text"),
         ("Input Values", "no", "none", "text"),
         ("Output Values", "where its hit policy is Priority or Output order", "", "text"),
@@ -53,7 +57,7 @@ DEFAULTS = {f: d for f, _, _, d in FIELD_TABLE if d}
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
 # the fields whose value is a list, each item beneath the field's key; a Default Output is one where
 # its table has several outcome columns
-LIST_FIELDS = ("Input Values", "Output Values")
+LIST_FIELDS = ("Reads", "Input Values", "Output Values")
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
 # DMN's hit policies; Unique is the default value, reported where it is written
 POLICIES = ("Any", "Priority", "First", "Rule order", "Output order",
@@ -192,13 +196,18 @@ def feel(text):
 
 
 NUMBER = re.compile(r'-?(?:\d+(?:\.\d+)?|\.\d+)')
-DATE = re.compile(r'date\("(\d{4})-(\d{2})-(\d{2})"\)')
-DATE_TIME = re.compile(r'date and time\("(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d+)?(Z|[+-]\d{2}:\d{2})"\)')
+# a date, a date and time, a time of day and a duration of either kind, the child script's copy
+DATE, DATE_TIME, TIME = (expressions.LITERAL[k] for k in ("date", "date and time", "time"))
+YM_DURATION, DT_DURATION = (expressions.LITERAL[k] for k in ("years and months duration", "days and time duration"))
+# a fact's name, as a comparison's or a range's end names one, and a question's, the child script's copies
+FACT_NAME, QUESTION = expressions.NAME, expressions.QUESTION
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
 # a list of values: each in double quotes, separated by commas; the one copy, which a quoted list and a list or a
 # range are built from
 QUOTED = r'"[^"]*"(?:\s*,\s*"[^"]*")*'
 QUOTED_LIST = re.compile(r'\s*' + QUOTED + r'\s*')
+# an absent value: `null` matches it, `-` where its column's values hold it, and `not(…)` around values
+NULL = None
 
 
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
@@ -208,8 +217,9 @@ def quoted_values(cell):
 
 
 def _value(s):
-    """A number, a FEEL date, or a FEEL date and time to the second with its offset -> (its place on
-    one timeline, its kind); None for anything else, a date or a time that does not exist among it."""
+    """A number, or a FEEL date, date and time to the second with its offset, time of day or duration -> (its
+    place on one line of its kind, its kind); None for anything else, a date or a time that does not exist
+    among it."""
     s = s.strip()
     try:
         m = DATE.fullmatch(s)
@@ -221,8 +231,24 @@ def _value(s):
             tz = timezone.utc if off == "Z" else timezone(
                 (1 if off[0] == "+" else -1) * timedelta(hours=int(off[1:3]), minutes=int(off[4:6])))
             return datetime(*map(int, parts), tzinfo=tz).timestamp() + float(frac or 0), "date and time"
+        m = TIME.fullmatch(s)
+        if m:
+            h, mi, sec, frac, off = m.groups()
+            if int(h) > 23 or int(mi) > 59 or int(sec) > 59:
+                return None
+            shift = 0 if off in (None, "Z") else (1 if off[0] == "+" else -1) * (int(off[1:3]) * 3600 + int(off[4:6]) * 60)
+            return int(h) * 3600 + int(mi) * 60 + int(sec) + float(frac or 0) - shift, "time"
     except ValueError:
         return None
+    m = YM_DURATION.fullmatch(s)
+    if m:
+        sign = -1 if m.group(1) else 1
+        return sign * float(int(m.group(2) or 0) * 12 + int(m.group(3) or 0)), "years and months duration"
+    m = DT_DURATION.fullmatch(s)
+    if m:
+        sign = -1 if m.group(1) else 1
+        d, h, mi, sec = (float(x or 0) for x in m.groups()[1:])
+        return sign * (d * 86400 + h * 3600 + mi * 60 + sec), "days and time duration"
     return (float(s), "number") if NUMBER.fullmatch(s) else None
 
 
@@ -231,39 +257,101 @@ def _num(s):
     return None if v is None else v[0]
 
 
+def _split(body):
+    """A cell's tests, split at each comma outside quotes, brackets and parentheses."""
+    parts, depth, quoted, cur = [], 0, False, ""
+    for ch in body:
+        if ch == '"':
+            quoted = not quoted
+        elif not quoted and ch in "[(":
+            depth += 1
+        elif not quoted and ch in "])":
+            depth -= 1
+        if ch == "," and not quoted and depth == 0:
+            parts.append(cur.strip())
+            cur = ""
+        else:
+            cur += ch
+    return parts + [cur.strip()]
+
+
+def _end(s):
+    """A comparison's or a range's end: a value -> (value, kind), a fact's name -> ("name", name), else None."""
+    v = _value(s)
+    if v:
+        return v
+    s = s.strip()
+    if (FACT_NAME.fullmatch(s) or QUESTION.fullmatch(s)) and s not in ("null", "true", "false"):
+        return ("name", s)
+    return None
+
+
+def _test(part):
+    """One test: ("null",), ("is", value, kind), ("iv", low, low included, high, high included, kind), or
+    ("sym", its text, the facts it names) for one whose end is a fact; None for none the section lists."""
+    if part == "null":
+        return ("null",)
+    if re.fullmatch(r'"[^"]*"', part):
+        return ("is", part[1:-1], "word")
+    v = _value(part)
+    if v:
+        return ("is", v[0], v[1])  # a number, a date, a date and time, a time or a duration alone
+    m = re.fullmatch(r'([\[\(])\s*(.+?)\s*\.\.\s*(.+?)\s*([\]\)])', part)
+    if m:
+        lo, hi = _end(m.group(2)), _end(m.group(3))
+        if lo and hi and "name" in (lo[0], hi[0]):
+            return ("sym", part, tuple(e[1] for e in (lo, hi) if e[0] == "name"))
+        if lo and hi and lo[1] == hi[1]:
+            return ("iv", lo[0], m.group(1) == "[", hi[0], m.group(4) == "]", lo[1])
+        return None
+    m = re.fullmatch(r'(<=|>=|<|>|=)\s*(.+)', part)
+    if m:
+        e = _end(m.group(2))
+        if e and e[0] == "name":
+            return ("sym", part, (e[1],))
+        if e and m.group(1) == "=":
+            return None  # `=` tests equality with a fact, a value being tested as itself
+        if e:
+            x, kind = e
+            inf = float("inf")
+            return {"<": ("iv", -inf, False, x, False, kind), "<=": ("iv", -inf, False, x, True, kind),
+                    ">": ("iv", x, False, inf, False, kind), ">=": ("iv", x, True, inf, False, kind)}[m.group(1)]
+    return None
+
+
 def _tests(body):
-    """Each test ("is", value, kind) or ("iv", low, low included, high, high included, kind); a
-    quoted value is a word however it reads."""
+    """Each test of a cell, any of which matches; a quoted value is a word however it reads, and a cell written
+    plain, opening as no form does, is one word, commas and all."""
     if QUOTED_LIST.fullmatch(body):
         return [("is", q, "word") for q in re.findall(r'"([^"]*)"', body)]
-    v = _value(body)
-    if v:
-        return [("is", v[0], v[1])]  # a number, a date or a date and time alone
-    m = re.fullmatch(r'([\[\(])\s*(.+?)\s*\.\.\s*(.+?)\s*([\]\)])', body)
-    if m:
-        lo, hi = _value(m.group(2)), _value(m.group(3))
-        if lo and hi and lo[1] == hi[1]:
-            return [("iv", lo[0], m.group(1) == "[", hi[0], m.group(4) == "]", lo[1])]
-    m = re.fullmatch(r'(<=|>=|<|>)\s*(.+)', body)
-    if m and _value(m.group(2)):
-        x, kind = _value(m.group(2))
-        inf = float("inf")
-        return [{"<": ("iv", -inf, False, x, False, kind), "<=": ("iv", -inf, False, x, True, kind),
-                 ">": ("iv", x, False, inf, False, kind), ">=": ("iv", x, True, inf, False, kind)}[m.group(1)]]
-    if FORM_OPENING.match(body):
-        return None  # it opens as a form does, and is written in none the section lists
-    return [("is", body, "word")]
+    if not (FORM_OPENING.match(body) or body == "null" or re.match(r'null\s*,', body) or _value(body)):
+        return [("is", body, "word")]
+    tests = [_test(p) for p in _split(body)]
+    return None if None in tests else tests  # it opens as a form does, and is written in none the section lists
 
 
-def matches(cell, x):
+def symbolic(cell):
+    """Whether a cell tests against a fact, so what it matches waits on that fact's value."""
+    return any(t[0] == "sym" for t in cell[1])
+
+
+def matches(cell, x, absent=False):
+    """Whether a value, or an absent one, meets a cell; a test against a fact, whose answer waits on that fact, is
+    no hit here, so every check reading what a cell matches sets such a cell aside first. An absent value meets `null`; `-` where `absent`, its column's
+    values holding it; and `not(…)` where each test inside is a value it is not, FEEL comparing an absent value with
+    a value to false and with a comparison or a range to no answer (DMN 10.3.2.10, grammar rule 15; Table 49)."""
     neg, tests = cell
+    if x is NULL:
+        if not neg:
+            return any(t[0] == "null" for t in tests) or absent and any(t[0] == "any" for t in tests)
+        return all(t[0] == "is" or t[0] == "sym" and t[1].startswith("=") for t in tests)
     hit = False
     for test in tests:
         if test[0] == "any":
             hit = True
         elif test[0] == "is":
             hit = hit or x == test[1]  # a word never equals a number
-        elif isinstance(x, float):
+        elif test[0] == "iv" and isinstance(x, float):
             lo, lo_in, hi, hi_in = test[1:5]
             hit = hit or ((x > lo or lo_in and x == lo) and (x < hi or hi_in and x == hi))
     return hit != neg
@@ -271,12 +359,15 @@ def matches(cell, x):
 
 def _points(*cells):
     """Every boundary the cells name, a point between and beyond each, and, where they test words,
-    a word none names: enough that two cells agree on these points only where they agree everywhere.
-    A date is a whole day, so the point beside a date's boundary is the day before or after it."""
-    words, nums, kinds = set(), set(), set()
+    a word none names: enough that two cells agree on these points only where they agree everywhere;
+    an absent value among them where a cell tests one. A date is a whole day, so the point beside a
+    date's boundary is the day before or after it."""
+    words, nums, kinds, absent = set(), set(), set(), False
     for neg, tests in cells:
         for test in tests:
-            if test[0] == "is" and isinstance(test[1], str):
+            if test[0] == "null":
+                absent = True
+            elif test[0] == "is" and isinstance(test[1], str):
                 words.add(test[1])
             elif test[0] == "is":
                 nums.add(test[1])
@@ -284,16 +375,19 @@ def _points(*cells):
             elif test[0] == "iv":
                 nums |= {x for x in (test[1], test[3]) if abs(x) != float("inf")}
                 kinds.add(test[5])
+    tail = [NULL] if absent else []
     if kinds == {"date"}:
-        return sorted(set(nums) | {n + d for n in nums for d in (-86400.0, 86400.0)})
+        return sorted(set(nums) | {n + d for n in nums for d in (-86400.0, 86400.0)}) + tail
     if kinds:
         ns = sorted(nums) or [0.0]
-        return sorted(set(ns) | {ns[0] - 1, ns[-1] + 1} | {(a + b) / 2 for a, b in zip(ns, ns[1:])})
-    return sorted(words) + ["\x00a value no cell names"]
+        return sorted(set(ns) | {ns[0] - 1, ns[-1] + 1} | {(a + b) / 2 for a, b in zip(ns, ns[1:])}) + tail
+    return sorted(words) + ["\x00a value no cell names"] + tail
 
 
 def overlap(a, b):
-    """Whether one case can match both cells."""
+    """Whether one case can match both cells; a cell testing against a fact is set aside, never overlapping."""
+    if symbolic(a) or symbolic(b):
+        return False
     return any(matches(a, x) and matches(b, x) for x in _points(a, b))
 
 
@@ -303,19 +397,25 @@ FORM_OPENING = re.compile(r'not\(|[<>=!\[\]\("]|-$|(?:date and time|date|time|du
 
 def outside(cell, dom):
     """Whether a cell names a value its column's Input Values do not hold, or matches none they hold."""
+    if symbolic(cell):
+        return False
     if any(not matches(dom, t[1]) for t in cell[1] if t[0] == "is"):
+        return True
+    if any(t[0] == "null" for t in cell[1]) and not matches(dom, NULL):
         return True
     return not any(matches(cell, x) and matches(dom, x) for x in _points(cell, dom))
 
 
 def _kind(cell):
-    """The kinds of value a cell tests: words, numbers, dates or dates and times; none for `-`."""
-    return {t[-1] for t in cell[1] if t[0] != "any"}
+    """The kinds of value a cell tests: words, numbers, dates, dates and times, times or durations; none for
+    `-`, `null` or a test against a fact."""
+    return {t[-1] for t in cell[1] if t[0] in ("is", "iv")}
 
 
-def _escape(pools, rows):
+def _escape(pools, rows, absent=None):
     """A case, one value from each condition's pool, that no row matches, or None. Each pool's
-    values are grouped by the rows still matching, so each group is searched once."""
+    values are grouped by the rows still matching, so each group is searched once; `absent` says, for each
+    condition, whether its values hold an absent one, which `-` then matches."""
     if not all(pools):
         return None
     seen = set()
@@ -327,7 +427,8 @@ def _escape(pools, rows):
             return None
         seen.add((k, alive))
         for x in pools[k]:
-            hit = walk(k + 1, frozenset(i for i in alive if matches(rows[i][k], x)), case + [x])
+            hit = walk(k + 1, frozenset(i for i in alive if matches(rows[i][k], x, bool(absent and absent[k]))),
+                       case + [x])
             if hit is not None:
                 return hit
         return None
@@ -341,7 +442,7 @@ def _split_guard(text):
 
 
 # an outcome cell written as a condition's test would be: any value, a negation, a comparison, a range
-TEST_FORM = re.compile(r'-$|not\(|(?:<=|>=|<|>)\s*\S|[\[\(][^\]\)]*\.\.')
+TEST_FORM = re.compile(r'-$|not\(|(?:<=|>=|<|>|=)\s*\S|[\[\(][^\]\)]*\.\.|null\s*,')
 
 
 def _ranked(value):
@@ -401,6 +502,10 @@ def construct_findings(r, body, found, sections):
     """modeling-constructs.md § Constructs: each declared construct checked for what its form
     lets a script decide. `body` is the file's live text, its fences stripped."""
     decls = declarations(body, sections)
+    records = fact_records(body, sections)
+    facts = facts_of(records)
+    for ln, msg in fact_record_findings(records):
+        found.append((f"{DECLARING} § A Fact", r, ln, msg))
     lines = body.split(chr(10))
     for line, name, fields, tables, lineage in decls:
         _paragraphs(r, lines, line, fields, found)
@@ -463,7 +568,10 @@ def construct_findings(r, body, found, sections):
             continue
         check = {"Lifecycle": _machine, "State Machine": _machine, "Decision Table": _decision_table,
                  "Decision Tree": _tree, "DAG": _dag, "Algorithm": _algorithm, "Constraint": _constraint}[name]
-        check(r, line, name, fields, tables, found)
+        if name == "Decision Table":
+            _decision_table(r, line, name, fields, tables, found, facts)
+        else:
+            check(r, line, name, fields, tables, found)
 
 
 def _paragraphs(r, lines, line, fields, found):
@@ -625,9 +733,9 @@ def guard(text):
             return None
         cell = feel(m.group(2))
         inner = re.sub(r"^not\((.*)\)$", r"\1", m.group(2).strip())
-        if cell is not None and not FORM_OPENING.match(inner) and re.search(r"[:,]", inner):
+        if cell is not None and len(cell[1]) == 1 and not FORM_OPENING.match(inner) and re.search(r"[:,]", inner):
             return None  # a value written plain, without quotes, holds no colon or comma
-        if cell is None or m.group(1).strip() in out:
+        if cell is None or symbolic(cell) or m.group(1).strip() in out:
             return None  # a row tests each of its facts once, in a form the section lists
         out[m.group(1).strip()] = cell
     return out
@@ -670,7 +778,92 @@ def _choices(r, rule, transitions, off, found):
 
 # ---------------------------------------------------------------- Decision Table
 
-LIST_OR_RANGE = re.compile(QUOTED + r'|[\[\(].+\.\..+[\]\)]')
+LIST_OR_RANGE = re.compile(r'(?:null\s*,\s*)?(?:' + QUOTED + r'|[\[\(].+\.\..+[\]\)])(?:\s*,\s*null)?')
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
+# a Reads item: a fact's or an outcome's name, a colon, and the citation of where it is declared or decided
+READS_ITEM = re.compile(r'([^:`]+?):\s*`[^`]*§[^`]+`')
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct § A Fact
+# a Facts record's Type, and the kind of value a cell tests for it
+TYPE_KINDS = {"string": "word", "number": "number", "boolean": "boolean", "date": "date", "time": "time",
+              "date and time": "date and time", "days and time duration": "days and time duration",
+              "years and months duration": "years and months duration"}
+
+
+def multi_hit(policy):
+    """Whether a hit policy takes the outcome of every row a case matches: Rule order, Output order, a Collect."""
+    return policy in ("Rule order", "Output order") or policy.startswith("Collect")
+
+
+def computing(header):
+    """Whether a condition's header computes the value its column tests, a question never doing so."""
+    return not header.endswith("?") and bool(expressions.COMPUTING.search(header))
+
+
+def _outcome(v):
+    """An outcome cell's value, a word quoted or plain alike; a quoted value that would read as another kind
+    plain, `"5"`, stays quoted, a word and not that value."""
+    if re.fullmatch(r'"[^"]*"', v) and _value(v[1:-1]) is None and v[1:-1] not in ("null", "-"):
+        return v[1:-1]
+    return v
+
+
+def _shown(x, kinds):
+    """A case's value as FEEL writes it, not as its place on its line: a date, a date and time, a time or a
+    duration; an absent value as `null`."""
+    if x is NULL:
+        return "null"
+    if not isinstance(x, float) or kinds <= {"number"}:
+        return x
+    if kinds == {"date"} or kinds == {"date and time"}:
+        s = (datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=x)).isoformat()
+        return f'date("{s[:10]}")' if kinds == {"date"} else f'date and time("{s}")'
+    if kinds == {"time"}:
+        s = int(x) % 86400
+        return f'time("{s // 3600:02d}:{s % 3600 // 60:02d}:{s % 60:02d}")'
+    sign, n = ("-" if x < 0 else ""), abs(x)
+    if kinds == {"years and months duration"}:
+        return f'duration("{sign}P{int(n) // 12}Y{int(n) % 12}M")'
+    if kinds == {"days and time duration"}:
+        d, rest = divmod(n, 86400)
+        h, rest = divmod(rest, 3600)
+        mi, s = divmod(rest, 60)
+        return f'duration("{sign}P{int(d)}DT{int(h)}H{int(mi)}M{s:g}S")'
+    return x
+
+
+def fact_records(body, sections):
+    """Each record of a file's Facts sections -> [(line, name, {field: value})]."""
+    lines, out = body.split(chr(10)), []
+    for lineage, (h, end) in sections.items():
+        if lineage.rsplit(" § ", 1)[-1] != "Facts":
+            continue
+        for i in range(h, end):
+            f = FIELD.match(lines[i])  # a record's fields, its first after a list marker, the rest indented
+            if f and f["key"] == "Name" and f["marker"]:
+                out.append((i + 1, (f["value"] or "").strip(), {}))
+            elif f and out and out[-1][0] > h:
+                out[-1][2][f["key"]] = (f["value"] or "").strip()
+    return out
+
+
+def facts_of(records):
+    """The facts a file's Facts records declare -> {name: (Type, Values, May Be Absent)}."""
+    return {n: (d.get("Type", ""), d.get("Values", "none"), d.get("May Be Absent", "No")) for _, n, d in records}
+
+
+def fact_record_findings(records):
+    """§ Constructs § Declaring a Construct § A Fact: a record whose name is no fact's name, or a boolean fact's
+    asking no question, and Values naming a fact -> [(line, message)]."""
+    out = []
+    for line, name, d in records:
+        if d.get("Type") == "boolean" and not QUESTION.fullmatch(name):
+            out.append((line, f"a boolean fact whose name asks no question: {name}"))
+        elif d.get("Type") != "boolean" and not FACT_NAME.fullmatch(name):
+            out.append((line, f"a Facts record's name that is no fact's name: {name}"))
+        cell = feel(d["Values"]) if d.get("Values", "none") != "none" else None
+        if cell and symbolic(cell):
+            out.append((line, f"a Facts record's Values naming a fact: {name}"))
+    return out
 
 
 def _named(value):
@@ -684,8 +877,30 @@ def _named(value):
     return out
 
 
-def _decision_table(r, line, name, fields, tables, found):
+def domains_of(header, idx, values, facts):
+    """Each condition's values: its Input Values item, a question's `Yes` and `No`, or its Facts record's Values,
+    `null` among them where its fact may be absent -> {header: cell}."""
+    given = values.get("Input Values", "")
+    domains = _named(given)
+    for k in idx:
+        h = header[k]
+        if h.endswith("?"):
+            domains[h] = feel('"Yes", "No"')
+        if h in facts:
+            _, fvalues, absent = facts[h]
+            dom = domains.get(h) or (feel(fvalues) if fvalues != "none" else None)
+            if dom and symbolic(dom):
+                dom = None  # Values naming a fact, reported at its record, give the column none
+            if dom and absent == "Yes":
+                dom = (dom[0], dom[1] + [("null",)])
+            if dom:
+                domains[h] = dom
+    return domains
+
+
+def _decision_table(r, line, name, fields, tables, found, facts=None):
     rule = f"{RULE} § Decision Table"
+    facts = facts or {}
     table = tables[0]
     header = table["header"]
     off = 1 if header[:1] == ["Name"] else 0
@@ -706,6 +921,33 @@ def _decision_table(r, line, name, fields, tables, found):
         return
     idx = list(range(off, off + n))
     outs = list(range(off + n, len(header) - m))
+    computed = [] if values.get("Computed", "none") == "none" else [c.strip() for c in values["Computed"].split(",")]
+    if any(c not in [header[k] for k in outs] for c in computed):
+        found.append((rule, r, line, "a Computed field naming a column that is no outcome"))
+        return
+    # § Its facts: what a cell, a computed header or a computed outcome may name, each with its kind where known
+    reads = []
+    for item in [] if values.get("Reads", "none") == "none" else values["Reads"].split("\n"):
+        mm = READS_ITEM.fullmatch(item.strip())
+        named = mm and re.search(r'\[Name: ([^\]]+)\]', item)
+        if not mm or not (FACT_NAME.fullmatch(mm.group(1).strip()) or QUESTION.fullmatch(mm.group(1).strip())):
+            found.append((rule, r, line, f"a Reads item that is not a name, a colon and a citation: {item}"))
+        elif named and named.group(1).strip() != mm.group(1).strip():
+            found.append((rule, r, line, f"a Reads item named otherwise than the Facts record it cites: {item}"))
+        else:
+            reads.append(mm.group(1).strip())
+    typed = {f: TYPE_KINDS.get(t) for f, (t, _, _) in facts.items()}
+    known = dict({h: None for h in reads}, **typed)
+    for k in idx:
+        if not computing(header[k]):
+            known.setdefault(header[k], "boolean" if header[k].endswith("?") else None)
+    feel_kinds = {k: ("string" if v == "word" else v) for k, v in known.items()}
+    for k in idx:
+        if not computing(header[k]) and not FACT_NAME.fullmatch(header[k]) and not QUESTION.fullmatch(header[k]):
+            found.append((rule, r, table["line"], f"a condition's header neither a fact's name nor a computation: {header[k]}"))
+        if computing(header[k]):
+            for p in expressions.check(header[k], feel_kinds)[1]:
+                found.append((rule, r, table["line"], f"{p}, in the computed header {header[k]}"))
     if "Default Output" in values and values["Default Output"] != DEFAULTS["Default Output"]:
         items = values["Default Output"].split("\n")
         named = [i.partition(":")[0].strip() for i in items]
@@ -714,14 +956,29 @@ def _decision_table(r, line, name, fields, tables, found):
         elif len(outs) > 1 and (sorted(named) != sorted(header[k] for k in outs)
                                 or any(not i.partition(":")[2].strip() for i in items)):
             found.append((rule, r, line, "a Default Output that is not an item for each outcome column, its header, a colon and its value"))
+        # § Its values: under First, the outcome where no other row matches is a last row testing nothing
+        if policy == "First":
+            found.append((rule, r, line, "a First table's fall-through written as a Default Output, not a last row testing nothing"))
+    # § Its outcomes: a computed column's cells are FEEL over the facts a cell may name, their kinds agreeing
+    kinds_out = {}
+    for ln, row in table["rows"]:
+        for k in outs:
+            if header[k] in computed:
+                kind, problems = expressions.check(row[k], feel_kinds)
+                kinds_out[(ln, k)] = kind
+                for p in problems:
+                    found.append((rule, r, ln, f"{p}, in the computed outcome {row[k]}"))
     # an aggregating Collect: one outcome column, of numbers but for a count
+    agg_ok = lambda ln, k, v: kinds_out.get((ln, k)) in ("number", None) if header[k] in computed \
+        else (_value(v) or (None, None))[1] == "number"
     if policy.startswith("Collect ") and (len(outs) != 1 or policy != "Collect count"
-                                          and any(_num(row[outs[0]]) is None for _, row in table["rows"])):
+                                          and any(not agg_ok(ln, outs[0], row[outs[0]]) for ln, row in table["rows"])):
         found.append((rule, r, line, f"a {policy} table whose outcome is not one column{'' if policy == 'Collect count' else ' of numbers'}"))
     # an outcome cell is never written as a test, which would show a condition declared an outcome
     for ln, row in table["rows"]:
         for k in outs:
-            if TEST_FORM.match(row[k]):
+            if header[k] not in computed and (TEST_FORM.match(row[k]) or row[k].startswith("[")
+                                              or FORM_OPENING.match(row[k]) and len(_split(row[k])) > 1):
                 found.append((rule, r, ln, f"an outcome cell written as a test: {row[k][:20]}"))
     cells = {}
     for ln, row in table["rows"]:
@@ -729,30 +986,56 @@ def _decision_table(r, line, name, fields, tables, found):
             cells[(ln, k)] = feel(row[k])
             if cells[(ln, k)] is None:
                 found.append((rule, r, ln, f"a cell in no form the section lists: {row[k]}"))
+            else:
+                for t in cells[(ln, k)][1]:
+                    for fact in (t[2] if t[0] == "sym" else ()):
+                        if fact not in known:
+                            found.append((rule, r, ln, f"a cell naming a fact no condition, Reads item or Facts record declares: {fact}"))
     if None in cells.values():
         return
     if values.get("Input Values", "none") != "none":
         for item in values["Input Values"].split("\n"):
             h, _, c = item.partition(":")
-            if not (h.strip() and LIST_OR_RANGE.fullmatch(c.strip()) and feel(c.strip())):
-                found.append((rule, r, line, f"an Input Values item that is not a header, a colon, and a quoted list or a range: {item}"))
-    domains = _named(values.get("Input Values", ""))
+            if not (h.strip() and LIST_OR_RANGE.fullmatch(c.strip()) and feel(c.strip())) or symbolic(feel(c.strip())):
+                found.append((rule, r, line, f"an Input Values item that is not a header, a colon, and a quoted list or a range of values: {item}"))
+            elif h.strip() in facts:
+                found.append((rule, r, line, f"Input Values given for a fact its Facts record declares: {h.strip()}"))
+            elif h.strip().endswith("?"):
+                found.append((rule, r, line, f"Input Values given for a question, whose values are Yes and No: {h.strip()}"))
+    domains = {h: d for h, d in domains_of(header, idx, values, facts).items() if not symbolic(d)}
     for k in idx:
-        if header[k].endswith("?"):
-            if header[k] in domains:
-                found.append((rule, r, line, f"Input Values given for a question, whose values are Yes and No: {header[k]}"))
-            domains[header[k]] = feel('"Yes", "No"')
+        if header[k] not in facts:
+            continue
+        ftype, _, absent = facts[header[k]]
+        want = TYPE_KINDS.get(ftype)
+        for ln, _ in table["rows"]:
+            c = cells[(ln, k)]
+            if any(t[0] == "null" for t in c[1]) and absent != "Yes":
+                found.append((rule, r, ln, f"a null cell for a fact that may not be absent: {header[k]}"))
+            got = _kind(c) - ({"word"} if want == "boolean" else set())
+            if want and got and got != {want}:
+                found.append((rule, r, ln, f"a cell testing a {', '.join(sorted(got))} where its fact is a {ftype}: {header[k]}"))
     for k in idx:
         kinds = set().union(*[_kind(cells[(ln, k)]) for ln, _ in table["rows"]],
                             _kind(domains[header[k]]) if header[k] in domains else set())
         if len(kinds) > 1:
             found.append((rule, r, table["line"], f"a condition column testing values of more than one kind: {header[k]}"))
             return
+        # a cell ending at a fact tests it against a fact of the column's kind
+        col = "boolean" if header[k].endswith("?") else TYPE_KINDS.get(facts[header[k]][0]) if header[k] in facts \
+            else (kinds.pop() if kinds else None)
+        for ln, _ in table["rows"]:
+            for t in cells[(ln, k)][1]:
+                for fact in (t[2] if t[0] == "sym" else ()):
+                    if col and known.get(fact) and known[fact] != col:
+                        found.append((rule, r, ln, f"a cell testing a {col} column against a {known[fact]} fact: {fact}"))
     for h in domains:
         if h not in conds:
             found.append((rule, r, line, f"Input Values for a column that is no condition: {h}"))
     doms = [domains.get(header[k]) for k in idx]
-    rows = [(ln, [cells[(ln, k)] for k in idx], [row[k] for k in outs]) for ln, row in table["rows"]]
+    absent = [bool(d and matches(d, NULL)) or header[k] in facts and facts[header[k]][2] == "Yes"
+              for k, d in zip(idx, doms)]
+    rows = [(ln, [cells[(ln, k)] for k in idx], [_outcome(row[k]) for k in outs]) for ln, row in table["rows"]]
     for ln, conds_, _ in rows:
         for k, c, d in zip(idx, conds_, doms):
             if d and outside(c, d):
@@ -778,17 +1061,21 @@ def _decision_table(r, line, name, fields, tables, found):
     for a in range(len(rows)):
         for b in range(a + 1, len(rows)):
             (la, ca, oa), (lb, cb, ob) = rows[a], rows[b]
+            if any(symbolic(x) or symbolic(y) for x, y in zip(ca, cb)):
+                continue  # what a cell testing against a fact matches waits on that fact, read by the audit
             # a case lies within its columns' Input Values, where they are given
-            meet = all(any(matches(x, v) and matches(y, v) and (not d or matches(d, v))
+            meet = all(any(matches(x, v, ab) and matches(y, v, ab) and (not d or matches(d, v))
                            for v in _points(x, y, *([d] if d else [])))
-                       for x, y, d in zip(ca, cb, doms))
+                       for x, y, d, ab in zip(ca, cb, doms, absent))
             if policy == "Unique" and meet:
                 found.append((rule, r, lb, "a case two rows match, where the hit policy is Unique"))
             if policy == "Any" and meet and oa != ob:
                 found.append((rule, r, lb, "two rows a case matches giving different outcomes, where the hit policy is Any"))
+    if any(symbolic(c) for c in cells.values()):
+        return  # which rows a case reaches, and whether every case is matched, wait on the facts it names
 
     def pool(k, *cs):
-        return [x for x in _points(*cs, *([doms[k]] if doms[k] else [])) if all(matches(c, x) for c in cs[:1])
+        return [x for x in _points(*cs, *([doms[k]] if doms[k] else [])) if all(matches(c, x, absent[k]) for c in cs[:1])
                 and (not doms[k] or matches(doms[k], x))]
 
     # a row that gives no case its outcome: one matching no case, or, where a row ahead takes a
@@ -797,18 +1084,15 @@ def _decision_table(r, line, name, fields, tables, found):
         ahead = [c for a, (_, c, o) in enumerate(rows)
                  if policy == "First" and a < b or policy == "Priority" and ranked and rank(o) < rank(ob)]
         pools = [pool(k, cb[k], *[c[k] for c in ahead]) for k in range(len(idx))]
-        if _escape(pools, ahead) is None:
+        if _escape(pools, ahead, absent) is None:
             found.append((rule, r, lb, "a row that gives no case its outcome"))
-    # coverage, decided where every condition gives its Input Values and no Default Output stands in
-    if "Default Output" not in values and all(doms):
+    # coverage, decided where every condition gives its values, no Default Output stands in, and the table takes one
+    # row's outcome: under a hit policy taking every row it matches, a case matching none means no row applies
+    if "Default Output" not in values and all(doms) and not multi_hit(policy):
         case = _escape([pool(k, doms[k], *[c[k] for _, c, _ in rows]) for k in range(len(idx))],
-                       [c for _, c, _ in rows])
+                       [c for _, c, _ in rows], absent)
         if case is not None:
-            # a date or a date and time shown as FEEL writes it, not as its place on the timeline
-            epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
-            shown = tuple(x if not isinstance(x, float) or not _kind(doms[k]) & {"date", "date and time"}
-                          else (epoch + timedelta(seconds=x)).isoformat()[:10 if _kind(doms[k]) == {"date"} else None]
-                          for k, x in enumerate(case))
+            shown = tuple(_shown(x, _kind(doms[k])) for k, x in enumerate(case))
             found.append((rule, r, table["line"], f"a case no row matches: {shown}"))
 
 
@@ -988,16 +1272,22 @@ LEADS = (("state", "description"), ("From", "To"), ("Step", "Question"), ("task"
 
 def construct_candidates(files, sections, strip_fences):
     """-> [(path, line, pattern, context)] for the Construct choice and form audit: a Decision
-    Table whose cells do not settle that every case is matched, a table shaped as a construct's
+    Table a cell of which tests against a fact, a Decision Table whose cells do not settle that every case is
+    matched, a table shaped as a construct's
     with no declaration, an Algorithm's step that may fold a comparison, and an Enforced by that may
     say nothing enforces its rule. `files` holds (path, body) pairs."""
     out = []
     for r, body in files:
         live = strip_fences(body)
         declared = set()
-        for line, name, fields, tables, lineage in declarations(live, sections(body)):
+        secs = sections(body)
+        facts = facts_of(fact_records(live, secs))
+        for line, name, fields, tables, lineage in declarations(live, secs):
             declared |= {t["line"] for t in tables}
-            if name == "Decision Table" and tables and not _settled(fields, tables[0]):
+            if name == "Decision Table" and tables and _against_a_fact(fields, tables[0]):
+                out.append((r, line, "cells testing against a fact",
+                            f"§ {lineage}: which rows a case reaches, and whether every case matches one, is read"))
+            elif name == "Decision Table" and tables and not _settled(fields, tables[0], facts):
                 out.append((r, line, "coverage the cells do not settle",
                             f"§ {lineage}: whether every case matches a row is read"))
             # wording a script cannot judge, listed for the reading audit to read: a step that is no comparison
@@ -1034,10 +1324,20 @@ def construct_candidates(files, sections, strip_fences):
     return out
 
 
-def _settled(fields, table):
-    """Whether a Decision Table's coverage is decided or settled: Input Values for every condition,
-    a question's Yes and No among them, a Default Output, a row testing no condition, or, with one
-    condition, a not(…) row whose excluded values the other rows match."""
+def _against_a_fact(fields, table):
+    """Whether a Decision Table holds a cell testing against a fact, which the script sets aside."""
+    header = table["header"]
+    values = dict((k, v) for _, k, v in fields)
+    conds = [c.strip() for c in values.get("Conditions", "").split(",") if c.strip()]
+    idx = [header.index(c) for c in conds if c in header]
+    return any((c := feel(row[k])) is not None and symbolic(c) for _, row in table["rows"] for k in idx)
+
+
+def _settled(fields, table, facts=None):
+    """Whether a Decision Table's coverage is decided or settled: its values for every condition, an Input
+    Values item, a question's Yes and No or a Facts record's Values, a Default Output, a hit policy taking every row
+    a case matches, a row testing no condition, or, with one condition, a not(…) row whose excluded values the other
+    rows match."""
     header = table["header"]
     off = 1 if header[:1] == ["Name"] else 0
     values = dict((k, v) for _, k, v in fields)
@@ -1046,8 +1346,9 @@ def _settled(fields, table):
     conds = [c.strip() for c in values["Conditions"].split(",")]
     if any(c not in header for c in conds):
         return False
-    # Input Values decide coverage, a question's Yes and No among them, and a Default Output settles it
-    if "Default Output" in values or all(c in _named(values.get("Input Values", "")) or c.endswith("?") for c in conds):
+    # a condition's values decide coverage, and a Default Output or a hit policy taking every row settles it
+    domains = domains_of(header, [header.index(c) for c in conds], values, facts or {})
+    if "Default Output" in values or multi_hit(values.get("Hit Policy", "Unique")) or all(c in domains for c in conds):
         return True
     idx = [header.index(c) for c in conds]
     rows = [[feel(row[k]) for k in idx] for _, row in table["rows"]]
