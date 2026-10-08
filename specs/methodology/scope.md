@@ -24,6 +24,7 @@ specs/
 │   ├── architecture.md
 │   ├── acceptance-scenarios.md
 │   ├── code.md
+│   ├── expressions.md
 │   ├── external-references.md
 │   ├── glossary.md
 │   ├── modeling-constructs.md

@@ -191,17 +191,15 @@ def _rule_row(row):
 
 
 def feel(text):
-    """A cell in FEEL's simple unary tests -> (negated, tests), each test ("any",), ("is", value, kind) or
-    ("iv", low, low included, high, high included, kind); None for a cell opening as a form does but
-    written in none the section lists (modeling-constructs.md § Constructs § Decision Table). A
-    cell written plain is one value, commas and all."""
+    """A cell -> (negated, tests), each test as `_test` sorts it into the forms the checks read, or set aside for
+    the parser to judge with the names in scope (modeling-constructs.md § Constructs § Decision Table). A cell
+    written plain is one value, commas and all."""
     v = text.strip()
     if v == "-":
         return (False, [("any",)])
     m = re.fullmatch(r'not\((.*)\)', v)
     neg, body = (True, m.group(1).strip()) if m else (False, v)
-    tests = _tests(body)
-    return None if tests is None else (neg, tests)
+    return neg, _tests(body)
 
 
 NUMBER = re.compile(r'-?(?:\d+(?:\.\d+)?|\.\d+)')
@@ -230,6 +228,11 @@ def _value(s):
     place on one line of its kind, its kind); None for anything else, a date or a time that does not exist
     among it."""
     s = s.strip()
+    at = re.fullmatch(r'@"([^"]*)"', s)
+    if at:
+        # an `@` value, read as the date, the date and time, the time or the duration it writes
+        return next((v for v in (_value(f'{k}("{at.group(1)}")') for k in ("date", "date and time", "time", "duration"))
+                     if v), None)
     try:
         m = DATE.fullmatch(s)
         if m:
@@ -272,9 +275,9 @@ def _split(body):
     for ch in body:
         if ch == '"':
             quoted = not quoted
-        elif not quoted and ch in "[(":
+        elif not quoted and ch in "[({":
             depth += 1
-        elif not quoted and ch in "])":
+        elif not quoted and ch in "])}":
             depth -= 1
         if ch == "," and not quoted and depth == 0:
             parts.append(cur.strip())
@@ -297,9 +300,16 @@ def _end(s):
 
 def _test(part):
     """One test: ("null",), ("is", value, kind), ("iv", low, low included, high, high included, kind), or
-    ("sym", its text, the facts it names) for one whose end is a fact; None for none the section lists."""
+    ("sym", its text, the facts it names) for one whose end is a fact, or ("sym", its text, ()) for any other, which the
+    checks set aside and the parser judges with the names in scope; ("eqv", its text) for a value after `=`."""
     if part == "null":
         return ("null",)
+    if part in ("true", "false"):
+        return ("is", part, "boolean")
+    # a value tested after `=`, which a cell writes alone: FEEL, and the canon's one writing of it kept
+    m = re.fullmatch(r'=\s*(.+)', part)
+    if m and (_value(m.group(1)) or re.fullmatch(r'"[^"]*"', m.group(1).strip()) or m.group(1).strip() in ("true", "false", "null")):
+        return ("eqv", part)
     if re.fullmatch(r'"[^"]*"', part):
         return ("is", part[1:-1], "word")
     v = _value(part)
@@ -312,36 +322,40 @@ def _test(part):
             return ("sym", part, tuple(e[1] for e in (lo, hi) if e[0] == "name"))
         if lo and hi and lo[1] == hi[1]:
             return ("iv", lo[0], m.group(1) == "[", hi[0], m.group(4) == "]", lo[1])
-        return None
     m = re.fullmatch(r'(<=|>=|<|>|=)\s*(.+)', part)
     if m:
         e = _end(m.group(2))
         if e and e[0] == "name":
             return ("sym", part, (e[1],))
-        if e and m.group(1) == "=":
-            return None  # `=` tests equality with a fact, a value being tested as itself
         if e:
             x, kind = e
             inf = float("inf")
             return {"<": ("iv", -inf, False, x, False, kind), "<=": ("iv", -inf, False, x, True, kind),
                     ">": ("iv", x, False, inf, False, kind), ">=": ("iv", x, True, inf, False, kind)}[m.group(1)]
-    return None
+    # any other text: set aside, the parser, given the names in scope, judging whether it is FEEL
+    return ("sym", part, ())
 
 
 def _tests(body):
     """Each test of a cell, any of which matches; a quoted value is a word however it reads, and a cell written
-    plain, opening as no form does, is one word, commas and all."""
+    plain, opening as no form does and holding no `?`, is one word, commas and all, an expression a cell tests
+    equality with written after `=`."""
     if QUOTED_LIST.fullmatch(body):
         return [("is", q, "word") for q in re.findall(r'"([^"]*)"', body)]
-    if not (FORM_OPENING.match(body) or body == "null" or re.match(r'null\s*,', body) or _value(body)):
+    if not (FORM_OPENING.match(body) or body in ("null", "true", "false") or re.match(r'(?:null|true|false)\s*,', body)
+            or _value(body) or "?" in body):
         return [("is", body, "word")]
-    tests = [_test(p) for p in _split(body)]
-    return None if None in tests else tests  # it opens as a form does, and is written in none the section lists
+    return [_test(p) for p in _split(body)]
+
+
+def names_a_fact(cell):
+    """Whether a cell's test ends at a fact's name, as `< due date` does."""
+    return any(t[0] == "sym" and t[2] for t in cell[1])
 
 
 def symbolic(cell):
-    """Whether a cell tests against a fact, so what it matches waits on that fact's value."""
-    return any(t[0] == "sym" for t in cell[1])
+    """Whether a cell tests against a fact, or in a form the checks do not read, so what it matches is read."""
+    return any(t[0] in ("sym", "eqv") for t in cell[1])
 
 
 def matches(cell, x, absent=False):
@@ -401,7 +415,7 @@ def overlap(a, b):
 
 
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
-FORM_OPENING = re.compile(r'not\(|[<>=!\[\]\("]|-$|(?:date and time|date|time|duration)\(')
+FORM_OPENING = re.compile(r'not\(|[<>=!\[\]\("@{]|-$|(?:date and time|date|time|duration)\(')
 
 
 def outside(cell, dom):
@@ -443,11 +457,6 @@ def _escape(pools, rows, absent=None):
         return None
 
     return walk(0, frozenset(range(len(rows))), [])
-
-
-def _split_guard(text):
-    """A guard's tests, split at each ` and ` outside quotes, a FEEL date and time's own aside."""
-    return re.split(r' and (?!time\()(?=(?:[^"]*"[^"]*")*[^"]*$)', text)
 
 
 # an outcome cell written as a condition's test would be: any value, a negation, a comparison, a range
@@ -736,24 +745,134 @@ def _forks_and_joins(r, rule, forks, joins, edges, found):
             found.append((rule, r, ln, "a join no fork opens"))
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
+# a guard's test of one fact, as a conjunct of its guard: a comparison, `in`, `between`, or a question alone or within
+# `not(…)`; a value a literal FEEL writes, which the cell it becomes tests as itself
+CONJUNCT = (
+    ("cmp", re.compile(r'(?P<f>[^<>=!()"]+?)\s*(?P<op><=|>=|!=|<|>|=)\s*(?P<v>.+)')),
+    ("in", re.compile(r'(?P<f>[^<>=!()"]+?) in (?P<v>[\[\]\(][^,]*\.\.[^,]*[\]\)\[])')),
+    ("in", re.compile(r'(?P<f>[^<>=!()"]+?) in \((?P<v>.+)\)')),
+    ("between", re.compile(r'(?P<f>[^<>=!()"]+?) between (?P<a>.+?) and (?P<b>.+)')),
+    ("not", re.compile(r'not\((?P<f>[^<>=!()"]+)\)')),
+    ("bare", re.compile(r'(?P<f>[^<>=!()"]+)')),
+)
+VALUE = re.compile(r'"[^"]*"|true|false|null')
+# a guard of another of FEEL's forms, read and never decided: one test the checks set aside
+GENERAL = ""
+
+
+def _conjuncts(text):
+    """A guard's conjuncts: split at each `and` outside quotes, brackets and braces, a `between`'s own `and` and the
+    one in `date and time(…)` aside."""
+    parts, cur, depth, quoted, between, i = [], "", 0, False, 0, 0
+    while i < len(text):
+        ch = text[i]
+        if ch == '"':
+            quoted = not quoted
+        elif not quoted and ch in "[({":
+            depth += 1
+        elif not quoted and ch in "])}":
+            depth -= 1
+        if not quoted and depth == 0 and re.match(r'\bbetween\b', text[i:]) and (i == 0 or not text[i - 1].isalnum()):
+            between += 1
+        if not quoted and depth == 0 and text.startswith(" and ", i) and not text.startswith(" and time(", i):
+            if between:
+                between -= 1
+            else:
+                parts.append(cur.strip())
+                cur, i = "", i + 5
+                continue
+        cur += ch
+        i += 1
+    return parts + [cur.strip()]
+
+
+def _conjunct(part):
+    """A conjunct -> (fact, its cell, whether it tests the fact as a boolean), or None where it is no test of one fact
+    the checks read."""
+    for kind, pattern in CONJUNCT:
+        m = pattern.fullmatch(part)
+        if not m:
+            continue
+        f = m["f"].strip()
+        if not (FACT_NAME.fullmatch(f) or QUESTION.fullmatch(f)) or kept_words(f):
+            return None
+        if kind == "cmp":
+            v, op = m["v"].strip(), m["op"]
+            boolean = v in ("true", "false")
+            if op == "=":
+                cell = v if VALUE.fullmatch(v) or _value(v) else "= " + v
+            elif op == "!=":
+                cell = f"not({v})" if VALUE.fullmatch(v) or _value(v) else None
+            else:
+                cell = f"{op} {v}"
+            return (f, cell, boolean) if cell else None
+        if kind == "in":
+            return f, m["v"].strip(), False
+        if kind == "between":
+            return f, f"[{m['a'].strip()}..{m['b'].strip()}]", False
+        return f, "false" if kind == "not" else "true", True
+    return None
+
+
 def guard(text):
-    """A guard -> {fact: cell}, or None where it is prose or a cell is in no listed form; `none`
-    tests no fact."""
+    """An exclusive choice's guard, a FEEL boolean expression -> {fact: cell} where it is a conjunction of tests of
+    facts, each fact tested once, {GENERAL: a test set aside} for any other FEEL boolean, or None for one in no form
+    FEEL has or giving no yes or no; `none` tests no fact."""
     if text.strip() == NONE_CELL:
         return {}
+    kind, problems = expressions.check(text, {}, lambda n: True)
+    if any("no form FEEL has" in p for p in problems) or kind not in (None, "boolean"):
+        return None
     out = {}
-    for part in _split_guard(text):
-        m = re.fullmatch(r'\s*([^:,"]+?):\s*(.+?)\s*', part)
-        if not m:
-            return None
-        cell = feel(m.group(2))
-        inner = re.sub(r"^not\((.*)\)$", r"\1", m.group(2).strip())
-        if cell is not None and len(cell[1]) == 1 and not FORM_OPENING.match(inner) and re.search(r"[:,]", inner):
-            return None  # a value written plain, without quotes, holds no colon or comma
-        if cell is None or m.group(1).strip() in out:
-            return None  # a row tests each of its facts once, in a form the section lists
-        out[m.group(1).strip()] = cell
+    if _disjunctive(text):
+        return {GENERAL: (False, [("sym", text, ())])}
+    for part in _conjuncts(text):
+        c = _conjunct(part)
+        cell = feel(c[1]) if c else None
+        if c is None or cell is None or c[0] in out:
+            return {GENERAL: (False, [("sym", text, ())])}
+        out[c[0]] = cell
     return out
+
+
+def kept_words(name):
+    """The words FEEL keeps that a name holds, which a fact a guard tests holds none of."""
+    return [w for w in name.rstrip("?").split() if w in expressions.KEYWORDS]
+
+
+def _disjunctive(text):
+    """Whether a guard joins anything by `or` outside quotes, brackets and braces, and so is no conjunction."""
+    depth, quoted = 0, False
+    for i, ch in enumerate(text):
+        if ch == '"':
+            quoted = not quoted
+        elif not quoted and ch in "[({":
+            depth += 1
+        elif not quoted and ch in "])}":
+            depth -= 1
+        elif not quoted and depth == 0 and text.startswith(" or ", i):
+            return True
+    return False
+
+
+def kept_word_facts(text):
+    """The facts a guard's conjuncts test whose names hold a word FEEL keeps."""
+    out = []
+    for part in _conjuncts(text) if text.strip() != NONE_CELL and not _disjunctive(text) else []:
+        for _, pattern in CONJUNCT:
+            m = pattern.fullmatch(part)
+            if m and kept_words(m["f"].strip()) and (FACT_NAME.fullmatch(m["f"].strip()) or QUESTION.fullmatch(m["f"].strip())):
+                out.append(m["f"].strip())
+                break
+    return out
+
+
+def boolean_facts(text):
+    """The facts a guard tests as booleans: alone, within `not(…)`, or against `true` or `false`."""
+    if text.strip() == NONE_CELL or _disjunctive(text):
+        return []
+    return [c[0] for c in (_conjunct(p) for p in _conjuncts(text)) if c and c[2]]
 
 
 def _choice_groups(transitions, off):
@@ -769,8 +888,8 @@ def _choice_groups(transitions, off):
 
 def _choices(r, rule, transitions, off, found):
     """An exclusive choice: two or more transitions from one state on one trigger, or on none,
-    whose guards, read as a Unique Decision Table over their facts, never both hold; the facts a guard's cell ends at
-    are `guard_fact_findings`' across files."""
+    whose guards, read as a Unique Decision Table over their facts where each is a conjunction of tests of facts,
+    never both hold; the facts a guard compares a fact with are `guard_fact_findings`' across files."""
     groups = _choice_groups(transitions, off)
     for (frm, trig), rows in groups.items():
         if len(rows) < 2:
@@ -778,8 +897,15 @@ def _choices(r, rule, transitions, off, found):
         parsed = []
         for ln, g in rows:
             p = guard(g)
+            kept = kept_word_facts(g)
+            for f in kept:
+                found.append((rule, r, ln, f"a fact a guard tests whose name holds a word FEEL keeps: {f}"))
+            for f in boolean_facts(g) if p is not None else ():
+                if not QUESTION.fullmatch(f):
+                    found.append((rule, r, ln, f"a boolean fact a guard tests whose name asks no question: {f}"))
             if p is None:
-                found.append((rule, r, ln, f"an exclusive choice's guard not written as a Decision Table's row: {g}"))
+                if not kept:
+                    found.append((rule, r, ln, f"an exclusive choice's guard in no form FEEL has, or giving no yes or no: {g}"))
             elif any(not symbolic(c) and not any(matches(c, x) for x in _points(c)) for c in p.values()):
                 found.append((rule, r, ln, f"a guard no case meets: {g}"))
             parsed.append((ln, p))
@@ -804,7 +930,7 @@ SUBMACHINE = "modeling-constructs.md § Constructs § State Machine § A Submach
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine § A Submachine State
 # the words naming a state's governing machine, then its citations; and the guard naming the terminal state reached
 GOVERNED = re.compile(r"governed by((?: *`[^`]+`(?:,? (?:and )?)?)*)", re.I)
-EXIT = re.compile(r'exit: "?([^"]+?)"?')
+EXIT = re.compile(r'exit = "([^"]+)"')
 
 
 def _cell(row, i):
@@ -921,8 +1047,9 @@ def effect_findings(text_of, found, sections, strip_fences, citation, resolve):
 
 
 def guard_fact_findings(text_of, found, sections, strip_fences):
-    """§ Constructs § State Machine: a guard's cell of an exclusive choice ending at a fact names one a guard of its
-    choice tests or a Facts section of any file declares, of the kind of the fact the cell tests."""
+    """§ Constructs § State Machine: a fact an exclusive choice's guard compares a fact with, in a test the checks read,
+    is one a guard of its choice tests, a Facts section of any file declares, or `exit`, of the kind of the fact it is
+    compared with; a guard in any other of FEEL's forms is read."""
     declared = {}
     for r, body in text_of.items():
         live = strip_fences(body)
@@ -945,13 +1072,21 @@ def guard_fact_findings(text_of, found, sections, strip_fences):
                         seen.setdefault(f, set()).update(_kind(c))
                 kinds = dict(kind_of)
                 kinds.update({f: next(iter(ks)) for f, ks in seen.items() if f not in kind_of and len(ks) == 1})
+                scope = {f: kinds.get(f) for f in tested | set(declared) | {"exit"}}
                 for ln, p in parsed:
                     for fact, c in p.items():
+                        if fact == GENERAL:
+                            continue
+                        for t in c[1]:
+                            if t[0] == "sym" and not t[2]:
+                                # a test in another of FEEL's forms: each name it holds in scope
+                                for m in expressions.check_tests(t[1], scope):
+                                    found.append((f"{RULE} § State Machine", r, ln, f"{m}, in a guard testing {fact}"))
                         for f in {f for t in c[1] if t[0] == "sym" for f in t[2]}:
                             if f not in tested and f not in declared:
-                                found.append((f"{RULE} § State Machine", r, ln, f"a guard's cell naming a fact no guard of its choice tests and no Facts record declares: {f}"))
+                                found.append((f"{RULE} § State Machine", r, ln, f"a guard comparing a fact with one no guard of its choice tests and no Facts record declares: {f}"))
                             elif kinds.get(f) and kinds.get(fact) and kinds[f] != kinds[fact]:
-                                found.append((f"{RULE} § State Machine", r, ln, f"a guard's cell testing a {kinds[fact]} fact against a {kinds[f]} one: {f}"))
+                                found.append((f"{RULE} § State Machine", r, ln, f"a guard comparing a {kinds[fact]} fact with a {kinds[f]} one: {f}"))
 
 
 def recorded_in_findings(text_of, found, sections, strip_fences, citation, resolve):
@@ -1016,7 +1151,7 @@ def computing(header):
 def _outcome(v):
     """An outcome cell's value, a word quoted or plain alike; a quoted value that would read as another kind
     plain, `"5"`, stays quoted, a word and not that value."""
-    if re.fullmatch(r'"[^"]*"', v) and _value(v[1:-1]) is None and v[1:-1] not in ("null", "-"):
+    if re.fullmatch(r'"[^"]*"', v) and _value(v[1:-1]) is None and v[1:-1] not in ("null", "-", "true", "false"):
         return v[1:-1]
     return v
 
@@ -1074,9 +1209,27 @@ def fact_record_findings(records):
             out.append((line, f"a boolean fact whose name asks no question: {name}"))
         elif d.get("Type") != "boolean" and not FACT_NAME.fullmatch(name):
             out.append((line, f"a Facts record's name that is no fact's name: {name}"))
-        cell = feel(d["Values"]) if d.get("Values", "none") != "none" else None
-        if cell and symbolic(cell):
-            out.append((line, f"a Facts record's Values naming a fact: {name}"))
+        if name.split() and name.split()[0] in expressions.KEYWORDS:
+            out.append((line, f"a fact's name opening with a word FEEL keeps: {name}"))
+
+        out += [(line, m) for m in _value_list_problems(d.get("Values", "none"), f"the Facts record {name}'s Values")]
+    return out
+
+
+def _value_list_problems(text, what):
+    """A value list, a Facts record's Values or an Input Values item, as FEEL's unary tests naming no fact -> [message],
+    each problem once: a word written plain, which a list never holds, a name, and any other form FEEL does not have."""
+    if text == "none":
+        return []
+    if not text.strip():
+        return [f"{what} empty"]
+    tests = _tests(text.strip())
+    if not QUOTED_LIST.fullmatch(text) and tests == [("is", text.strip(), "word")]:
+        return [f"{what} written plain, which a value list never is: {text}"]
+    out = []
+    for p in dict.fromkeys(expressions.check_tests(text, {})):
+        name = re.match(r"a name no fact declares: (.+)", p)
+        out.append(f"{what} naming a fact: {name.group(1)}" if name else f"{what} in no form FEEL's unary tests have: {p}")
     return out
 
 
@@ -1092,19 +1245,20 @@ def _named(value):
 
 
 def domains_of(header, idx, values, facts):
-    """Each condition's values: its Input Values item, a question's `Yes` and `No`, or its Facts record's Values,
+    """Each condition's values: its Input Values item, a question's `true` and `false`, or its Facts record's Values,
     `null` among them where its fact may be absent -> {header: cell}."""
     given = values.get("Input Values", "")
-    domains = _named(given)
+    # an item in a form the checks do not read gives its column no values, so its coverage is read
+    domains = {h: d for h, d in _named(given).items() if not symbolic(d)}
     for k in idx:
         h = header[k]
         if h.endswith("?"):
-            domains[h] = feel('"Yes", "No"')
+            domains[h] = (False, [("is", "true", "boolean"), ("is", "false", "boolean")])
         if h in facts:
             _, fvalues, absent = facts[h]
             dom = domains.get(h) or (feel(fvalues) if fvalues != "none" else None)
             if dom and symbolic(dom):
-                dom = None  # Values naming a fact, reported at its record, give the column none
+                dom = None  # Values naming a fact, or in a form the checks do not read, give the column none
             if dom and absent == "Yes":
                 dom = (dom[0], dom[1] + [("null",)])
             if dom:
@@ -1194,14 +1348,21 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
             if header[k] not in computed and (TEST_FORM.match(row[k]) or row[k].startswith("[")
                                               or FORM_OPENING.match(row[k]) and len(_split(row[k])) > 1):
                 found.append((rule, r, ln, f"an outcome cell written as a test: {row[k][:20]}"))
+            elif header[k] not in computed and header[k].endswith("?") and row[k] not in ("true", "false", "null"):
+                found.append((rule, r, ln, f"a question's outcome cell neither true, false nor null: {row[k][:20]}"))
     cells = {}
     for ln, row in table["rows"]:
         for k in idx:
             cells[(ln, k)] = feel(row[k])
             if cells[(ln, k)] is None:
-                found.append((rule, r, ln, f"a cell in no form the section lists: {row[k]}"))
+                found.append((rule, r, ln, f"a cell in no form FEEL has: {row[k]}"))
             else:
                 for t in cells[(ln, k)][1]:
+                    if t[0] == "eqv":
+                        found.append((rule, r, ln, f"a value tested after `=`, which a cell writes alone: {t[1]}"))
+                    if t[0] == "sym" and not t[2]:
+                        for p in expressions.check_tests(t[1], known):
+                            found.append((rule, r, ln, f"{p}, in the cell {row[k]}"))
                     for fact in (t[2] if t[0] == "sym" else ()):
                         if fact not in known:
                             found.append((rule, r, ln, f"a cell naming a fact no condition, Reads item or Facts record declares: {fact}"))
@@ -1210,12 +1371,15 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
     if values.get("Input Values", "none") != "none":
         for item in values["Input Values"].split("\n"):
             h, _, c = item.partition(":")
-            if not (h.strip() and LIST_OR_RANGE.fullmatch(c.strip()) and feel(c.strip())) or symbolic(feel(c.strip())):
-                found.append((rule, r, line, f"an Input Values item that is not a header, a colon, and a quoted list or a range of values: {item}"))
-            elif h.strip() in facts:
+            problems = _value_list_problems(c.strip(), f"the Input Values item {h.strip()}") if h.strip() else [f"an Input Values item with no header: {item}"]
+            for m in problems:
+                found.append((rule, r, line, m))
+            if problems:
+                continue
+            if h.strip() in facts:
                 found.append((rule, r, line, f"Input Values given for a fact its Facts record declares: {h.strip()}"))
             elif h.strip().endswith("?"):
-                found.append((rule, r, line, f"Input Values given for a question, whose values are Yes and No: {h.strip()}"))
+                found.append((rule, r, line, f"Input Values given for a question, whose values are true and false: {h.strip()}"))
     domains = {h: d for h, d in domains_of(header, idx, values, facts).items() if not symbolic(d)}
     for k in idx:
         if header[k] not in facts:
@@ -1226,7 +1390,7 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
             c = cells[(ln, k)]
             if any(t[0] == "null" for t in c[1]) and absent != "Yes":
                 found.append((rule, r, ln, f"a null cell for a fact that may not be absent: {header[k]}"))
-            got = _kind(c) - ({"word"} if want == "boolean" else set())
+            got = _kind(c)
             if want and got and got != {want}:
                 found.append((rule, r, ln, f"a cell testing a {', '.join(sorted(got))} where its fact is a {ftype}: {header[k]}"))
     for k in idx:
@@ -1486,7 +1650,8 @@ LEADS = (("state", "description"), ("From", "To"), ("Step", "Question"), ("task"
 
 def construct_candidates(files, sections, strip_fences):
     """-> [(path, line, pattern, context)] for the Construct choice and form audit: a State
-    Machine an exclusive choice's guard of which ends a cell at a fact, a Decision Table a cell of which tests against
+    Machine an exclusive choice's guard of which compares a fact with another or is in another of FEEL's forms, a
+    Decision Table a cell of which tests against
     a fact, a Decision Table whose cells do not settle that every case is matched, a table shaped as a construct's
     with no declaration, an Algorithm's step that may fold a comparison, and an Enforced by that may
     say nothing enforces its rule. `files` holds (path, body) pairs."""
@@ -1499,10 +1664,10 @@ def construct_candidates(files, sections, strip_fences):
         for line, name, fields, tables, lineage in declarations(live, secs):
             declared |= {t["line"] for t in tables}
             if name == "State Machine" and len(tables) == 2 and _choice_against_a_fact(tables[1]):
-                out.append((r, line, "an exclusive choice testing against a fact",
+                out.append((r, line, "an exclusive choice testing against a fact or in another of FEEL's forms",
                             f"§ {lineage}: whether two of its guards can hold at once is read"))
             if name == "Decision Table" and tables and _against_a_fact(fields, tables[0]):
-                out.append((r, line, "cells testing against a fact",
+                out.append((r, line, "cells testing against a fact or in another of FEEL's forms",
                             f"§ {lineage}: which rows a case reaches, and whether every case matches one, is read"))
             elif name == "Decision Table" and tables and not _settled(fields, tables[0], facts):
                 out.append((r, line, "coverage the cells do not settle",
@@ -1542,7 +1707,8 @@ def construct_candidates(files, sections, strip_fences):
 
 
 def _choice_against_a_fact(transitions):
-    """Whether an exclusive choice's guard ends a cell at a fact, which the script sets aside."""
+    """Whether an exclusive choice's guard compares a fact with another or is in another of FEEL's forms, which the
+    script sets aside."""
     header = transitions["header"]
     if "Guard" not in header:
         return False
@@ -1556,7 +1722,8 @@ def _choice_against_a_fact(transitions):
 
 
 def _against_a_fact(fields, table):
-    """Whether a Decision Table holds a cell testing against a fact, which the script sets aside."""
+    """Whether a Decision Table holds a cell testing against a fact, or in another of FEEL's forms, which the script
+    sets aside."""
     header = table["header"]
     values = dict((k, v) for _, k, v in fields)
     conds = [c.strip() for c in values.get("Conditions", "").split(",") if c.strip()]
@@ -1566,7 +1733,7 @@ def _against_a_fact(fields, table):
 
 def _settled(fields, table, facts=None):
     """Whether a Decision Table's coverage is decided or settled: its values for every condition, an Input
-    Values item, a question's Yes and No or a Facts record's Values, a Default Output, a hit policy taking every row
+    Values item, a question's true and false or a Facts record's Values, a Default Output, a hit policy taking every row
     a case matches, a row testing no condition, or, with one condition, a not(…) row whose excluded values the other
     rows match."""
     header = table["header"]
