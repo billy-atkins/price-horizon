@@ -65,18 +65,17 @@ How anything here gets built or reworked, whether a spec, a rule, a skill, or co
 
 - reads the text an edit changes, and what surrounds it, before putting the edit in its plan;
 - holds each edit to the rules it applies, as it works;
-- checks the whole of the work, not only what it last changed, after its own last edit and before any review.
+- checks its own work before any review, as its row of `§ Design, Refactor, Refine § Who Checks What` sets.
 
-**The adversarial review —** when the builder judges the work optimal, the cold agent is given the builder's complete plan: the problem, the design frame and the design, each stated on its own, and the steers that settled it (`specs/methodology/working-files.md § A Steering Decision`). It is never the builder, since re-reading your own work re-reads what you meant. It does not derive its own solution: it takes the builder's design through Design, Refactor, Refine again, looking for Rube Goldberg machines and Potemkin villages (`specs/methodology/glossary.md`). It reports findings; it does not edit.
+**The adversarial review —** when the builder judges the work optimal, a cold agent reads what its row of `§ Design, Refactor, Refine § Who Checks What` gives it. It is never the builder, since re-reading your own work re-reads what you meant. It does not derive its own solution: it takes the builder's design through Design, Refactor, Refine again, looking for Rube Goldberg machines and Potemkin villages (`specs/methodology/glossary.md`). It reports findings, and edits nothing.
 
 Brief it with more than the task:
 
 - name the failure patterns earlier rounds found;
-- point it at the steers the plan records, the user's decisions about what the design is, so it checks fidelity to them rather than reopening them (`specs/methodology/working-files.md § A Steering Decision`);
 - ask for any sweep of the repo to be redone by its own method;
 - point it at whatever the design decides, since that is where defects concentrate.
 
-The builder checks every finding against the files before acting on it, since a review can be confidently wrong. The user decides which findings are addressed and how. Accepted findings go back through the builder's process, and if they changed the structure, the revised design gets another adversarial review. Then, with the user's go-ahead, the builder applies the work and a cold agent audits it, the post-apply audit: for specs `.ai/skills/audit-specs/`, and for code `.ai/skills/verify-spec-implementation/` (`specs/methodology/working-files.md § A Design Document § A Design Changing Code`).
+The builder checks every finding against the files before acting on it, since a review can be confidently wrong. The user decides which findings are addressed and how. Accepted findings go back through the builder's process, and if they changed the structure, the revised design gets another adversarial review. Then, with the user's go-ahead, the builder applies the work and a cold agent audits it, the post-apply audit, as its row of `§ Design, Refactor, Refine § Who Checks What` sets.
 
 **Converging, or not —** a hard problem can take many review rounds, and each phase counts its own: the adversarial reviews of a design before it is approved, and the audits of its applied work after. A flaw is a finding the user settles as the design, or the approach to it, being wrong; a tactical fix is no flaw, and a round may find several flaws. Before revising the design for a flaw an adversarial review finds, the builder asks whether its design frame let the flaw in, its scope missing a case, its approach not reaching it or its outcomes not judging it; where it did, the builder revises the frame first, and has the user agree or adjust it again before the design is revised. Three rounds in a row within one phase that each found a flaw mean the work is not converging, and that the design or its approach is itself flawed. The builder then stops revising and takes it to the user, and the two step back and reassess: they rescope, split or abandon the design, and start afresh with what was learned.
 
@@ -85,3 +84,21 @@ The builder checks every finding against the files before acting on it, since a 
 **Direct edits —** a small tactical edit, narrow in scope and low in risk, may skip this process and be applied directly, but only once the user has approved it. Anything larger or riskier goes through the process.
 
 **A new branch —** is created only once the user approves it, the builder proposing its name and what it starts from. How work is split across branches decides how it is reviewed and merged, which is the user's to settle, as a direct edit is.
+
+### Who Checks What
+
+The checks a design goes through, each with who makes it, what it reads, and what it leaves to another, so a builder briefing a check asks of it only what its row gives:
+
+**Construct:** Decision Table
+
+**Conditions:** Check
+
+| Check | Who makes it | What it reads | What it leaves to another |
+|---|---|---|---|
+| the builder's own | the builder | before each review, after its own last edit: the whole of its work, not only what it last changed; once the design is applied, the applied files against the design's edits; an ephemeral differential test (`specs/methodology/glossary.md`) of each script its edits change, run in a copy of the repository holding its edits until the design is applied, and in the files once it is; and, for code, the local environment's tasks, as `specs/methodology/spec-placement.md § Environments` sets; each test and task recorded as `specs/methodology/working-files.md § A Design Document` has the passes hold them | none |
+| a judgment the builder hands off | a cold agent the builder briefs | only the items the builder names, each against what the builder names it with, its text at the baseline or the home it cites, giving a verdict for each | the design as a whole, the adversarial review's |
+| the design's form | the design script of the skill writing the design | the design document's form, whether its quoted edits apply, and whether its citations resolve | whether the design is right |
+| the adversarial review | a cold agent | the builder's complete plan, its problem, design frame and design each stated on its own; its steering decisions, as the record of how the user shaped it (`specs/methodology/working-files.md § A Steering Decision`); the files its edits change; and the specs they rely on, the canon's or the application's, against which it judges the design, by its design frame and its steers, checking its fidelity to them rather than reopening them | copying the files, applying the edits and testing behaviour, the builder's own check |
+| the validation review | a cold agent | the design document's record, as `specs/methodology/working-files.md § A Design Document` sets | whether the design is right |
+| the post-apply audit | a cold agent | the applied files against the specs governing them: a design's changed specifications through `.ai/skills/audit-specs/`, its code through `.ai/skills/verify-spec-implementation/` (`specs/methodology/working-files.md § A Design Document § A Design Changing Code`) | testing behaviour, the builder's own check |
+| the user's | the user | what the builder shows it, the findings of each review among it; it settles each finding | none |

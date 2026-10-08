@@ -58,7 +58,7 @@ becomes:
 
 ## The Builder's Passes
 
-{each pass and each review under a bold lead-in naming it, an adversarial review's opening Adversarial review and a post-apply audit's Post-apply audit, each of those two naming the model and reasoning effort it ran on, and what it changed}
+{each pass and each review under a bold lead-in naming it, an adversarial review's opening Adversarial review and a post-apply audit's Post-apply audit, each of those two naming the model and reasoning effort it ran on, and what it changed; and each ephemeral differential test of a script the design changes, and what it showed}
 
 ## Deliberately Left Alone
 
