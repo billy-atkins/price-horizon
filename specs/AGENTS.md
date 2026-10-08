@@ -32,6 +32,7 @@ Running the procedure, rather than recalling the rules, is what puts each rule i
 | Writing a citation, referring to other text, or deciding whether a citation may be written | `specs/methodology/sourcing-and-citation.md § Writing a Citation`, `specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text`, `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` |
 | Adding or retitling a heading | `specs/methodology/sourcing-and-citation.md § Titling a Heading` |
 | Describing a rule, a process, or an entity's behavior | `specs/methodology/modeling-constructs.md` |
+| Writing an expression a construct computes or tests | `specs/methodology/expressions.md` |
 | Recording a decision the specs rely on but have not made | `specs/methodology/spec-placement.md § An Open Question` |
 | Writing a field, a bold lead-in, emphasis, literal text, or an entry of a repeated kind | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Emphasis`, `specs/methodology/modeling-constructs.md § Literal Text`, `specs/methodology/modeling-constructs.md § Constructs § Record Form` |
 | Writing or updating acceptance scenarios | `specs/methodology/acceptance-scenarios.md` |

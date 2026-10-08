@@ -886,7 +886,7 @@ def check(root):
     constructs.submachine_findings(text_of, found, sections, strip_fences, CITATION, resolve)
     # an effect, the Algorithm or the Decision Table a transition runs
     constructs.effect_findings(text_of, found, sections, strip_fences, CITATION, resolve)
-    # the facts an exclusive choice's guard ends a cell at, declared in any file
+    # the facts an exclusive choice's guard compares a fact with, declared in any file
     constructs.guard_fact_findings(text_of, found, sections, strip_fences)
     # the fact a machine's state is recorded in, its Values holding each state
     constructs.recorded_in_findings(text_of, found, sections, strip_fences, CITATION, resolve)
@@ -1356,6 +1356,13 @@ def record_type_findings(root):
     text = (root / path).read_text(encoding="utf-8")
     for rule, line, msg in constructs.field_table_findings(text, sections(text)):
         out.append((rule, path, line or 1, msg))
+    # FEEL's built-in functions, the child script's copy held to the table in their home
+    path = "specs/methodology/expressions.md"
+    text = (root / path).read_text(encoding="utf-8")
+    for line, msg in constructs.expressions.function_table_findings(text):
+        out.append(("expressions.md § Expressions § FEEL § Its Functions", path, line or 1, msg))
+    for line, msg in constructs.expressions.keyword_findings(text):
+        out.append(("expressions.md § Expressions § FEEL § Names", path, line or 1, msg))
     return out
 
 

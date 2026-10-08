@@ -82,8 +82,8 @@ A directory's own mapping table, where it has one, is the exception that proves 
 
 | Does the subject area decompose into sub-parts each substantial enough to carry its own promise and its own scenarios independently of the others? | Placement |
 |---|---|
-| Yes | its own subfolder, one file per such sub-part |
-| No | a loose file at the directory's root |
+| true | its own subfolder, one file per such sub-part |
+| false | a loose file at the directory's root |
 
 A subject area that does not decompose so stays one cohesive mechanism, however many internal facets it has.
 
