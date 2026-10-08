@@ -15,9 +15,9 @@ This file defines the bounded, approved set of structured modeling constructs, r
 | DAG | two tasks sharing a name; a dependency naming a task the table does not hold; or a task that depends on itself, directly or through others, and so never runs |
 | Algorithm | no Inputs or Output field; two steps sharing a number; a jump to a step the table does not hold; a comparison not written in its form; a comparison both of whose branches go back to an earlier step or to its own; a step that is no comparison going back; or a last step, or a branch of it, that neither ends nor jumps |
 | Constraint | a rule stated but enforced nowhere, or an Enforced by citing nothing that resolves |
-| Record Form | a record missing a field its type requires, holding one its type does not define, or giving its fields out of their order; or two records in one section sharing the values of their identifying fields |
+| Record Form | a record missing a field its type requires, holding one its type does not define, holding a value its type's Values do not allow, or giving its fields out of their order; or two records in one section sharing the values of their identifying fields |
 
-Use one of the constructs `§ Constructs` defines when a rule, a process, an entity's behavior, or an entry written repeatedly into the specs or the working files needs that kind of checkable completeness, and use prose everywhere else. The set is bounded and approved: a new construct earns its place only by filling a real gap none of the existing ones cover, not by preference for a different notation, and extending the set is a deliberate decision, made by updating this file first, never an ad hoc addition inside a single spec. The Decision Table is DMN's whole decision table (`specs/methodology/external-references.md § External References [Name: DMN]`); DMN's other parts, its Decision Requirements Diagrams, its Business Knowledge Models and its boxed expressions, are outside the set, and a project needing one adds it so. The State Machine, and the Lifecycle as one, map onto UML's state machine (`specs/methodology/external-references.md § External References [Name: UML]`); the Decision Tree, the DAG, the Algorithm, the Constraint and the Record Form follow no outside standard, since none meets their need: a decision tree's standards describe trees learned from data rather than questions an author writes, a DAG's are whole workflow notations, an algorithm has no standard pseudocode, and a constraint language as wide as the Object Constraint Language is far more than a Constraint needs.
+Use one of the constructs `§ Constructs` defines when a rule, a process, an entity's behavior, or an entry written repeatedly into the specs or the working files needs that kind of checkable completeness, and use prose everywhere else. The set is bounded and approved: a new construct earns its place only by filling a real gap none of the existing ones cover, not by preference for a different notation, and extending the set is a deliberate decision, made by updating this file first, never an ad hoc addition inside a single spec. Each construct is a definition (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`): its section in `§ Constructs`, with `§ Constructs § Declaring a Construct`, defines what each use of it sets, each use an instance the audit checks against it, as `specs/methodology/scope.md § Rules and Skills` has a rule's checks made. The Record Form is defined through its record types instead (`§ Constructs § Record Form`). The Decision Table is DMN's whole decision table (`specs/methodology/external-references.md § External References [Name: DMN]`); DMN's other parts, its Decision Requirements Diagrams, its Business Knowledge Models and its boxed expressions, are outside the set, and a project needing one adds it so. The State Machine, and the Lifecycle as one, map onto UML's state machine (`specs/methodology/external-references.md § External References [Name: UML]`); the Decision Tree, the DAG, the Algorithm, the Constraint and the Record Form follow no outside standard, since none meets their need: a decision tree's standards describe trees learned from data rather than questions an author writes, a DAG's are whole workflow notations, an algorithm has no standard pseudocode, and a constraint language as wide as the Object Constraint Language is far more than a Constraint needs. The Facts record type relies on DMN's item definitions, as `§ Constructs § Declaring a Construct § A Fact` states.
 
 This file also sets the form of markup, wherever it is written, each Markdown file in scope being written in GitHub Flavored Markdown (`specs/methodology/external-references.md § External References [Name: GFM]`):
 
@@ -55,21 +55,16 @@ Backticks mark literal text: something written exactly so elsewhere, a path, a c
 
 ### Declaring a Construct
 
-Each construct is declared where it is used, so a reader and an audit know it as one. Its declaration is a `**Construct:**` field (`§ Fields`) opening a paragraph of its own before the construct's first table. Its value is the construct's name, as its section under `§ Constructs` is titled: `Lifecycle`, say. The fields a construct sets for itself, a Decision Table's `**Hit Policy:**` or an Algorithm's `**Inputs:**` and `**Output:**`, follow it in the order the table of them gives, each opening a paragraph of its own, and its tables follow them. The declaration, its fields and its tables make one block, ending with the last table its form gives: a sentence introducing the construct ends before its `**Construct:**` field, and nothing else sits among them (`specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text`). A Record Form is declared by its titles and its record sections' fields instead (`§ Constructs § Record Form`). It is also the precedent the rest follow. A record section's title names its type, as a section's `**Construct:**` field names its construct. A record is named by its identifying fields, as a part is by its identifier.
+Each construct is declared where it is used, so a reader and an audit know it as one. Its declaration is a `**Construct:**` field (`§ Fields`) opening a paragraph of its own before the construct's first table. Its value is the construct's name, as its section under `§ Constructs` is titled: `Lifecycle`, say. The fields a construct sets for itself, a Decision Table's `**Hit Policy:**` or an Algorithm's `**Inputs:**` and `**Output:**`, follow it in the order this section's table and then its own section's table give them, each opening a paragraph of its own, and its tables follow them. The declaration, its fields and its tables make one block, ending with the last table its form gives: a sentence introducing the construct ends before its `**Construct:**` field, and nothing else sits among them (`specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text`). A Record Form is declared by its titles and its record sections' fields instead (`§ Constructs § Record Form`). It is also the precedent the rest follow. A record section's title names its type, as a section's `**Construct:**` field names its construct. A record is named by its identifying fields, as a part is by its identifier.
 
-The fields a construct declares:
+Each construct's section defines the fields its instances declare (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`), in a table of the shape `§ Constructs § Record Form` sets for a construct's fields. The fields every construct but a Record Form declares, its own section adding its own:
 
-| Field | Construct | Required | Default Value | Holds |
+| Field | Required | Default Value | Values | Holds |
 |---|---|---|---|---|
-| Construct | every construct but a Record Form | yes | | its name, as its section under `§ Constructs` is titled |
-| Hit Policy | Decision Table | no | Unique | its hit policy, as `§ Constructs § Decision Table` names one |
-| Conditions | Decision Table | yes | | its condition columns, named by their headers, separated by commas |
-| Annotations | Decision Table | no | none | its annotations, named by their headers, separated by commas |
-| Input Values | Decision Table | no | none | a list, an item for each condition it gives values for: its header, a colon, and its values as a quoted list or a range; a question takes no item, its values being `Yes` and `No` |
-| Output Values | Decision Table | where its hit policy is Priority or Output order | | a list, an item for each outcome column it ranks by: its header, a colon, and its values as a list, highest priority first |
-| Default Output | Decision Table | no | none | the outcome where no row matches: a value, or, with several outcome columns, a list, an item for each: its header, a colon and its value |
-| Inputs | Algorithm | yes | | what it reads, or none |
-| Output | Algorithm | yes | | what it produces |
+| Construct | yes | | `§ Constructs` | its name, as its section under `§ Constructs` is titled, `Declaring a Construct` and `Record Form` aside |
+| Order | where the construct leaves open the order it takes its inputs or gives its results in | | text | that order, or `any` where its result is the same in every order, so a result is never left to an order no one chose |
+
+A fact several constructs test is declared as `§ Constructs § Declaring a Construct § A Fact` has it.
 
 **One construct to a section —** a section holds at most one construct of its own, not counting its subsections', so a citation of the section names the construct. Whatever prose the section needs sits between its heading and the `**Construct:**` field, or after the construct's last table, never inside its block, and another construct, a Constraint on an Algorithm's output say, takes a section of its own. A construct's several tables, a Lifecycle's States and Transitions, are one construct, and a table that is no construct, a definition, an index or a catalogue, may sit beside it.
 
@@ -91,6 +86,19 @@ The fields a construct declares:
 A Transitions table, a Decision Table or a Constraint table opens with a column headed `Name` exactly where a part of it is cited from outside its construct's section: the column comes with the first such citation and goes with the last, and while it is there every row gives a Name. No condition or outcome column is headed `Name`.
 
 Each identifier, a state's name, a step's number, a task's name or a Name, is an identifying value (`§ Constructs § Record Form`), and no two parts of one kind in a construct share one. A state's name and a task's name also hold no comma and not the word `and`, since a From, a To and a depends_on list them by those. An Algorithm's steps are numbered from 1 in order. A Decision Tree's step is named by the number its branches share before the dot, as 2 for 2.1 and 2.2.
+
+#### A Fact
+
+A fact several constructs test, where it is one fact by `specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`, is declared once, as DMN's item definition is (`specs/methodology/external-references.md § External References [Name: DMN]`). It narrows the item definition to a single value of one of FEEL's types, with no components and no collection, and adds the unit a number is counted in, whether the fact may be absent and what it means. A file's facts sit in a record section titled `Facts`, in the file whose subject owns them. Each is a record in the Record Form (`§ Constructs § Record Form`) of the type named Facts:
+
+| Field | Identifies | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Name | yes | yes | | text | the fact's name |
+| Type | no | yes | | "string", "number", "boolean", "date", "time", "date and time", "days and time duration", "years and months duration" | its type, as FEEL names it |
+| Values | no | no | none | text | the values it may take, a quoted list or a range, where its type alone does not bound them |
+| Unit | no | no | none | text | the unit a number is counted in |
+| May Be Absent | no | no | No | "Yes", "No" | whether it may have no value |
+| Means | no | yes | | text | what the fact is |
 
 ### Lifecycle
 
@@ -127,6 +135,17 @@ A table deciding what follows for a case. Each row states, in its condition colu
 
 It is the decision table of DMN, the Object Management Group's Decision Model and Notation (`specs/methodology/external-references.md § External References [Name: DMN]`), and its cells are the forms of FEEL's simple unary tests, the cell syntax of DMN's expression language, that this section lists. Those forms and the hit policies this section gives are all an author needs, so an agent that cannot fetch DMN, or does not know it, loses nothing a Decision Table relies on. Adding a form of FEEL this section does not list is a change to this section and to the audit's checks of its cells, made together.
 
+**Its fields —** after those every construct declares (`§ Constructs § Declaring a Construct`):
+
+| Field | Required | Default Value | Values | Holds |
+|---|---|---|---|---|
+| Hit Policy | no | Unique | `§ Constructs § Decision Table` | its hit policy, as this section's table of them names one |
+| Conditions | yes | | text | its condition columns, named by their headers, separated by commas |
+| Annotations | no | none | text | its annotations, named by their headers, separated by commas |
+| Input Values | no | none | text | a list, an item for each condition it gives values for: its header, a colon, and its values as a quoted list or a range; a question takes no item, its values being `Yes` and `No` |
+| Output Values | where its hit policy is Priority or Output order | | text | a list, an item for each outcome column it ranks by: its header, a colon, and its values as a list, highest priority first |
+| Default Output | no | none | text | the outcome where no row matches: a value, or, with several outcome columns, a list, an item for each: its header, a colon and its value |
+
 **Its columns —** its condition columns come first, after a Name column where it has one (`§ Constructs § Declaring a Construct`). Its outcome columns follow them, one or more of each, and then its annotations, columns that only describe or illustrate a row, which neither the match nor the check reads. Its `**Conditions:**` field names its condition columns, a lookup's one among them, so which columns are conditions is declared, never inferred. A condition's or an annotation's header holds no comma, and no header an Input Values or Output Values item names holds a colon, since those fields separate headers by them. An outcome cell is never written as a test, `-`, `not(…)`, a comparison or a range, which would show a condition declared an outcome. Its `**Annotations:**` field names its annotations.
 
 **Its cells —** a row matches a case only when all its conditions hold. Each condition cell holds only what tests its condition, what explains or illustrates the value going in an annotation, and tests it in one of these forms, and no other:
@@ -146,7 +165,7 @@ An outcome decided when any one of several conditions holds is written as a row 
 
 **What is one —** a table that defines each case of a closed set and states what follows for it is a Decision Table, since it decides, unless it is another construct's own table, a Lifecycle's transitions or a Decision Tree's steps, say. A table saying only what a term, a value, a form or an example is, or where something is stated, decides nothing: it is a definition, an index or a catalogue, and no construct. So is a table whose rows sample an open set of cases, since it cannot be checked for a case it leaves out.
 
-**Its hit policy —** which of the rows a case matches give it its outcome, named in a `**Hit Policy:**` field as DMN names it, its default value DMN's default (`§ Constructs § Declaring a Construct`):
+**Its hit policy —** which of the rows a case matches give it its outcome, named in a `**Hit Policy:**` field as DMN names it, its default value DMN's default, as its table of fields gives:
 
 | Hit policy | A case |
 |---|---|
@@ -211,7 +230,14 @@ Over a DAG, a State Machine adds what `§ When to Use Which [Step: 4]` routes to
 
 A precise, step-by-step computational procedure that produces a value or a transformation. Unlike a DAG or a State Machine, which orchestrate named tasks or services, an Algorithm specifies the computation inside one of those tasks, or any calculation that is not itself an orchestration.
 
-Declared with an `**Inputs:**` field and then an `**Output:**` field after its `**Construct:**` field (`§ Constructs § Declaring a Construct`): what it reads, and what it produces. Authored as a numbered table of steps.
+Its fields, after those every construct declares (`§ Constructs § Declaring a Construct`):
+
+| Field | Required | Default Value | Values | Holds |
+|---|---|---|---|---|
+| Inputs | yes | | text | what it reads, or none |
+| Output | yes | | text | what it produces |
+
+Authored as a numbered table of steps.
 
 | Step | Action |
 |---|---|
@@ -236,11 +262,13 @@ A constraint with nothing in its Enforced by column is an aspiration, not a guar
 
 An entry of one kind written repeatedly into a methodology spec, an application spec, or a working file, each record stating the same named fields: what differs between records is each field's value, never which fields there are. A schema of data the product stores is not one, however many records the product holds; it is described as the rest of the specs describe data.
 
-A record type is defined once, at the home of the rule it serves, in a section titled with the type's singular preceded by A or An, as `## An Open Question` is. The type's name, a plural, titles the sections holding its records and no other section, so a definition and a collection of records never share a title. The defining section states the type's name and where its records go, and gives any section fields it declares beyond Diagrams in a table of Field, Required, Default Value and Holds. It gives a table of its record fields, in the order a record gives them, marking the field or fields whose values identify a record:
+A record type is a definition and its records are its instances (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`), each type a sub-definition of this form keeping its own fields. A type is defined at the home of the rule it serves, in a section titled with the type's singular preceded by A or An, as `## An Open Question` is. The type's name, a plural, titles the sections holding its records and no other section, so a definition and a collection of records never share a title. The defining section states the type's name and where its records go, and gives any section fields it declares beyond Diagrams in a table of Field, Required, Default Value, Values and Holds, the shape every construct's table of fields (`§ Constructs § Declaring a Construct`) and every record type's takes. It gives a table of its record fields in the same shape, in the order a record gives them, a column after Field marking the field or fields whose values identify a record:
 
-| Field | Identifies | Required | Default Value | Holds |
-|---|---|---|---|---|
-| ... | yes or no | as `§ Fields` sets | as `§ Fields` sets | What a record states in this field |
+| Field | Identifies | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| ... | yes or no | as `§ Fields` sets | as `§ Fields` sets | the values it may hold | What a record states in this field |
+
+**Its values —** what a field may hold: a list of its values, each in double quotes and separated by commas, which the audit checks every value against; a citation of the section that lists them; or `text`, any value its Holds describes.
 
 **The record section —** a type's records sit together in a record section of their own, titled with the type's name. It holds only fields, in this order:
 

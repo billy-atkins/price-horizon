@@ -21,7 +21,7 @@
   **Version:** 1.5
   **URL:** `https://www.omg.org/spec/DMN/1.5/`
   **Relation:** adopts
-  **Covers:** the decision table, its hit policies, and those forms of FEEL's simple unary tests its citing section lists
+  **Covers:** the decision table, its hit policies, and those forms of FEEL's simple unary tests the decision table's section lists; and item definitions, with FEEL's names for their types
 
 - **Name:** GFM
   **Title:** GitHub Flavored Markdown Spec, GitHub

@@ -231,12 +231,12 @@ As it works, the agent writing code runs the targeted form of a test task on the
 
 An open question is recorded in the spec whose area it applies to, methodology, product or technical, and in the file whose scope covers everything the question impacts. That file must be able to cite every section the question's Impacts names (`specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`). A file's open questions sit in a record section titled `Open Questions`, the file's last top-level section, so a reader finds them all in one place, after the settled content they qualify. Each is a record in the Record Form (`specs/methodology/modeling-constructs.md § Constructs § Record Form`), of the type named Open Questions:
 
-| Field | Identifies | Required | Default Value | Holds |
-|---|---|---|---|---|
-| Name | yes | yes | | a short name for what is undecided |
-| Open Question | no | yes | | what is undecided, asked as a question |
-| Provisional Answer | no | yes | | what the specs rely on until it is settled, stated as settled prose would state it |
-| Impacts | no | yes | | prose naming each thing that relies on the provisional answer, with a citation of the section holding it, or, where that section holds more, of the part of a construct that relies on it (`specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct`); a data field that relies on it is named by what it says beside its section's citation |
+| Field | Identifies | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Name | yes | yes | | text | a short name for what is undecided |
+| Open Question | no | yes | | text | what is undecided, asked as a question |
+| Provisional Answer | no | yes | | text | what the specs rely on until it is settled, stated as settled prose would state it |
+| Impacts | no | yes | | text | prose naming each thing that relies on the provisional answer, with a citation of the section holding it, or, where that section holds more, of the part of a construct that relies on it (`specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct`); a data field that relies on it is named by what it says beside its section's citation |
 
 A sentence that relies on the provisional answer, and would otherwise read as settled, cites the record wherever `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` allows that citation, so a reader meets the question from the text that depends on it.
 

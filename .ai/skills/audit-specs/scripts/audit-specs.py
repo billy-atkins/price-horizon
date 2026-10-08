@@ -78,34 +78,49 @@ WORKING_FILES_HOME = "specs/methodology/working-files.md"
 
 # modeling-constructs.md § Constructs § Record Form. The record types this script checks: each type's
 # name, which titles its record sections, the section defining it, and its table of record fields,
-# copied here as this script reads it, each row's Field, Identifies, Required and Default Value
+# copied here as this script reads it, each row's Field, Identifies, Required, Default Value and Values
 # cells; record_type_findings holds each copy to its home. Any section fields beyond Diagrams, and
 # a type's own placement, are this script's to carry out. A type with no entry here is read by
 # the Construct choice and form audit alone.
 RECORD_FORM = "modeling-constructs.md § Constructs § Record Form"
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct § A Fact
 # @canon-spec specs/methodology/sourcing-and-citation.md § An External Reference
 # @canon-spec specs/methodology/spec-placement.md § An Open Question
 RECORD_TYPES = {
     "Open Questions": {
-        "table": (("Name", "yes", "yes", ""), ("Open Question", "no", "yes", ""),
-                  ("Provisional Answer", "no", "yes", ""), ("Impacts", "no", "yes", "")),
+        "table": (("Name", "yes", "yes", "", "text"), ("Open Question", "no", "yes", "", "text"),
+                  ("Provisional Answer", "no", "yes", "", "text"), ("Impacts", "no", "yes", "", "text")),
         "section_fields": [],
         "home": "spec-placement.md § An Open Question",
         "last_top_level": True,
     },
     "External References": {
-        "table": (("Name", "yes", "yes", ""), ("Title", "no", "yes", ""), ("Version", "no", "yes", ""),
-                  ("URL", "no", "yes", ""), ("Relation", "no", "yes", ""), ("Covers", "no", "yes", "")),
+        "table": (("Name", "yes", "yes", "", "text"), ("Title", "no", "yes", "", "text"),
+                  ("Version", "no", "yes", "", "text"), ("URL", "no", "yes", "", "text"),
+                  ("Relation", "no", "yes", "", '"adopts", "maps onto"'), ("Covers", "no", "yes", "", "text")),
         "section_fields": [],
         "home": "sourcing-and-citation.md § An External Reference",
         "last_top_level": False,
     },
+    "Facts": {
+        "table": (("Name", "yes", "yes", "", "text"),
+                  ("Type", "no", "yes", "", '"string", "number", "boolean", "date", "time", "date and time", '
+                   '"days and time duration", "years and months duration"'),
+                  ("Values", "no", "no", "none", "text"), ("Unit", "no", "no", "none", "text"),
+                  ("May Be Absent", "no", "no", "No", '"Yes", "No"'), ("Means", "no", "yes", "", "text")),
+        "section_fields": [],
+        "home": "modeling-constructs.md § Constructs § Declaring a Construct § A Fact",
+        "last_top_level": False,
+    },
 }
 for _spec in RECORD_TYPES.values():
-    _spec["fields"] = [f for f, _, _, _ in _spec["table"]]
-    _spec["identifying"] = [f for f, ident, _, _ in _spec["table"] if ident == "yes"]
-    _spec["required"] = [f for f, _, req, _ in _spec["table"] if req == "yes"]
-    _spec["defaults"] = {f: d for f, _, _, d in _spec["table"] if d}
+    _spec["fields"] = [f for f, _, _, _, _ in _spec["table"]]
+    _spec["identifying"] = [f for f, ident, _, _, _ in _spec["table"] if ident == "yes"]
+    _spec["required"] = [f for f, _, req, _, _ in _spec["table"] if req == "yes"]
+    _spec["defaults"] = {f: d for f, _, _, d, _ in _spec["table"] if d}
+    # modeling-constructs.md § Constructs § Record Form: a field's values, where its Values cell lists them
+    _spec["values"] = {f: constructs.quoted_values(v) for f, _, _, _, v in _spec["table"]
+                       if constructs.quoted_values(v) is not None}
 # modeling-constructs.md § Fields: every key a form declares, and where that form places it.
 FIELDS = "modeling-constructs.md § Fields"
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
@@ -384,7 +399,10 @@ def record_findings(r, body, found):
             values = {key: value for key, value, _ in rec}
             for key, value in values.items():
                 if spec["defaults"].get(key) == value:
-                    found.append((FIELDS, r, at, f"the {key} field written at its default value, {value}"))
+                    found.append((home, r, at, f"the {key} field written at its default value, {value}"))
+            for key, value in values.items():
+                if key in spec["values"] and value not in spec["values"][key]:
+                    found.append((home, r, at, f"the {key} field holds a value its type does not allow: {value}"))
             for key in spec["identifying"]:
                 if not values[key] or UNPLAIN.search(values[key]):
                     found.append((RECORD_FORM, r, at, f"an identifying value is not plain text: {key}: {values[key]}"))
@@ -1302,8 +1320,8 @@ def glossary_candidates(root):
 
 def record_type_findings(root):
     """modeling-constructs.md § Constructs § Record Form and § Constructs § Declaring a Construct: this
-    script's copy of each record type's fields table, and constructs.py's of the fields a construct
-    declares, each against its table where it is defined, row by row, so a change to either is a
+    script's copy of each record type's fields table, and constructs.py's of each table of the fields a
+    construct declares, by the section defining it, each against its table where it is defined, row by row, so a change to either is a
     finding until the copy is brought into step."""
     out = []
     for title, spec in RECORD_TYPES.items():
@@ -1312,22 +1330,24 @@ def record_type_findings(root):
         text = (root / path).read_text(encoding="utf-8")
         span = sections(text).get(lineage)
         lines = text.split("\n")[span[0]:span[1]] if span else []
-        rows, h = [], next((i for i, l in enumerate(lines) if l.startswith("| Field | Identifies | Required | Default Value |")), None)
+        rows, h = [], next((i for i, l in enumerate(lines) if l.startswith("| Field | Identifies | Required | Default Value | Values |")), None)
         if h is None:
             out.append((RECORD_FORM, path, (span[0] + 1) if span else 0, f"no table of the {title} type's record fields"))
             continue
         for l in lines[h + 2:]:
             if not l.startswith("|"):
                 break
-            rows.append(tuple(c.strip() for c in l.strip().strip("|").split("|"))[:4])
+            rows.append(tuple(c.strip() for c in l.strip().strip("|").split("|"))[:5])
+        for row in rows:
+            if len(row) > 4 and not constructs.values_form(row[4]):
+                out.append((RECORD_FORM, path, span[0] + h + 1, f"a Values cell in none of its forms: {row[4]}"))
         if tuple(rows) != spec["table"]:
             out.append((RECORD_FORM, path, span[0] + h + 1,
                         f"the {title} type's fields table differs from the audit script's copy: {rows} against {list(spec['table'])}"))
     path = "specs/methodology/modeling-constructs.md"
     text = (root / path).read_text(encoding="utf-8")
-    span = sections(text).get("Constructs § Declaring a Construct") or (0, 0)
-    for rule, line, msg in constructs.field_table_findings("\n".join(text.split("\n")[span[0]:span[1]])):
-        out.append((rule, path, span[0] + line if line else span[0] + 1, msg))
+    for rule, line, msg in constructs.field_table_findings(text, sections(text)):
+        out.append((rule, path, line or 1, msg))
     return out
 
 

@@ -150,12 +150,12 @@ A design's Steering Decisions record only the user's steers, the decisions a ste
 
 A design's steering decisions sit in its record section titled `Steering Decisions`, each a record in the Record Form (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) of the type named Steering Decisions:
 
-| Field | Identifies | Required | Default Value | Holds |
-|---|---|---|---|---|
-| Name | yes | yes | | a short name for what was decided |
-| Prompted By | no | yes | | what the steer answered: a question, proposal or account the builder gave, a review's finding named by its ID, or the user's own initiative |
-| Steer | no | yes | | the user's own words, quoted |
-| Decision | no | yes | | the essence of what the steer decided, in a sentence or two |
+| Field | Identifies | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Name | yes | yes | | text | a short name for what was decided |
+| Prompted By | no | yes | | text | what the steer answered: a question, proposal or account the builder gave, a review's finding named by its ID, or the user's own initiative |
+| Steer | no | yes | | text | the user's own words, quoted |
+| Decision | no | yes | | text | the essence of what the steer decided, in a sentence or two |
 
 ### Telling a Steer Apart
 

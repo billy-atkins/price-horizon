@@ -15,24 +15,42 @@ DECLARING = "modeling-constructs.md § Constructs § Declaring a Construct"
 # modeling-constructs.md § Constructs § Declaring a Construct: the constructs a **Construct:** field may name; a Record Form is
 # declared by its titles
 NAMES = ("Lifecycle", "State Machine", "Decision Table", "Decision Tree", "DAG", "Algorithm", "Constraint")
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
-# its table of the fields a construct declares, copied here as this script reads it, in its order: each
-# field's Construct, Required and Default Value cells; field_table_findings holds the copy to the table
-FIELD_TABLE = (
-    ("Construct", "every construct but a Record Form", "yes", ""),
-    ("Hit Policy", "Decision Table", "no", "Unique"),
-    ("Conditions", "Decision Table", "yes", ""),
-    ("Annotations", "Decision Table", "no", "none"),
-    ("Input Values", "Decision Table", "no", "none"),
-    ("Output Values", "Decision Table", "where its hit policy is Priority or Output order", ""),
-    ("Default Output", "Decision Table", "no", "none"),
-    ("Inputs", "Algorithm", "yes", ""),
-    ("Output", "Algorithm", "yes", ""),
-)
-OWN_FIELDS = {c: tuple(f for f, fc, _, _ in FIELD_TABLE if fc == c) for c in NAMES if any(fc == c for _, fc, _, _ in FIELD_TABLE)}
-REQUIRED = {c: tuple(f for f, fc, req, _ in FIELD_TABLE if fc == c and req == "yes") for c in OWN_FIELDS}
+# each table of the fields a construct declares, by the section defining it, copied here as this script reads it,
+# in its order: each field's Required, Default Value and Values cells; field_table_findings holds each copy to its table
+DECLARED = "Constructs § Declaring a Construct"
+FIELD_TABLES = {
+    DECLARED: (
+        ("Construct", "yes", "", "`§ Constructs`"),
+        ("Order", "where the construct leaves open the order it takes its inputs or gives its results in", "", "text"),
+    ),
+    "Constructs § Decision Table": (
+        ("Hit Policy", "no", "Unique", "`§ Constructs § Decision Table`"),
+        ("Conditions", "yes", "", "text"),
+        ("Annotations", "no", "none", "text"),
+        ("Input Values", "no", "none", "text"),
+        ("Output Values", "where its hit policy is Priority or Output order", "", "text"),
+        ("Default Output", "no", "none", "text"),
+    ),
+    "Constructs § Algorithm": (
+        ("Inputs", "yes", "", "text"),
+        ("Output", "yes", "", "text"),
+    ),
+}
+# the fields every construct declares beyond its Construct field, and each field with the construct setting it
+COMMON = tuple(f for f, _, _, _ in FIELD_TABLES[DECLARED] if f != "Construct")
+FIELD_TABLE = tuple((f, "every construct but a Record Form", r, d) for f, r, d, _ in FIELD_TABLES[DECLARED]) \
+    + tuple((f, title.split(" § ")[1], r, d) for title, rows in FIELD_TABLES.items() if title != DECLARED
+            for f, r, d, _ in rows)
+OWN_FIELDS = {c: COMMON + tuple(f for f, fc, _, _ in FIELD_TABLE if fc == c) for c in NAMES}
+REQUIRED = {c: tuple(f for f, fc, req, _ in FIELD_TABLE if fc == c and req == "yes") for c in NAMES}
+# each field with the section defining it, and with its Values cell
+FIELD_RULE = {f: "modeling-constructs.md § " + title for title, rows in FIELD_TABLES.items() for f, _, _, _ in rows}
+FIELD_VALUES = {f: v for rows in FIELD_TABLES.values() for f, _, _, v in rows}
 DEFAULTS = {f: d for f, _, _, d in FIELD_TABLE if d}
-# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
 # the fields whose value is a list, each item beneath the field's key; a Default Output is one where
 # its table has several outcome columns
 LIST_FIELDS = ("Input Values", "Output Values")
@@ -181,6 +199,12 @@ DATE_TIME = re.compile(r'date and time\("(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})
 # range are built from
 QUOTED = r'"[^"]*"(?:\s*,\s*"[^"]*")*'
 QUOTED_LIST = re.compile(r'\s*' + QUOTED + r'\s*')
+
+
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
+def quoted_values(cell):
+    """The values a Values cell lists, where it is a quoted list, or None."""
+    return re.findall(r'"([^"]*)"', cell) if QUOTED_LIST.fullmatch(cell) else None
 
 
 def _value(s):
@@ -472,13 +496,16 @@ def _fields(r, line, name, fields, found):
         found.append((DECLARING, r, line, f"{_a(name)}'s fields out of the order {list(allowed)}"))
     for key in REQUIRED.get(name, ()):
         if key not in keys:
-            found.append((DECLARING, r, line, f"{_a(name)} with no {key} field"))
+            found.append((FIELD_RULE[key], r, line, f"{_a(name)} with no {key} field"))
     for ln, key, value in fields:
         if key in DEFAULTS and value == DEFAULTS[key]:
-            found.append((DECLARING, r, ln, f"the {key} field written at its default value, {value}"))
+            found.append((FIELD_RULE[key], r, ln, f"the {key} field written at its default value, {value}"))
+        listed = quoted_values(FIELD_VALUES.get(key, "text"))
+        if listed is not None and value not in listed:
+            found.append((FIELD_RULE[key], r, ln, f"the {key} field holds a value its definition does not allow: {value}"))
     values = dict((k, v) for _, k, v in fields)
     if values.get("Hit Policy") in ("Priority", "Output order") and "Output Values" not in values:
-        found.append((DECLARING, r, line, f"a {values['Hit Policy']} table with no Output Values field"))
+        found.append((FIELD_RULE["Output Values"], r, line, f"a {values['Hit Policy']} table with no Output Values field"))
     for ln, key, value in fields:
         if key == "Hit Policy" and value not in POLICIES + (DEFAULTS["Hit Policy"],):
             found.append((RULE + " § Decision Table", r, ln, f"a Hit Policy that is none of DMN's: {value}"))
@@ -1036,22 +1063,36 @@ def _settled(fields, table):
 
 # ---------------------------------------------------------------- the fields table, held to its home
 
-def field_table_findings(text):
-    """§ Constructs § Declaring a Construct: FIELD_TABLE, this script's copy of the table of the fields a
-    construct declares, against that table in `text`, modeling-constructs.md as it stands: each row's
-    Field, Construct, Required and Default Value, in its order."""
-    lines = text.split("\n")
-    try:
-        h = next(i for i, l in enumerate(lines) if l.startswith("| Field | Construct | Required | Default Value |"))
-    except StopIteration:
-        return [(DECLARING, 0, "no table of the fields a construct declares")]
-    rows = []
-    for i in range(h + 2, len(lines)):
-        if not lines[i].startswith("|"):
-            break
-        rows.append((i + 1, tuple(_cells(lines[i])[:4])))
-    found = [(DECLARING, ln, f"the fields table's row {row} differs from the script's copy {copy}")
-             for (ln, row), copy in zip(rows, FIELD_TABLE) if row != copy]
-    if len(rows) != len(FIELD_TABLE):
-        found.append((DECLARING, h + 1, f"the fields table holds {len(rows)} fields, the script's copy {len(FIELD_TABLE)}"))
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
+def values_form(cell):
+    """Whether a Values cell takes one of its forms: a quoted list, a citation of the section listing the values, or
+    text."""
+    return cell == "text" or bool(QUOTED_LIST.fullmatch(cell)) or bool(CITATION.fullmatch(cell))
+
+
+def field_table_findings(text, sections):
+    """§ Constructs § Declaring a Construct: FIELD_TABLES, this script's copy of each table of the fields a
+    construct declares, against that table in `text`, modeling-constructs.md as it stands, whose sections
+    are `sections`: each row's Field, Required, Default Value and Values, in its order, and each Values cell in one
+    of the forms `§ Constructs § Record Form` gives it. -> [(rule, line, message)]."""
+    lines, found = text.split("\n"), []
+    for title, copy in FIELD_TABLES.items():
+        start, end = sections.get(title, (0, 0))
+        own = lines[start:end]
+        h = next((i for i, l in enumerate(own) if l.startswith("| Field | Required | Default Value | Values |")), None)
+        if h is None:
+            found.append(("modeling-constructs.md § " + title, start + 1, f"no table of the fields § {title} defines"))
+            continue
+        rows = []
+        for i in range(h + 2, len(own)):
+            if not own[i].startswith("|"):
+                break
+            rows.append((start + i + 1, tuple(_cells(own[i])[:4])))
+        found += [("modeling-constructs.md § " + title, ln, f"the fields table's row {row} differs from the script's copy {c}")
+                  for (ln, row), c in zip(rows, copy) if row != c]
+        found += [(RULE + " § Record Form", ln, f"a Values cell in none of its forms: {row[3]}")
+                  for ln, row in rows if len(row) > 3 and not values_form(row[3])]
+        if len(rows) != len(copy):
+            found.append(("modeling-constructs.md § " + title, start + h + 1,
+                          f"the fields table of § {title} holds {len(rows)} fields, the script's copy {len(copy)}"))
     return found
