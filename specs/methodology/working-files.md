@@ -112,7 +112,7 @@ Once the user approves a design, every change it makes to the files is one the u
 | not-started | in-progress | the work is taken up | none |
 | in-progress | approved | the user approves it | its adversarial review is taken in, with another after any revision that changed its structure (`specs/AGENTS.md § Design, Refactor, Refine`), its validation review has stamped it, and each design its Depends On names is approved or applying |
 | approved | in-progress | the user reopens it | none |
-| approved | in-progress | a design its Depends On names goes back to in progress | none |
+| approved | in-progress | in-progress of a design its Depends On names is entered | none |
 | approved | in-progress | a design its Depends On names finishes | none |
 | approved | applying | the user gives the go-ahead to apply | its Depends On names none |
 | applying | in-progress | a finding of its post-apply audit exposes a flaw in the design | none |
@@ -123,6 +123,8 @@ Once the user approves a design, every change it makes to the files is one the u
 | in-progress | abandoned | the user abandons it | none |
 | approved | abandoned | the user abandons it | none |
 | applying | abandoned | the user abandons it | none |
+
+A design its Depends On names finishing is its entering complete or abandoned, a class of occurrences.
 
 ### A Design Changing Code
 
@@ -209,7 +211,7 @@ A follow-up records work on the specs or the code that should be done and is not
 | Location | a `**Location:**` field | yes | | the file, section or files it concerns |
 | Body | prose | yes | | the work, the context needed to take it up, and, where known, what found it |
 
-**Construct:** Lifecycle
+**Construct:** State Machine
 
 | state | description | initial | terminal |
 |---|---|---|---|
@@ -220,7 +222,7 @@ A follow-up records work on the specs or the code that should be done and is not
 | From | To | Trigger |
 |---|---|---|
 | not-started | in-progress | the work is taken up |
-| in-progress | not-started | the design document taking it up is abandoned |
+| in-progress | not-started | `§ A Design Document § The States It Moves Through [State: abandoned]` of the design document taking it up is entered |
 | in-progress | done | the change that resolves it lands |
 | in-progress | done | the user decides nothing needs to change |
 | not-started | done | a change made for another reason resolves it |

@@ -492,7 +492,7 @@ PART_COLUMNS = {"State": "state", "Step": "Step", "Task": "task", "Name": "Name"
 # the (path, lineage) of each construct a part's citation by Name names, from outside its section
 NAME_CITED = set()
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
-PART_KEYS = {"Lifecycle": {"State", "Name"}, "State Machine": {"State", "Name"},
+PART_KEYS = {"State Machine": {"State", "Name"},
              "Decision Table": {"Name"}, "Decision Tree": {"Step"}, "DAG": {"Task"},
              "Algorithm": {"Step"}, "Constraint": {"Name"}}
 
@@ -882,6 +882,14 @@ def check(root):
 
     # a Name column, present exactly where a part of its table is cited from outside its section
     constructs.name_column_findings(text_of, NAME_CITED, found, sections, strip_fences)
+    # a submachine state, governed by one machine and left by its exits
+    constructs.submachine_findings(text_of, found, sections, strip_fences, CITATION, resolve)
+    # an effect, the Algorithm or the Decision Table a transition runs
+    constructs.effect_findings(text_of, found, sections, strip_fences, CITATION, resolve)
+    # the facts an exclusive choice's guard ends a cell at, declared in any file
+    constructs.guard_fact_findings(text_of, found, sections, strip_fences)
+    # the fact a machine's state is recorded in, its Values holding each state
+    constructs.recorded_in_findings(text_of, found, sections, strip_fences, CITATION, resolve)
     found += record_type_findings(root)
     found += canon_spec_findings(root)
     found += scope_findings(root)

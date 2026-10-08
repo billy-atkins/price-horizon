@@ -27,7 +27,7 @@ The two drawings also do not divide the building the same way. An architect orga
 |---|---|---|
 | "DAG", "State Machine for a process" | a business-readable table of its steps, decision points and outcomes | the DAG or State Machine that carries it out |
 | Constraint | the plain guarantee | its enforcement, what its Enforced by names |
-| "Lifecycle", "State Machine for an entity's or a system's status", "Decision Table", "Decision Tree", "Record Form" | the construct itself | the same construct |
+| "State Machine for an entity's or a system's status", "Decision Table", "Decision Tree", "Record Form" | the construct itself | the same construct |
 | Algorithm | no rendering, since a business reader has no use for step-by-step computation | the Algorithm |
 
 **A promise that cannot be built —** writing the technical spec tests a product promise against what is actually possible. A promise no mechanism can make true is amended in the product spec, as the user decides (`§ Personas`), rather than left standing.

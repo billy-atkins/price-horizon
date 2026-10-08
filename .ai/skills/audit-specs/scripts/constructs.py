@@ -16,10 +16,11 @@ DECLARING = "modeling-constructs.md § Constructs § Declaring a Construct"
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs
 # modeling-constructs.md § Constructs § Declaring a Construct: the constructs a **Construct:** field may name; a Record Form is
 # declared by its titles
-NAMES = ("Lifecycle", "State Machine", "Decision Table", "Decision Tree", "DAG", "Algorithm", "Constraint")
+NAMES = ("State Machine", "Decision Table", "Decision Tree", "DAG", "Algorithm", "Constraint")
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
 # each table of the fields a construct declares, by the section defining it, copied here as this script reads it,
 # in its order: each field's Required, Default Value and Values cells; field_table_findings holds each copy to its table
 DECLARED = "Constructs § Declaring a Construct"
@@ -42,6 +43,10 @@ FIELD_TABLES = {
         ("Inputs", "yes", "", "text"),
         ("Output", "yes", "", "text"),
     ),
+    "Constructs § State Machine": (
+        ("Protocol", "no", "No", '"Yes", "No"'),
+        ("Recorded In", "no", "none", "text"),
+    ),
 }
 # the fields every construct declares beyond its Construct field, and each field with the construct setting it
 COMMON = tuple(f for f, _, _, _ in FIELD_TABLES[DECLARED] if f != "Construct")
@@ -63,20 +68,18 @@ LIST_FIELDS = ("Reads", "Input Values", "Output Values")
 POLICIES = ("Any", "Priority", "First", "Rule order", "Output order",
             "Collect", "Collect sum", "Collect count", "Collect min", "Collect max")
 
-# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Lifecycle
-# a States table's headers, a Lifecycle's and a State Machine's alike
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
+# a States table's headers
 STATES = ["state", "description", "initial", "terminal"]
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Constraint
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § DAG
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Tree
-# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Lifecycle
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
 # each construct's tables, by their headers; None where a Decision Table's columns are its own
 FORMS = {
-    "Lifecycle": [STATES, ["From", "To", "Trigger"]],
-    "State Machine": [STATES, ["From", "To", "Trigger", "Guard"]],
+    "State Machine": [STATES, ["From", "To", "Trigger"]],
     "Decision Tree": [["Step", "Question", "Answer", "Result"]],
     "DAG": [["task", "depends_on"]],
     "Algorithm": [["Step", "Action"]],
@@ -84,14 +87,20 @@ FORMS = {
     "Decision Table": [None],
 }
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § DAG
-# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Lifecycle
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
-# the columns whose form gives `none`, or whose own check reports it; no form here gives `-`, a
-# Decision Table's `-` being its cells' own and a Lifecycle's trigger reported by its own check
-NONE_COLUMNS = {("State Machine", "Trigger"), ("State Machine", "Guard"), ("DAG", "depends_on"), ("Lifecycle", "Trigger")}
+# the columns whose form gives `none`; no form here gives `-`, a Decision Table's `-` being its cells' own
+NONE_COLUMNS = {("State Machine", "Trigger"), ("State Machine", "Guard"), ("State Machine", "Effect"),
+                ("DAG", "depends_on")}
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
+# a transition's trigger or guard of none, as a row writes it: the one copy
+NONE_CELL = "none"
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
+# the columns a construct's table may add after its form's own, any of them, in this order: a State Machine's
+# Transitions table's Guard, its Effect, or both
+OPTIONAL_COLUMNS = {("State Machine", 1): ["Guard", "Effect"]}
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
 # the tables a Name column may open: a Transitions table, a Decision Table, a Constraint table
-NAMEABLE = {"Lifecycle": {1}, "State Machine": {1}, "Decision Table": {0}, "Constraint": {0}}
+NAMEABLE = {"State Machine": {1}, "Decision Table": {0}, "Constraint": {0}}
 
 # @canon-spec specs/methodology/modeling-constructs.md § Fields
 # a field: a line opening with its key in bold, the colon inside the bold, then a space and its value or nothing;
@@ -539,11 +548,14 @@ def construct_findings(r, body, found, sections):
             header = table["header"]
             named = header[:1] == ["Name"] and k in NAMEABLE.get(name, set())
             cols = header[1:] if named else header
-            if form is not None and cols != form:
-                found.append((DECLARING, r, table["line"], f"{_a(name)} table headed {header}, not {form}"))
+            extra = OPTIONAL_COLUMNS.get((name, k), [])
+            if form is not None and cols not in [form + [x for i, x in enumerate(extra) if n >> i & 1] for n in range(2 ** len(extra))]:
+                found.append((DECLARING, r, table["line"], f"{_a(name)} table headed {header}, not {form}"
+                              + (f" and then any of {extra}, in order" if extra else "")))
                 ok = False
+            formed = form is not None and cols[:len(form)] == form
             for ln, row in table["rows"]:
-                ident = [row[0]] if named or (name in ("Lifecycle", "State Machine") and k == 0) or name == "DAG" else []
+                ident = [row[0]] if named or (name == "State Machine" and k == 0) or name == "DAG" else []
                 for v in ident:
                     if UNPLAIN.search(v):
                         found.append((DECLARING, r, ln, f"a part's identifier that is not plain text: {v}"))
@@ -558,15 +570,14 @@ def construct_findings(r, body, found, sections):
                 if empty and not (name == "Decision Tree" and empty == ["Question"]):
                     found.append((DECLARING, r, ln, f"a cell holding no value: {empty}"))
                 for c, v in enumerate(row[:len(header)]):
-                    if cols == form and (v == "none" and (name, header[c]) not in NONE_COLUMNS
-                                         or v == "-" and (name, header[c]) != ("Lifecycle", "Trigger")):
+                    if formed and (v == "none" and (name, header[c]) not in NONE_COLUMNS or v == "-"):
                         found.append((DECLARING, r, ln, f"a cell holding {v} where its form does not give it: {header[c]}"))
                 if len(row) != len(header):
                     found.append((DECLARING, r, ln, f"a row of {len(row)} cells under a header of {len(header)}"))
                     ok = False
         if not ok:
             continue
-        check = {"Lifecycle": _machine, "State Machine": _machine, "Decision Table": _decision_table,
+        check = {"State Machine": _machine, "Decision Table": _decision_table,
                  "Decision Tree": _tree, "DAG": _dag, "Algorithm": _algorithm, "Constraint": _constraint}[name]
         if name == "Decision Table":
             _decision_table(r, line, name, fields, tables, found, facts)
@@ -619,11 +630,25 @@ def _fields(r, line, name, fields, found):
             found.append((RULE + " § Decision Table", r, ln, f"a Hit Policy that is none of DMN's: {value}"))
 
 
-# ---------------------------------------------------------------- Lifecycle and State Machine
+# ---------------------------------------------------------------- State Machine
 
 def _machine(r, line, name, fields, tables, found):
     rule = f"{RULE} § {name}"
     states, transitions = tables
+    # a Guard or an Effect column is written only where some cell of it is not none
+    for col in ("Guard", "Effect"):
+        if col in transitions["header"]:
+            i = transitions["header"].index(col)
+            if all(i < len(row) and row[i] == NONE_CELL for _, row in transitions["rows"]):
+                found.append((rule, r, transitions["line"], f"a{'n' if col == 'Effect' else ''} {col} column every cell of which is none"))
+    # a protocol machine runs no effect and takes no transition with no trigger
+    if dict((k, v) for _, k, v in fields).get("Protocol") == "Yes":
+        if "Effect" in transitions["header"]:
+            found.append((rule, r, transitions["line"], "a protocol machine with an Effect column"))
+        at = 1 if transitions["header"][:1] == ["Name"] else 0
+        for ln, row in transitions["rows"]:
+            if row[at + 2] == NONE_CELL:
+                found.append((rule, r, ln, "a protocol machine's transition with no trigger"))
     names = [row[0] for _, row in states["rows"]]
     for ln, row in states["rows"]:
         if SEPARATOR.search(row[0]):
@@ -647,13 +672,9 @@ def _machine(r, line, name, fields, tables, found):
             continue
         froms = [s.strip() for s in frm.split(" and ")]
         tos = [s.strip() for s in to.split(" and ")]
-        if name == "Lifecycle" and (len(froms) > 1 or len(tos) > 1):
-            found.append((rule, r, ln, "a join or a fork, which a Lifecycle has none of"))
         for s in froms + tos:
             if s not in known:
                 found.append((rule, r, ln, f"a From or To naming a state the States table does not hold: {s}"))
-        if name == "Lifecycle" and trig in ("", "none", "-"):
-            found.append((rule, r, ln, "a transition with no trigger"))
         if len(froms) > 1:
             joins.append((ln, frozenset(froms)))
         if len(tos) > 1:
@@ -662,11 +683,6 @@ def _machine(r, line, name, fields, tables, found):
             outgoing.add(f)
             for t in tos:
                 edges.append((f, t))
-        if name == "Lifecycle":
-            key = (frm, trig)
-            if key in triggers and triggers[key] != to:
-                found.append((rule, r, ln, f"a trigger leading from one state to two: {trig}"))
-            triggers.setdefault(key, to)
     for s in names:
         if s not in terminal and s not in outgoing:
             found.append((rule, r, states["line"], f"a state that is not terminal with no way out: {s}"))
@@ -677,9 +693,8 @@ def _machine(r, line, name, fields, tables, found):
         for s in names:
             if s not in reached:
                 found.append((rule, r, states["line"], f"a state the initial state cannot reach: {s}"))
-    if name == "State Machine":
-        _forks_and_joins(r, rule, forks, joins, edges, found)
-        _choices(r, rule, transitions, off, found)
+    _forks_and_joins(r, rule, forks, joins, edges, found)
+    _choices(r, rule, transitions, off, found)
 
 
 def _reach(start, edges):
@@ -724,7 +739,7 @@ def _forks_and_joins(r, rule, forks, joins, edges, found):
 def guard(text):
     """A guard -> {fact: cell}, or None where it is prose or a cell is in no listed form; `none`
     tests no fact."""
-    if text.strip() == "none":
+    if text.strip() == NONE_CELL:
         return {}
     out = {}
     for part in _split_guard(text):
@@ -735,19 +750,28 @@ def guard(text):
         inner = re.sub(r"^not\((.*)\)$", r"\1", m.group(2).strip())
         if cell is not None and len(cell[1]) == 1 and not FORM_OPENING.match(inner) and re.search(r"[:,]", inner):
             return None  # a value written plain, without quotes, holds no colon or comma
-        if cell is None or symbolic(cell) or m.group(1).strip() in out:
+        if cell is None or m.group(1).strip() in out:
             return None  # a row tests each of its facts once, in a form the section lists
         out[m.group(1).strip()] = cell
     return out
 
 
-def _choices(r, rule, transitions, off, found):
-    """An exclusive choice: two or more transitions from one state on one trigger, or on none,
-    whose guards, read as a Unique Decision Table over their facts, never both hold."""
+def _choice_groups(transitions, off):
+    """A machine's transitions by the state they leave and their trigger -> {(From, Trigger): [(line, guard)]}, a
+    table with no Guard column guarding each transition by none."""
+    gi = transitions["header"].index("Guard") if "Guard" in transitions["header"] else None
     groups = {}
     for ln, row in transitions["rows"]:
-        trig = row[off + 2] if row[off + 2] else "none"
-        groups.setdefault((row[off], trig), []).append((ln, row[off + 3]))
+        trig = row[off + 2] or NONE_CELL
+        groups.setdefault((row[off], trig), []).append((ln, row[gi] if gi is not None else NONE_CELL))
+    return groups
+
+
+def _choices(r, rule, transitions, off, found):
+    """An exclusive choice: two or more transitions from one state on one trigger, or on none,
+    whose guards, read as a Unique Decision Table over their facts, never both hold; the facts a guard's cell ends at
+    are `guard_fact_findings`' across files."""
+    groups = _choice_groups(transitions, off)
     for (frm, trig), rows in groups.items():
         if len(rows) < 2:
             continue
@@ -756,7 +780,7 @@ def _choices(r, rule, transitions, off, found):
             p = guard(g)
             if p is None:
                 found.append((rule, r, ln, f"an exclusive choice's guard not written as a Decision Table's row: {g}"))
-            elif any(not any(matches(c, x) for x in _points(c)) for c in p.values()):
+            elif any(not symbolic(c) and not any(matches(c, x) for x in _points(c)) for c in p.values()):
                 found.append((rule, r, ln, f"a guard no case meets: {g}"))
             parsed.append((ln, p))
         kinds = {}
@@ -771,9 +795,199 @@ def _choices(r, rule, transitions, off, found):
                 (la, ga), (lb, gb) = parsed[a], parsed[b]
                 if ga is None or gb is None:
                     continue
-                facts = set(ga) | set(gb)
-                if all(overlap(ga.get(f, feel("-")), gb.get(f, feel("-"))) for f in facts):
+                named = set(ga) | set(gb)
+                if all(overlap(ga.get(f, feel("-")), gb.get(f, feel("-"))) for f in named):
                     found.append((rule, r, lb, f"two guards from {frm} on {trig} that can both hold"))
+
+
+SUBMACHINE = "modeling-constructs.md § Constructs § State Machine § A Submachine State"
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine § A Submachine State
+# the words naming a state's governing machine, then its citations; and the guard naming the terminal state reached
+GOVERNED = re.compile(r"governed by((?: *`[^`]+`(?:,? (?:and )?)?)*)", re.I)
+EXIT = re.compile(r'exit: "?([^"]+?)"?')
+
+
+def _cell(row, i):
+    return row[i] if i is not None and i < len(row) else NONE_CELL
+
+
+def submachine_findings(text_of, found, sections, strip_fences, citation, resolve):
+    """§ Constructs § State Machine § A Submachine State: what its form fixes. A state is governed by the State Machine
+    its description names after the words `governed by`, which name a machine only, never a part of one, and never
+    nothing; a description citing another machine's whole section names it so; one machine at most; no machine
+    governing itself; no protocol machine's state governed; no governed state terminal; and a governed state left, of
+    its transitions with no trigger, as its machine's exits have it. A transition with a trigger is UML's group
+    Transition, which the form leaves free. `citation` and `resolve` are the citation check's own."""
+    machines = {}
+    for r, body in text_of.items():
+        for line, name, fields, tables, lineage in declarations(strip_fences(body), sections(body)):
+            if name == "State Machine" and len(tables) == 2:
+                protocol = dict((k, v) for _, k, v in fields).get("Protocol") == "Yes"
+                machines[(r, lineage)] = (protocol, tables)
+    governs = {}
+    for (r, lineage), (protocol, (states, transitions)) in machines.items():
+        header = transitions["header"]
+        off = 1 if header[:1] == ["Name"] else 0
+        gi = header.index("Guard") if "Guard" in header else None
+        rows = [(tl, t) for tl, t in transitions["rows"] if len(t) > off + 2]
+        for ln, row in states["rows"]:
+            if len(row) < 4:
+                continue
+            spans = [m.group(1) for m in GOVERNED.finditer(row[1])]
+            if any(not citation.findall(s) for s in spans):
+                found.append((SUBMACHINE, r, ln, f"the words governed by naming nothing: {row[0]}"))
+            named = [c for s in spans for c in citation.findall(s)]
+            for c in named:
+                if "[" in c:
+                    found.append((SUBMACHINE, r, ln, f"a part of a machine cited after the words governed by: {row[0]}"))
+            keys = [resolve(c, r) for c in named if "[" not in c]
+            for key in keys:
+                if key not in machines:
+                    found.append((SUBMACHINE, r, ln, f"the words governed by naming no State Machine: {row[0]}"))
+            for c in citation.findall(row[1]):
+                key = resolve(c, r)
+                if "[" not in c and key in machines and key != (r, lineage) and c not in named:
+                    found.append((SUBMACHINE, r, ln, f"a state citing a machine's whole section without the words governed by: {row[0]}"))
+            governing = [key for key in keys if key in machines]
+            if not governing:
+                continue
+            if protocol:
+                found.append((SUBMACHINE, r, ln, f"a protocol machine's state governed by a machine: {row[0]}"))
+            if len(set(governing)) > 1:
+                found.append((SUBMACHINE, r, ln, f"a state governed by more than one machine: {row[0]}"))
+            gov = governing[0]
+            governs.setdefault((r, lineage), set()).add(gov)
+            if row[3] == "Yes":
+                found.append((SUBMACHINE, r, ln, f"a governed state that is terminal: {row[0]}"))
+                continue
+            exits = {s[0] for _, s in machines[gov][1][0]["rows"] if len(s) > 3 and s[3] == "Yes"}
+            # its machine's end: the transitions with no trigger; one with a trigger is a group Transition
+            ends = [(tl, t) for tl, t in rows if t[off] == row[0] and t[off + 2] == NONE_CELL]
+            in_join = any(row[0] in t[off].split(" and ") for _, t in rows if " and " in t[off])
+            # a machine with no terminal state is left on its triggers alone; one in a join's From, by the join alone
+            if not exits or in_join:
+                for tl, _ in ends:
+                    why = "whose machine never ends" if not exits else "in a join's From"
+                    found.append((SUBMACHINE, r, tl, f"a governed state {why}, left by a transition with no trigger: {row[0]}"))
+                continue
+            if len(exits) == 1:
+                if len(ends) != 1 or _cell(ends[0][1], gi) != NONE_CELL:
+                    found.append((SUBMACHINE, r, ln, f"a governed state whose machine has one terminal state, not left by one transition with no trigger and no guard: {row[0]}"))
+                continue
+            left = []
+            for tl, t in ends:
+                m = EXIT.fullmatch(_cell(t, gi))
+                if not m or m.group(1) not in exits:
+                    found.append((SUBMACHINE, r, tl, f"a transition from a governed state guarded by no terminal state of its machine: {_cell(t, gi)}"))
+                else:
+                    left.append(m.group(1))
+            for x in sorted(exits - set(left)):
+                found.append((SUBMACHINE, r, ln, f"a governed state left by no transition for its machine's terminal state: {x}"))
+            for x in sorted({x for x in left if left.count(x) > 1}):
+                found.append((SUBMACHINE, r, ln, f"a governed state left by two transitions for one terminal state: {x}"))
+    # no machine governs itself, directly or through the machines it governs
+    for start in governs:
+        seen, todo = set(), list(governs[start])
+        while todo:
+            m = todo.pop()
+            if m == start:
+                found.append((SUBMACHINE, start[0], 1, f"a machine governing itself: § {start[1]}"))
+                break
+            if m not in seen:
+                seen.add(m)
+                todo.extend(governs.get(m, ()))
+
+
+def effect_findings(text_of, found, sections, strip_fences, citation, resolve):
+    """§ Constructs § State Machine: an Effect cell cites the Algorithm or the Decision Table its transition runs, or
+    is `none`. `citation` and `resolve` are the citation check's own."""
+    kinds = {}
+    for r, body in text_of.items():
+        for line, name, fields, tables, lineage in declarations(strip_fences(body), sections(body)):
+            kinds[(r, lineage)] = name
+    for r, body in text_of.items():
+        for line, name, fields, tables, lineage in declarations(strip_fences(body), sections(body)):
+            if name != "State Machine" or len(tables) != 2 or "Effect" not in tables[1]["header"]:
+                continue
+            e = tables[1]["header"].index("Effect")
+            for ln, row in tables[1]["rows"]:
+                cell = row[e].strip() if e < len(row) else ""
+                if cell == NONE_CELL:
+                    continue
+                cites = citation.findall(cell)
+                if (len(cites) != 1 or citation.sub("", cell).strip() or "[" in cites[0]
+                        or kinds.get(resolve(cites[0], r)) not in ("Algorithm", "Decision Table")):
+                    found.append((f"{RULE} § State Machine", r, ln, f"an Effect cell citing no Algorithm or Decision Table: {cell}"))
+
+
+def guard_fact_findings(text_of, found, sections, strip_fences):
+    """§ Constructs § State Machine: a guard's cell of an exclusive choice ending at a fact names one a guard of its
+    choice tests or a Facts section of any file declares, of the kind of the fact the cell tests."""
+    declared = {}
+    for r, body in text_of.items():
+        live = strip_fences(body)
+        for f, d in facts_of(fact_records(live, sections(body))).items():
+            declared.setdefault(f, d)
+    kind_of = {f: TYPE_KINDS.get(t) for f, (t, _, _) in declared.items()}
+    for r, body in text_of.items():
+        for line, name, fields, tables, lineage in declarations(strip_fences(body), sections(body)):
+            if name != "State Machine" or len(tables) != 2:
+                continue
+            off = 1 if tables[1]["header"][:1] == ["Name"] else 0
+            for rows in _choice_groups(tables[1], off).values():
+                if len(rows) < 2:
+                    continue
+                parsed = [(ln, guard(g) or {}) for ln, g in rows]
+                tested = {f for _, p in parsed for f in p}
+                seen = {}
+                for _, p in parsed:
+                    for f, c in p.items():
+                        seen.setdefault(f, set()).update(_kind(c))
+                kinds = dict(kind_of)
+                kinds.update({f: next(iter(ks)) for f, ks in seen.items() if f not in kind_of and len(ks) == 1})
+                for ln, p in parsed:
+                    for fact, c in p.items():
+                        for f in {f for t in c[1] if t[0] == "sym" for f in t[2]}:
+                            if f not in tested and f not in declared:
+                                found.append((f"{RULE} § State Machine", r, ln, f"a guard's cell naming a fact no guard of its choice tests and no Facts record declares: {f}"))
+                            elif kinds.get(f) and kinds.get(fact) and kinds[f] != kinds[fact]:
+                                found.append((f"{RULE} § State Machine", r, ln, f"a guard's cell testing a {kinds[fact]} fact against a {kinds[f]} one: {f}"))
+
+
+def recorded_in_findings(text_of, found, sections, strip_fences, citation, resolve):
+    """§ Constructs § State Machine: a Recorded In field names the fact the entity records its state in, a fact's name,
+    a colon and the citation of the Facts record declaring it, whose Values, a quoted list, hold each state's name.
+    `citation` and `resolve` are the citation check's own."""
+    rule = f"{RULE} § State Machine"
+    records = {}
+    for r, body in text_of.items():
+        live, secs = strip_fences(body), sections(body)
+        for lineage, span in secs.items():
+            if lineage.rsplit(" § ", 1)[-1] == "Facts":
+                for _, name, d in fact_records(live, {lineage: span}):
+                    records[(r, lineage, name)] = d.get("Values", "none")
+    for r, body in text_of.items():
+        for line, name, fields, tables, lineage in declarations(strip_fences(body), sections(body)):
+            value = dict((k, v) for _, k, v in fields).get("Recorded In")
+            if name != "State Machine" or len(tables) != 2 or value in (None, "none"):
+                continue
+            mm, cites = READS_ITEM.fullmatch(value.strip()), citation.findall(value)
+            named = re.search(r'\[Name: ([^\]]+)\]', value)
+            if not mm or len(cites) != 1 or not named or named.group(1).strip() != mm.group(1).strip():
+                found.append((rule, r, line, f"a Recorded In field that is not a fact's name, a colon and the citation of its Facts record: {value}"))
+                continue
+            path, section = resolve(cites[0], r)
+            values = records.get((path, section, mm.group(1).strip()))
+            if values is None:
+                found.append((rule, r, line, f"a Recorded In field citing no Facts record: {value}"))
+                continue
+            listed = quoted_values(values)
+            if listed is None:
+                found.append((rule, r, line, f"a Recorded In field citing a Facts record whose Values are no quoted list: {value}"))
+                continue
+            for ln, row in tables[0]["rows"]:
+                if row and row[0] not in listed:
+                    found.append((rule, r, ln, f"a state not among the Values of the fact its machine is recorded in: {row[0]}"))
 
 
 # ---------------------------------------------------------------- Decision Table
@@ -1271,9 +1485,9 @@ LEADS = (("state", "description"), ("From", "To"), ("Step", "Question"), ("task"
 
 
 def construct_candidates(files, sections, strip_fences):
-    """-> [(path, line, pattern, context)] for the Construct choice and form audit: a Decision
-    Table a cell of which tests against a fact, a Decision Table whose cells do not settle that every case is
-    matched, a table shaped as a construct's
+    """-> [(path, line, pattern, context)] for the Construct choice and form audit: a State
+    Machine an exclusive choice's guard of which ends a cell at a fact, a Decision Table a cell of which tests against
+    a fact, a Decision Table whose cells do not settle that every case is matched, a table shaped as a construct's
     with no declaration, an Algorithm's step that may fold a comparison, and an Enforced by that may
     say nothing enforces its rule. `files` holds (path, body) pairs."""
     out = []
@@ -1284,6 +1498,9 @@ def construct_candidates(files, sections, strip_fences):
         facts = facts_of(fact_records(live, secs))
         for line, name, fields, tables, lineage in declarations(live, secs):
             declared |= {t["line"] for t in tables}
+            if name == "State Machine" and len(tables) == 2 and _choice_against_a_fact(tables[1]):
+                out.append((r, line, "an exclusive choice testing against a fact",
+                            f"§ {lineage}: whether two of its guards can hold at once is read"))
             if name == "Decision Table" and tables and _against_a_fact(fields, tables[0]):
                 out.append((r, line, "cells testing against a fact",
                             f"§ {lineage}: which rows a case reaches, and whether every case matches one, is read"))
@@ -1322,6 +1539,20 @@ def construct_candidates(files, sections, strip_fences):
                 if not template and any(lead[:len(k)] == k for k in LEADS):
                     out.append((r, i + 1, "a construct's table with no declaration", l.strip()[:120]))
     return out
+
+
+def _choice_against_a_fact(transitions):
+    """Whether an exclusive choice's guard ends a cell at a fact, which the script sets aside."""
+    header = transitions["header"]
+    if "Guard" not in header:
+        return False
+    off, gi = (1 if header[:1] == ["Name"] else 0), header.index("Guard")
+    groups = {}
+    for _, row in transitions["rows"]:
+        if len(row) > gi:
+            groups.setdefault((row[off], row[off + 2]), []).append(row[gi])
+    return any((g := guard(x)) and any(symbolic(c) for c in g.values())
+               for gs in groups.values() if len(gs) > 1 for x in gs)
 
 
 def _against_a_fact(fields, table):

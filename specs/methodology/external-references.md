@@ -55,8 +55,8 @@
   **Title:** Unified Modeling Language, the Object Management Group
   **Version:** 2.5.1
   **URL:** `https://www.omg.org/spec/UML/2.5.1/`
-  **Relation:** maps onto
-  **Covers:** the state machine
+  **Relation:** adopts
+  **Covers:** the state machine, its protocol state machine, its submachine state and its effect Behaviors, and the events its triggers name
 
 - **Name:** YAML
   **Title:** YAML Ain't Markup Language, the YAML Language Development Team
