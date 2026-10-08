@@ -59,10 +59,10 @@ FRAME = ("Scope", "Approach", "Outcomes")
 NOT_YET_STATED = "Not yet stated."
 # @canon-spec specs/methodology/working-files.md § A Steering Decision
 # the type's table of record fields, copied here as this tooling reads it, each row's Field, Identifies,
-# Required and Default Value cells; steer_table_problems holds the copy to that section's table, STEER_HOME
-STEER_TABLE = (("Name", "yes", "yes", ""), ("Prompted By", "no", "yes", ""),
-               ("Steer", "no", "yes", ""), ("Decision", "no", "yes", ""))
-STEER_FIELDS = tuple(f for f, _, _, _ in STEER_TABLE)
+# Required, Default Value and Values cells; steer_table_problems holds the copy to that section's table, STEER_HOME
+STEER_TABLE = (("Name", "yes", "yes", "", "text"), ("Prompted By", "no", "yes", "", "text"),
+               ("Steer", "no", "yes", "", "text"), ("Decision", "no", "yes", "", "text"))
+STEER_FIELDS = tuple(f for f, _, _, _, _ in STEER_TABLE)
 STEER_HOME = ("specs/methodology/working-files.md", "A Steering Decision")
 # working-files.md § A Design Document: an adversarial review's or post-apply audit's pass,
 # its lead-in and what follows it to the next, names the model and effort it ran on.
@@ -194,16 +194,16 @@ def check_steers(body):
 
 def steer_table_problems(root):
     """-> problems where STEER_TABLE, this tooling's copy of the Steering Decisions record fields,
-    differs from their table in working-files.md § A Steering Decision, on any of its four columns."""
+    differs from their table in working-files.md § A Steering Decision, on any of its five columns."""
     path, title = STEER_HOME
     text = (root / path).read_text(encoding="utf-8").replace("\r\n", "\n")
     lines = (section(text, title) or "").split("\n")
-    head = next((i for i, l in enumerate(lines) if l.startswith("| Field | Identifies | Required | Default Value |")), None)
+    head = next((i for i, l in enumerate(lines) if l.startswith("| Field | Identifies | Required | Default Value | Values |")), None)
     rows = []
     for l in lines[head + 2:] if head is not None else []:
         if not l.startswith("|"):
             break
-        rows.append(tuple(c.strip() for c in l.strip().strip("|").split("|"))[:4])
+        rows.append(tuple(c.strip() for c in l.strip().strip("|").split("|"))[:5])
     if tuple(rows) != STEER_TABLE:
         return [(path, "the Steering Decisions fields table in § %s is %s, the tooling's copy %s" % (title, rows or "none", list(STEER_TABLE)))]
     return []

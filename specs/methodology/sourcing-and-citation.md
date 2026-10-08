@@ -14,6 +14,14 @@ Before adding a paragraph that states a general rule, check whether that rule al
 
 **Pointers may repeat —** several files may cite the same home; many citations to one home are the point of there being one.
 
+## A Definition and Its Instances
+
+A form, whether a construct or a record type, is defined once, at one home, and each use of it is an instance setting only the values its definition allows, as an object sets the properties its class defines: nothing is defined at the point of use. It is `§ One Home Per Fact` applied to forms, and DRY as Andrew Hunt and David Thomas first wrote it, in "The Pragmatic Programmer": every piece of knowledge has one authoritative representation.
+
+**Knowledge, not shape —** what one definition holds is one piece of knowledge, whatever shape each use takes. A shape is one chosen view of the knowledge and decides nothing: the same knowledge in several shapes keeps one home, the other shapes views kept in step with it, as `§ Keeping Renderings in Step` keeps a rendering; and different knowledge sharing a shape keeps separate definitions, so each changes on its own. Sharing a definition between two things that only look alike couples them, and the first change to one breaks the other; duplication is far cheaper than the wrong abstraction, as Sandi Metz has it.
+
+**Choosing how related things are defined —** by whether a change to one must reach the other: where every change must, they are one definition, each use an instance of it; where only some must, a base definition holds what they share, and each is a sub-definition of it, adding to or narrowing it; and where none need, they keep separate definitions, however alike they look. An application's technical specs choose the same way, between one service or class, a base and its specializations, and separate ones.
+
 ## Which Citations Are Allowed
 
 The specifications are layered by what governs what:
@@ -33,6 +41,8 @@ A citation pointing down a layer sends the reader somewhere for a specific purpo
 What a citation may name, every row its source matches granting what that row lists:
 
 **Construct:** Decision Table
+
+**Order:** any
 
 **Hit Policy:** Collect
 
@@ -156,14 +166,14 @@ The canon adopts an outside standard where an agent or a software engineer alrea
 
 A record gives these fields, in this order:
 
-| Field | Identifies | Required | Default Value | Holds |
-|---|---|---|---|---|
-| Name | yes | yes | | the standard's short name, as its readers know it |
-| Title | no | yes | | its full title, and who publishes or stewards it |
-| Version | no | yes | | the version relied on, or, for a standard publishing none, the revision relied on, named by its date |
-| URL | no | yes | | a link to the text of that version or revision, never to whatever is current, written as literal text |
-| Relation | no | yes | | how the canon relies on it: `adopts`, the canon's forms being the standard's own; or `maps onto`, the canon's forms being its own, each mapping onto one of the standard's, and the canon's rules holding wherever they differ |
-| Covers | no | yes | | the part of the standard the canon relies on |
+| Field | Identifies | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Name | yes | yes | | text | the standard's short name, as its readers know it |
+| Title | no | yes | | text | its full title, and who publishes or stewards it |
+| Version | no | yes | | text | the version relied on, or, for a standard publishing none, the revision relied on, named by its date |
+| URL | no | yes | | text | a link to the text of that version or revision, never to whatever is current, written as literal text |
+| Relation | no | yes | | "adopts", "maps onto" | how the canon relies on it: `adopts`, the canon's forms being the standard's own; or `maps onto`, the canon's forms being its own, each mapping onto one of the standard's, and the canon's rules holding wherever they differ |
+| Covers | no | yes | | text | the part of the standard the canon relies on |
 
 ## Keeping Renderings in Step
 
