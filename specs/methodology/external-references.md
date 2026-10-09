@@ -37,6 +37,20 @@
   **Relation:** adopts
   **Covers:** a scenario and its steps
 
+- **Name:** IEEE 754
+  **Title:** IEEE Standard for Floating-Point Arithmetic, the Institute of Electrical and Electronics Engineers
+  **Version:** 754-2008, the version DMN's FEEL rests on
+  **URL:** `https://doi.org/10.1109/IEEESTD.2008.4610935`
+  **Relation:** adopts
+  **Covers:** a decimal format's precision, the significant digits each operation's result is rounded to, which an Algorithm's Precision generalizes to fewer digits than decimal128's 34, the modes resting on DMN's rounding functions
+
+- **Name:** ISO 4217
+  **Title:** Codes for the representation of currencies, the International Organization for Standardization
+  **Version:** ISO 4217:2015
+  **URL:** `https://www.iso.org/standard/64758.html`
+  **Relation:** maps onto
+  **Covers:** a currency's minor unit, the decimal places its amounts are held to, which a Facts record's Decimal Places names for a fact of money
+
 - **Name:** Mermaid
   **Title:** Mermaid, the Mermaid project
   **Version:** 12.1.0
@@ -56,7 +70,7 @@
   **Version:** 2.5.1
   **URL:** `https://www.omg.org/spec/UML/2.5.1/`
   **Relation:** adopts
-  **Covers:** the state machine, its protocol state machine, its submachine state and its effect Behaviors, and the events its triggers name
+  **Covers:** the state machine, its protocol state machine, its submachine state and its effect Behaviors, and the events its triggers name; and the activity, its actions, control nodes and expansion regions
 
 - **Name:** YAML
   **Title:** YAML Ain't Markup Language, the YAML Language Development Team

@@ -6,13 +6,14 @@ How an expression is written wherever a construct computes or tests a value, so 
 |---|---|
 | Decision Table | a condition's cells, its Input Values, a computed header, an outcome's value, a computed outcome, its Output Values and its Default Output |
 | State Machine | an exclusive choice's guards |
-| Facts record | its Values |
+| Algorithm | a computation's value, a comparison's condition, a loop's list and its order, a run's argument and a Terminates cell |
+| Facts record | its Values, and a function's Derivation |
 
 `§ Expressions § FEEL` states FEEL in the canon's own words, each statement citing the section of DMN it rests on, so nothing FEEL means is left to recall; where this file is silent, FEEL means what DMN's chapter 10 says (`specs/methodology/external-references.md § External References [Name: DMN]`). A construct's section says which of FEEL's forms its checks decide and which it leaves to reading, and states any writing of FEEL's it narrows to one, as `specs/methodology/sourcing-and-citation.md § An External Reference` has a section state it.
 
 ### FEEL
 
-The Friendly Enough Expression Language, DMN's expression language (DMN 10.1), adopted whole. Its one departure is a word written plain in a Decision Table's cell, which stands for the string FEEL writes in quotes (`specs/methodology/modeling-constructs.md § Constructs § Decision Table`).
+The Friendly Enough Expression Language, DMN's expression language (DMN 10.1), adopted whole. Its departures are a word written plain in a Decision Table's cell, which stands for the string FEEL writes in quotes (`specs/methodology/modeling-constructs.md § Constructs § Decision Table`); and a system's own arithmetic, a precision, a rounding mode and the decimal places a value is held to, as `§ Expressions § FEEL § Arithmetic and Time` states it.
 
 #### Its Values
 
@@ -92,6 +93,22 @@ A unary test is what a Decision Table's condition cell, an Input Values item and
 
 Numbers add, subtract, multiply and divide exactly to 34 significant digits, a division by zero or a result too large or too small to hold giving `null`; `decimal` and the rounding functions of `§ Expressions § FEEL § Its Functions` give a number the decimal places they are asked for (DMN Tables 57, 59, 60 and 76). Two strings added are joined, the first then the second (DMN Table 57).
 
+**A system's own arithmetic —** FEEL's numbers hold 34 significant digits, rounded to the nearest, a tie to the even neighbour, as `§ Expressions § FEEL § Its Values` states: IEEE 754's decimal128 (DMN 10.3.2.3.1; `specs/methodology/external-references.md § External References [Name: IEEE 754]`). A system computing otherwise is specified by what follows, a departure, DMN fixing FEEL's context where this lets a construct state another:
+
+- **A precision and a rounding mode —** a construct whose section gives the fields states the significant digits its system holds each operation's result to, and the mode it rounds by; each operation's result is then rounded to the decimal places that many significant digits leave, by the mode's function. An operation is each arithmetic operator applied, and each step a function aggregating numbers takes, as `sum` adds and `product` multiplies its items one by one in their order, each result rounded.
+- **Decimal places —** a value written to a fact whose Facts record states its decimal places (`specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct § A Fact`) is rounded to them by the writing construct's rounding mode, half even where it states none, a Decision Table's outcome among the values written; DMN's item definitions round nothing, so this too departs from DMN. A part of a fact holds no decimal places of its own, so money a step computes by multiplying or dividing is written to a fact holding them before a part takes it; a sum or difference of money already held to them, or money a function gives, needs none.
+- **The modes —** each named for the function DMN gives it (DMN Table 76), the value rounded as that function rounds it:
+
+| Mode | Rounds as | A tie, or any value between two neighbours |
+|---|---|---|
+| half even | `decimal` | to the nearest, a tie to the even neighbour |
+| half up | `round half up` | to the nearest, a tie away from zero |
+| half down | `round half down` | to the nearest, a tie toward zero |
+| up | `round up` | away from zero |
+| down | `round down` | toward zero |
+| ceiling | `ceiling` | upward |
+| floor | `floor` | downward |
+
 Dates, times and durations combine as this table has it, every other pairing giving `null` (DMN Tables 57 and 59):
 
 | `a` | `b` | gives |
@@ -109,7 +126,7 @@ A date, a date and time and a time have parts named by a path: `year`, `month`, 
 
 A list never changes: a function gives a new one. A value where a list is wanted is a list of it alone, and a list of one value where a value is wanted is that value (DMN 10.3.2.9.4). A filter's test reads its item as `§ Expressions § FEEL § Names` has it, as `installments[due date < today()]` (DMN 10.3.2.5).
 
-A context's entry may read the entries before it, never itself or one after it (DMN 10.3.2.6). A function's body reads its parameters and whatever is in scope where it is written; a function written as a context's entry is named by its entry's name (DMN 10.3.2.13.2, 10.3.2.13.4).
+A context never changes either: `context put` gives a new one, every entry it does not set holding what it held, so an entry derived from others is not derived again when they change. A context's entry may read the entries before it, never itself or one after it (DMN 10.3.2.6). A function's body reads its parameters and whatever is in scope where it is written; a function written as a context's entry is named by its entry's name (DMN 10.3.2.13.2, 10.3.2.13.4).
 
 A type in `instance of` or a function's parameter is a type's name from `§ Expressions § FEEL § Its Values`, `Any`, `Null`, `list<T>`, `range<T>`, `context<name: T, …>` or `function<T, …> -> U` (DMN 10.3.1.2, grammar rule 52; 10.3.2.9).
 

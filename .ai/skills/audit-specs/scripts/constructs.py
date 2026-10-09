@@ -42,6 +42,9 @@ FIELD_TABLES = {
     "Constructs § Algorithm": (
         ("Inputs", "yes", "", "text"),
         ("Output", "yes", "", "text"),
+        ("Runs When", "yes", "", "text"),
+        ("Precision", "no", "34", "text"),
+        ("Rounding Mode", "no", "half even", "text"),
     ),
     "Constructs § State Machine": (
         ("Protocol", "no", "No", '"Yes", "No"'),
@@ -59,10 +62,11 @@ REQUIRED = {c: tuple(f for f, fc, req, _ in FIELD_TABLE if fc == c and req == "y
 FIELD_RULE = {f: "modeling-constructs.md § " + title for title, rows in FIELD_TABLES.items() for f, _, _, _ in rows}
 FIELD_VALUES = {f: v for rows in FIELD_TABLES.values() for f, _, _, v in rows}
 DEFAULTS = {f: d for f, _, _, d in FIELD_TABLE if d}
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
-# the fields whose value is a list, each item beneath the field's key; a Default Output is one where
-# its table has several outcome columns
-LIST_FIELDS = ("Reads", "Input Values", "Output Values")
+# the fields whose value is a list, each item beneath the field's key, an Algorithm's Inputs and Output taking none
+# on the key's line; a Default Output is one where its table has several outcome columns
+LIST_FIELDS = ("Inputs", "Output", "Reads", "Input Values", "Output Values")
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
 # DMN's hit policies; Unique is the default value, reported where it is written
 POLICIES = ("Any", "Priority", "First", "Rule order", "Output order",
@@ -86,18 +90,20 @@ FORMS = {
     "Constraint": [["Constraint", "Applies to", "Enforced by"]],
     "Decision Table": [None],
 }
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § DAG
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
 # the columns whose form gives `none`; no form here gives `-`, a Decision Table's `-` being its cells' own
 NONE_COLUMNS = {("State Machine", "Trigger"), ("State Machine", "Guard"), ("State Machine", "Effect"),
-                ("DAG", "depends_on")}
+                ("DAG", "depends_on"), ("Algorithm", "Terminates")}
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
 # a transition's trigger or guard of none, as a row writes it: the one copy
 NONE_CELL = "none"
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
 # the columns a construct's table may add after its form's own, any of them, in this order: a State Machine's
-# Transitions table's Guard, its Effect, or both
-OPTIONAL_COLUMNS = {("State Machine", 1): ["Guard", "Effect"]}
+# Transitions table's Guard, its Effect, or both; an Algorithm's Terminates
+OPTIONAL_COLUMNS = {("State Machine", 1): ["Guard", "Effect"], ("Algorithm", 0): ["Terminates"]}
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
 # the tables a Name column may open: a Transitions table, a Decision Table, a Constraint table
 NAMEABLE = {"State Machine": {1}, "Decision Table": {0}, "Constraint": {0}}
@@ -208,6 +214,16 @@ DATE, DATE_TIME, TIME = (expressions.LITERAL[k] for k in ("date", "date and time
 YM_DURATION, DT_DURATION = (expressions.LITERAL[k] for k in ("years and months duration", "days and time duration"))
 # a fact's name, as a comparison's or a range's end names one, and a question's, the child script's copies
 FACT_NAME, QUESTION = expressions.NAME, expressions.QUESTION
+
+
+def _is_name(text):
+    """Whether a text is a fact's name or a question's."""
+    return bool(FACT_NAME.fullmatch(text) or QUESTION.fullmatch(text))
+
+
+def _feel(text):
+    """Whether a text is in a form FEEL has, its names left to the judgment of their scope."""
+    return not any("no form FEEL has" in p for p in expressions.check(text, {}, lambda n: True)[1])
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
 # a list of values: each in double quotes, separated by commas; the one copy, which a quoted list and a list or a
 # range are built from
@@ -293,7 +309,7 @@ def _end(s):
     if v:
         return v
     s = s.strip()
-    if (FACT_NAME.fullmatch(s) or QUESTION.fullmatch(s)) and s not in ("null", "true", "false"):
+    if _is_name(s) and s not in ("null", "true", "false"):
         return ("name", s)
     return None
 
@@ -587,9 +603,12 @@ def construct_findings(r, body, found, sections):
         if not ok:
             continue
         check = {"State Machine": _machine, "Decision Table": _decision_table,
-                 "Decision Tree": _tree, "DAG": _dag, "Algorithm": _algorithm, "Constraint": _constraint}[name]
+                 "Decision Tree": _tree, "DAG": _dag, "Constraint": _constraint}.get(name)
         if name == "Decision Table":
             _decision_table(r, line, name, fields, tables, found, facts)
+        elif name == "Algorithm":
+            # its whole check runs across files, in algorithm_findings
+            continue
         else:
             check(r, line, name, fields, tables, found)
 
@@ -606,7 +625,7 @@ def _paragraphs(r, lines, line, fields, found):
                 j += 1
         if i > 0 and lines[i - 1].strip() or j < len(lines) and lines[j].strip():
             found.append((DECLARING, r, ln, f"the {key} field not a paragraph of its own"))
-        elif key in LIST_FIELDS and inline:
+        elif key in LIST_FIELDS and inline and not (key in ("Inputs", "Output") and inline == "none"):
             found.append((DECLARING, r, ln, f"the {key} field's list written on its key's line, not beneath it"))
         elif key == "Default Output" and not inline and j - i - 1 < 2:
             # one outcome column takes a value on the key's line; several, an item for each
@@ -795,7 +814,7 @@ def _conjunct(part):
         if not m:
             continue
         f = m["f"].strip()
-        if not (FACT_NAME.fullmatch(f) or QUESTION.fullmatch(f)) or kept_words(f):
+        if not _is_name(f) or kept_words(f):
             return None
         if kind == "cmp":
             v, op = m["v"].strip(), m["op"]
@@ -862,7 +881,7 @@ def kept_word_facts(text):
     for part in _conjuncts(text) if text.strip() != NONE_CELL and not _disjunctive(text) else []:
         for _, pattern in CONJUNCT:
             m = pattern.fullmatch(part)
-            if m and kept_words(m["f"].strip()) and (FACT_NAME.fullmatch(m["f"].strip()) or QUESTION.fullmatch(m["f"].strip())):
+            if m and kept_words(m["f"].strip()) and _is_name(m["f"].strip()):
                 out.append(m["f"].strip())
                 break
     return out
@@ -1055,7 +1074,7 @@ def guard_fact_findings(text_of, found, sections, strip_fences):
         live = strip_fences(body)
         for f, d in facts_of(fact_records(live, sections(body))).items():
             declared.setdefault(f, d)
-    kind_of = {f: TYPE_KINDS.get(t) for f, (t, _, _) in declared.items()}
+    kind_of = {f: kind_of_type(t) for f, (t, _, _) in declared.items()}
     for r, body in text_of.items():
         for line, name, fields, tables, lineage in declarations(strip_fences(body), sections(body)):
             if name != "State Machine" or len(tables) != 2:
@@ -1138,6 +1157,16 @@ TYPE_KINDS = {"string": "word", "number": "number", "boolean": "boolean", "date"
               "years and months duration": "years and months duration"}
 
 
+def kind_of_type(name):
+    """A Facts record's Type -> the kind its values are, a cell's or an expression's; None where it names none."""
+    if name in TYPE_KINDS:
+        return TYPE_KINDS[name]
+    try:
+        return expressions.parse_type(name)
+    except expressions.FeelError:
+        return None
+
+
 def multi_hit(policy):
     """Whether a hit policy takes the outcome of every row a case matches: Rule order, Output order, a Collect."""
     return policy in ("Rule order", "Output order") or policy.startswith("Collect")
@@ -1209,6 +1238,26 @@ def fact_record_findings(records):
             out.append((line, f"a boolean fact whose name asks no question: {name}"))
         elif d.get("Type") != "boolean" and not FACT_NAME.fullmatch(name):
             out.append((line, f"a Facts record's name that is no fact's name: {name}"))
+        if d.get("Type") and d["Type"] not in TYPE_KINDS:
+            try:
+                expressions.parse_type(d["Type"])
+            except expressions.FeelError as e:
+                out.append((line, f"a Facts record's Type that is no type FEEL names: {name}: {e}"))
+        places = d.get("Decimal Places", "none")
+        if places != "none" and not (re.fullmatch(r'\d+', places) or places in {n for _, n, _ in records}):
+            out.append((line, f"a Facts record's Decimal Places that is neither a whole number nor a fact its file declares: {name}"))
+        if places != "none" and d.get("Type") != "number" and not re.search(r'->\s*number$', d.get("Type", "")):
+            out.append((line, f"a Facts record's Decimal Places on a fact that is neither a number nor a function giving one: {name}"))
+        derivation = d.get("Derivation", "none")
+        if derivation != "none" and not d.get("Type", "").startswith("function"):
+            out.append((line, f"a Facts record's Derivation on a fact that is no function: {name}"))
+        elif derivation != "none":
+            # judged with the file's facts in scope, its parameters bound by the function itself
+            kind, problems = expressions.check(derivation, {n: kind_of_type(dd.get("Type", "")) for _, n, dd in records})
+            if not derivation.startswith("function(") or kind != "function":
+                out.append((line, f"a Facts record's Derivation in no form of a FEEL function: {name}"))
+            for problem in problems:
+                out.append((line, f"a Facts record's Derivation: {name}: {problem}"))
         if name.split() and name.split()[0] in expressions.KEYWORDS:
             out.append((line, f"a fact's name opening with a word FEEL keeps: {name}"))
 
@@ -1298,13 +1347,13 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
     for item in [] if values.get("Reads", "none") == "none" else values["Reads"].split("\n"):
         mm = READS_ITEM.fullmatch(item.strip())
         named = mm and re.search(r'\[Name: ([^\]]+)\]', item)
-        if not mm or not (FACT_NAME.fullmatch(mm.group(1).strip()) or QUESTION.fullmatch(mm.group(1).strip())):
+        if not mm or not _is_name(mm.group(1).strip()):
             found.append((rule, r, line, f"a Reads item that is not a name, a colon and a citation: {item}"))
         elif named and named.group(1).strip() != mm.group(1).strip():
             found.append((rule, r, line, f"a Reads item named otherwise than the Facts record it cites: {item}"))
         else:
             reads.append(mm.group(1).strip())
-    typed = {f: TYPE_KINDS.get(t) for f, (t, _, _) in facts.items()}
+    typed = {f: kind_of_type(t) for f, (t, _, _) in facts.items()}
     known = dict({h: None for h in reads}, **typed)
     for k in idx:
         if not computing(header[k]):
@@ -1560,41 +1609,613 @@ def _dag(r, line, name, fields, tables, found):
 
 # ---------------------------------------------------------------- Algorithm
 
-def _algorithm(r, line, name, fields, tables, found):
-    rule = f"{RULE} § Algorithm"
-    rows = tables[0]["rows"]
-    numbers = [row[0] for _, row in rows]
-    if numbers != [str(n) for n in range(1, len(rows) + 1)]:
-        found.append((rule, r, tables[0]["line"], "steps not numbered from 1 in order"))
-        return
-    for ln, row in rows:
-        step, action = int(row[0]), _form_of(row[1])
-        comparison = action.startswith(COMPARISON_OPENING)
-        if comparison and action.count(SEPARATOR_OF_BRANCHES) != 1:
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
+# a step's forms, as the section writes them: a run's head, a loop over a list and its orders, and an End followed by
+# words, a result named in the End rather than set
+RUN_HEAD = re.compile(r'Run (?P<cite>`[^`]+`)(?P<rest>.*)')
+FOR_EACH = re.compile(r'For each (?P<rest>.+): steps (?P<n>\d+) to (?P<m>\d+)')
+GATHERING = re.compile(r'(?P<rest>.+), gathering (?P<fact>.+?) into (?P<into>.+)')
+ORDER_KEY = re.compile(r'by (?P<expr>.+?) (?P<way>ascending|descending)')
+ANY_ORDER, LEFT_OPEN, AT_ONCE = "in any order", "in an order the system leaves open", "at once"
+END_WITH = re.compile(r'(?:^|[,.;] )' + END_WORD + r'\s+\w')
+CONTINUE_WORD = "continue"
+PART = re.compile(r'(?P<fact>[^.]+?)(?:\.(?P<path>.+))?')
+# @canon-spec specs/methodology/expressions.md § Expressions § FEEL § Arithmetic and Time
+# the rounding modes, as DMN's rounding functions name them
+ROUNDING_MODES = ("half even", "half up", "half down", "up", "down", "ceiling", "floor")
+
+
+def _names_in(text, declared=()):
+    """The names a FEEL expression reads, its functions and the names it binds aside: each declared fact it holds,
+    and each other name, read with the declared facts in scope, so a declared name holding a word FEEL keeps reads
+    whole."""
+    seen = []
+    expressions.check(text, {n: None for n in declared}, lambda n: seen.append(n) or True, seen)
+    return list(dict.fromkeys(seen))
+
+
+def _set(body, names=None):
+    """A computation -> (its fact, the part's path or None, its expression), split at the ` to ` whose sides read as
+    a fact or its part and a FEEL expression; None for no computation in its form."""
+    if not body.startswith("Set "):
+        return None
+    text = body[4:]
+    found = []
+    for m in re.finditer(r'(?= to )', text):
+        lhs, rhs = text[:m.start()].strip(), text[m.start() + 4:].strip()
+        part = PART.fullmatch(lhs)
+        name = part["fact"].strip() if part else ""
+        if _is_name(name) and rhs and _feel(rhs):
+            found.append((name, part["path"], rhs))
+    if names is not None:
+        found.sort(key=lambda s: any("no fact declares" in p for p in expressions.check(s[2], dict(names))[1]))
+    return found[0] if found else None
+
+
+def _run(raw):
+    """A run as written, its citation kept -> (citation, [each `with` item], [each item it gives]), the items as
+    written, bound to the construct run's own names by `_bind`; None for no run in its form."""
+    m = RUN_HEAD.fullmatch(raw.strip())
+    if not m:
+        return None
+    rest, gives = m["rest"], []
+    g = rest.rfind(", giving ")
+    if g >= 0:
+        gives = [x.strip() for x in rest[g + len(", giving "):].split(",")]
+        rest = rest[:g]
+    withs = []
+    if rest.strip():
+        if not rest.startswith(" with "):
+            return None
+        withs = [x.strip() for x in rest[len(" with "):].split(", with ")]
+    return m["cite"], withs, gives
+
+
+def _bind(item, names, argument):
+    """A run's `with` item, `{input} as {expression}`, or what it gives, `{output}` or `{output} as {fact}` ->
+    (the construct's name, the expression or the fact), split at the ` as ` whose left side is a name the construct
+    run has, else at the first whose left side is a name and whose right side is FEEL or a name; None where none
+    is."""
+    if not argument and item in names:
+        return item, item
+    cuts = [(item[:m.start()].strip(), item[m.start() + 4:].strip()) for m in re.finditer(r'(?= as )', item)]
+    fits = [(a, b) for a, b in cuts if _is_name(a) and b and (_feel(b) if argument else _is_name(b))]
+    for a, b in fits:
+        if a in names:
+            return a, b
+    if fits:
+        return fits[0]
+    return None if argument or not _is_name(item) else (item, item)
+
+
+def _for_each(text, names=None):
+    """A loop over a list -> {item, list, order, fact, into, n, m}, split at the ` of ` whose left side is a name and
+    whose list is FEEL, preferring, where the names known are given, the cut whose list reads with no name unknown;
+    None for no loop in its form."""
+    m = FOR_EACH.fullmatch(text)
+    if not m:
+        return None
+    whole = m["rest"]
+    cuts = list(reversed([k.start() for k in re.finditer(r' of ', whole)]))
+    if names is not None:
+        def resolves(cut):
+            lst = whole[cut + 4:].split(", by ")[0].split(", gathering ")[0].split(", in ")[0].split(", at once")[0]
+            return not any("no fact declares" in p for p in expressions.check(lst, dict(names))[1])
+        cuts = [c for c in cuts if resolves(c)] + [c for c in cuts if not resolves(c)]
+    for cut in cuts:
+        item, rest, fact, into = whole[:cut].strip(), whole[cut + 4:], None, None
+        g = GATHERING.fullmatch(rest)
+        if g:
+            rest, fact, into = g["rest"], g["fact"].strip(), g["into"].strip()
+        order = next((o for o in (ANY_ORDER, LEFT_OPEN, AT_ONCE) if rest.endswith(", " + o)), None)
+        if order:
+            lst = rest[:-len(order) - 2].strip()
+        else:
+            k = rest.find(", by ")
+            lst, order = (rest.strip(), None) if k < 0 else (rest[:k].strip(), rest[k + 2:].strip())
+        if _is_name(item) and _feel(lst):
+            return dict(item=item, list=lst, order=order, fact=fact, into=into, n=int(m["n"]), m=int(m["m"]))
+    return None
+
+
+def _expression(rule, r, ln, text, known, found, bound=None):
+    """A FEEL expression a step writes, judged with the facts the step may name in scope -> its kind."""
+    names = dict(known)
+    names.update(bound or {})
+    kind, problems = expressions.check(text, names)
+    for p in problems:
+        found.append((rule, r, ln, f"{p}: {text}"))
+    return kind
+
+
+def _kind_name(kind):
+    """A kind's name, a Facts record's `word` being FEEL's `string`."""
+    name = kind if isinstance(kind, str) else kind[0] if isinstance(kind, tuple) else None
+    return "string" if name == "word" else name
+
+
+def _differs(a, b):
+    """Whether two kinds, each known, differ: a list from a context, a number from a string, and so on."""
+    x, y = _kind_name(a), _kind_name(b)
+    return x is not None and y is not None and x not in ("function", "fn") and y not in ("function", "fn") and x != y
+
+
+def _parts(text):
+    """A step's text, its code spans blanked -> (its condition or None, [(each branch, where it starts)]). A
+    comparison's condition is the longest text before a comma that FEEL reads as an expression."""
+    if not text.startswith(COMPARISON_OPENING) or text.count(SEPARATOR_OF_BRANCHES) != 1:
+        return None, [(text, 0)]
+    head, second = text[len(COMPARISON_OPENING):].split(SEPARATOR_OF_BRANCHES)
+    start = len(COMPARISON_OPENING)
+    second_at = start + len(head) + len(SEPARATOR_OF_BRANCHES)
+    cuts = [i for i in range(len(head)) if head.startswith(", ", i)]
+    for i in reversed(cuts):
+        if _feel(head[:i]):
+            return head[:i], [(head[i + 2:], start + i + 2), (second, second_at)]
+    if cuts:
+        return head[:cuts[0]], [(head[cuts[0] + 2:], start + cuts[0] + 2), (second, second_at)]
+    return head, [("", start + len(head)), (second, second_at)]
+
+
+def _clause(branch, at):
+    """A branch and where it starts -> (what it does, where that starts, how it ends: ('jump', n), ('end',) or
+    ('next',))."""
+    lead = len(branch) - len(branch.lstrip())
+    text = branch.strip().rstrip(".")
+    js = [j for j in jumps(text) if j[1]]
+    if js and _ends_in_jump(text):
+        body, end = text[:js[-1][2]], ("jump", js[-1][1])
+    elif END_AT_TAIL.search(text):
+        body, end = text[:len(text) - len(END_WORD)], ("end",)
+    else:
+        body, end = text, ("next",)
+    body = body.strip().rstrip(",.").strip()
+    body = re.sub(r'(?:,| and)\s*' + CONTINUE_WORD + r'$', "", body).strip()
+    return ("" if body == CONTINUE_WORD else body), at + lead, end
+
+
+def table_ready(table):
+    """Whether an Algorithm's table is one its steps can be read from: headed Step and Action, each row as wide as its
+    header; any other is reported by the checks of its form, each file's own."""
+    header = table["header"]
+    return header[:2] == ["Step", "Action"] and all(len(row) == len(header) for _, row in table["rows"])
+
+
+def steps_of(table):
+    """An Algorithm's table, numbered from 1 in order -> [(line, step, its text with code spans blanked, as written,
+    condition, [(branch, body, body as written, end)])]."""
+    out = []
+    for k, (ln, row) in enumerate(table["rows"], 1):
+        form, raw = _form_of(row[1]), row[1]
+        cond, branches = _parts(form)
+        done = []
+        for b, at in branches:
+            body, start, end = _clause(b, at)
+            done.append((b, body, raw[start:start + len(body)], end))
+        out.append((ln, k, form, raw, cond, done))
+    return out
+
+
+def io_items(values, key):
+    """An Algorithm's Inputs or Output -> [(the item as written, the fact's name)], an Inputs item naming the record
+    of another file read for its name."""
+    out = []
+    for item in [] if values.get(key, "none") == "none" else values[key].split("\n"):
+        mm = READS_ITEM.fullmatch(item.strip())
+        out.append((item.strip(), (mm.group(1) if mm and key == "Inputs" else item).strip()))
+    return out
+
+
+def _step_sets(form, done, bind, names=None):
+    """What one step sets -> [(fact, kind, how)]: a computation's fact, its path None where it sets the whole fact; a
+    run's given facts; a loop's gathered list. The one reading of setting the checks share."""
+    out = []
+    loop = _for_each(form.strip().rstrip("."), names)
+    if loop and loop["into"]:
+        out.append((loop["into"], None, "gathered"))
+    for _, body, raw, _ in done:
+        s, b = _set(body, names), bind(raw)
+        if s:
+            out.append((s[0], None, "computed" if s[1] is None else "part"))
+        if b:
+            out += [(fact, kind, "given") for _, fact, kind in b["gives"]]
+    return out
+
+
+def _known_names(values, steps, facts, bind):
+    """The facts an Algorithm knows outside its loops -> {name: kind}: its Inputs and its Output, its file's facts,
+    and each fact a step sets whole, a run gives or a loop gathers."""
+    base = {f: kind_of_type(t) for f, (t, _, _) in (facts or {}).items()}
+    for key in ("Inputs", "Output"):
+        for _, n in io_items(values, key):
+            base.setdefault(n, None)
+    # each split read again with the names the last reading found, until the names hold, so a fact whose name holds
+    # ` to ` is known by the cut whose names resolve
+    names = None
+    for _ in range(len(steps) + 2):
+        known = dict(base)
+        for _, _, form, _, _, done in steps:
+            for fact, kind, how in _step_sets(form, done, bind, names):
+                if how != "part":
+                    known.setdefault(fact, kind)
+        if names is not None and set(known) == set(names):
+            break
+        names = known
+    return known
+
+
+def _algorithm(rule, r, line, values, table, steps, facts, bind, found):
+    """An Algorithm's own checks, its runs bound by `bind` (a run as written -> its target and bindings, or None)
+    -> {step: whether it goes back}."""
+    rows = table["rows"]
+    for key in ("Inputs", "Output"):
+        for item, n in io_items(values, key):
+            if not _is_name(n):
+                found.append((rule, r, line, f"an Inputs item that is neither a fact's name nor a name, a colon and a citation: {item}"
+                              if key == "Inputs" else f"an Output item that is not a fact's name: {item}"))
+    known = _known_names(values, steps, facts, bind)
+    # each Output fact set on its paths, one its Inputs also name holding, where none sets it, what it was given
+    made = {fact for _, _, form, _, _, done in steps for fact, _, _ in _step_sets(form, done, bind, known)}
+    inputs = {n for _, n in io_items(values, "Inputs")}
+    for item, n in io_items(values, "Output"):
+        if n not in made and n not in inputs:
+            found.append((rule, r, line, f"an Output fact nothing sets: {item}"))
+    loops = [(step, _for_each(form.strip().rstrip("."), known)) for _, step, form, _, _, _ in steps]
+    loops = [(step, lp) for step, lp in loops if lp]
+    # each loop's body: the steps after it, to its last, inside any loop holding it, never the table's last step
+    for step, lp in loops:
+        if lp["n"] != step + 1 or lp["m"] < lp["n"] or lp["m"] >= len(rows):
+            found.append((rule, r, steps[step - 1][0], f"a loop's body not the steps after it, ending before the last step: step {step}"))
+    for a, la in loops:
+        for b, lb in loops:
+            if a < b <= la["m"] < lb["m"]:
+                found.append((rule, r, steps[b - 1][0], f"a loop's body reaching past the body holding it: step {b}"))
+    # each loop's item, judged outermost first with the items of the loops holding it in scope
+    items = {}
+
+    def scope_at(step):
+        s = dict(known)
+        for lstep, lp in loops:
+            if lp["n"] <= step <= lp["m"] and lstep in items:
+                s[items[lstep][0]] = items[lstep][1]
+        return s
+    for step, lp in loops:
+        ln = steps[step - 1][0]
+        kind = _expression(rule, r, ln, lp["list"], scope_at(step), found)
+        if kind is not None and not (isinstance(kind, tuple) and kind[0] == "list"):
+            found.append((rule, r, ln, f"a loop over what is no list: {lp['list']}"))
+        items[step] = (lp["item"], kind[1] if isinstance(kind, tuple) and kind[0] == "list" else None)
+        if lp["into"] and known.get(lp["into"]) is not None and _kind_name(known[lp["into"]]) != "list":
+            found.append((rule, r, ln, f"a loop gathering into a fact that holds no list: {lp['into']}"))
+        if lp["order"] is None or lp["order"] not in (ANY_ORDER, LEFT_OPEN, AT_ONCE) and not all(
+                ORDER_KEY.fullmatch(k.strip()) for k in lp["order"].split(", then ")):
+            found.append((rule, r, ln, f"a loop's order not written `by` an expression and `ascending` or `descending`, `{ANY_ORDER}`, `{LEFT_OPEN}` or `{AT_ONCE}`: step {step}"))
+        elif lp["order"] not in (ANY_ORDER, LEFT_OPEN, AT_ONCE):
+            for k in lp["order"].split(", then "):
+                _expression(rule, r, ln, ORDER_KEY.fullmatch(k.strip())["expr"], scope_at(step), found, {lp["item"]: items[step][1]})
+        # a pass at once sets only its item and what it gathers: by a computation, a run or a loop it holds
+        if lp["order"] == AT_ONCE:
+            for ln2, s2, form2, _, _, done in steps[lp["n"] - 1:lp["m"]]:
+                for f in [fact for fact, _, _ in _step_sets(form2, done, bind, known)]:
+                    if f not in (lp["item"], lp["fact"]):
+                        found.append((rule, r, ln2, f"a pass at once setting a fact other than its item and what it gathers: {f}"))
+    back_at = {}
+    for ln, step, form, raw, cond, done in steps:
+        scope = scope_at(step)
+        comparison = form.startswith(COMPARISON_OPENING)
+        if comparison and form.count(SEPARATOR_OF_BRANCHES) != 1:
             found.append((rule, r, ln, f"a comparison not written in its form: step {step}"))
-        branches = action.split(SEPARATOR_OF_BRANCHES) if comparison else [action]
-        _jump_form(rule, r, ln, action, row[1], found)
-        # the separator of a comparison's branches in a step that is no comparison: a comparison folded into it
-        if not comparison and SEPARATOR_MARK in action:
+            back_at[step] = False
+            continue
+        _jump_form(rule, r, ln, form, raw, found)
+        if not comparison and SEPARATOR_MARK in form:
             found.append((rule, r, ln, f"a comparison's `{SEPARATOR_MARK}` in a step that is no comparison: step {step}"))
-        for b in branches:
+        loop = _for_each(form.strip().rstrip("."), known)
+        if not loop and form.startswith("For each"):
+            found.append((rule, r, ln, f"a loop over a list not written in its form: step {step}"))
+            back_at[step] = False
+            continue
+        if comparison:
+            kind = _expression(rule, r, ln, cond, scope, found)
+            if kind is not None and kind != "boolean":
+                found.append((rule, r, ln, f"a comparison's condition giving no yes or no: {cond}"))
+        for b, body, braw, end in done:
             tail = b.rstrip(". ")
-            # a branch's jump naming a step ends it, alone; a jump naming none is reported for its form alone
             if any(j[1] for j in jumps(b)) and not _ends_in_jump(b) or END.search(b) and not END_AT_TAIL.search(tail):
                 found.append((rule, r, ln, f"a jump or an End that does not end its branch: step {step}"))
-        for target in [j[1] for j in jumps(action) if j[1]]:
+            # an End with words after it, outside a computation's or a run's own FEEL
+            if not body.startswith(("Set ", "Run ")) and END_WITH.search(b):
+                found.append((rule, r, ln, f"an End with words after it, a result set before it instead: step {step}"))
+            if comparison and body.startswith("For each"):
+                found.append((rule, r, ln, f"a loop folded into a comparison's branch: step {step}"))
+            elif not loop:
+                _action(rule, r, ln, step, body, braw, scope, bind, found)
+        # a value a condition chooses: one computation, FEEL's if then else
+        if comparison:
+            sets = [_set(body, known) for _, body, _, _ in done]
+            bodies = [body for _, body, _, _ in done]
+            ends = [end for _, _, _, end in done]
+            facts_set = {s[0] for s in sets if s}
+            only_set = all(s or not body for s, body in zip(sets, bodies)) and len(facts_set) == 1
+            if only_set and ends[0] == ends[1]:
+                found.append((rule, r, ln, f"a comparison whose only work is setting one fact, an if then else: step {step}"))
+        for target in [j[1] for j in jumps(form) if j[1]]:
             if not target.isdigit() or not 1 <= int(target) <= len(rows):
                 found.append((rule, r, ln, f"a jump to a step the table does not hold: {target}"))
-            elif int(target) <= step and not comparison:
+                continue
+            t = int(target)
+            if t <= step and not comparison:
                 found.append((rule, r, ln, f"a step that is no comparison going back: step {step}"))
-        if comparison:
-            back = [b for b in branches if any(j[1] and j[1].isdigit() and int(j[1]) <= step for j in jumps(b))]
-            if back and len(back) == len(branches):
-                found.append((rule, r, ln, f"a comparison going back on every branch, with none going forward: step {step}"))
+            for _, lp in loops:
+                if lp["n"] <= step <= lp["m"] and not lp["n"] <= t <= lp["m"]:
+                    found.append((rule, r, ln, f"a jump out of a loop's body: step {step} to step {t}"))
+                elif lp["n"] <= t <= lp["m"] and not lp["n"] <= step <= lp["m"]:
+                    found.append((rule, r, ln, f"a jump into a loop's body from outside it: step {step} to step {t}"))
+        back = [b for b, _, _, _ in done if any(j[1] and j[1].isdigit() and int(j[1]) <= step for j in jumps(b))]
+        if comparison and back and len(back) == len(done):
+            found.append((rule, r, ln, f"a comparison going back on every branch, with none going forward: step {step}"))
+        back_at[step] = bool(back)
         if step == len(rows):
-            for b in branches:
+            for b, _, _, _ in done:
                 if not (b.rstrip(". ").endswith(END_WORD) or jumps(b)):
                     found.append((rule, r, ln, "a last step, or a branch of it, that neither ends nor jumps"))
+    return back_at, scope_at
+
+
+def _action(rule, r, ln, step, body, raw, known, bind, found):
+    """A branch's or a step's action: a computation, a run, work in words, or nothing; a value written to a fact, a
+    part or an Input of the kind it holds."""
+    if not body:
+        return
+    if body.startswith("Set "):
+        s = _set(body, known)
+        if not s:
+            found.append((rule, r, ln, f"a computation not written `Set` a fact or its part `to` a FEEL expression: step {step}"))
+            return
+        target_kind = known.get(s[0])
+        if s[1]:
+            # a part set by FEEL's context put: each step of its path a name, none of them reaching through a list
+            steps_of_path = s[1].split(".")
+            if not all(_is_name(p.strip()) for p in steps_of_path):
+                found.append((rule, r, ln, f"a part set by a path that is not names joined by `.`: {s[0]}.{s[1]}"))
+                target_kind = None
+            elif any(_kind_name(expressions.check(".".join([s[0]] + steps_of_path[:k]), known)[0]) == "list"
+                     for k in range(len(steps_of_path))):
+                found.append((rule, r, ln, f"a part set through a list, which FEEL's context put does not reach: {s[0]}.{s[1]}"))
+                target_kind = None
+            else:
+                target_kind = _expression(rule, r, ln, f"{s[0]}.{s[1]}", known, found)
+        kind = _expression(rule, r, ln, s[2], known, found)
+        if _differs(kind, target_kind):
+            found.append((rule, r, ln, f"a value of another kind than the fact or part it is written to: step {step}"))
+    elif re.match(r'(?i)set\b', body):
+        found.append((rule, r, ln, f"a computation not written `Set` a fact or its part `to` a FEEL expression: step {step}"))
+    elif body.startswith("Run "):
+        b = bind(raw)
+        if not b:
+            found.append((rule, r, ln, f"a run not written `Run`, a citation, its arguments and the facts it gives: step {step}"))
+            return
+        for name, expr, kind_wanted in b["withs"]:
+            kind = _expression(rule, r, ln, expr, known, found)
+            if _differs(kind, kind_wanted):
+                found.append((rule, r, ln, f"an argument of another kind than the Input it gives: {name}"))
+
+
+def algorithm_findings(text_of, found, sections, strip_fences, citation, resolve):
+    """§ Constructs § Algorithm, each Algorithm checked whole, once, across files: its own forms, by `_algorithm`; a
+    Runs When citing each construct that runs it, and no other; work running no construct; a run citing an Algorithm
+    or a Decision Table, its arguments naming what that construct takes, each one it takes given or known, and giving
+    only what it gives; and a Terminates cell where a step goes back or a run recurs, and only there, judged on one
+    graph of what runs what. `citation` and `resolve` are the citation check's own."""
+    rule = f"{RULE} § Algorithm"
+    decls, facts_in, places = {}, {}, set()
+    for r, body in text_of.items():
+        live, secs = strip_fences(body), sections(body)
+        places.update((r, lineage) for lineage in secs)
+        facts_in[r] = facts_of(fact_records(live, secs))
+        for line, name, fields, tables, lineage in declarations(live, secs):
+            decls[(r, lineage)] = (line, name, dict((k, v) for _, k, v in fields), tables)
+
+    def kinds_in(r, names):
+        return {n: kind_of_type(facts_in.get(r, {})[n][0]) if n in facts_in.get(r, {}) else None for n in names}
+
+    def computed_columns(values, table):
+        return [c.strip() for c in values.get("Computed", "").split(",") if c.strip() and c.strip() in table["header"]]
+
+    def takes(key):
+        """The facts a construct run takes and those it gives -> ({name: kind}, {name: kind}): an Algorithm's Inputs
+        and Output; a Decision Table's conditions, the facts its computed headers and cells name, and its Reads, and its
+        outcomes."""
+        r = key[0]
+        _, name, values, tables = decls[key]
+        if name == "Algorithm":
+            return (kinds_in(r, [n for _, n in io_items(values, "Inputs")]),
+                    kinds_in(r, [n for _, n in io_items(values, "Output")]))
+        header = tables[0]["header"] if tables else []
+        conds = [c.strip() for c in values.get("Conditions", "").split(",") if c.strip()]
+        notes = {c.strip() for c in values.get("Annotations", "").split(",") if c.strip()}
+        wanted = []
+        for c in conds:
+            wanted += _names_in(c, facts_in.get(r, {})) if computing(c) else [c]
+        for col in computed_columns(values, tables[0]) if tables else []:
+            i = header.index(col)
+            for _, row in tables[0]["rows"]:
+                if i < len(row) and row[i].strip() not in ("-", ""):
+                    wanted += _names_in(row[i], facts_in.get(r, {}))
+        for item in [] if values.get("Reads", "none") == "none" else values["Reads"].split("\n"):
+            mm = READS_ITEM.fullmatch(item.strip())
+            wanted.append((mm.group(1) if mm else item).strip())
+        gives = [h for h in header if h not in conds and h not in notes and h != "Name"]
+        # a function fact the table's cells call is the table's own, never an input its run is given
+        taken = {n: k for n, k in kinds_in(r, list(dict.fromkeys(wanted))).items() if _kind_name(k) != "function"}
+        return taken, kinds_in(r, gives)
+
+    def bind_in(r):
+        def bind(raw):
+            run = _run(raw)
+            if not run:
+                return None
+            key = resolve(run[0].strip("`"), r)
+            target = decls.get(key)
+            out = dict(cite=run[0], key=key, kind=target[1] if target else None, withs=[], gives=[], unbound=[])
+            if not target or target[1] not in ("Algorithm", "Decision Table"):
+                out["gives"] = [(g, g, None) for g in run[2]]
+                return out
+            ins, outs = takes(key)
+            for item in run[1]:
+                b = _bind(item, ins, True)
+                if b:
+                    out["withs"].append((b[0], b[1], ins.get(b[0])))
+                else:
+                    out["unbound"].append(item)
+            for item in run[2]:
+                b = _bind(item, outs, False) or (item, item)
+                out["gives"].append((b[0], b[1], outs.get(b[0])))
+            return out
+        return bind
+
+    # every Algorithm's steps, read once
+    algos, unread = {}, set()
+    for key, (line, name, values, tables) in decls.items():
+        if name == "Algorithm" and (not tables or not table_ready(tables[0])):
+            unread.add(key)
+        if name != "Algorithm" or not tables or not table_ready(tables[0]):
+            continue
+        rows = tables[0]["rows"]
+        if [row[0] for _, row in rows] != [str(n) for n in range(1, len(rows) + 1)]:
+            found.append((rule, key[0], tables[0]["line"], "steps not numbered from 1 in order"))
+            unread.add(key)
+            continue
+        algos[key] = steps_of(tables[0])
+
+    # what runs what: an Algorithm's run of a construct, a Decision Table's computed cell citing one; and the
+    # constructs running an Algorithm: those, a State Machine's Effect and a state's work
+    edges, runners = {}, {}
+    for key, steps in algos.items():
+        bind = bind_in(key[0])
+        for _, step, _, _, _, done in steps:
+            for _, body, braw, _ in done:
+                b = bind(braw) if body.startswith("Run ") else None
+                if b and b["kind"] in ("Algorithm", "Decision Table"):
+                    edges.setdefault(key, set()).add(b["key"])
+                    if b["key"] != key:
+                        runners.setdefault(b["key"], set()).add(key)
+    for key, (line, name, values, tables) in decls.items():
+        cells = []
+        if name == "State Machine" and len(tables) == 2:
+            if "description" in tables[0]["header"]:
+                d = tables[0]["header"].index("description")
+                cells += [row[d] for _, row in tables[0]["rows"] if d < len(row)]
+            if "Effect" in tables[1]["header"]:
+                e = tables[1]["header"].index("Effect")
+                cells += [row[e] for _, row in tables[1]["rows"] if e < len(row)]
+        elif name == "Decision Table" and tables:
+            for col in computed_columns(values, tables[0]):
+                i = tables[0]["header"].index(col)
+                cells += [row[i] for _, row in tables[0]["rows"] if i < len(row)]
+        for cell in cells:
+            for c in citation.findall(cell):
+                if "[" in c:
+                    continue
+                target = resolve(c, key[0])
+                if target != key and decls.get(target, (0, ""))[1] in ("Algorithm", "Decision Table"):
+                    if decls[target][1] == "Algorithm":
+                        runners.setdefault(target, set()).add(key)
+                    if name == "Decision Table":
+                        edges.setdefault(key, set()).add(target)
+
+    def reaches(a, goal, seen):
+        for b in sorted(edges.get(a, ())):
+            if b == goal or b not in seen and (seen.add(b) or reaches(b, goal, seen)):
+                return True
+        return False
+
+    for key, steps in algos.items():
+        r = key[0]
+        line, _, values, tables = decls[key]
+        table = tables[0]
+        bind = bind_in(r)
+        back_at, scope_at = _algorithm(rule, r, line, values, table, steps, facts_in.get(r, {}), bind, found)
+        # a Precision: the significant digits each operation keeps, a whole number above zero
+        if "Precision" in values and not (re.fullmatch(r'[1-9]\d*', values["Precision"]) and int(values["Precision"]) < 34):
+            found.append((rule, r, line, f"a Precision that is no whole number above zero and below FEEL's 34: {values['Precision']}"))
+        # a Rounding Mode: one DMN's rounding functions round as, or a fact the Algorithm knows whose Values lie among them
+        mode = values.get("Rounding Mode")
+        if mode is not None and mode not in ROUNDING_MODES:
+            named = [n for _, n in io_items(values, "Inputs")] + list(facts_in.get(r, {}))
+            record = facts_in.get(r, {}).get(mode)
+            if mode not in named:
+                found.append((rule, r, line, f"a Rounding Mode that is neither a mode nor a fact the Algorithm knows: {mode}"))
+            elif record and (record[1] == "none" or not set(re.findall(r'"([^"]*)"', record[1])) <= set(ROUNDING_MODES)):
+                found.append((rule, r, line, f"a Rounding Mode naming a fact whose Values hold no mode: {mode}"))
+        if "Runs When" in values:
+            cited = {resolve(c, r) for c in citation.findall(values["Runs When"])}
+            # a citation naming no construct is the citation check's to report
+            # a construct cited that an unread Algorithm may run is not reported: its own table's finding stands
+            for k in sorted(k for k in cited - runners.get(key, set()) if k in decls and k not in unread):
+                found.append((rule, r, line, f"a Runs When citing a construct that does not run it: § {k[1]}"))
+            for k in sorted(runners.get(key, set()) - cited):
+                found.append((rule, r, line, f"a Runs When leaving out a construct that runs it: {k[0]} § {k[1]}"))
+        ti = table["header"].index("Terminates") if "Terminates" in table["header"] else None
+        for ln, step, form, raw, cond, done in steps:
+            recurs = False
+            for _, body, braw, _ in done:
+                b = bind(braw) if body.startswith("Run ") else None
+                if not b:
+                    # work naming an Algorithm or a Decision Table whole runs it, in no run's form; a part's
+                    # reference names a step or a row, and runs nothing
+                    if body and not body.startswith(("Set ", "Run ", "For each")):
+                        for c in citation.findall(braw):
+                            if "[" not in c and decls.get(resolve(c, r), (0, ""))[1] in ("Algorithm", "Decision Table"):
+                                found.append((rule, r, ln, f"work running a construct, a run not written in its form: {c}"))
+                    continue
+                if b["kind"] not in ("Algorithm", "Decision Table"):
+                    if b["kind"] or b["key"] in places:
+                        found.append((rule, r, ln, f"a run citing no Algorithm or Decision Table: {b['cite']}"))
+                    continue
+                recurs = recurs or b["key"] == key or reaches(b["key"], key, set())
+                ins, outs = takes(b["key"])
+                named = {n for n, _, _ in b["withs"]}
+                for item in b["unbound"]:
+                    found.append((rule, r, ln, f"a run naming as an argument no Input the construct run takes: {item}"))
+                for n in sorted(n for n in named if n not in ins):
+                    found.append((rule, r, ln, f"a run naming as an argument no Input the construct run takes: {n}"))
+                for n in sorted(n for n in ins if n not in named and n not in scope_at(step)):
+                    found.append((rule, r, ln, f"a run leaving an Input the construct run takes neither given nor known: {n}"))
+                for out, fact, kind in b["gives"]:
+                    if out not in outs:
+                        found.append((rule, r, ln, f"a run giving a fact the construct run does not give: {out}"))
+                    elif _differs(kind, scope_at(step).get(fact)):
+                        found.append((rule, r, ln, f"a run giving a value of another kind than the fact it is written to: {fact}"))
+            # a Terminates cell where a step goes back or a run recurs, and only there
+            cell = table["rows"][step - 1][1][ti].strip() if ti is not None else NONE_CELL
+            if cell == NONE_CELL:
+                if back_at.get(step):
+                    found.append((rule, r, ln, f"a step going back with no Terminates cell saying why it ends: step {step}"))
+                elif recurs:
+                    found.append((rule, r, ln, f"a run recurring with no Terminates cell saying why it ends: step {step}"))
+            elif not (back_at.get(step) or recurs):
+                found.append((rule, r, ln, f"a Terminates cell on a step that neither goes back nor recurs: step {step}"))
+            elif CITATION.fullmatch(cell):
+                # the Constraint its end rests on, one some construct enforces
+                target = decls.get(resolve(CITATION.fullmatch(cell).group(1), r))
+                if not target or target[1] != "Constraint" or not target[3]:
+                    found.append((rule, r, ln, f"a Terminates cell citing no Constraint: {cell}"))
+                    continue
+                sel = re.search(r'\[Name: ([^\]]+)\]', cell)
+                off = 1 if target[3][0]["header"][:1] == ["Name"] else 0
+                for _, crow in target[3][0]["rows"]:
+                    if (not sel or off and crow[0] == sel.group(1).strip()) and len(crow) > off + 2 \
+                            and NOTHING_ENFORCES.match(_form_of(crow[off + 2])):
+                        found.append((rule, r, ln, f"a Terminates cell citing a Constraint nothing enforces: {cell}"))
+                        break
+            else:
+                # the number that shrinks with each pass, as FEEL computes it
+                kind = _expression(rule, r, ln, cell, scope_at(step), found)
+                if kind is not None and kind != "number":
+                    found.append((rule, r, ln, f"a Terminates cell giving no number: step {step}"))
+        if ti is not None and all(row[ti] == NONE_CELL for _, row in table["rows"]):
+            found.append((rule, r, table["line"], "a Terminates column every cell of which is none"))
 
 
 # ---------------------------------------------------------------- Constraint
@@ -1677,10 +2298,21 @@ def construct_candidates(files, sections, strip_fences):
             # Enforced by opening nothing or none and holding a citation, its opening `nothing:` or `none:` aside,
             # which the Constraint's check reports
             if name == "Algorithm" and tables:
+                runs_when = dict((k, v) for _, k, v in fields).get("Runs When", "")
+                mode = dict((k, v) for _, k, v in fields).get("Rounding Mode")
+                if mode and mode not in ROUNDING_MODES and mode not in facts:
+                    out.append((r, line, "a Rounding Mode naming a fact known by name alone",
+                                f"§ {lineage}: whether {mode}'s Values hold only the modes, the file holding no record of it, is read"))
+                if re.sub(r'\band\b', "", CITATION.sub("", runs_when)).strip(" ,;.") :
+                    out.append((r, line, "an Algorithm run on an occurrence in words",
+                                f"§ {lineage}: whether something runs it on that occurrence, and for a job's run what a missed and a late run do, is read"))
                 for ln, row in tables[0]["rows"]:
+                    loop = _for_each(_form_of(row[1]).strip().rstrip("."))
+                    if loop and loop["order"] in (ANY_ORDER, LEFT_OPEN):
+                        out.append((r, ln, f"a loop {loop['order']}", f"§ {lineage}: whether its order changes what it gives, and a Constraint recording it where it does, is read"))
                     text = _form_of(row[1])
                     if not text.startswith(COMPARISON_OPENING) and SEPARATOR_MARK not in text \
-                            and COMPARISON_WORDS.search(text):
+                            and COMPARISON_WORDS.search(text) and not text.startswith(("Set ", "Run ", "For each ")):
                         out.append((r, ln, "a comparison a step may fold", f"§ {lineage}: {row[1][:100]}"))
             if name == "Constraint" and tables:
                 off = 1 if tables[0]["header"][:1] == ["Name"] else 0
