@@ -196,6 +196,17 @@ class FeelError(ValueError):
     pass
 
 
+def _names_by_length(names):
+    """Each name FEEL's tokens make, with its tokens, the longest first and then by name."""
+    out = []
+    for n in names:
+        try:
+            out.append((n, _tokens(n)))
+        except FeelError:
+            continue
+    return sorted(out, key=lambda np: (-len(np[1]), np[0]))
+
+
 def _tokens(text):
     out, i = [], 0
     while i < len(text):
@@ -222,12 +233,18 @@ def _shown(k):
     return k
 
 
+def _flat(k):
+    """A context's kind, its entries set aside, so it is compared as a context; any other kind as it is."""
+    return "context" if isinstance(k, tuple) and k[0] == "ctx" else k
+
+
 class _Parser:
     """A recursive descent over FEEL's tokens, giving each expression its kind: a name's its fact's, None where it
     cannot be told; each problem it can decide appended to `problems`."""
 
-    def __init__(self, text, facts, known=None):
+    def __init__(self, text, facts, known=None, used=None):
         self.toks, self.i, self.problems = _tokens(text), 0, []
+        self.used = used  # a list each fact the parse resolves is appended to, or None
         self.facts = {k: ("string" if v == "word" else v) for k, v in dict(facts).items()}
         self.known = known  # a name the caller knows though no fact is named it, or None
         self.bound = []  # names bound by a loop, a quantifier, a filter or a function, innermost last
@@ -404,29 +421,33 @@ class _Parser:
         return a
 
     def type_(self):
-        for n in TYPE_NAMES:
-            parts = n.split()
-            if all(self.peek(k) == ("word", w) for k, w in enumerate(parts)):
-                self.i += len(parts)
+        # the type's text, to the expression's end or, outside a type name, a closing bracket or brace, a comma or a
+        # word ending it, read as parse_type reads a Type: a type name holding `and` taken whole, the longest first,
+        # and `-` then `>` one arrow
+        names = sorted((n.split() for n in TYPE_NAMES), key=len, reverse=True)
+        k, depth, words = self.i, 0, []
+        while k < len(self.toks):
+            v = self.toks[k][1]
+            n = next((p for p in names if [t[1] for t in self.toks[k:k + len(p)]] == p), None)
+            if n:
+                words += n
+                k += len(n)
+                continue
+            if depth == 0 and v in (")", "]", "}", ",", "and", "or", "then", "else", "return", "satisfies"):
                 break
-        else:
-            words = []
-            while self.peek()[0] == "word" and not (words and self.peek()[1] in KEYWORDS):
-                words.append(self.take()[1])
-            if not words:
-                raise FeelError(f"no type at: {self.peek()[1] or 'the end'}")
-        if self.at("<"):
-            self.take()
-            depth = 1
-            while depth:
-                v = self.take()[1]
-                depth += {"<": 1, ">": -1}.get(v, 0)
-            if self.at("->"):
-                self.take()
-        if self.peek() == ("op", "-") and self.peek(1) == ("op", ">"):
-            self.take()
-            self.take()
-            self.type_()
+            if v == "-" and k + 1 < len(self.toks) and self.toks[k + 1][1] == ">":
+                words.append("->")
+                k += 2
+                continue
+            depth += {"<": 1, ">": -1}.get(v, 0)
+            words.append(v)
+            k += 1
+        text = " ".join(words).replace(" < ", "<").replace("< ", "<").replace(" >", ">")
+        try:
+            parse_type(text.replace(" : ", ": ").replace(" ,", ","))
+        except FeelError as e:
+            self.problems.append(str(e))
+        self.i = k
 
     def postfix(self):
         a = self.primary()
@@ -466,25 +487,39 @@ class _Parser:
                 self.problems.append(f"a {a} holding no part named {part}")
                 return None
             return PROPERTIES[a][part]
+        if isinstance(a, tuple) and a[0] == "ctx":
+            entries = dict(a[1])
+            if entries and part not in entries:
+                self.problems.append(f"a context holding no entry named {part}")
+            return entries.get(part)
         if isinstance(a, tuple) and a[0] == "list":
+            inner = a[1]
+            if isinstance(inner, tuple) and inner[0] == "ctx":
+                entries = dict(inner[1])
+                if entries and part not in entries:
+                    self.problems.append(f"a context holding no entry named {part}")
+                return ("list", entries.get(part))
             return ("list", None)
         if isinstance(a, tuple) and a[0] == "range":
             return {"start included": "boolean", "end included": "boolean"}.get(part, a[1])
-        if a is not None and a not in ("context",):
+        if a is not None:
             self.problems.append(f"a path into a {_shown(a)}, which holds no parts: {part}")
         return None
 
     def _filter(self, a):
         """A filter or an index: `item` and, where items are contexts, their entries in scope (DMN 10.3.2.5)."""
         item = a[1] if isinstance(a, tuple) and a[0] == "list" else (None if isinstance(a, tuple) else a)
-        self.open += 1
+        entries = list(item[1]) if isinstance(item, tuple) and item[0] == "ctx" else []
+        self.open += 0 if entries else 1
         try:
-            test = self.scoped([("item", item)], self.expr)
+            test = self.scoped([("item", item)] + entries, self.expr)
         finally:
-            self.open -= 1
+            self.open -= 0 if entries else 1
         if test == "number":
             return item
-        if test is not None and test != "boolean":
+        if test is None:
+            return None
+        if test != "boolean":
             self.problems.append(f"a filter whose test is a {_shown(test)}, neither a yes or no nor a place")
         return a if isinstance(a, tuple) else ("list", a)
 
@@ -576,22 +611,23 @@ class _Parser:
             return ("list", known.pop() if len(known) == 1 and None not in items else None)
         if kind == "op" and val == "{":
             self.take()
-            names = []
+            entries = []
             while not self.at("}"):
                 key = self.take()
                 if key[0] == "word":
                     while self.peek()[0] == "word":
                         key = ("word", key[1] + " " + self.take()[1])
                 self.take(":")
-                self.scoped([(n, None) for n in names], self.expr)
-                names.append(key[1].strip('"'))
+                entries.append((key[1].strip('"'), self.scoped(list(entries), self.expr)))
                 if self.at(","):
                     self.take()
             self.take("}")
-            return "context"
+            return ("ctx", tuple(entries))
         if kind == "op" and val == "?":
             self.take()
             return self._bound("?")
+        if kind == "word" and val in ("if", "for", "some", "every"):
+            return self.expr()
         if kind == "word":
             if val == "null":
                 self.take()
@@ -654,11 +690,12 @@ class _Parser:
             if all(self.peek(k) == ("word", p) for k, p in enumerate(parts)):
                 self.i += len(parts)
                 return kind
-        for n in sorted(set(self.facts) | set(FUNCTIONS), key=lambda n: -len(_tokens(n))):
-            parts = _tokens(n)
+        for n, parts in _names_by_length(set(self.facts) | set(FUNCTIONS)):
             if all(self.peek(k)[1] == p[1] for k, p in enumerate(parts)):
                 if n in self.facts:
                     self.i += len(parts)
+                    if self.used is not None:
+                        self.used.append(n)
                     return self.facts[n]
                 if self.peek(len(parts)) == ("op", "("):
                     self.i += len(parts)
@@ -710,12 +747,13 @@ class _Parser:
 
     # -- kinds
     def _want(self, a, kind, where):
+        a = _flat(a)
         if a is not None and a != kind and not isinstance(a, tuple):
             self.problems.append(f"{where} given a {a}, not a {kind}")
 
     def _same(self, a, b, where):
-        ka = a[1] if isinstance(a, tuple) and a[0] == "range" else a
-        kb = b[1] if isinstance(b, tuple) and b[0] == "range" else b
+        ka = _flat(a[1] if isinstance(a, tuple) and a[0] == "range" else a)
+        kb = _flat(b[1] if isinstance(b, tuple) and b[0] == "range" else b)
         if ka is not None and kb is not None and not isinstance(ka, tuple) and not isinstance(kb, tuple) and ka != kb \
                 and {ka, kb} != {"date", "date and time"}:
             self.problems.append(f"{where} of a {_shown(ka)} and a {_shown(kb)}")
@@ -723,6 +761,7 @@ class _Parser:
         return a if a is not None else b
 
     def _arith(self, a, b, op):
+        a, b = _flat(a), _flat(b)
         if a is None or b is None or isinstance(a, tuple) or isinstance(b, tuple):
             return None
         if a == b == "number":
@@ -747,11 +786,11 @@ class _Parser:
         return None
 
 
-def check(text, facts, known=None):
+def check(text, facts, known=None, used=None):
     """A FEEL expression, and each fact it may name with its kind or None -> (its kind or None, [problem]); `known`,
     where given, tells whether a name no fact is named is one the caller knows."""
     try:
-        p = _Parser(text, facts, known)
+        p = _Parser(text, facts, known, used)
         kind = p.expr()
         if p.i != len(p.toks):
             raise FeelError(f"more after the expression: {p.peek()[1]}")
@@ -812,3 +851,44 @@ def keyword_findings(text):
             out = [(i, f"a word FEEL keeps the script's copy does not hold: {w}") for w in sorted(listed - KEYWORDS)]
             return out + [(i, f"a word the script keeps the file does not list: {w}") for w in sorted(KEYWORDS - listed)]
     return [(0, "no list of the words FEEL keeps for itself")]
+
+
+# @canon-spec specs/methodology/expressions.md § Expressions § FEEL § Lists, Contexts and Functions
+# a type as FEEL names it, a Facts record's Type among them
+SIMPLE_TYPES = {n: {"Any": None, "Null": None, "context": ("ctx", ()), "list": ("list", None),
+                    "range": ("range", None)}.get(n, n) for n in TYPE_NAMES}
+
+
+def _split_top(text):
+    parts, depth, cur = [], 0, ""
+    for k, ch in enumerate(text):
+        depth += {"<": 1, ">": -1}.get(ch, 0) if not (ch == ">" and text[k - 1:k] == "-") else 0
+        if ch == "," and depth == 0:
+            parts.append(cur.strip())
+            cur = ""
+        else:
+            cur += ch
+    return parts + [cur.strip()]
+
+
+def parse_type(text):
+    """A type as FEEL names it -> its kind: a simple type's, ("list", the items'), ("ctx", ((entry, its kind), …)),
+    ("range", its ends'), "function", or None for Any and Null; FeelError for no type FEEL names."""
+    t = text.strip()
+    if t in SIMPLE_TYPES:
+        return SIMPLE_TYPES[t]
+    m = re.fullmatch(r'(list|range)\s*<(.+)>', t)
+    if m:
+        return (m.group(1), parse_type(m.group(2)))
+    m = re.fullmatch(r'context\s*<(.+)>', t)
+    if m:
+        out = {}
+        for entry in _split_top(m.group(1)):
+            name, colon, kind = entry.partition(":")
+            if not colon or not name.strip():
+                raise FeelError(f"a context's entry with no name and type: {entry}")
+            out[name.strip()] = parse_type(kind)
+        return ("ctx", tuple(out.items()))
+    if re.fullmatch(r'function\s*<.*>\s*->\s*.+', t):
+        return "function"
+    raise FeelError(f"no type FEEL names: {t}")

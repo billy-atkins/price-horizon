@@ -104,9 +104,10 @@ RECORD_TYPES = {
     },
     "Facts": {
         "table": (("Name", "yes", "yes", "", "text"),
-                  ("Type", "no", "yes", "", '"string", "number", "boolean", "date", "time", "date and time", '
-                   '"days and time duration", "years and months duration"'),
+                  ("Type", "no", "yes", "", "text"),
                   ("Values", "no", "no", "none", "text"), ("Unit", "no", "no", "none", "text"),
+                  ("Decimal Places", "no", "no", "none", "text"),
+                  ("Derivation", "no", "no", "none", "text"),
                   ("May Be Absent", "no", "no", "No", '"Yes", "No"'), ("Means", "no", "yes", "", "text")),
         "section_fields": [],
         "home": "modeling-constructs.md § Constructs § Declaring a Construct § A Fact",
@@ -890,6 +891,8 @@ def check(root):
     constructs.guard_fact_findings(text_of, found, sections, strip_fences)
     # the fact a machine's state is recorded in, its Values holding each state
     constructs.recorded_in_findings(text_of, found, sections, strip_fences, CITATION, resolve)
+    # what runs an Algorithm, and the facts a run gives
+    constructs.algorithm_findings(text_of, found, sections, strip_fences, CITATION, resolve)
     found += record_type_findings(root)
     found += canon_spec_findings(root)
     found += scope_findings(root)
