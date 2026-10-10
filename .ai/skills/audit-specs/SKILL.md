@@ -141,6 +141,7 @@ What reading passage by passage misses: prose that reads complete but that a con
 - where a table takes the outcome of every row it matches, whether the outcomes two rows give one case can both be carried out;
 - whether each part a Constraint's Enforced by cites keeps the rule where a write could break it, whether every write able to break the rule is covered, whether a section a rule is `after` or `before` states in its own text an operation, and whether a step a rule bounds an approximation by keeps the bound;
 - whether a table deciding what follows for each case of a closed set is declared a Decision Table, and whether the right construct models the rule;
+- whether a construct section's prose states a rule an outcome the spec states depends on and the files could check, where no check decides it: a column, a field or a form the construct has and the author did not use, or one it lacks, which a design adds, a new construct or a notation by updating `specs/methodology/modeling-constructs.md` first, as `specs/methodology/modeling-constructs.md § Purpose` has it;
 - whether a part's identifier is short and kept stable for the part's life;
 - whether an Algorithm's branch with nothing to do is written `continue`;
 - whether an Algorithm's work in words computes no value a later step reads and decides nothing, a value being a computation's and a choice a comparison's;
