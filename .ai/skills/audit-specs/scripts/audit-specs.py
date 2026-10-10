@@ -108,6 +108,7 @@ RECORD_TYPES = {
                   ("Values", "no", "no", "none", "text"), ("Unit", "no", "no", "none", "text"),
                   ("Decimal Places", "no", "no", "none", "text"),
                   ("Derivation", "no", "no", "none", "text"),
+                  ("Initial Value", "no", "no", "none", "text"),
                   ("May Be Absent", "no", "no", "No", '"Yes", "No"'), ("Means", "no", "yes", "", "text")),
         "section_fields": [],
         "home": "modeling-constructs.md § Constructs § Declaring a Construct § A Fact",
@@ -674,9 +675,11 @@ def direction(src_layer, path, rel, line, found, section=True):
                       rel, line, f"{src_layer} cites {dst_layer}: {path}"))
 
 
-def check(root):
-    """-> list of (rule, path, line, message)."""
+def check(root, warned=None):
+    """-> list of (rule, path, line, message); a warning, what the specs record as a gap of the system, is appended
+    to `warned` where a list is given, and is never a finding."""
     found, files = [], md_files(root)
+    warned = [] if warned is None else warned
     text = {f: f.read_text(encoding="utf-8") for f in files}
     rel = {f: f.relative_to(root).as_posix() for f in files}
     lineage = {rel[f]: lineages(text[f]) for f in files}
@@ -893,6 +896,8 @@ def check(root):
     constructs.recorded_in_findings(text_of, found, sections, strip_fences, CITATION, resolve)
     # what runs an Algorithm, and the facts a run gives
     constructs.algorithm_findings(text_of, found, sections, strip_fences, CITATION, resolve)
+    # each Constraint's rule, when it holds and what keeps it, a rule nothing keeps a warning
+    constructs.constraint_findings(text_of, found, warned, sections, strip_fences, CITATION, resolve)
     found += record_type_findings(root)
     found += canon_spec_findings(root)
     found += scope_findings(root)
@@ -1677,7 +1682,8 @@ def main(argv):
     status = 0
 
     if args.check_scope:
-        found = check(root)
+        warned = []
+        found = check(root, warned)
         by_rule = {}
         for rule, path, line, msg in found:
             by_rule.setdefault(rule, []).append((path, line, msg))
@@ -1689,6 +1695,11 @@ def main(argv):
         n = len(found)
         print(f"\n{n} finding{'' if n == 1 else 's'} across {len(md_files(root))} files")
         status = 1 if n else 0
+        if warned:
+            # a warning is what the specs record as the system's gap: listed on every run, and never a finding
+            print(f"\nWarnings, {len(warned)} rule{'' if len(warned) == 1 else 's'} the specs record as kept by nothing; listed, not findings")
+            for rule, path, line, msg in sorted(warned):
+                print(f"  {path}:{line}\n    {msg}")
 
     if args.list_candidates:
         print("\nCandidates for the Ordinals and counts audit: numbers, places to read, not findings")
