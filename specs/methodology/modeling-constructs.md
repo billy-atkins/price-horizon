@@ -13,10 +13,10 @@ This file defines the bounded, approved set of structured modeling constructs, r
 | Decision Tree | a branch with no result; a jump to a step the table does not hold; a step no path from step 1 reaches; a step that leads back to itself; or a question whose answers overlap, or leave a case with no answer |
 | DAG | two tasks sharing a name; a dependency naming a task the table does not hold; or a task that depends on itself, directly or through others, and so never runs |
 | Algorithm | no Inputs, Output or Runs When field, an Inputs item that is neither a fact's name nor a name, a colon and a citation, an Output item that is no fact's name, or an Output fact its Inputs do not name that nothing sets; two steps sharing a number; a jump to a step the table does not hold; a Precision that is no whole number above zero and below 34, or a Rounding Mode that is neither a mode `specs/methodology/expressions.md` names nor a fact the Algorithm knows whose Values hold only modes; a step in none of its forms, a comparison not written in its form, whose condition gives no yes or no or whose branch is a loop, a computation not written `Set` a fact or its part `to` an expression, a run not written `Run`, a citation, its arguments and what it gives, a run citing no Algorithm or Decision Table, a loop over a list not written in its form, or work citing an Algorithm or a Decision Table whole; an expression in no form FEEL has, naming a fact the step does not know, combining values of two kinds, or reaching a part a fact does not hold; a value written to a fact, a part or an Input of another kind, or a part set by a path that is not names joined by `.` or that reaches through a list; a run giving a fact the construct run does not give, naming as an argument no fact it takes, or leaving a fact it takes neither given nor known; a comparison whose only work is setting one fact; a comparison both of whose branches go back to an earlier step or to its own; a step that is no comparison going back; a loop's body that is not the steps after it, reaches past the body holding it or holds the table's last step, a jump into or out of a body, a loop over what is no list, or a pass `at once` setting a fact other than its item and what it gathers; a step going back or a run recurring with no Terminates cell, a Terminates cell giving no number or citing no Constraint, or citing one nothing enforces, one on a step that neither goes back nor recurs, or a Terminates column every cell of which is none; a jump or an `End` that does not end its branch, or an `End` with words after it; a last step, or a branch of it, that neither ends nor jumps; or a Runs When citing a construct that does not run it, or leaving out one that does |
-| Constraint | a rule stated but enforced nowhere, or an Enforced by citing nothing that resolves |
-| Record Form | a record missing a field its type requires, holding one its type does not define, holding a value its type's Values do not allow, or giving its fields out of their order; or two records in one section sharing the values of their identifying fields; and a Facts record whose name is no fact's name, opens with a word FEEL keeps, or, a boolean fact's, asks no question, or whose Values are empty, written plain, in no form of FEEL's unary tests, or name a fact, or whose Type is no type FEEL names, or whose Decimal Places is neither a whole number nor a fact its file declares, or sits on a fact that is neither a number nor a function giving one, or whose Derivation sits on a fact that is no function, or is in no form of a FEEL function |
+| Constraint | a rule in no form FEEL has, giving no yes or no, naming a fact nothing declares, combining values of two kinds or reaching a part a fact does not hold; an Applies to that is neither `always` nor `after` or `before` a citation, or citing a step, a construct that is no operation, a record section, or a State Machine and no transition of it; or an Enforced by that is neither citations joined by `and` nor `nothing:` and words; a rule nothing keeps listed as a warning, never a finding |
+| Record Form | a record missing a field its type requires, holding one its type does not define, holding a value its type's Values do not allow, or giving its fields out of their order; or two records in one section sharing the values of their identifying fields; and a Facts record whose name is no fact's name, opens with a word FEEL keeps, or, a boolean fact's, asks no question, or whose Values are empty, written plain, in no form of FEEL's unary tests, or name a fact, or whose Type is no type FEEL names, or whose Decimal Places is neither a whole number nor a fact its file declares, or sits on a fact that is neither a number nor a function giving one, or whose Derivation sits on a fact that is no function, or is in no form of a FEEL function, or whose Initial Value is in no form FEEL has or of another kind than its Type |
 
-Use one of the constructs `§ Constructs` defines when a rule, a process, an entity's behavior, or an entry written repeatedly into the specs or the working files needs that kind of checkable completeness, and use prose everywhere else. The set is bounded and approved: a new construct earns its place only by filling a real gap none of the existing ones cover, not by preference for a different notation, and extending the set is a deliberate decision, made by updating this file first, never an ad hoc addition inside a single spec. Each construct is a definition (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`): its section in `§ Constructs`, with `§ Constructs § Declaring a Construct`, defines what each use of it sets, each use an instance the audit checks against it, as `specs/methodology/scope.md § Rules and Skills` has a rule's checks made. The Record Form is defined through its record types instead (`§ Constructs § Record Form`). The Decision Table is DMN's whole decision table (`specs/methodology/external-references.md § External References [Name: DMN]`), with the information requirements chaining one decision to another, written as a table's Reads field; DMN's other parts, its Decision Requirements Diagrams, its Business Knowledge Models, its decision services and its boxed expressions, are outside the set, and a project needing one adds it so. The State Machine adopts UML's state machine, and the Algorithm UML's activity (`specs/methodology/external-references.md § External References [Name: UML]`); the Decision Tree, the DAG, the Constraint and the Record Form follow no outside standard, since none meets their need: a decision tree's standards describe trees learned from data rather than questions an author writes, a DAG's are whole workflow notations, and a constraint language as wide as the Object Constraint Language is far more than a Constraint needs. The Facts record type relies on DMN's item definitions, as `§ Constructs § Declaring a Construct § A Fact` states.
+Use one of the constructs `§ Constructs` defines when a rule, a process, an entity's behavior, or an entry written repeatedly into the specs or the working files needs that kind of checkable completeness, and use prose everywhere else. The set is bounded and approved: a new construct earns its place only by filling a real gap none of the existing ones cover, not by preference for a different notation, and extending the set is a deliberate decision, made by updating this file first, never an ad hoc addition inside a single spec. Each construct is a definition (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`): its section in `§ Constructs`, with `§ Constructs § Declaring a Construct`, defines what each use of it sets, each use an instance the audit checks against it, as `specs/methodology/scope.md § Rules and Skills` has a rule's checks made. The Record Form is defined through its record types instead (`§ Constructs § Record Form`). The Decision Table is DMN's whole decision table (`specs/methodology/external-references.md § External References [Name: DMN]`), with the information requirements chaining one decision to another, written as a table's Reads field; DMN's other parts, its Decision Requirements Diagrams, its Business Knowledge Models, its decision services and its boxed expressions, are outside the set, and a project needing one adds it so. The State Machine adopts UML's state machine, the Algorithm UML's activity and the Constraint UML's Constraint (`specs/methodology/external-references.md § External References [Name: UML]`); the Decision Tree, the DAG and the Record Form follow no outside standard, since none meets their need: a decision tree's standards describe trees learned from data rather than questions an author writes, and a DAG's are whole workflow notations. The Facts record type relies on DMN's item definitions, as `§ Constructs § Declaring a Construct § A Fact` states.
 
 This file also sets the form of markup, wherever it is written, each Markdown file in scope being written in GitHub Flavored Markdown (`specs/methodology/external-references.md § External References [Name: GFM]`):
 
@@ -88,7 +88,7 @@ Each identifier, a state's name, a step's number, a task's name or a Name, is an
 
 #### A Fact
 
-A fact several constructs test, where it is one fact by `specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`, is declared once, as DMN's item definition is (`specs/methodology/external-references.md § External References [Name: DMN]`). It narrows the item definition to a value of one type FEEL names, a list, a context or a function among them, and adds the unit a number is counted in, the decimal places a value written to it is rounded to, the FEEL function a derived value is given by, whether the fact may be absent and what it means. A fact's name is words separated by single spaces, each opening with a letter and holding letters, digits and apostrophes, a hyphen joining two runs of them, but a boolean fact's, which is a question, any words ending in a question mark; its first word is none FEEL keeps for itself (`specs/methodology/expressions.md § Expressions § FEEL § Names`); and its Values are values, never a fact's name. A Decision Table names a fact it tests as `§ Constructs § Decision Table` sets. A file's facts sit in a record section titled `Facts`, in the file whose subject owns them. Each is a record in the Record Form (`§ Constructs § Record Form`) of the type named Facts:
+A fact several constructs test, where it is one fact by `specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`, is declared once, as DMN's item definition is (`specs/methodology/external-references.md § External References [Name: DMN]`). It narrows the item definition to a value of one type FEEL names, a list, a context or a function among them, and adds the unit a number is counted in, the decimal places a value written to it is rounded to, the FEEL function a derived value is given by, its value as its entity is created, whether the fact may be absent and what it means. A fact's name is words separated by single spaces, each opening with a letter and holding letters, digits and apostrophes, a hyphen joining two runs of them, but a boolean fact's, which is a question, any words ending in a question mark; its first word is none FEEL keeps for itself (`specs/methodology/expressions.md § Expressions § FEEL § Names`); and its Values are values, never a fact's name. Its Initial Value is UML's default value, a Property's defaultValue evaluated when an instance is created, its section 9.5.3 (`specs/methodology/external-references.md § External References [Name: UML]`). A Decision Table names a fact it tests as `§ Constructs § Decision Table` sets. A file's facts sit in a record section titled `Facts`, in the file whose subject owns them. Each is a record in the Record Form (`§ Constructs § Record Form`) of the type named Facts:
 
 | Field | Identifies | Required | Default Value | Values | Holds |
 |---|---|---|---|---|---|
@@ -98,6 +98,7 @@ A fact several constructs test, where it is one fact by `specs/methodology/sourc
 | Unit | no | no | none | text | the unit a number is counted in |
 | Decimal Places | no | no | none | text | the decimal places a number is held to, a whole number or the name of a fact its file declares, as a currency's minor units (`specs/methodology/external-references.md § External References [Name: ISO 4217]`), a value written to it rounded as `specs/methodology/expressions.md § Expressions § FEEL § Arithmetic and Time` has it; on a function, the value it gives |
 | Derivation | no | no | none | text | where its Type is a function's, the FEEL function giving its value, `function({parameters}) {expression}`, where the specs define it; none where a system computes it outside them, its Means saying what does (`§ Constructs § Algorithm`) |
+| Initial Value | no | no | none | text | its value as its entity is created, a FEEL expression of its Type, judged with its file's facts in scope |
 | May Be Absent | no | no | No | "Yes", "No" | whether it may have no value |
 | Means | no | yes | | text | what the fact is |
 
@@ -385,7 +386,7 @@ Authored as a numbered table of steps:
 
 **Its ends —** each branch, and each step that is no comparison, ends `Go to step` and the number of a step the table holds, or `End`, or else continues to the next step. A loop's last step continuing takes the next pass. `End` ends the run, inside a loop's body as anywhere, its Output's facts holding the values set, a list the loop was gathering left as it stood before the loop; it is written alone, a result named by a computation before it. Each fact the Output names is set by a computation, given by a run or gathered by a loop on every path to `End`, but one its Inputs also name, which, where no step on the path sets it, holds the value it was given. The last step, and each branch of it where it is a comparison, ends `End` or goes to another step, so the Algorithm ends only at an `End`.
 
-**A loop that must end —** a loop is a loop over a list, a comparison one of whose branches goes back to an earlier step or to its own, or a run recurring; a step that is no comparison never goes back, so a loop whose test falls in its middle is written with its test at the step going back. A loop over a list ends with its list, fixed as the loop begins. Every other loop states why it ends in a `Terminates` column after Action: in the cell of each step going back or recurring, a FEEL expression giving the number that shrinks with each pass toward an end the step reaches, as `high - low`, or the citation of the Constraint its end rests on, one some construct enforces; `none` in every other cell; the column written only where a step goes back or recurs.
+**A loop that must end —** a loop is a loop over a list, a comparison one of whose branches goes back to an earlier step or to its own, or a run recurring; a step that is no comparison never goes back, so a loop whose test falls in its middle is written with its test at the step going back. A loop over a list ends with its list, fixed as the loop begins. Every other loop states why it ends in a `Terminates` column after Action: in the cell of each step going back or recurring, a FEEL expression giving the number that shrinks with each pass toward an end the step reaches, as `high - low`, or the citation of the Constraint its end rests on, one something keeps; `none` in every other cell; the column written only where a step goes back or recurs.
 
 **Arithmetic —** a number is FEEL's (`specs/methodology/expressions.md § Expressions § FEEL § Its Values`), unless the Algorithm's Precision and Rounding Mode state its system's, each operation then rounded as `specs/methodology/expressions.md § Expressions § FEEL § Arithmetic and Time` has it. A value written to a fact holding decimal places is rounded to them under either, by the Algorithm's Rounding Mode, as that section has it. Any other value is rounded only by a computation calling `decimal` or one of FEEL's rounding functions (`specs/methodology/expressions.md § Expressions § FEEL § Its Functions`), its decimal places a number or a fact choosing them, never by the word `rounded`. An Algorithm holds one precision and one rounding mode for every step: steps its system computes with another are an Algorithm of their own, run, stating theirs, and one operation rounded otherwise is rounded by its computation's own call.
 
@@ -473,15 +474,99 @@ An Algorithm means what UML's activity means for what its table writes, each sta
 
 ### Constraint
 
-A rule that must always hold, independent of any single decision point or process step, an invariant on the state or output of something else.
+A rule that must hold of a system's facts, independent of any single decision point or process step: an invariant on the state or output of something else, or a condition an operation requires as it begins or guarantees once it ends. It is UML's Constraint (`specs/methodology/external-references.md § External References [Name: UML]`), adopted whole and written as a table of rules, each a FEEL boolean, with no tie to any language or engine; `§ Constructs § Constraint § What It Means` states what UML means for what its table writes, and names what the canon adds to UML.
 
 Authored as a table.
 
 | Constraint | Applies to | Enforced by |
 |---|---|---|
-| ... | What the rule constrains | What actually guarantees it: a part of another construct, such as a step, a task, a transition or a row, or a section whose own text states the mechanism, either named by its citation (`specs/methodology/sourcing-and-citation.md § Writing a Citation`) |
+| The rule | When the rule holds | What keeps the rule |
 
-A constraint with nothing in its Enforced by column, or one whose Enforced by opens `nothing:` or `none:` to say so in words, is an aspiration, not a guarantee: it is treated as an open gap, never left as though stating the rule enforced it.
+**Its rule —** a FEEL boolean (`specs/methodology/expressions.md § Expressions § FEEL`) over the facts its file declares, each named as its Facts record declares it (`§ Constructs § Declaring a Construct § A Fact`), as `sum(portions) + overpayment = amount`; a Constraint sits in the file whose Facts section declares the facts its rules name, so a rule names no fact another file declares, and reaches another construct's facts only as When it holds has it. A rule of every entity of a kind names the fact holding them all, a list, and quantifies over it, `every {item} in {list} satisfies {rule}`, as `every t in transactions satisfies t.debits = t.credits`; a value as it stood before an operation is a fact declared for it, `balance before`; and a rule reaching along a chain of entities calls a function fact that gives the chain, as `ancestors(record)`. A rule governing some values only tests them in itself, `if {condition} then {rule} else true`, as `if currency.decimal places = 0 then modulo(amount, currency.multiple) = 0 else true`, since Applies to says when a rule holds, never of which values; a State Machine's state invariant is such a rule, narrowed by the fact the machine's Recorded In names, `if status = "active" then balance >= 0 else true`. Its explanation, where it needs one, is prose after the table.
+
+**When it holds —** an operation is a run of an Algorithm, a transition taken with its effect, an occurrence a State Machine answers, or what a section's own text states is done, and each is all or none: what it wrote before it failed or was refused is undone, so a rule holding as a failed or refused operation began holds as it ends (`§ Constructs § Constraint § What It Means`). A construct whose operation keeps less than all of its writes states so where it says what a failure does. Applies to is `always`, `after {citation}` or `before {citation}`, the citation an operation's. A rule `always` holds at every rest, whenever no operation is running. A rule `after` an operation holds once a run of it completes, the operation's postcondition; a rule that holds only once some part has run, as a summary a job recomputes, is `after` that operation. A rule `before` an operation holds as its run begins, its precondition, and a run that finds it false is refused. Beside the file's facts, a rule `after` an Algorithm reads its Inputs and Output, one `before` it reads its Inputs, one `after` or `before` a transition reads those of the Algorithm its effect runs, and one `after` or `before` an operation a section's own text states reads the file's facts alone. The citation names the operation whole, an Algorithm's section, a transition by its Name, or a section whose own text states what is done, never a step.
+
+**Its enforcement —** Enforced by is the canon's addition to UML's Constraint, naming what keeps the rule: the citation of each part of another construct, a step, a row, a transition or a task, or of a section whose own text states the mechanism, that keeps it where a write could break it, several joined by `and`, `{citation} and {citation}`, since an invariant is kept only where every operation changing its facts keeps it. A part that breaks the rule, tolerates its breach or runs on no path keeps nothing, and is no enforcement. A rule nothing keeps is written so the specs say what holds and what does not: its Enforced by is `nothing: {what breaks it or leaves it unkept}`, citing after those words any part that keeps some of it. A rule some paths keep and others do not is written by its paths, each by when its rule holds: a path whose rule holds at every rest is an `always` row narrowed by the fact that tells the path apart, its source or its writer; a path whose rule holds only as its own operation completes is a row `after` that operation; and the path nothing keeps is the row opening `nothing:`. A Constraint enforced by `nothing:` is listed on every audit run as a warning, never a finding: the gap is the system's, recorded, and the specs are complete in recording it.
+
+**A derived value —** a stored fact the system derives from others is a Constraint whose rule is `{fact} = {expression}`, UML's derivation specified by a constraint, `always` where the system keeps it so, or `after` the operation that recomputes it where it lags between runs, Enforced by what writes it; a value the system derives on demand, stored nowhere, is a Facts record's Derivation (`§ Constructs § Algorithm`). No Constraint states a fact's value as its entity is created: that is the Facts record's Initial Value (`§ Constructs § Declaring a Construct § A Fact`).
+
+**A case a Constraint rules out —** a Decision Table covers every case the Values of the facts it tests allow (`§ Constructs § Decision Table`), a Constraint narrowing no table's cases, since a Constraint may fail. A value no fact ever holds is excluded by the fact's Values, where its type alone does not bound them, and a table then need not cover it.
+
+**An approximation —** a rule bounding an approximation states the bound as the rule, `abs({computed} - {intended}) <= {tolerance}`, Enforced by the step that approximates.
+
+**A worked example —** a schedule's instalments, a payment settling one, written whole as a file would hold it: an invariant over every instalment, a postcondition of the settlement reading its Output and a before-value, and a stored total the system derives and keeps only by a nightly job, a warning:
+
+```markdown
+## Instalment Settlement
+
+**Construct:** Algorithm
+
+**Inputs:**
+
+- instalment
+- payment
+
+**Output:**
+
+- instalment
+
+**Runs When:** a payment is received
+
+| Step | Action |
+|---|---|
+| 1 | Set instalment.paid to min(instalment.paid + payment, instalment.due) |
+| 2 | End |
+
+## Settlement Rules
+
+**Construct:** Constraint
+
+| Constraint | Applies to | Enforced by |
+|---|---|---|
+| every i in instalments satisfies i.paid <= i.due | always | `§ Instalment Settlement [Step: 1]` |
+| instalment.paid >= paid before | after `§ Instalment Settlement` | `§ Instalment Settlement [Step: 1]` |
+| schedule.total paid = sum(for i in instalments return i.paid) | always | nothing: the total is written by a nightly job and lags the instalments between its runs |
+
+## Facts
+
+**Records:**
+
+- **Name:** instalments
+  **Type:** list<context<due: number, paid: number>>
+  **Means:** the schedule's instalments, each with what it is due and what has been paid of it
+
+- **Name:** instalment
+  **Type:** context<due: number, paid: number>
+  **Means:** the instalment a payment settles
+
+- **Name:** payment
+  **Type:** number
+  **Means:** the amount received
+
+- **Name:** paid before
+  **Type:** number
+  **Means:** what the instalment had paid as the settlement began
+
+- **Name:** schedule
+  **Type:** context<total paid: number>
+  **Means:** the schedule, with the total its nightly job writes
+```
+
+**Its checks —** a Constraint is checked with its citations resolved, once, across files: each rule in a form FEEL has, judged with the facts in scope, a rule giving no yes or no, naming a fact nothing declares, combining values of two kinds or reaching a part a fact does not hold reported; an Applies to in none of its forms, citing a step, a construct that is no operation, a record section, or a State Machine and no transition of it, reported; an Enforced by that is neither citations joined by `and` nor `nothing:` and words reported, a citation that resolves to nothing being the citation checks'; and a `nothing:` listed as a warning. Which part keeps a rule, whether a section an Applies to cites states in its own text an operation, whether every write able to break a rule is covered and whether a bounded step keeps its bound are read, never decided by the script.
+
+#### What It Means
+
+A Constraint means what UML's Constraint means for what its table writes, each statement citing the section of UML it rests on, so neither an author nor a reader needs to recall the standard. The canon's rules beyond UML are its additions, each named where it is stated.
+
+**A rule —** a Constraint, its section 7.6.3, its rule the Constraint's specification, a ValueSpecification of type Boolean, satisfied where it evaluates to true; its language FEEL, which its section 7.6.4 leaves to the Constraint, so FEEL is no departure. The facts the rule names are its constrainedElements, and its Applies to its context, which its section 7.6.3 has decide when the Constraint is evaluated; that `always` is every rest between operations is the canon's, an addition, UML naming no such time.
+
+**A precondition and a postcondition —** a rule `before` an operation is a precondition and one `after` it a postcondition of the Behavior the Algorithm or the transition's effect is, its section 13.2.3.1, an Activity holding them as a Behavior does, its section 15.2.3.6: a precondition holding as the Behavior is invoked, which an implementation may assume, and a postcondition holding once its invocation completes successfully. That a run finding its precondition false is refused is the canon's, an addition, UML leaving the behaviour undefined; so is an operation a section's own text states, UML holding a precondition and a postcondition of a Behavior alone. A protocol transition's precondition is its guard and its postcondition a Constraint, as `§ Constructs § State Machine § What It Means` has it.
+
+**A derived value —** a derived Property, its section 9.5.3, whose derivation may be specified by a constraint, which the Constraint whose rule is `{fact} = {expression}` is.
+
+**An operation all or none —** an occurrence a State Machine answers is dispatched only once the one before it is fully processed, its section 14.2.3.9.1; that an occurrence, a run of an Algorithm or a transition taken is all or none, what it wrote undone where it fails or is refused, is the canon's, an addition.
+
+**Enforced by —** the canon's addition: UML holds that an unsatisfied Constraint makes the model's realization invalid, its section 7.6.3, and says nothing of what keeps one satisfied.
 
 ### Record Form
 

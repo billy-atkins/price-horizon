@@ -7,7 +7,8 @@ How an expression is written wherever a construct computes or tests a value, so 
 | Decision Table | a condition's cells, its Input Values, a computed header, an outcome's value, a computed outcome, its Output Values and its Default Output |
 | State Machine | an exclusive choice's guards |
 | Algorithm | a computation's value, a comparison's condition, a loop's list and its order, a run's argument and a Terminates cell |
-| Facts record | its Values, and a function's Derivation |
+| Constraint | its rule |
+| Facts record | its Values, a function's Derivation and an Initial Value |
 
 `§ Expressions § FEEL` states FEEL in the canon's own words, each statement citing the section of DMN it rests on, so nothing FEEL means is left to recall; where this file is silent, FEEL means what DMN's chapter 10 says (`specs/methodology/external-references.md § External References [Name: DMN]`). A construct's section says which of FEEL's forms its checks decide and which it leaves to reading, and states any writing of FEEL's it narrows to one, as `specs/methodology/sourcing-and-citation.md § An External Reference` has a section state it.
 

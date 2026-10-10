@@ -603,11 +603,11 @@ def construct_findings(r, body, found, sections):
         if not ok:
             continue
         check = {"State Machine": _machine, "Decision Table": _decision_table,
-                 "Decision Tree": _tree, "DAG": _dag, "Constraint": _constraint}.get(name)
+                 "Decision Tree": _tree, "DAG": _dag}.get(name)
         if name == "Decision Table":
             _decision_table(r, line, name, fields, tables, found, facts)
-        elif name == "Algorithm":
-            # its whole check runs across files, in algorithm_findings
+        elif name in ("Algorithm", "Constraint"):
+            # its whole check runs across files, in algorithm_findings or constraint_findings
             continue
         else:
             check(r, line, name, fields, tables, found)
@@ -1258,6 +1258,13 @@ def fact_record_findings(records):
                 out.append((line, f"a Facts record's Derivation in no form of a FEEL function: {name}"))
             for problem in problems:
                 out.append((line, f"a Facts record's Derivation: {name}: {problem}"))
+        initial = d.get("Initial Value", "none")
+        if initial != "none":
+            kind, problems = expressions.check(initial, {n: kind_of_type(dd.get("Type", "")) for _, n, dd in records})
+            for problem in problems:
+                out.append((line, f"a Facts record's Initial Value: {name}: {problem}"))
+            if not problems and _differs(kind, kind_of_type(d.get("Type", ""))):
+                out.append((line, f"a Facts record's Initial Value of another kind than its Type: {name}"))
         if name.split() and name.split()[0] in expressions.KEYWORDS:
             out.append((line, f"a fact's name opening with a word FEEL keeps: {name}"))
 
@@ -2226,25 +2233,112 @@ def algorithm_findings(text_of, found, sections, strip_fences, citation, resolve
 # what enforces its rule by
 CITATION = re.compile(r'`((?:[\w./-]+\.md\s*)?§\s+[^`]+)`')
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Constraint
-# the words an Enforced by opens with where its value is that nothing enforces the rule, the canon's "nothing in its
-# Enforced by column", and the pattern matching them and the colon ending that value
-NOTHING_WORDS = "nothing|none"
-NOTHING_ENFORCES = re.compile(r'(?i)\s*(?:' + NOTHING_WORDS + r')\s*:')
+# an Enforced by whose value is that nothing keeps the rule, `nothing:` and words; the one copy of the form
+NOTHING_ENFORCES = re.compile(r'nothing: \S')
 
 
-def _constraint(r, line, name, fields, tables, found):
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Constraint
+# when a rule holds, as its Applies to writes it: `always`, or `after` or `before` the citation of an operation; the
+# one copy of the form
+APPLIES_TO = re.compile(r'always|(?P<when>after|before) (?P<cite>`[^`]+`)')
+# a record section, which states no operation: its records under **Records:**
+RECORDS_FIELD = "**Records:**"
+
+
+def constraint_findings(text_of, found, warned, sections, strip_fences, citation, resolve):
+    """§ Constructs § Constraint, each Constraint checked once, across files, its citations resolved: each rule a FEEL
+    boolean judged with the facts in scope, its file's and, after or before an Algorithm, or a transition whose effect
+    runs one, that Algorithm's; an Applies to in one of its forms, citing an operation whole; and an Enforced by that
+    is citations joined by `and`, or `nothing:` and words, the latter appended to `warned`, never to `found`.
+    `citation` and `resolve` are the citation check's own."""
     rule = f"{RULE} § Constraint"
-    table = tables[0]
-    off = 1 if table["header"][:1] == ["Name"] else 0
-    for ln, row in table["rows"]:
-        enforced = row[off + 2]
-        nothing = NOTHING_ENFORCES.match(_form_of(enforced))
-        if not CITATION.search(enforced):
-            found.append((rule, r, ln, "a rule stated but enforced nowhere: its Enforced by cites nothing"))
-        # a cell whose value is that nothing enforces the rule, `nothing:` or `none:`, whatever it cites after
-        elif nothing:
-            word = enforced[nothing.start():nothing.end()].replace(" ", "").lower()
-            found.append((rule, r, ln, f"a rule stated but enforced nowhere: its Enforced by opens `{word}`"))
+    decls, facts_in, record_secs = {}, {}, set()
+    for r, body in text_of.items():
+        live, secs = strip_fences(body), sections(body)
+        lines = live.split(chr(10))
+        record_secs.update((r, lineage) for lineage, (h, end) in secs.items()
+                           if any(l.strip() == RECORDS_FIELD for l in lines[h:end]))
+        facts_in[r] = facts_of(fact_records(live, secs))
+        for line, name, fields, tables, lineage in declarations(live, secs):
+            decls[(r, lineage)] = (line, name, dict((k, v) for _, k, v in fields), tables)
+
+    def kinds_in(r, names):
+        return {n: kind_of_type(facts_in.get(r, {})[n][0]) if n in facts_in.get(r, {}) else None for n in names}
+
+    def io_of(key, when, names):
+        """The facts the Algorithm at `key` takes, and gives where `when` is after, added to `names`."""
+        target = decls.get(key)
+        if not target or target[1] != "Algorithm":
+            return
+        for k in ["Inputs"] + (["Output"] if when == "after" else []):
+            for _, n in io_items(target[2], k):
+                names.setdefault(n, kinds_in(key[0], [n])[n])
+
+    def effect_of(key, cite):
+        """The citation a transition's Effect cell holds, the transition named by `[Name: …]` in `cite`, or None."""
+        _, _, _, tables = decls[key]
+        m = re.search(r'\[Name: ([^\]]+)\]', cite)
+        if not m or len(tables) < 2 or "Effect" not in tables[1]["header"]:
+            return None
+        header = tables[1]["header"]
+        for _, row in tables[1]["rows"]:
+            if row[0].strip() == m.group(1).strip() and len(row) == len(header):
+                c = citation.search(row[header.index("Effect")])
+                return c.group(0) if c else None
+        return None
+
+    for (r, lineage), (line, name, values, tables) in sorted(decls.items()):
+        if name != "Constraint" or not tables:
+            continue
+        table = tables[0]
+        header = table["header"]
+        off = 1 if header[:1] == ["Name"] else 0
+        if header[off:] != FORMS["Constraint"][0]:
+            continue  # its form is the declaring check's to report
+        scope = kinds_in(r, list(facts_in.get(r, {})))
+        for ln, row in table["rows"]:
+            if len(row) != len(header):
+                continue
+            text, applies, enforced = row[off], row[off + 1], row[off + 2]
+            names = dict(scope)
+            m = APPLIES_TO.fullmatch(applies.strip())
+            if not m:
+                found.append((rule, r, ln, f"an Applies to that is neither `always` nor `after` or `before` a citation: {applies}"))
+            elif m["cite"] and not citation.fullmatch(m["cite"]):
+                found.append((rule, r, ln, f"an Applies to citing a whole file, no operation: {m['cite']}"))
+            elif m["cite"]:
+                key = resolve(m["cite"].strip("`"), r)
+                target = decls.get(key)
+                # a citation resolving to no section is the citation checks' to report; a section declaring no
+                # construct is an operation its own text states, read with the file's facts alone
+                if key in record_secs:
+                    found.append((rule, r, ln, f"an Applies to citing a record section, which states no operation: {m['cite']}"))
+                elif target and target[1] == "Algorithm" and "[" in m["cite"]:
+                    found.append((rule, r, ln, f"an Applies to citing a step of an Algorithm, not the Algorithm: {m['cite']}"))
+                elif target and target[1] not in ("Algorithm", "State Machine"):
+                    found.append((rule, r, ln, f"an Applies to citing what is no operation, {_a(target[1])}: {m['cite']}"))
+                elif target and target[1] == "State Machine" and "[Name:" not in m["cite"]:
+                    found.append((rule, r, ln, f"an Applies to citing a State Machine and no transition of it: {m['cite']}"))
+                elif target and target[1] == "State Machine":
+                    effect = effect_of(key, m["cite"])
+                    if effect:
+                        io_of(resolve(effect.strip("`"), key[0]), m["when"], names)
+                elif target:
+                    io_of(key, m["when"], names)
+            kind, problems = expressions.check(text, names)
+            for problem in problems:
+                found.append((rule, r, ln, f"a rule: {problem}"))
+            if kind not in (None, "boolean") and not problems:
+                found.append((rule, r, ln, f"a rule giving no yes or no, a {_kind_name(kind)}: {text}"))
+            form = _form_of(enforced)
+            if NOTHING_ENFORCES.match(form):
+                warned.append((rule, r, ln, f"a rule nothing keeps, its Enforced by opening `nothing:`: {text}"))
+            elif re.match(r'(?i)\s*nothing\b', form):
+                found.append((rule, r, ln, f"an Enforced by opening `nothing` in other than `nothing:` and words: {enforced}"))
+            elif not citation.search(enforced):
+                found.append((rule, r, ln, "a rule stated but enforced nowhere: its Enforced by cites nothing"))
+            elif citation.sub(" ", enforced).replace("`", "").split() != ["and"] * (len(citation.findall(enforced)) - 1):
+                found.append((rule, r, ln, f"an Enforced by that is neither citations joined by `and` nor `nothing:` and words: {enforced}"))
 
 
 # ---------------------------------------------------------------- a Name column, present where it is cited
@@ -2294,9 +2388,7 @@ def construct_candidates(files, sections, strip_fences):
                 out.append((r, line, "coverage the cells do not settle",
                             f"§ {lineage}: whether every case matches a row is read"))
             # wording a script cannot judge, listed for the reading audit to read: a step that is no comparison
-            # holding a comparison's words, its separator aside, which the Algorithm's check reports; and an
-            # Enforced by opening nothing or none and holding a citation, its opening `nothing:` or `none:` aside,
-            # which the Constraint's check reports
+            # holding a comparison's words, its separator aside, which the Algorithm's check reports
             if name == "Algorithm" and tables:
                 runs_when = dict((k, v) for _, k, v in fields).get("Runs When", "")
                 mode = dict((k, v) for _, k, v in fields).get("Rounding Mode")
@@ -2314,13 +2406,6 @@ def construct_candidates(files, sections, strip_fences):
                     if not text.startswith(COMPARISON_OPENING) and SEPARATOR_MARK not in text \
                             and COMPARISON_WORDS.search(text) and not text.startswith(("Set ", "Run ", "For each ")):
                         out.append((r, ln, "a comparison a step may fold", f"§ {lineage}: {row[1][:100]}"))
-            if name == "Constraint" and tables:
-                off = 1 if tables[0]["header"][:1] == ["Name"] else 0
-                for ln, row in tables[0]["rows"]:
-                    cell = row[off + 2] if len(row) > off + 2 else ""
-                    if re.match(r'(?i)\s*(?:' + NOTHING_WORDS + r')\b', _form_of(cell)) and CITATION.search(cell) \
-                            and not NOTHING_ENFORCES.match(_form_of(cell)):
-                        out.append((r, ln, "an Enforced by that may say nothing enforces it", f"§ {lineage}: {cell[:100]}"))
         lines = live.split("\n")
         for i, l in enumerate(lines):
             if l.startswith("|") and (i == 0 or not lines[i - 1].startswith("|")) and i + 1 not in declared:
