@@ -33,7 +33,7 @@ Each design document is a file of its own, one per change taken through `specs/A
 | Steering Decisions | a `## Steering Decisions` record section | once the user has steered the design | | each steer the user gave, per `§ A Steering Decision` |
 | The Design | a `## The Design` section | yes | | what the design does, then each edit, introduced by a bold lead-in naming the file it edits (`specs/methodology/modeling-constructs.md § Bold Lead-ins`) and quoting exactly the text it replaces or follows, so it can be verified and applied as written |
 | Impact on the Application Specs | a `## Impact on the Application Specs` section | in a canon design | | each application file and section the canon change leaves out of step, what it leaves out of step there and what the application work must do, or that none was found; and how the application specs were reviewed |
-| The Builder's Passes | a `## The Builder's Passes` section | yes | | what each pass and each review changed, each under a bold lead-in naming it, and each review named with its report; and the builder's own check of what its edits change in a script or code, each ephemeral differential test (`specs/methodology/glossary.md`) of a changed script or each of the local environment's tasks it ran on code, and what each showed. An adversarial review's lead-in opens `Adversarial review`, and a post-apply audit's `Post-apply audit`. Each of those two names the model and reasoning effort it ran on, as `on {model} at {effort} effort`, the effort one of the levels `specs/AGENTS.md § Design, Refactor, Refine` names, or as `on {model} as the agent allows` where the agent could not apply the effort chosen, and records the flaws the user settled among its findings |
+| The Builder's Passes | a `## The Builder's Passes` section | yes | | what each pass and each review changed, each under a bold lead-in naming it, and each review named with its report; and the builder's own check of what its edits change in a script or code, each ephemeral differential test (`specs/methodology/glossary.md`) of a changed script or each of the local environment's tasks it ran on code, and what each showed. An adversarial review's lead-in opens `Adversarial review`, and a post-apply audit's `Post-apply audit`. Each of those two names the model and reasoning effort it ran on, as `on {model} at {effort} effort`, the effort one of the levels `specs/AGENTS.md § Design, Refactor, Refine` names, or as `on {model} as the agent allows` where the agent could not apply the effort chosen, and records the flaws the user settled among its findings; an adversarial review's pass also records the decisions of the design its findings fell on, the cause named for each, the steers the causes pressed on and what the user decided of them, or none, the frame's revision where the frame let findings in, the change, each finding fixed where it sits with its reason, and the worked cases proving the change |
 | Deliberately Left Alone | a `## Deliberately Left Alone` section | yes | | each change considered and declined, with the reason, and each piece of work deferred, named by the design document spawned for it or the follow-up logging it |
 
 **Spawning keeps a design focused —** when a design turns up work that is a change of its own, a migration of files a rule change leaves out of step among them, that work is spawned as a design document of its own or logged as a follow-up (`§ A Follow-up`), as the user decides, since which suits depends on how the user means to work it. It is spawned or logged when it is deferred, not when the design completes. A spawned design's Spawned By names the design it came from, so each design, and each review of it, holds one change; the design's scope still sweeps what the spawned change touches, and only its edits move.
@@ -46,11 +46,11 @@ Each design document is a file of its own, one per change taken through `specs/A
 
 **A validation review holds it to this form —** before the user is asked to approve a design, a cold agent other than the builder checks the document against this section and `§ A Steering Decision`, through the design script for what it decides and by reading for what it cannot:
 
-- each steer is recorded as a steering decision in the user's words, not paraphrased or left in The Builder's Passes, and nothing is recorded as one that `§ A Steering Decision` calls no steer;
+- each steer is recorded as a steering decision in the user's words, not paraphrased or left in The Builder's Passes, its Type the one `§ A Steering Decision` gives it, and nothing is recorded as one that `§ A Steering Decision` calls no steer;
 - a steering decision records the user's agreement or adjustment to its design frame;
 - the Source holds the request that opened the design;
 - each piece of deferred work names a follow-up or a design document that exists;
-- each review in the passes is named with its report;
+- each review in the passes is named with its report, and each adversarial review's pass holds what this section's Builder's Passes row gives it;
 - its design frame's Scope states the cases the change governs and how its sweep was done, and a canon design's Impact on the Application Specs how its review was.
 
 It reports what it finds, and edits nothing but the Validated field, which it stamps once the document passes. The stamp is its record in the design, and its report is named in no pass, since naming it would change what it stamped. The adversarial review reviews the design, and the validation review the record of it, so each keeps its own focus. A design changed after its stamp no longer matches it, so a stale validation is read from the file and never cleared by hand. Every validation review reads the whole document, a rerun after a failed one included, since a fix can break what an earlier review passed.
@@ -148,14 +148,17 @@ A design's Steering Decisions record only the user's steers, the decisions a ste
 
 **A go-ahead to take in findings —** is a steer for the findings that change what the design is and direction for the tactical ones; an answer carrying both is recorded for the part that decides the design.
 
-**Each steer is recorded when it is given —** and the design is revised to apply it before its work goes on, so the design carries how it was formed and never lags a steer it records. The record is history: a later steer revising what an earlier one decided is recorded after it, and the earlier one stays as it was given, the design following the later one, so the records, read in order, show how the design was shaped. The adversarial review reads the steers as background, checking fidelity to them rather than reopening them, and a later revision does not reopen what the user decided. The request that opened the design is its Source, and The Builder's Passes record what each pass changed, never a steer, so each steer is recorded once.
+**Each steer is recorded when it is given —** and the design is revised to apply it before its work goes on, so the design carries how it was formed and never lags a steer it records. Only the user revises a steer, by a later one, and the record is history: a later steer revising what an earlier one decided is recorded after it, and the earlier one stays as it was given, the design following the later one whatever the Type of either, so the records, read in order, show how the design was shaped. The adversarial review reads the steers as background, checking fidelity to them rather than reopening them. The request that opened the design is its Source, and The Builder's Passes record what each pass changed, never a steer, so each steer is recorded once.
+
+**A steer's Type —** a steer is a selection where the user merely selects one of the options the builder offered, a literal selection; every other steer is a perspective, whatever its form, such as emphasis, a negative remark, a nudge or a strong direction for the design. Selecting an option is easier than sharing a perspective, and a perspective originates with the user.
 
 A design's steering decisions sit in its record section titled `Steering Decisions`, each a record in the Record Form (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) of the type named Steering Decisions:
 
 | Field | Identifies | Required | Default Value | Values | Holds |
 |---|---|---|---|---|---|
 | Name | yes | yes | | text | a short name for what was decided |
-| Prompted By | no | yes | | text | what the steer answered: a question, proposal or account the builder gave, a review's finding named by its ID, or the user's own initiative |
+| Prompted By | no | yes | | text | what the steer answered: a question, proposal or account the builder gave, with the options it offered where it offered any, a review's finding named by its ID, or the user's own initiative |
+| Type | no | yes | | "selection", "perspective" | a selection or a perspective, as this section's paragraph A steer's Type has it |
 | Steer | no | yes | | text | the user's own words, quoted |
 | Decision | no | yes | | text | the essence of what the steer decided, in a sentence or two |
 
@@ -189,6 +192,10 @@ A decision about other work is recorded where that work is held, so whoever take
 | "an approved design", "an applying design" | is put to the user, who decides whether to reopen that design for it, an applying one only as a flaw in what it applies (`§ A Design Document § Changes After Approval`): reopened, the design takes it as its steer; not reopened, it is dropped, or, where the user wants it kept for later, logged as a follow-up |
 | a follow-up, and no open design | goes in the follow-up's body (`§ A Follow-up`), and the design taking up the follow-up records it as its steer |
 | no follow-up, and no open design, only a complete or abandoned design or nothing | the user chooses between a not-started design recorded for it, the decision its Source where it asks for the work and its steer otherwise, and a new follow-up |
+
+### Revisiting a Steer
+
+A design's path is not straight: working toward an elegant solution takes loops, detours and pivots, and a steer is part of what may need to move. Where the builder, settling a round (`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round`), finds that a change fixing a cause would go against one or more steers, of either Type, those are the steers the cause presses on. The builder brings the user each such steer, the findings pressing on it and what revising it would change, and proposes revising the selections among them, whose options the builder framed, and a perspective only where revising the selections cannot fix the cause: a perspective outweighs a selection. The user decides.
 
 ## A Stamp
 

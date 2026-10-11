@@ -61,7 +61,9 @@ NOT_YET_STATED = "Not yet stated."
 # the type's table of record fields, copied here as this tooling reads it, each row's Field, Identifies,
 # Required, Default Value and Values cells; steer_table_problems holds the copy to that section's table, STEER_HOME
 STEER_TABLE = (("Name", "yes", "yes", "", "text"), ("Prompted By", "no", "yes", "", "text"),
+               ("Type", "no", "yes", "", '"selection", "perspective"'),
                ("Steer", "no", "yes", "", "text"), ("Decision", "no", "yes", "", "text"))
+STEER_TYPES = tuple(re.findall(r'"([^"]+)"', next(v for f, _, _, _, v in STEER_TABLE if f == "Type")))
 STEER_FIELDS = tuple(f for f, _, _, _, _ in STEER_TABLE)
 STEER_HOME = ("specs/methodology/working-files.md", "A Steering Decision")
 # working-files.md § A Design Document: an adversarial review's or post-apply audit's pass,
@@ -173,7 +175,7 @@ def frame_parts(text):
 
 def check_steers(body):
     """-> problems with a Steering Decisions section: a Records field, and each record its
-    type's fields in order, no two sharing a Name."""
+    type's fields in order, its Type one of the field's values, no two sharing a Name."""
     if not re.search(r"^\*\*Records:\*\*\s*$", body, re.M):
         return ["Steering Decisions has no Records field"]
     items = re.split(r"^- ", body.split("**Records:**", 1)[1], flags=re.M)[1:]
@@ -186,6 +188,9 @@ def check_steers(body):
             problems.append("a steering decision's fields are %s, not %s" % (", ".join(keys), ", ".join(STEER_FIELDS)))
             continue
         name = re.match(KEY + r" ?(.*)", item).group(2).strip()
+        type_ = re.search(r"^[ \t]*\*\*Type:\*\* ?(.*)$", item, re.M).group(1).strip()
+        if type_ not in STEER_TYPES:
+            problems.append("steering decision %s has a Type that is not one of %s: %s" % (name, ", ".join(STEER_TYPES), type_))
         if name in seen:
             problems.append("two steering decisions share the Name " + name)
         seen.add(name)
