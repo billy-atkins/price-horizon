@@ -11,12 +11,12 @@ This file defines the bounded, approved set of structured modeling constructs, r
 | State Machine | two states sharing a name; no initial state, or more than one; a From or To naming a state its States table does not hold; a state the initial state cannot reach; a state that is not terminal with no way out, or a terminal state with one; two transitions from one state on the same trigger, or on none, whose guards, read as a Unique Decision Table, can both hold, or a guard no case meets; such a guard in no form FEEL has, or giving no yes or no, or testing as a boolean a fact whose name asks no question, or a fact whose name holds a word FEEL keeps; a state that cannot stay where, once its work is done, some case takes no transition out of it; a fork no join closes, or a join no fork opens; a Transitions table's columns other than From, To and Trigger, then a Guard, an Effect or both in that order, or such a column every cell of which is none; a guard comparing a fact with another no guard of its choice tests and no Facts record declares, or of another kind; an Effect cell citing no Algorithm or Decision Table; a Recorded In field that is not a fact's name, a colon and the citation of a Facts record, a record it cites whose Values are no quoted list, or a state not among them; or a protocol machine with an Effect column, a transition with no trigger or a governed state; and of a submachine state, a state governed by more than one machine, a machine governing itself, a governed state that is terminal or not left as its machine's exits have it, the words `governed by` naming no machine or a part of one, or naming none, and a description citing a machine's whole section without them |
 | Decision Table | a cell in no form FEEL or its departure for a cell has, a value tested after `=`, or a condition column testing values of more than one kind; an expression or a cell in no form FEEL has, naming what no fact, binding or function names, combining values of two kinds, reaching by a path a part a value does not hold, calling a function FEEL does not build in, or giving one a number of arguments none of its signatures takes, a minus before what is neither a number nor a duration, a filter testing neither a yes or no nor a place, or an `@` value in no form; a question's outcome other than `true`, `false` or `null`; a condition's header neither a fact's name nor a computation; a cell, a computed header or a computed outcome naming a fact nothing declares, or combining values of two kinds, or a cell ending at a fact of another kind than its column; a Reads item that is no fact's name, a colon and a citation, or a Computed field naming no outcome column; a cell testing another kind than its fact's Type, or `null` where its fact may not be absent; an Input Values item given for a fact a Facts record declares, empty, written plain, in no form of FEEL's unary tests, or naming a fact; a cell outside its column's values; where it takes one row's outcome and gives no Default Output, a case no row matches; a First table falling through by a Default Output; a row that gives no case its outcome; an outcome cell outside a Computed column written as a test or a list; and, by its hit policy, a case two rows match where it is Unique, two rows a case matches giving different outcomes where it is Any, an outcome missing from its Output Values where it is Priority or Output order, an aggregating Collect's outcome other than one column, of numbers but for a count, or a case two rows match whose outcomes cannot both be carried out where it is Rule order, Output order or a Collect that does not aggregate |
 | Decision Tree | a branch with no result; a jump to a step the table does not hold; a step no path from step 1 reaches; a step that leads back to itself; or a question whose answers overlap, or leave a case with no answer |
-| DAG | two tasks sharing a name; a dependency naming a task the table does not hold; or a task that depends on itself, directly or through others, and so never runs |
+| DAG | no Runs When field; two tasks sharing a name; a work that is neither `none`, alone or leaving facts, nor a citation resolving to an Algorithm, a Decision Table or a DAG, one citing a part of a construct, or a DAG holding itself through the tasks it cites; a Decision Table a task runs whose outcome column no fact declares, or a `none` leaving a fact nothing declares; a dependency naming a task the table does not hold, or `ended` on a task that can only end done; a task that depends on itself, directly or through others, and so never runs; a guard in no form FEEL has, giving no yes or no, naming a fact nothing declares, combining values of two kinds or reaching a part a fact does not hold; a timeout that is neither a FEEL duration literal nor a declared fact of a duration type; a tolerated that is neither `Yes` nor `No`, or `Yes` on a task that cannot fail; a guard or a timeout column every cell of which is `none`, or a tolerated column every cell of which is `No`; two tasks free at once whose work gives one fact, or one of which reads, by its work or its guard, a fact the other gives; a task reading a fact a task after it gives without reading it, or a fact that some task before it gives and none gives surely, whose record does not say it may be absent; or a Runs When citing a construct that does not run the DAG, or leaving out a DAG or a State Machine that does |
 | Algorithm | no Inputs, Output or Runs When field, an Inputs item that is neither a fact's name nor a name, a colon and a citation, an Output item that is no fact's name, or an Output fact its Inputs do not name that nothing sets; two steps sharing a number; a jump to a step the table does not hold; a Precision that is no whole number above zero and below 34, or a Rounding Mode that is neither a mode `specs/methodology/expressions.md` names nor a fact the Algorithm knows whose Values hold only modes; a step in none of its forms, a comparison not written in its form, whose condition gives no yes or no or whose branch is a loop, a computation not written `Set` a fact or its part `to` an expression, a run not written `Run`, a citation, its arguments and what it gives, a run citing no Algorithm or Decision Table, a loop over a list not written in its form, or work citing an Algorithm or a Decision Table whole; an expression in no form FEEL has, naming a fact the step does not know, combining values of two kinds, or reaching a part a fact does not hold; a value written to a fact, a part or an Input of another kind, or a part set by a path that is not names joined by `.` or that reaches through a list; a run giving a fact the construct run does not give, naming as an argument no fact it takes, or leaving a fact it takes neither given nor known; a comparison whose only work is setting one fact; a comparison both of whose branches go back to an earlier step or to its own; a step that is no comparison going back; a loop's body that is not the steps after it, reaches past the body holding it or holds the table's last step, a jump into or out of a body, a loop over what is no list, or a pass `at once` setting a fact other than its item and what it gathers; a step going back or a run recurring with no Terminates cell, a Terminates cell giving no number or citing no Constraint, or citing one nothing enforces, one on a step that neither goes back nor recurs, or a Terminates column every cell of which is none; a jump or an `End` that does not end its branch, or an `End` with words after it; a last step, or a branch of it, that neither ends nor jumps; or a Runs When citing a construct that does not run it, or leaving out one that does |
-| Constraint | a rule in no form FEEL has, giving no yes or no, naming a fact nothing declares, combining values of two kinds or reaching a part a fact does not hold; an Applies to that is neither `always` nor `after` or `before` a citation, or citing a step, a construct that is no operation, a record section, or a State Machine and no transition of it; or an Enforced by that is neither citations joined by `and` nor `nothing:` and words; a rule nothing keeps listed as a warning, never a finding |
+| Constraint | a rule in no form FEEL has, giving no yes or no, naming a fact nothing declares, combining values of two kinds or reaching a part a fact does not hold; an Applies to that is neither `always` nor `after` or `before` a citation, or citing a step or a task, a construct that is no operation, a record section, or a State Machine and no transition of it; or an Enforced by that is neither citations joined by `and` nor `nothing:` and words; a rule nothing keeps listed as a warning, never a finding |
 | Record Form | a record missing a field its type requires, holding one its type does not define, holding a value its type's Values do not allow, or giving its fields out of their order; or two records in one section sharing the values of their identifying fields; and a Facts record whose name is no fact's name, opens with a word FEEL keeps, or, a boolean fact's, asks no question, or whose Values are empty, written plain, in no form of FEEL's unary tests, or name a fact, or whose Type is no type FEEL names, or whose Decimal Places is neither a whole number nor a fact its file declares, or sits on a fact that is neither a number nor a function giving one, or whose Derivation sits on a fact that is no function, or is in no form of a FEEL function, or whose Initial Value is in no form FEEL has or of another kind than its Type |
 
-Use one of the constructs `§ Constructs` defines when a rule, a process, an entity's behavior, or an entry written repeatedly into the specs or the working files needs that kind of checkable completeness, and use prose everywhere else. The set is bounded and approved: a new construct earns its place only by filling a real gap none of the existing ones cover, not by preference for a different notation, and extending the set is a deliberate decision, made by updating this file first, never an ad hoc addition inside a single spec. Each construct is a definition (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`): its section in `§ Constructs`, with `§ Constructs § Declaring a Construct`, defines what each use of it sets, each use an instance the audit checks against it, as `specs/methodology/scope.md § Rules and Skills` has a rule's checks made. The Record Form is defined through its record types instead (`§ Constructs § Record Form`). The Decision Table is DMN's whole decision table (`specs/methodology/external-references.md § External References [Name: DMN]`), with the information requirements chaining one decision to another, written as a table's Reads field; DMN's other parts, its Decision Requirements Diagrams, its Business Knowledge Models, its decision services and its boxed expressions, are outside the set, and a project needing one adds it so. The State Machine adopts UML's state machine, the Algorithm UML's activity and the Constraint UML's Constraint (`specs/methodology/external-references.md § External References [Name: UML]`); the Decision Tree, the DAG and the Record Form follow no outside standard, since none meets their need: a decision tree's standards describe trees learned from data rather than questions an author writes, and a DAG's are whole workflow notations. The Facts record type relies on DMN's item definitions, as `§ Constructs § Declaring a Construct § A Fact` states.
+Use one of the constructs `§ Constructs` defines when a rule, a process, an entity's behavior, or an entry written repeatedly into the specs or the working files needs that kind of checkable completeness, and use prose everywhere else. The set is bounded and approved: a new construct earns its place only by filling a real gap none of the existing ones cover, not by preference for a different notation, and extending the set is a deliberate decision, made by updating this file first, never an ad hoc addition inside a single spec. Each construct is a definition (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`): its section in `§ Constructs`, with `§ Constructs § Declaring a Construct`, defines what each use of it sets, each use an instance the audit checks against it, as `specs/methodology/scope.md § Rules and Skills` has a rule's checks made. The Record Form is defined through its record types instead (`§ Constructs § Record Form`). The Decision Table is DMN's whole decision table (`specs/methodology/external-references.md § External References [Name: DMN]`), with the information requirements chaining one decision to another, written as a table's Reads field; DMN's other parts, its Decision Requirements Diagrams, its Business Knowledge Models, its decision services and its boxed expressions, are outside the set, and a project needing one adds it so. The State Machine adopts UML's state machine, the Algorithm and the DAG UML's activity and the Constraint UML's Constraint (`specs/methodology/external-references.md § External References [Name: UML]`); the Decision Tree and the Record Form follow no outside standard, since none meets their need: a decision tree's standards describe trees learned from data rather than questions an author writes. The Facts record type relies on DMN's item definitions, as `§ Constructs § Declaring a Construct § A Fact` states.
 
 The line between a construct and prose runs through a construct's own section too, the one defining it in `§ Constructs` and a spec's section holding an instance alike, between what its tables write and what the section's prose holds. A thing the prose could state is a column, a field or a form of the construct, with a check, where an outcome the spec states depends on it and the files alone could check what it says, as an exclusive choice's Guard column is, whether a move is taken deciding where the entity goes, or, in an instance, is written nowhere where its tables already give it, as the order of an Algorithm's steps is given by their numbers; where no stated outcome depends on it, it is prose, as an Algorithm's work in words is, which decides nothing; and where a stated outcome depends on it but only a judgment can check what it says, it is prose, and a reading audit asks it, as what a state's work is. Where a stated outcome depends on it and whether the files could check it is arguable, the form is favored, since a rule without a check is a suggestion (`specs/methodology/scope.md § Rules and Skills`), and a form that costs a new construct or a notation is the deliberate decision extending the set, made by updating this file first.
 
@@ -69,7 +69,7 @@ A fact several constructs test is declared as `§ Constructs § Declaring a Cons
 
 **One construct to a section —** a section holds at most one construct of its own, not counting its subsections', so a citation of the section names the construct. Whatever prose the section needs sits between its heading and the `**Construct:**` field, or after the construct's last table, never inside its block, and another construct, a Constraint on an Algorithm's output say, takes a section of its own. A construct's several tables, a State Machine's States and Transitions, are one construct, and a table that is no construct, a definition, an index or a catalogue, may sit beside it.
 
-**Its columns —** a construct's tables hold every column its form gives and no other, a Name column, a Decision Table's annotations, a State Machine's Guard and Effect and an Algorithm's Terminates, where its section gives them, aside, and every cell holds a value, or `none` or `-` where its form gives one, but for a Decision Tree's Question on a branch other than the first and a Decision Table's annotation, which may be left empty.
+**Its columns —** a construct's tables hold every column its form gives and no other, a Name column, a Decision Table's annotations, a State Machine's Guard and Effect, an Algorithm's Terminates and a DAG's guard, timeout and tolerated, where its section gives them, aside, and every cell holds a value, or `none` or `-` where its form gives one, but for a Decision Tree's Question on a branch other than the first and a Decision Table's annotation, which may be left empty.
 
 **A part of a construct —** is named by a citation of the construct's section followed, in square brackets inside the same span, by the part's identifier written `Key: value`, as a record is named by its identifying fields (`specs/methodology/sourcing-and-citation.md § Writing a Citation`), so a reader and an audit can find the part and check it is there. A part is named so wherever it is named from outside its construct's section; within the section, the construct's cells and the prose around it name it by its identifier alone, as a jump names a step. A citation names one part, and several parts take a citation each:
 
@@ -86,7 +86,7 @@ A fact several constructs test is declared as `§ Constructs § Declaring a Cons
 
 A Transitions table, a Decision Table or a Constraint table opens with a column headed `Name` exactly where a part of it is cited from outside its construct's section: the column comes with the first such citation and goes with the last, and while it is there every row gives a Name. No condition or outcome column is headed `Name`.
 
-Each identifier, a state's name, a step's number, a task's name or a Name, is an identifying value (`§ Constructs § Record Form`), and no two parts of one kind in a construct share one. A state's name and a task's name also hold no comma and not the word `and`, since a From, a To and a depends_on list them by those. An Algorithm's steps are numbered from 1 in order. A Decision Tree's step is named by the number its branches share before the dot, as 2 for 2.1 and 2.2.
+Each identifier, a state's name, a step's number, a task's name or a Name, is an identifying value (`§ Constructs § Record Form`), and no two parts of one kind in a construct share one. A state's name and a task's name also hold no comma and not the word `and`, since a From, a To and a depends_on list them by those, and a task's name does not end in the word `ended`, since a depends_on marks by it a task waited for however it ended. An Algorithm's steps are numbered from 1 in order. A Decision Tree's step is named by the number its branches share before the dot, as 2 for 2.1 and 2.2.
 
 #### A Fact
 
@@ -182,15 +182,205 @@ A step's answers never overlap, and together they answer its question for every 
 
 ### DAG
 
-A table of tasks in an acyclic process and their dependencies. A task may run concurrently with any task that neither depends on it nor is depended on by it, directly or through others.
+A table of distinct tasks in an acyclic process: each the construct doing its work, the tasks it waits for, and, where it has them, its guard, its timeout and whether its failure is tolerated. Every task is considered on every run, and the tasks nothing orders run at once. It is UML's activity (`specs/methodology/external-references.md § External References [Name: UML]`), adopted whole and written as a table of tasks forked and joined, with no tie to any engine, so it maps onto the DAG an orchestrator such as Airflow, Dagster or Argo Workflows defines; `§ Constructs § DAG § What It Means` states what UML means for what its table writes, and names each departure the canon makes.
 
-| task | depends_on |
+**Its fields —** after those every construct declares (`§ Constructs § Declaring a Construct`):
+
+| Field | Required | Default Value | Values | Holds |
+|---|---|---|---|---|
+| Runs When | yes | | text | what runs it: the citation of each construct running it, a State Machine whose state's description cites it as the state's work, or a DAG whose task's work cites it; or the occurrence it answers, written as a State Machine's trigger is written (`§ Constructs § State Machine § What It Means`), a request, a file arriving or a job's run among them, a job's run saying what a missed and a late run do (`§ Time`) |
+
+Authored as a table.
+
+| task | work | depends_on |
+|---|---|---|
+| The task's name | The construct doing the task's work, or `none` | The tasks it waits for, or `none` |
+
+After its depends_on, the table adds a `guard` column, each cell what must hold on a run for the task to run, or `none`, where any of its tasks has a guard; then a `timeout` column, each cell how long the task may run, or `none`, where any has a timeout; and then a `tolerated` column, each cell `Yes` where the run goes on past the task's failure or `No`, where any task's is `Yes`. A column every cell of which would be `none` or `No` is not written.
+
+**Its tasks —** a task's name is plain text holding no comma, not the word `and` and not ending in the word `ended`, so a dependency list reads whole. Its work is `{citation}`, the Algorithm, the Decision Table or the DAG doing it, as the worked example's check margins cites its Algorithm, run once the task runs: an Algorithm reads its Inputs from the facts the file declares, among them what an earlier task gave, and gives its Output; a Decision Table reads its conditions' facts the same and gives each outcome column's value as the fact of that column's name, its outcome columns headed by facts the file declares; and a DAG is run whole as the task, reading what its tasks read, by work or guard, less what they give, and giving what they give, no DAG holding itself through the tasks it cites. Or it is `none` where the work is done outside the specs, a person's task or an external system's, a file arriving or another system's job ending among them, written `none, leaving {fact}, {fact}` where it leaves facts the tasks after it read, as `none, leaving margins`, each a fact the file declares, the prose after the table saying whose the work is and when it counts as done. A DAG's work is never an Algorithm's work in words, a step's (`§ Constructs § Algorithm`), but this citation or `none`. The occurrence that starts a run is its Runs When, never a task; a task whose work is `none` waits only within a run, after what it depends on. Its depends_on is `none`, or a list, `{task}, {task}`, as `extract prices, extract costs`, each item a task it waits for to be done, or `{task} ended`, as `load ended`, a task it waits for to have ended however it did, as a task that reports or cleans up does, written only of a task that can end other than done. No task depends on itself, directly or through the tasks it depends on. Its guard is `{condition}`, a FEEL boolean over the facts its file declares (`specs/methodology/expressions.md § Expressions § FEEL`), as `some m in margins satisfies m.flagged?`, read as the task would run, a guard reading facts as the task's work does. Its timeout is `@"{duration}"`, a FEEL duration, as `@"PT30M"`, or a fact of that type the file declares. Its tolerated is `Yes`, written only of a task that can fail, or `No`. A dependency the logic needs is a row's depends_on, never an order written in prose; a construct a DAG would run twice with different inputs is an Algorithm whose steps run it with its bindings, the task citing that Algorithm, since a task's work reads and gives facts by name alone.
+
+**Its run —** a run of a DAG considers every task. A task runs once each task it depends on is done or skipped, or has ended where it waits for that, and its guard, where it has one, holds, the tasks free at once running at once; a task whose guard does not hold is skipped; a task is unreached where a task it waits for to be done failed or was unreached; and a task whose timeout passes before it is done fails, its work ended and what it wrote undone as a failed operation's is, a nested DAG's run failing with it. A task fails where the run of the construct its work cites fails, as an operation does (`§ Constructs § Constraint`), an Algorithm's or a DAG's run, a Decision Table's never, or where its timeout passes; work that is `none` ends done, or fails by its timeout alone, what goes wrong outside the specs being a fact it leaves. So a task can fail where its work is an Algorithm or a DAG or it has a timeout; it can be unreached where a task it waits for to be done can fail or be unreached, a guard alone only skipping, and a dependency `ended` never leaving its waiter unreached; and it can end other than done where it can fail, be skipped or be unreached. A task ends done, skipped, failed or unreached; `{task} ended` waits for any of these; and a task that is not done gives nothing, the facts its work would give or its `none` would leave holding what they held before it, or no value where nothing had set them. A failed task whose tolerated is `No` fails the run; one whose tolerated is `Yes` ends failed, its own writes undone, and the run goes on, what waited for it to be done unreached and what waited for it `ended` run. The run ends once no task is running and none can run, and fails where a task failed whose tolerated is `No`. A run that fails is all or none, as `§ Constructs § Constraint` has an operation, except for what a task wrote that reaches a failed task through a dependency `ended`, which is kept, as a report or a clean-up is; what a nested DAG's run keeps so, it keeps, its parent task's failure undoing the rest of what that run wrote. Facts pass between tasks by name, a task's work, and its guard, reading what the file declares and what the tasks it reaches through its dependencies gave, never a fact a task after it gives, unless that task reads it too and so rewrites it; the facts the occurrence gives a run, its date or the request among them, are facts the file declares, set as the run begins. A fact a task reads that some task it reaches gives is declared May Be Absent (`§ Constructs § Declaring a Construct § A Fact`) unless one such task gives it surely, a giver being sure where it is not guarded, not reached through a dependency `ended`, and, within a nested DAG, neither tolerated nor waiting to be done, directly or through others, for a task that is, since there the nested run completes past the failure and its parent task ends done, and an Output the work's Inputs also name given surely by any task, a nested DAG's tasks' works' among them, the fact holding its earlier value where the task is not done; a tolerated task in the reader's own DAG gives surely to what waits for it to be done, which is unreached where it fails and never reads. Two tasks free at once, neither reaching the other through its dependencies, give no fact in common and neither reads, by its work or its guard, a fact the other gives, since an order the run leaves open would decide its value; a result an order among free tasks changes states that order (`§ Constructs § Declaring a Construct`, its Order field).
+
+**What the table does not write —** a task waiting for whichever of several tasks ends first is a State Machine's transition on the first occurrence (`§ Constructs § State Machine`), never a dependency; a task's retries, a pool or a priority among tasks are operations, stated in the prose after the table or held by a Constraint, never a row; and a flow over an unbounded stream, windowed or joined as it runs, is not written, as `§ Constructs § Algorithm` has a stream, a pipeline run once per event being a DAG whose Runs When is the event.
+
+**What is no DAG —** a process that waits within a task's work on anything but that task's completion is a State Machine, whose trigger is the wait, and one that repeats a step on a condition or branches into different downstream handling, with no wait, is a State Machine or an Algorithm, as `§ When to Use Which` chooses; the same work once per item of a list is an Algorithm's loop `at once` (`§ Constructs § Algorithm`), gathering what each pass gives, a task's work being such an Algorithm where a DAG holds it; and a process whose tasks or their order are configured as data is an Algorithm over the configuration, its loop taking each configured task in turn, a default configuration being an instance, data, never a DAG.
+
+**A worked example —** a nightly pricing run, two extracts free at once, a check of the margins they give with a timeout, a review a person makes only where a margin is flagged, a load that waits for the check and the review, and a report that runs however the load ended and whose own failure the run tolerates, written whole as a file would hold it:
+
+```markdown
+## Nightly Pricing
+
+**Construct:** DAG
+
+**Runs When:** the nightly pricing run, at 02:00 on each business date, a missed run caught up on the next and a late run taken when it comes
+
+| task | work | depends_on | guard | timeout | tolerated |
+|---|---|---|---|---|---|
+| extract prices | `§ Extract Prices` | none | none | none | No |
+| extract costs | `§ Extract Costs` | none | none | none | No |
+| check margins | `§ Check Margins` | extract prices, extract costs | none | @"PT30M" | No |
+| review flagged | none, leaving margins | check margins | some m in margins satisfies m.flagged? | none | No |
+| load | `§ Load Margins` | check margins, review flagged | none | none | No |
+| report | `§ Report Run` | load ended | none | none | Yes |
+
+Review flagged is the pricing analyst's: each flagged margin is confirmed or corrected in the margins list, done when the analyst marks the review complete.
+
+## Extract Prices
+
+**Construct:** Algorithm
+
+**Inputs:**
+
+- price feed
+
+**Output:**
+
+- prices
+
+**Runs When:** `§ Nightly Pricing`
+
+| Step | Action |
 |---|---|
-| ... | the tasks that must complete first, separated by commas, or none |
+| 1 | Set prices to price feed[valid?] |
+| 2 | End |
 
-No task depends on itself, directly or through the tasks it depends on.
+## Extract Costs
 
-This maps directly onto Airflow's, Dagster's, or Argo Workflows' own DAG definitions, whichever an implementation chooses.
+**Construct:** Algorithm
+
+**Inputs:**
+
+- cost feed
+
+**Output:**
+
+- costs
+
+**Runs When:** `§ Nightly Pricing`
+
+| Step | Action |
+|---|---|
+| 1 | Set costs to cost feed[valid?] |
+| 2 | End |
+
+## Check Margins
+
+**Construct:** Algorithm
+
+**Inputs:**
+
+- prices
+- costs
+- floor
+
+**Output:**
+
+- margins
+
+**Runs When:** `§ Nightly Pricing`
+
+| Step | Action |
+|---|---|
+| 1 | Set margins to for p in prices return {sku: p.sku, margin: p.price - costs[sku = p.sku][1].cost, flagged?: p.price - costs[sku = p.sku][1].cost < floor} |
+| 2 | End |
+
+## Load Margins
+
+**Construct:** Algorithm
+
+**Inputs:**
+
+- margins
+
+**Output:**
+
+- loaded
+
+**Runs When:** `§ Nightly Pricing`
+
+| Step | Action |
+|---|---|
+| 1 | Set loaded to count(margins) |
+| 2 | End |
+
+## Report Run
+
+**Construct:** Algorithm
+
+**Inputs:**
+
+- loaded
+- business date
+
+**Output:**
+
+- report
+
+**Runs When:** `§ Nightly Pricing`
+
+| Step | Action |
+|---|---|
+| 1 | Set report to {loaded: loaded, for: business date} |
+| 2 | End |
+
+## Facts
+
+**Records:**
+
+- **Name:** business date
+  **Type:** date
+  **Means:** the date the run prices, the business date the nightly run is launched for, in the trading desk's zone
+
+- **Name:** price feed
+  **Type:** list<context<sku: string, price: number, valid?: boolean>>
+  **Means:** the night's prices as the feed delivers them
+
+- **Name:** cost feed
+  **Type:** list<context<sku: string, cost: number, valid?: boolean>>
+  **Means:** the night's costs as the feed delivers them
+
+- **Name:** prices
+  **Type:** list<context<sku: string, price: number>>
+  **Means:** the valid prices
+
+- **Name:** costs
+  **Type:** list<context<sku: string, cost: number>>
+  **Means:** the valid costs
+
+- **Name:** floor
+  **Type:** number
+  **Means:** the margin below which a sku is flagged
+
+- **Name:** margins
+  **Type:** list<context<sku: string, margin: number, flagged?: boolean>>
+  **Means:** each sku's margin, flagged where it is below the floor, as the review left it
+
+- **Name:** loaded
+  **Type:** number
+  **May Be Absent:** Yes
+  **Means:** how many margins the load wrote, absent where the load failed
+
+- **Name:** report
+  **Type:** context<loaded: number, for: date>
+  **Means:** the run's report, what it loaded and the business date it priced
+```
+
+**Its checks —** a DAG's names, dependencies, cycles, guards, timeouts and tolerated cells are checked in its file, and its works, what its tasks give and read and what runs it across files, its citations resolved: no Runs When field, two tasks sharing a name, a name holding a comma or the word `and` or ending in the word `ended`, a work that is neither `none`, alone or leaving facts, nor a citation resolving to an Algorithm, a Decision Table or a DAG, a work citing a part of a construct, a DAG holding itself through the tasks it cites, a Decision Table a task runs whose outcome column no fact declares, a `none` leaving a fact nothing declares, a dependency naming a task the table does not hold, a dependency `ended` on a task that can only end done, a task depending on itself directly or through others, a guard in no form FEEL has, giving no yes or no, naming a fact nothing declares, combining values of two kinds or reaching a part a fact does not hold, a timeout that is neither `@"{duration}"` whole nor a declared fact of a duration type, a tolerated that is neither `Yes` nor `No` or `Yes` on a task that cannot fail, a guard or a timeout column every cell of which is `none` or a tolerated column every cell of which is `No`, two tasks free at once whose work gives one fact or one of which reads, by its work or its guard, a fact the other gives, a task reading a fact a task after it gives without reading it, a task reading a fact that some task it reaches gives and none gives surely whose record, in the DAG's file or the file of the work reading it, does not say it may be absent, and a Runs When citing a construct that does not run the DAG or leaving out one that does, each reported; and an Algorithm a task's work cites has that DAG among what runs it, which its Runs When names (`§ Constructs § Algorithm`). Whether each task's work is the whole of it, whether a task whose work is `none` is said to be whose and when done, and whether what runs the DAG is run on it are read.
+
+#### What It Means
+
+A DAG means what UML's activity means for what its table writes, each statement citing the section of UML it rests on, so neither an author nor a reader needs to recall the standard. The canon's rules beyond UML are its departures, each named where it is stated.
+
+**A run —** the DAG is an Activity, its section 15.2.3.1, and each run an execution, what runs it the Runs When names (`§ Constructs § DAG`, its Runs When field). Facts pass between tasks as Variables, its section 15.2.3.5, read and written by name.
+
+**A task —** a task whose work cites an Algorithm, a Decision Table or a DAG is a CallBehaviorAction, its section 16.3.3.1, calling that construct, a Decision Table taken as the Behavior it calls, the departure `§ Constructs § Algorithm § What It Means` names for a run; a task whose work is `none` is an OpaqueAction, its section 16.2.3.2, its body the prose after the table, which says whose it is and when it counts as done, a person's task and an external system's alike, what it leaves written in its cell as its output. That a task's work is cited by name and read from the file's facts, rather than wired by pins, is the departure the Algorithm's run makes.
+
+**A dependency, and tasks at once —** a dependency is a ControlFlow from the task waited for to the task waiting, its section 15.2.3.3; the tasks nothing orders are reached through a ForkNode, its section 15.3.3.3, and what waits for several of them through a JoinNode, its section 15.3.3.4, the table standing for the forks and joins UML draws, every task's incoming flows joined and its outgoing flows forked.
+
+**A guard, and a timeout —** a task's guard is the guard on the ActivityEdge offering the task its token, its section 15.2.3.3, from the fork or the join before it, with a DecisionNode, its section 15.3.3.6, placed after it so that where the guard fails the token is shunted to the downstream JoinNode, as UML's own note on 15.3.3.3 has it for a guarded edge from a fork: a skipped task counting as done for what depends on it is that shunt, and no departure. Where every task is guarded and no guard holds, nothing runs and the run ends, UML's join receiving every shunted token. A task's timeout is a wait time action, its section 16.10.3.1, its trigger a TimeEvent, its section 13.3.3.4, on an interrupting edge of an InterruptibleActivityRegion holding the task, its section 15.6.3.2, which ends the task's work when the time passes; that the task then fails, its writes undone, and that a person's or an external system's work no longer counts, is the canon's departure; the region, which `§ Constructs § Algorithm § What It Means` has among what the Algorithm's table does not write, this table writes by the one column.
+
+**An end, and a failure —** the run ends as an Activity's execution completes, its section 15.2.3.6, once no task is running and none can run. A task that fails raises an exception which, uncaught, ends the run, its sections 16.3.3.1 and 15.5.3.2; a task whose tolerated is `Yes` has an ExceptionHandler, its section 15.5.3.2, its tolerated cell standing for the handler. That UML's handler, its body complete, offers tokens to everything downstream as though the task had completed, where the canon leaves unreached what waited for the task to be done and runs only what waited `ended`, is the canon's departure; so is the run going on past an untolerated failure to what waits `ended`, keeping what such a task writes, and so is a run all or none, what it wrote undone where it fails, as `§ Constructs § Constraint § What It Means` has it for an operation.
 
 ### State Machine
 
@@ -333,7 +523,7 @@ A precise, step-by-step computational procedure that produces a value or a trans
 |---|---|---|---|---|
 | Inputs | yes | | text | the facts it reads, each item a fact's name, or a fact's name, a colon and the citation of the Facts record declaring it in another file, as a Decision Table's Reads item is written; or none, written on the key's line |
 | Output | yes | | text | the facts it gives, each item a fact's name; or none, written on the key's line, where the work its steps do is all it does |
-| Runs When | yes | | text | what runs it: the citation of each construct running it, another Algorithm whose run cites it, a State Machine whose Effect cell or state's description cites it as the work done, or a Decision Table whose computed outcome cites it as the Algorithm doing it, a citation of one of its steps or rows, a trigger, a plain outcome, an annotation and a Constraint's enforcement running nothing; or the occurrence it answers, written as a trigger of the kind something done is (`§ Constructs § State Machine § What It Means`), a request or a job's run among them, a job's run saying what a missed and a late run do (`§ Time`) |
+| Runs When | yes | | text | what runs it: the citation of each construct running it, another Algorithm whose run cites it, a State Machine whose Effect cell or state's description cites it as the work done, a DAG whose task's work cites it, or a Decision Table whose computed outcome cites it as the Algorithm doing it, a citation of one of its steps or rows, a trigger, a plain outcome, an annotation and a Constraint's enforcement running nothing; or the occurrence it answers, written as a trigger of the kind something done is (`§ Constructs § State Machine § What It Means`), a request or a job's run among them, a job's run saying what a missed and a late run do (`§ Time`) |
 | Precision | no | 34 | text | the significant digits each operation's result is rounded to, a whole number above zero and below 34, where its system's arithmetic holds fewer than FEEL's (`specs/methodology/expressions.md § Expressions § FEEL § Arithmetic and Time`) |
 | Rounding Mode | no | half even | text | the mode each operation's result is rounded by, and a value written to a fact holding decimal places: one of the modes `specs/methodology/expressions.md § Expressions § FEEL § Arithmetic and Time` names, or the name of a fact the Algorithm knows whose Values hold only those modes, where the system's configuration chooses it |
 
@@ -471,7 +661,7 @@ An Algorithm means what UML's activity means for what its table writes, each sta
 - **A fork and a join of steps, and steps run at once other than a loop's passes —** its sections 15.3.3.3 and 15.3.3.4: a DAG (`§ Constructs § DAG`).
 - **A wait for an occurrence —** its section 16.10.3.1, AcceptEventAction: a State Machine's trigger, the Algorithm running once it happens.
 - **An exception raised and handled —** its sections 16.13.3.2 and 15.5.3.2: a failure is an outcome its Output gives, the run ending at `End` with it.
-- **An interruptible region and a partition —** its section 15.6.3: not written.
+- **An interruptible region and a partition —** its section 15.6.3: not written by an Algorithm's table; a task's timeout writes the region in a DAG's (`§ Constructs § DAG § What It Means`).
 - **A stream, and an object flow other than a named fact —** its sections 13.2, 16.12.3 and 15.2.3.4: not written, a fact passing between steps by its name.
 
 ### Constraint
@@ -486,7 +676,7 @@ Authored as a table.
 
 **Its rule —** a FEEL boolean (`specs/methodology/expressions.md § Expressions § FEEL`) over the facts its file declares, each named as its Facts record declares it (`§ Constructs § Declaring a Construct § A Fact`), as `sum(portions) + overpayment = amount`; a Constraint sits in the file whose Facts section declares the facts its rules name, so a rule names no fact another file declares, and reaches another construct's facts only as When it holds has it. A rule of every entity of a kind names the fact holding them all, a list, and quantifies over it, `every {item} in {list} satisfies {rule}`, as `every t in transactions satisfies t.debits = t.credits`; a value as it stood before an operation is a fact declared for it, `balance before`; and a rule reaching along a chain of entities calls a function fact that gives the chain, as `ancestors(record)`. A rule governing some values only tests them in itself, `if {condition} then {rule} else true`, as `if currency.decimal places = 0 then modulo(amount, currency.multiple) = 0 else true`, since Applies to says when a rule holds, never of which values; a State Machine's state invariant is such a rule, narrowed by the fact the machine's Recorded In names, `if status = "active" then balance >= 0 else true`. Its explanation, where it needs one, is prose after the table.
 
-**When it holds —** an operation is a run of an Algorithm, a transition taken with its effect, an occurrence a State Machine answers, or what a section's own text states is done, and each is all or none: what it wrote before it failed or was refused is undone, so a rule holding as a failed or refused operation began holds as it ends (`§ Constructs § Constraint § What It Means`). A construct whose operation keeps less than all of its writes states so where it says what a failure does. Applies to is `always`, `after {citation}` or `before {citation}`, the citation an operation's. A rule `always` holds at every rest, whenever no operation is running. A rule `after` an operation holds once a run of it completes, the operation's postcondition; a rule that holds only once some part has run, as a summary a job recomputes, is `after` that operation. A rule `before` an operation holds as its run begins, its precondition, and a run that finds it false is refused. Beside the file's facts, a rule `after` an Algorithm reads its Inputs and Output, one `before` it reads its Inputs, one `after` or `before` a transition reads those of the Algorithm its effect runs, and one `after` or `before` an operation a section's own text states reads the file's facts alone. The citation names the operation whole, an Algorithm's section, a transition by its Name, or a section whose own text states what is done, never a step.
+**When it holds —** an operation is a run of an Algorithm or of a DAG, a transition taken with its effect, an occurrence a State Machine answers, or what a section's own text states is done, and each is all or none: what it wrote before it failed or was refused is undone, so a rule holding as a failed or refused operation began holds as it ends (`§ Constructs § Constraint § What It Means`). A construct whose operation keeps less than all of its writes states so where it says what a failure does. Applies to is `always`, `after {citation}` or `before {citation}`, the citation an operation's. A rule `always` holds at every rest, whenever no operation is running. A rule `after` an operation holds once a run of it completes, the operation's postcondition; a rule that holds only once some part has run, as a summary a job recomputes, is `after` that operation. A rule `before` an operation holds as its run begins, its precondition, and a run that finds it false is refused. Beside the file's facts, a rule `after` an Algorithm reads its Inputs and Output, one `before` it reads its Inputs, one `after` or `before` a transition reads those of the Algorithm its effect runs, one `before` a DAG reads what the work of its first tasks takes and one `after` it what the work of its tasks takes and gives, as `§ Constructs § DAG` has them, and one `after` or `before` an operation a section's own text states reads the file's facts alone. The citation names the operation whole, an Algorithm's or a DAG's section, a transition by its Name, or a section whose own text states what is done, never a step or a task.
 
 **Its enforcement —** Enforced by is the canon's addition to UML's Constraint, naming what keeps the rule: the citation of each part of another construct, a step, a row, a transition or a task, or of a section whose own text states the mechanism, that keeps it where a write could break it, several joined by `and`, `{citation} and {citation}`, since an invariant is kept only where every operation changing its facts keeps it. A part that breaks the rule, tolerates its breach or runs on no path keeps nothing, and is no enforcement. A rule nothing keeps is written so the specs say what holds and what does not: its Enforced by is `nothing: {what breaks it or leaves it unkept}`, citing after those words any part that keeps some of it. A rule some paths keep and others do not is written by its paths, each by when its rule holds: a path whose rule holds at every rest is an `always` row narrowed by the fact that tells the path apart, its source or its writer; a path whose rule holds only as its own operation completes is a row `after` that operation; and the path nothing keeps is the row opening `nothing:`. A Constraint enforced by `nothing:` is listed on every audit run as a warning, never a finding: the gap is the system's, recorded, and the specs are complete in recording it.
 
@@ -554,7 +744,7 @@ Authored as a table.
   **Means:** the schedule, with the total its nightly job writes
 ```
 
-**Its checks —** a Constraint is checked with its citations resolved, once, across files: each rule in a form FEEL has, judged with the facts in scope, a rule giving no yes or no, naming a fact nothing declares, combining values of two kinds or reaching a part a fact does not hold reported; an Applies to in none of its forms, citing a step, a construct that is no operation, a record section, or a State Machine and no transition of it, reported; an Enforced by that is neither citations joined by `and` nor `nothing:` and words reported, a citation that resolves to nothing being the citation checks'; and a `nothing:` listed as a warning. Which part keeps a rule, whether a section an Applies to cites states in its own text an operation, whether every write able to break a rule is covered and whether a bounded step keeps its bound are read, never decided by the script.
+**Its checks —** a Constraint is checked with its citations resolved, once, across files: each rule in a form FEEL has, judged with the facts in scope, a rule giving no yes or no, naming a fact nothing declares, combining values of two kinds or reaching a part a fact does not hold reported; an Applies to in none of its forms, citing a step or a task, a construct that is no operation, a record section, or a State Machine and no transition of it, reported; an Enforced by that is neither citations joined by `and` nor `nothing:` and words reported, a citation that resolves to nothing being the citation checks'; and a `nothing:` listed as a warning. Which part keeps a rule, whether a section an Applies to cites states in its own text an operation, whether every write able to break a rule is covered and whether a bounded step keeps its bound are read, never decided by the script.
 
 #### What It Means
 
@@ -562,11 +752,11 @@ A Constraint means what UML's Constraint means for what its table writes, each s
 
 **A rule —** a Constraint, its section 7.6.3, its rule the Constraint's specification, a ValueSpecification of type Boolean, satisfied where it evaluates to true; its language FEEL, which its section 7.6.4 leaves to the Constraint, so FEEL is no departure. The facts the rule names are its constrainedElements, and its Applies to its context, which its section 7.6.3 has decide when the Constraint is evaluated; that `always` is every rest between operations is the canon's, an addition, UML naming no such time.
 
-**A precondition and a postcondition —** a rule `before` an operation is a precondition and one `after` it a postcondition of the Behavior the Algorithm or the transition's effect is, its section 13.2.3.1, an Activity holding them as a Behavior does, its section 15.2.3.6: a precondition holding as the Behavior is invoked, which an implementation may assume, and a postcondition holding once its invocation completes successfully. That a run finding its precondition false is refused is the canon's, an addition, UML leaving the behaviour undefined; so is an operation a section's own text states, UML holding a precondition and a postcondition of a Behavior alone. A protocol transition's precondition is its guard and its postcondition a Constraint, as `§ Constructs § State Machine § What It Means` has it.
+**A precondition and a postcondition —** a rule `before` an operation is a precondition and one `after` it a postcondition of the Behavior the Algorithm, the DAG or the transition's effect is, its section 13.2.3.1, an Activity holding them as a Behavior does, its section 15.2.3.6: a precondition holding as the Behavior is invoked, which an implementation may assume, and a postcondition holding once its invocation completes successfully. That a run finding its precondition false is refused is the canon's, an addition, UML leaving the behaviour undefined; so is an operation a section's own text states, UML holding a precondition and a postcondition of a Behavior alone. A protocol transition's precondition is its guard and its postcondition a Constraint, as `§ Constructs § State Machine § What It Means` has it.
 
 **A derived value —** a derived Property, its section 9.5.3, whose derivation may be specified by a constraint, which the Constraint whose rule is `{fact} = {expression}` is.
 
-**An operation all or none —** an occurrence a State Machine answers is dispatched only once the one before it is fully processed, its section 14.2.3.9.1; that an occurrence, a run of an Algorithm or a transition taken is all or none, what it wrote undone where it fails or is refused, is the canon's, an addition.
+**An operation all or none —** an occurrence a State Machine answers is dispatched only once the one before it is fully processed, its section 14.2.3.9.1; that an occurrence, a run of an Algorithm or of a DAG, or a transition taken is all or none, what it wrote undone where it fails or is refused, is the canon's, an addition.
 
 **Enforced by —** the canon's addition: UML holds that an unsatisfied Constraint makes the model's realization invalid, its section 7.6.3, and says nothing of what keeps one satisfied.
 
@@ -633,7 +823,7 @@ Choose the simplest construct that meets the need. State Machine is the most gen
 | 4.1 | Does the process ever repeat a step under some condition, branch into materially different downstream handling, or have an intentional conditional stop that is not an error case? | No | Use DAG |
 | 4.2 | | Yes | Use State Machine |
 
-**Combining constructs —** these are not mutually exclusive inside one spec. A single task in a DAG or a state in a State Machine can itself have its work done by a Decision Table, a Decision Tree, or an Algorithm. In an expense approval process, the step that routes a claim is a Decision Table over independent conditions: the claim's amount band, its category, and whether a receipt is attached. The step that works out the reimbursable total is an Algorithm: it sums the line items, applies each category's own cap, and deducts any advance already paid. A State Machine's transition can be triggered by a process completing a step, a claim moving from under review to approved when the approval step approves it. A Constraint can bound what any of the others is allowed to produce: a reimbursable total is never negative, however far the caps and the advance deduction reduce it, enforced by that Algorithm's own step flooring the total at zero rather than left as an expectation. Use as many constructs as a spec needs, and never force one to do a job another is built for.
+**Combining constructs —** these are not mutually exclusive inside one spec. A single task in a DAG can have its work done by a Decision Table, an Algorithm or another DAG, and a state in a State Machine by a Decision Table, a Decision Tree, an Algorithm or a DAG. In an expense approval process, the step that routes a claim is a Decision Table over independent conditions: the claim's amount band, its category, and whether a receipt is attached. The step that works out the reimbursable total is an Algorithm: it sums the line items, applies each category's own cap, and deducts any advance already paid. A State Machine's transition can be triggered by a process completing a step, a claim moving from under review to approved when the approval step approves it. A Constraint can bound what any of the others is allowed to produce: a reimbursable total is never negative, however far the caps and the advance deduction reduce it, enforced by that Algorithm's own step flooring the total at zero rather than left as an expectation. Use as many constructs as a spec needs, and never force one to do a job another is built for.
 
 ## Diagrams
 

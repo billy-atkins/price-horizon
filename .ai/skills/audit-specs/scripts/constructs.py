@@ -46,6 +46,10 @@ FIELD_TABLES = {
         ("Precision", "no", "34", "text"),
         ("Rounding Mode", "no", "half even", "text"),
     ),
+    # @canon-spec specs/methodology/modeling-constructs.md § Constructs § DAG
+    "Constructs § DAG": (
+        ("Runs When", "yes", "", "text"),
+    ),
     "Constructs § State Machine": (
         ("Protocol", "no", "No", '"Yes", "No"'),
         ("Recorded In", "no", "none", "text"),
@@ -60,6 +64,14 @@ OWN_FIELDS = {c: COMMON + tuple(f for f, fc, _, _ in FIELD_TABLE if fc == c) for
 REQUIRED = {c: tuple(f for f, fc, req, _ in FIELD_TABLE if fc == c and req == "yes") for c in NAMES}
 # each field with the section defining it, and with its Values cell
 FIELD_RULE = {f: "modeling-constructs.md § " + title for title, rows in FIELD_TABLES.items() for f, _, _, _ in rows}
+
+
+def field_rule(name, key):
+    """The section defining a construct's field: the construct's own where it declares the field, else the shared."""
+    for title, rows in FIELD_TABLES.items():
+        if title.endswith("§ " + name) and any(f == key for f, _, _, _ in rows):
+            return "modeling-constructs.md § " + title
+    return FIELD_RULE[key]
 FIELD_VALUES = {f: v for rows in FIELD_TABLES.values() for f, _, _, v in rows}
 DEFAULTS = {f: d for f, _, _, d in FIELD_TABLE if d}
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
@@ -85,7 +97,7 @@ STATES = ["state", "description", "initial", "terminal"]
 FORMS = {
     "State Machine": [STATES, ["From", "To", "Trigger"]],
     "Decision Tree": [["Step", "Question", "Answer", "Result"]],
-    "DAG": [["task", "depends_on"]],
+    "DAG": [["task", "work", "depends_on"]],
     "Algorithm": [["Step", "Action"]],
     "Constraint": [["Constraint", "Applies to", "Enforced by"]],
     "Decision Table": [None],
@@ -95,7 +107,7 @@ FORMS = {
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
 # the columns whose form gives `none`; no form here gives `-`, a Decision Table's `-` being its cells' own
 NONE_COLUMNS = {("State Machine", "Trigger"), ("State Machine", "Guard"), ("State Machine", "Effect"),
-                ("DAG", "depends_on"), ("Algorithm", "Terminates")}
+                ("DAG", "work"), ("DAG", "depends_on"), ("DAG", "guard"), ("DAG", "timeout"), ("Algorithm", "Terminates")}
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
 # a transition's trigger or guard of none, as a row writes it: the one copy
 NONE_CELL = "none"
@@ -103,7 +115,9 @@ NONE_CELL = "none"
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
 # the columns a construct's table may add after its form's own, any of them, in this order: a State Machine's
 # Transitions table's Guard, its Effect, or both; an Algorithm's Terminates
-OPTIONAL_COLUMNS = {("State Machine", 1): ["Guard", "Effect"], ("Algorithm", 0): ["Terminates"]}
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § DAG
+# the guard, the timeout and the tolerated columns, in that order
+OPTIONAL_COLUMNS = {("State Machine", 1): ["Guard", "Effect"], ("Algorithm", 0): ["Terminates"], ("DAG", 0): ["guard", "timeout", "tolerated"]}
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
 # the tables a Name column may open: a Transitions table, a Decision Table, a Constraint table
 NAMEABLE = {"State Machine": {1}, "Decision Table": {0}, "Constraint": {0}}
@@ -602,15 +616,12 @@ def construct_findings(r, body, found, sections):
                     ok = False
         if not ok:
             continue
-        check = {"State Machine": _machine, "Decision Table": _decision_table,
-                 "Decision Tree": _tree, "DAG": _dag}.get(name)
-        if name == "Decision Table":
-            _decision_table(r, line, name, fields, tables, found, facts)
-        elif name in ("Algorithm", "Constraint"):
+        if name in ("Algorithm", "Constraint"):
             # its whole check runs across files, in algorithm_findings or constraint_findings
             continue
-        else:
-            check(r, line, name, fields, tables, found)
+        # each per-file check takes its file's facts, read where its cells hold FEEL
+        {"State Machine": _machine, "Decision Table": _decision_table,
+         "Decision Tree": _tree, "DAG": _dag}[name](r, line, name, fields, tables, found, facts)
 
 
 def _paragraphs(r, lines, line, fields, found):
@@ -643,13 +654,13 @@ def _fields(r, line, name, fields, found):
         found.append((DECLARING, r, line, f"{_a(name)}'s fields out of the order {list(allowed)}"))
     for key in REQUIRED.get(name, ()):
         if key not in keys:
-            found.append((FIELD_RULE[key], r, line, f"{_a(name)} with no {key} field"))
+            found.append((field_rule(name, key), r, line, f"{_a(name)} with no {key} field"))
     for ln, key, value in fields:
         if key in DEFAULTS and value == DEFAULTS[key]:
-            found.append((FIELD_RULE[key], r, ln, f"the {key} field written at its default value, {value}"))
+            found.append((field_rule(name, key), r, ln, f"the {key} field written at its default value, {value}"))
         listed = quoted_values(FIELD_VALUES.get(key, "text"))
         if listed is not None and value not in listed:
-            found.append((FIELD_RULE[key], r, ln, f"the {key} field holds a value its definition does not allow: {value}"))
+            found.append((field_rule(name, key), r, ln, f"the {key} field holds a value its definition does not allow: {value}"))
     values = dict((k, v) for _, k, v in fields)
     if values.get("Hit Policy") in ("Priority", "Output order") and "Output Values" not in values:
         found.append((FIELD_RULE["Output Values"], r, line, f"a {values['Hit Policy']} table with no Output Values field"))
@@ -660,7 +671,7 @@ def _fields(r, line, name, fields, found):
 
 # ---------------------------------------------------------------- State Machine
 
-def _machine(r, line, name, fields, tables, found):
+def _machine(r, line, name, fields, tables, found, facts=None):
     rule = f"{RULE} § {name}"
     states, transitions = tables
     # a Guard or an Effect column is written only where some cell of it is not none
@@ -1530,7 +1541,7 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
             found.append((rule, r, table["line"], f"a case no row matches: {shown}"))
 
 
-def _tree(r, line, name, fields, tables, found):
+def _tree(r, line, name, fields, tables, found, facts=None):
     rule = f"{RULE} § Decision Tree"
     rows = tables[0]["rows"]
     steps, first = {}, {}
@@ -1594,24 +1605,327 @@ def _reach_from(graph, start):
 
 # ---------------------------------------------------------------- DAG
 
-def _dag(r, line, name, fields, tables, found):
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § DAG
+# a dependency waited for however it ended, `{task} ended`; the one copy of the form, which a task's name never ends in
+ENDED = " ended"
+# work done outside the specs that leaves facts the tasks after it read, `none, leaving {fact}, {fact}`
+LEAVING = re.compile(r'none, leaving (.+)')
+# a timeout's literal, `@"{duration}"`, whole
+TIMEOUT_LITERAL = re.compile(r'@"[^"]*"')
+# the kinds a timeout may be: a FEEL duration, or a value the parser cannot type, a `duration(…)` call among them
+DURATION_KINDS = (None, "days and time duration", "years and months duration")
+
+
+def _dep(text):
+    """A depends_on item -> the task it names, its ` ended` set aside."""
+    text = text.strip()
+    return text[:-len(ENDED)] if text.endswith(ENDED) else text
+
+
+def _leaves(work):
+    """A work cell -> the facts a `none` leaves, or None where the work is not written so."""
+    m = LEAVING.fullmatch(work)
+    return {f.strip() for f in m.group(1).split(",") if f.strip()} if m else None
+
+
+def _dag(r, line, name, fields, tables, found, facts=None):
+    """§ Constructs § DAG, what one file decides: the names, the dependencies, the cycles, the guards, the timeouts and
+    the tolerated cells; the works, what the tasks give and read, and the Runs When are dag_findings', across files."""
     rule = f"{RULE} § DAG"
-    rows = tables[0]["rows"]
+    table = tables[0]
+    header, rows = table["header"], table["rows"]
     names = [row[0] for _, row in rows]
     if len(set(names)) != len(names):
-        found.append((rule, r, tables[0]["line"], "two tasks sharing a name"))
+        found.append((rule, r, table["line"], "two tasks sharing a name"))
+    di = header.index("depends_on")
+    known = {f: kind_of_type(t) for f, (t, _, _) in (facts or {}).items()}
+    # a guard, a timeout or a tolerated column is written only where some cell of it is not none, or No
+    for col, blank in (("guard", "none"), ("timeout", "none"), ("tolerated", "No")):
+        if col in header:
+            i = header.index(col)
+            if all(row[i] == blank for _, row in rows if i < len(row)):
+                found.append((rule, r, table["line"], f"a {col} column every cell of which is {blank}"))
     graph = {}
     for ln, row in rows:
         if SEPARATOR.search(row[0]):
             found.append((DECLARING, r, ln, f"a task's name holding a comma or the word and: {row[0]}"))
-        deps = [] if row[1] == "none" else [d.strip() for d in row[1].split(",")]
+        if row[0].endswith(ENDED):
+            found.append((DECLARING, r, ln, f"a task's name ending in the word ended: {row[0]}"))
+        deps = [] if row[di] == "none" else [_dep(d) for d in row[di].split(",")]
         for d in deps:
             if d not in names:
                 found.append((rule, r, ln, f"a dependency naming a task the table does not hold: {d}"))
         graph[row[0]] = set(deps)
+        if "guard" in header and header.index("guard") < len(row) and row[header.index("guard")] != "none":
+            cell = row[header.index("guard")]
+            kind, problems = expressions.check(cell, known)
+            for problem in problems:
+                found.append((rule, r, ln, f"a guard: {problem}"))
+            if kind not in (None, "boolean") and not problems:
+                found.append((rule, r, ln, f"a guard giving no yes or no, a {_kind_name(kind)}: {cell}"))
+        if "timeout" in header and header.index("timeout") < len(row) and row[header.index("timeout")] != "none":
+            cell = row[header.index("timeout")]
+            # the two writings the canon gives: the literal, or a declared fact of a duration type
+            if TIMEOUT_LITERAL.fullmatch(cell):
+                kind, problems = expressions.check(cell, known)
+                for problem in problems:
+                    found.append((rule, r, ln, f"a timeout: {problem}"))
+                if kind not in DURATION_KINDS and not problems:
+                    found.append((rule, r, ln, f"a timeout that is no duration, a {_kind_name(kind)}: {cell}"))
+            elif known.get(cell) not in DURATION_KINDS[1:]:
+                found.append((rule, r, ln, f"a timeout that is neither a FEEL duration literal nor a declared fact of a duration type: {cell}"))
+        if "tolerated" in header and header.index("tolerated") < len(row) and row[header.index("tolerated")] not in ("Yes", "No"):
+            found.append((rule, r, ln, f"a tolerated that is neither Yes nor No: {row[header.index('tolerated')]}"))
     for t in names:
         if t in _reach_from(graph, t):
-            found.append((rule, r, tables[0]["line"], f"a task that depends on itself, directly or through others: {t}"))
+            found.append((rule, r, table["line"], f"a task that depends on itself, directly or through others: {t}"))
+
+
+def dag_findings(text_of, found, sections, strip_fences, citation, resolve):
+    """§ Constructs § DAG, across files: each task's work `none`, `none, leaving` facts the file declares, or the
+    citation of an Algorithm, a Decision Table or a DAG, whole, a table's outcome columns facts the file declares; no
+    DAG holding itself through the DAGs its tasks cite; `ended` waited for only of a task that can end other than done, and `Yes`
+    tolerated only of one that can fail; no two tasks free at once giving one fact or one reading, by its work or its guard, what
+    the other gives, no task reading what a task after it gives, and a fact read that no task before the reader gives
+    surely declared May Be Absent; and a Runs When naming each DAG and State Machine that runs the DAG, and no other.
+    `citation` and `resolve` are the citation check's own."""
+    rule = f"{RULE} § DAG"
+    decls, facts_in, places = {}, {}, set()
+    for r, body in text_of.items():
+        live, secs = strip_fences(body), sections(body)
+        places.update((r, lineage) for lineage in secs)
+        facts_in[r] = facts_of(fact_records(live, secs))
+        for line, name, fields, tables, lineage in declarations(live, secs):
+            decls[(r, lineage)] = (line, name, dict((k, v) for _, k, v in fields), tables)
+
+    def outcomes_of(key):
+        """The facts a Decision Table gives, its outcome columns."""
+        _, _, values, tables = decls[key]
+        header = tables[0]["header"] if tables else []
+        conds = {c.strip() for c in values.get("Conditions", "").split(",") if c.strip()}
+        notes = {c.strip() for c in values.get("Annotations", "").split(",") if c.strip()}
+        return {h for h in header if h not in conds and h not in notes and h != "Name"}
+
+    def reads_of(key):
+        """The facts a Decision Table reads, its conditions and its Reads."""
+        _, _, values, tables = decls[key]
+        out = {c.strip() for c in values.get("Conditions", "").split(",") if c.strip()}
+        for item in [] if values.get("Reads", "none") == "none" else values["Reads"].split("\n"):
+            mm = READS_ITEM.fullmatch(item.strip())
+            out.add((mm.group(1) if mm else item).strip())
+        return out
+
+    # each DAG's tasks, their works resolved; a nested DAG's gives are its tasks' gives, resolved after all are read
+    dags, nested = {}, {}
+    for (r, lineage), (line, name, values, tables) in sorted(decls.items()):
+        if name != "DAG" or not tables:
+            continue
+        header = tables[0]["header"]
+        if header[:3] != FORMS["DAG"][0]:
+            continue  # its form is the declaring check's to report
+        wi, di = header.index("work"), header.index("depends_on")
+        col = {c: header.index(c) for c in ("guard", "timeout", "tolerated") if c in header}
+        known = {f: kind_of_type(t) for f, (t, _, _) in facts_in[r].items()}
+        tasks = {}
+        for ln, row in tables[0]["rows"]:
+            if len(row) != len(header):
+                continue
+            items = [] if row[di] == "none" else [d.strip() for d in row[di].split(",")]
+            deps = {_dep(d) for d in items}
+            ended = {_dep(d) for d in items if d.endswith(ENDED)}
+            work, leaves = row[wi], _leaves(row[wi])
+            key = target = None
+            if leaves is not None:
+                for f in sorted(leaves - set(facts_in[r])):
+                    found.append((rule, r, ln, f"a `none` leaving a fact nothing declares: {f}"))
+            elif work != "none":
+                c = citation.fullmatch(work)
+                key = resolve(c.group(1), r) if c else None
+                target = decls.get(key) if key else None
+                if c and "[" in work:
+                    found.append((rule, r, ln, f"a work citing a part of a construct, which runs nothing: {work}"))
+                elif not c or (key in places and (not target or target[1] not in ("Algorithm", "Decision Table", "DAG"))):
+                    found.append((rule, r, ln, f"a work that is neither `none` nor the citation of an Algorithm, a Decision Table or a DAG: {work}"))
+                elif target and target[1] == "DAG":
+                    nested.setdefault((r, lineage), set()).add(key)
+                elif target and target[1] == "Decision Table":
+                    for h in sorted(outcomes_of(key) - set(facts_in[r])):
+                        found.append((rule, r, ln, f"a Decision Table a task runs whose outcome column no fact declares: {h}"))
+            cell = lambda c, blank: row[col[c]] if c in col else blank
+            guard_reads = []  # the names the guard uses, which the expression check collects
+            if cell("guard", "none") != "none":
+                expressions.check(cell("guard", "none"), known, used=guard_reads)
+            tasks[row[0]] = {
+                "line": ln, "deps": deps, "ended": ended, "leaves": leaves or set(),
+                "work": key if target and "[" not in work else None,
+                "kind": target[1] if target and "[" not in work else None,
+                "guarded": cell("guard", "none") != "none", "timed": cell("timeout", "none") != "none",
+                "tolerated": cell("tolerated", "No") == "Yes", "guard_reads": set(guard_reads),
+            }
+        dags[(r, lineage)] = (line, tables[0]["line"], tasks)
+
+    # a DAG holding itself through the DAGs its tasks' work cites
+    for key in sorted(nested):
+        if key in _reach_from(nested, key):
+            found.append((rule, key[0], decls[key][0], f"a DAG holding itself through the tasks it cites: § {key[1]}"))
+
+    def gives_of(key, seen=()):
+        """What a construct's run gives: an Algorithm's Output, a table's outcomes, a nested DAG's tasks' gives."""
+        kind = decls[key][1]
+        if kind == "Algorithm":
+            return {n for _, n in io_items(decls[key][2], "Output")}
+        if kind == "Decision Table":
+            return outcomes_of(key)
+        if kind == "DAG" and key in dags and key not in seen:
+            return set().union(*(task_gives(t, seen + (key,)) for t in dags[key][2].values()), set())
+        return set()
+
+    def task_gives(t, seen=()):
+        return gives_of(t["work"], seen) if t["work"] else t["leaves"]
+
+    shadow_of = {}
+
+    def shadowed(dkey):
+        """The tasks of a DAG that are tolerated or wait to be done, directly or through others, for one that is: within
+        a nested DAG their failure or unreaching lets the run complete, so what they give may be absent for a parent."""
+        if dkey not in shadow_of:
+            tasks = dags[dkey][2]
+            out = {t for t, d in tasks.items() if d["tolerated"]}
+            changed = True
+            while changed:
+                changed = False
+                for t, d in tasks.items():
+                    if t not in out and any(u in out for u in d["deps"] - d["ended"]):
+                        out.add(t)
+                        changed = True
+            shadow_of[dkey] = out
+        return shadow_of[dkey]
+
+    def inout_of(key, seen=()):
+        """An Algorithm's Outputs its Inputs also name, facts holding their earlier value where its run is not done; a
+        nested DAG's are its tasks' works', through any depth."""
+        if not key:
+            return set()
+        if decls[key][1] == "Algorithm":
+            return {n for _, n in io_items(decls[key][2], "Output")} & {n for _, n in io_items(decls[key][2], "Inputs")}
+        if decls[key][1] == "DAG" and key in dags and key not in seen:
+            return set().union(*(inout_of(d["work"], seen + (key,)) for d in dags[key][2].values() if d["work"]), set())
+        return set()
+
+    def sure_gives(name, t, dkey, seen=()):
+        """What a task gives on every run its done-waiters run: nothing where guarded; within a nested DAG, nothing
+        where tolerated or waiting to be done for a tolerated task, a tolerated task in the reader's own DAG leaving its
+        done-waiters unreached when it fails; a nested DAG's through its own tasks."""
+        if t["guarded"] or (seen and name in shadowed(dkey)):
+            return inout_of(t["work"])
+        if not t["work"]:
+            return t["leaves"]
+        key = t["work"]
+        if decls[key][1] == "DAG":
+            if key not in dags or key in seen:
+                return set()
+            return set().union(*(sure_gives(u, d, key, seen + (key,)) for u, d in dags[key][2].items()), set())
+        return gives_of(key)
+
+    def reads_of_work(key, seen=()):
+        """What a task's work reads: an Algorithm's Inputs, a table's conditions and Reads, a nested DAG's tasks' reads,
+        by work or guard, less what its tasks give."""
+        kind = decls[key][1]
+        if kind == "Algorithm":
+            return {n for _, n in io_items(decls[key][2], "Inputs")}
+        if kind == "Decision Table":
+            return reads_of(key)
+        if kind == "DAG" and key in dags and key not in seen:
+            inner = dags[key][2].values()
+            reads = set().union(*((reads_of_work(d["work"], seen + (key,)) if d["work"] else set()) | d["guard_reads"] for d in inner), set())
+            return reads - set().union(*(task_gives(d, seen + (key,)) for d in inner), set())
+        return set()
+
+    for key, (line, tline, tasks) in sorted(dags.items()):
+        graph = {t: d["deps"] for t, d in tasks.items()}
+        # a task can fail where its work is an Algorithm or a DAG or it has a timeout; it can be unreached where a
+        # task it waits for to be done can fail or be unreached, a guard alone only skipping and an `ended` wait never
+        # leaving its waiter unreached; and it can end other than done where it can fail, be skipped or be unreached
+        fail = {t: d["kind"] in ("Algorithm", "DAG") or d["timed"] for t, d in tasks.items()}
+        unreached = {t: False for t in tasks}
+        changed = True
+        while changed:
+            changed = False
+            for t, d in tasks.items():
+                if not unreached[t] and any(fail.get(u) or unreached.get(u) for u in d["deps"] - d["ended"]):
+                    unreached[t] = changed = True
+        other = {t: fail[t] or d["guarded"] or unreached[t] for t, d in tasks.items()}
+        for t, d in sorted(tasks.items()):
+            for y in sorted(d["ended"]):
+                if y in tasks and not other[y]:
+                    found.append((rule, key[0], d["line"], f"a dependency `ended` on a task that can only end done: {y}"))
+            if d["tolerated"] and not fail[t]:
+                found.append((rule, key[0], d["line"], f"a tolerated Yes on a task that cannot fail: {t}"))
+        gives = {t: task_gives(d) for t, d in tasks.items()}
+        sure = {t: sure_gives(t, d, key) for t, d in tasks.items()}
+        reads = {t: (reads_of_work(d["work"]) if d["work"] else set()) | d["guard_reads"] for t, d in tasks.items()}
+
+        def through_ended(start):
+            """The tasks `start` reaches through a path crossing a dependency `ended`."""
+            out, seen, todo = set(), set(), [(d, d in tasks[start]["ended"]) for d in tasks[start]["deps"]]
+            while todo:
+                t, crossed = todo.pop()
+                if (t, crossed) in seen or t not in tasks:
+                    continue
+                seen.add((t, crossed))
+                if crossed:
+                    out.add(t)
+                todo.extend((d, crossed or d in tasks[t]["ended"]) for d in tasks[t]["deps"])
+            return out
+
+        for a in sorted(tasks):
+            before = _reach_from(graph, a)
+            crossed = through_ended(a)
+            for b in sorted(tasks):
+                if a == b:
+                    continue
+                if a < b and b not in before and a not in _reach_from(graph, b):
+                    shared = gives[a] & gives[b]
+                    if shared:
+                        found.append((rule, key[0], tline, f"two tasks free at once whose work gives one fact: {a} and {b}, {', '.join(sorted(shared))}"))
+                    for x, y in ((a, b), (b, a)):
+                        race = reads[x] & gives[y]
+                        if race:
+                            found.append((rule, key[0], tline, f"a task reading a fact a task free at once gives: {x} reads {', '.join(sorted(race))}, which {y} gives"))
+                elif a in _reach_from(graph, b):
+                    # a fact the later task reads too, by work or guard, it rewrites, which the earlier read is of before
+                    late = reads[a] & (gives[b] - reads[b])
+                    if late:
+                        found.append((rule, key[0], tline, f"a task reading a fact a task after it gives: {a} reads {', '.join(sorted(late))}, which {b} gives"))
+            for f in sorted(reads[a]):
+                givers = [b for b in before if f in gives[b]]
+                if givers and not any((f in sure[b] and b not in crossed) or f in inout_of(tasks[b]["work"]) for b in givers):
+                    # the fact's record, in the DAG's file or the file of the work reading it
+                    record = facts_in[key[0]].get(f) or (facts_in.get(tasks[a]["work"][0], {}).get(f) if tasks[a]["work"] else None)
+                    if record and record[2] != "Yes":
+                        found.append((rule, key[0], tline, f"a task reading a fact no task before it gives surely, whose record does not say it may be absent: {a} reads {f}, which {', '.join(sorted(givers))} gives"))
+
+    # what runs a DAG: a DAG whose task's work cites it, and a State Machine whose state's description cites it
+    runners = {}
+    for parent, children in nested.items():
+        for child in children:
+            runners.setdefault(child, set()).add(parent)
+    for key, (line, name, values, tables) in decls.items():
+        if name == "State Machine" and tables and "description" in tables[0]["header"]:
+            d = tables[0]["header"].index("description")
+            for _, row in tables[0]["rows"]:
+                for c in citation.findall(row[d] if d < len(row) else ""):
+                    if "[" not in c and decls.get(resolve(c, key[0]), (0, ""))[1] == "DAG":
+                        runners.setdefault(resolve(c, key[0]), set()).add(key)
+    for key, (line, tline, tasks) in sorted(dags.items()):
+        values = decls[key][2]
+        if "Runs When" not in values:
+            continue  # its absence is the fields check's to report
+        cited = {resolve(c, key[0]) for c in citation.findall(values["Runs When"])}
+        for k in sorted(k for k in cited - runners.get(key, set()) if k in decls):
+            found.append((rule, key[0], line, f"a Runs When citing a construct that does not run it: § {k[1]}"))
+        for k in sorted(runners.get(key, set()) - cited):
+            found.append((rule, key[0], line, f"a Runs When leaving out a construct that runs it: {k[0]} § {k[1]}"))
 
 
 # ---------------------------------------------------------------- Algorithm
@@ -2120,6 +2434,9 @@ def algorithm_findings(text_of, found, sections, strip_fences, citation, resolve
             for col in computed_columns(values, tables[0]):
                 i = tables[0]["header"].index(col)
                 cells += [row[i] for _, row in tables[0]["rows"] if i < len(row)]
+        elif name == "DAG" and tables and "work" in tables[0]["header"]:
+            w = tables[0]["header"].index("work")
+            cells += [row[w] for _, row in tables[0]["rows"] if w < len(row)]
         for cell in cells:
             for c in citation.findall(cell):
                 if "[" in c:
@@ -2274,6 +2591,39 @@ def constraint_findings(text_of, found, warned, sections, strip_fences, citation
             for _, n in io_items(target[2], k):
                 names.setdefault(n, kinds_in(key[0], [n])[n])
 
+    def dag_io(dkey, when, names, seen=()):
+        """What a rule `before` the DAG at `dkey` reads, its first tasks' work's Inputs, and `after` it, what its
+        tasks' work takes and gives, an Algorithm's, a Decision Table's or a nested DAG's, added to `names`."""
+        target = decls.get(dkey)
+        if not target or target[1] != "DAG" or not target[3] or dkey in seen:
+            return
+        header = target[3][0]["header"]
+        if "work" not in header or "depends_on" not in header:
+            return
+        w, di = header.index("work"), header.index("depends_on")
+        for _, row in target[3][0]["rows"]:
+            if max(w, di) >= len(row) or (when == "before" and row[di] != "none"):
+                continue
+            c = citation.search(row[w])
+            k = resolve(c.group(1), dkey[0]) if c else None
+            t = decls.get(k) if k else None
+            if not t:
+                # work done outside the specs gives what it leaves, `none, leaving {fact}, {fact}`
+                for n in (_leaves(row[w]) or set()) if when == "after" else set():
+                    names.setdefault(n, kinds_in(dkey[0], [n])[n])
+                continue
+            if t[1] == "Algorithm":
+                io_of(k, when, names)
+            elif t[1] == "Decision Table" and t[3]:
+                values, h = t[2], t[3][0]["header"]
+                conds = {x.strip() for x in values.get("Conditions", "").split(",") if x.strip()}
+                notes = {x.strip() for x in values.get("Annotations", "").split(",") if x.strip()}
+                gives = {x for x in h if x not in conds and x not in notes and x != "Name"} if when == "after" else set()
+                for n in conds | gives:
+                    names.setdefault(n, kinds_in(dkey[0], [n])[n])
+            elif t[1] == "DAG":
+                dag_io(k, when, names, seen + (dkey,))
+
     def effect_of(key, cite):
         """The citation a transition's Effect cell holds, the transition named by `[Name: …]` in `cite`, or None."""
         _, _, _, tables = decls[key]
@@ -2315,6 +2665,10 @@ def constraint_findings(text_of, found, warned, sections, strip_fences, citation
                     found.append((rule, r, ln, f"an Applies to citing a record section, which states no operation: {m['cite']}"))
                 elif target and target[1] == "Algorithm" and "[" in m["cite"]:
                     found.append((rule, r, ln, f"an Applies to citing a step of an Algorithm, not the Algorithm: {m['cite']}"))
+                elif target and target[1] == "DAG" and "[" in m["cite"]:
+                    found.append((rule, r, ln, f"an Applies to citing a task of a DAG, not the DAG: {m['cite']}"))
+                elif target and target[1] == "DAG":
+                    dag_io(key, m["when"], names)
                 elif target and target[1] not in ("Algorithm", "State Machine"):
                     found.append((rule, r, ln, f"an Applies to citing what is no operation, {_a(target[1])}: {m['cite']}"))
                 elif target and target[1] == "State Machine" and "[Name:" not in m["cite"]:
@@ -2389,15 +2743,17 @@ def construct_candidates(files, sections, strip_fences):
                             f"§ {lineage}: whether every case matches a row is read"))
             # wording a script cannot judge, listed for the reading audit to read: a step that is no comparison
             # holding a comparison's words, its separator aside, which the Algorithm's check reports
-            if name == "Algorithm" and tables:
+            # an Algorithm's or a DAG's Runs When in words beside its citations: an occurrence the reading audit reads
+            if name in ("Algorithm", "DAG") and tables:
                 runs_when = dict((k, v) for _, k, v in fields).get("Runs When", "")
+                if re.sub(r'\band\b', "", CITATION.sub("", runs_when)).strip(" ,;."):
+                    out.append((r, line, f"{'an Algorithm' if name == 'Algorithm' else 'a DAG'} run on an occurrence in words",
+                                f"§ {lineage}: whether something runs it on that occurrence, and for a job's run what a missed and a late run do, is read"))
+            if name == "Algorithm" and tables:
                 mode = dict((k, v) for _, k, v in fields).get("Rounding Mode")
                 if mode and mode not in ROUNDING_MODES and mode not in facts:
                     out.append((r, line, "a Rounding Mode naming a fact known by name alone",
                                 f"§ {lineage}: whether {mode}'s Values hold only the modes, the file holding no record of it, is read"))
-                if re.sub(r'\band\b', "", CITATION.sub("", runs_when)).strip(" ,;.") :
-                    out.append((r, line, "an Algorithm run on an occurrence in words",
-                                f"§ {lineage}: whether something runs it on that occurrence, and for a job's run what a missed and a late run do, is read"))
                 for ln, row in tables[0]["rows"]:
                     loop = _for_each(_form_of(row[1]).strip().rstrip("."))
                     if loop and loop["order"] in (ANY_ORDER, LEFT_OPEN):
