@@ -34,7 +34,8 @@
 **Records:**
 
 - **Name:** {a short name}
-  **Prompted By:** {the builder's question, proposal or account, a finding's ID, or the user's own initiative}
+  **Prompted By:** {the builder's question, proposal or account and the options it offered, a finding's ID, or the user's own initiative}
+  **Type:** {selection or perspective}
   **Steer:** {the user's words, quoted}
   **Decision:** {the essence of what the steer decided}
 
@@ -44,7 +45,7 @@
 
 ## The Builder's Passes
 
-{what each pass and each review changed, each under a bold lead-in naming it, an adversarial review's opening Adversarial review and a post-apply audit's Post-apply audit, each review named with its report and the model and reasoning effort it ran on, and the flaws the user settled among its findings; and the local environment's tasks run on the code, and what each showed}
+{what each pass and each review changed, each under a bold lead-in naming it, an adversarial review's opening Adversarial review and a post-apply audit's Post-apply audit, each review named with its report and the model and reasoning effort it ran on, and the flaws the user settled among its findings, an adversarial review's also the decisions its findings fell on, their causes, the steers they pressed on and what the user decided of them, any revision of the frame, the change, the findings fixed where they sit with their reasons and the worked cases; and the local environment's tasks run on the code, and what each showed}
 
 ## Deliberately Left Alone
 
