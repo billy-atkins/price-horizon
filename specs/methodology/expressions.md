@@ -7,6 +7,7 @@ How an expression is written wherever a construct computes or tests a value, so 
 | Decision Table | a condition's cells, its Input Values, a computed header, an outcome's value, a computed outcome, its Output Values and its Default Output |
 | State Machine | an exclusive choice's guards |
 | Algorithm | a computation's value, a comparison's condition, a loop's list and its order, a run's argument and a Terminates cell |
+| DAG | a task's guard and its timeout |
 | Constraint | its rule |
 | Facts record | its Values, a function's Derivation and an Initial Value |
 

@@ -898,6 +898,8 @@ def check(root, warned=None):
     constructs.algorithm_findings(text_of, found, sections, strip_fences, CITATION, resolve)
     # each Constraint's rule, when it holds and what keeps it, a rule nothing keeps a warning
     constructs.constraint_findings(text_of, found, warned, sections, strip_fences, CITATION, resolve)
+    # each DAG's tasks' work and what runs it, and two tasks free at once giving one fact or reading what the other gives
+    constructs.dag_findings(text_of, found, sections, strip_fences, CITATION, resolve)
     found += record_type_findings(root)
     found += canon_spec_findings(root)
     found += scope_findings(root)

@@ -70,7 +70,7 @@
   **Version:** 2.5.1
   **URL:** `https://www.omg.org/spec/UML/2.5.1/`
   **Relation:** adopts
-  **Covers:** the state machine, its protocol state machine, its submachine state and its effect Behaviors, and the events its triggers name; the activity, its actions, control nodes and expansion regions; and the Constraint, a Behavior's preconditions and postconditions, and a Property's derivation and default value
+  **Covers:** the state machine, its protocol state machine, its submachine state and its effect Behaviors, and the events its triggers name; the activity, its actions, control nodes, edges, expansion regions and interruptible regions, a guarded edge from a fork, a wait time action and a time event among them; and the Constraint, a Behavior's preconditions and postconditions, and a Property's derivation and default value
 
 - **Name:** YAML
   **Title:** YAML Ain't Markup Language, the YAML Language Development Team
