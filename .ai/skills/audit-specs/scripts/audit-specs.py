@@ -495,7 +495,7 @@ PART_COLUMNS = {"State": "state", "Step": "Step", "Task": "task", "Name": "Name"
 NAME_CITED = set()
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
 PART_KEYS = {"State Machine": {"State", "Name"},
-             "Decision Table": {"Name"}, "Decision Tree": {"Step"}, "DAG": {"Task"},
+             "Decision Table": {"Name"}, "DAG": {"Task"},
              "Algorithm": {"Step"}, "Constraint": {"Name"}}
 
 
@@ -516,8 +516,7 @@ def part_citation(sel, path, target, text_of, r, line, found):
     column, value = PART_COLUMNS[m.group(1)], m.group(2).strip()
     values = [row[t["header"].index(column)] for t in tables if column in t["header"]
               for _, row in t["rows"] if len(row) == len(t["header"])]
-    # a Decision Tree's step is named by the number its branches share before the dot
-    if not [v for v in values if v == value or (column == "Step" and v.startswith(value + "."))]:
+    if not [v for v in values if v == value]:
         found.append((rule, r, line, f"a part citation matches no part: § {target} [{sel}]"))
     elif m.group(1) == "Name" and (path != r or not sections(body)[target][0] < line - 1 < sections(body)[target][1]):
         NAME_CITED.add((path, target))
@@ -894,6 +893,8 @@ def check(root, warned=None):
     constructs.guard_fact_findings(text_of, found, sections, strip_fences)
     # the fact a machine's state is recorded in, its Values holding each state
     constructs.recorded_in_findings(text_of, found, sections, strip_fences, CITATION, resolve)
+    # a configured instance's Held In, and the construct an Extends extends
+    constructs.held_in_findings(text_of, found, sections, strip_fences, CITATION, resolve)
     # what runs an Algorithm, and the facts a run gives
     constructs.algorithm_findings(text_of, found, sections, strip_fences, CITATION, resolve)
     # each Constraint's rule, when it holds and what keeps it, a rule nothing keeps a warning
