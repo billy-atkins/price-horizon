@@ -27,7 +27,7 @@ The two drawings also do not divide the building the same way. An architect orga
 |---|---|---|
 | "DAG", "State Machine for a process" | a business-readable table of its steps, decision points and outcomes | the DAG or State Machine that carries it out |
 | Constraint | the plain guarantee | its enforcement, what its Enforced by names |
-| "State Machine for an entity's or a system's status", "Decision Table", "Decision Tree", "Record Form" | the construct itself | the same construct |
+| "State Machine for an entity's or a system's status", "Decision Table", "Record Form" | the construct itself | the same construct |
 | Algorithm | no rendering, since a business reader has no use for step-by-step computation | the Algorithm |
 
 **A promise that cannot be built —** writing the technical spec tests a product promise against what is actually possible. A promise no mechanism can make true is amended in the product spec, as the user decides (`§ Personas`), rather than left standing.
@@ -107,10 +107,17 @@ A product specification is organized by capability domain (`specs/methodology/gl
 
 Before writing or extending a product spec, ask what a product owner, or a salesperson pitching the system, would call the capability domain it belongs to, never which open file already talks about something similar.
 
-Read the product specs' `architecture.md` first. It gives each domain a section of its own, describing what the domain covers and closing with the files that serve it, so its sections are the domains the specs recognize. Then:
+Read the product specs' `architecture.md` first. It gives each domain a section of its own, describing what the domain covers and closing with the files that serve it, so its sections are the domains the specs recognize. Then the content's home:
 
-- If the content extends a listed domain, put it in that domain's home: an existing file if it grows what is there, or a new file in the domain's subfolder if it is a genuinely separate sub-capability.
-- If it fits none of them, name a new domain as a plain noun phrase for something the product durably does or governs, never a sprint, a milestone, or a technical mechanism's name. Add it to the product specs' `architecture.md` as its own section, and decide subfolder or root file by `§ Where a File Goes`.
+**Construct:** Decision Table
+
+**Conditions:** Extends a listed domain?, Grows what one of its files holds?
+
+| Extends a listed domain? | Grows what one of its files holds? | Its home |
+|---|---|---|
+| true | true | that file |
+| true | false | a new file in the domain's subfolder, the content a genuinely separate sub-capability |
+| false | - | a new domain, named as a plain noun phrase for something the product durably does or governs, never a sprint, a milestone, or a technical mechanism's name, added to the product specs' `architecture.md` as its own section, subfolder or root file decided by `§ Where a File Goes` |
 
 Traps worth checking for before finalizing any new product file:
 
@@ -238,6 +245,6 @@ An open question is recorded in the spec whose area it applies to, methodology, 
 | Provisional Answer | no | yes | | text | what the specs rely on until it is settled, stated as settled prose would state it |
 | Impacts | no | yes | | text | prose naming each thing that relies on the provisional answer, with a citation of the section holding it, or, where that section holds more, of the part of a construct that relies on it (`specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct`); a data field that relies on it is named by what it says beside its section's citation |
 
-A sentence that relies on the provisional answer, and would otherwise read as settled, cites the record wherever `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` allows that citation, so a reader meets the question from the text that depends on it.
+A sentence that relies on the provisional answer, and would otherwise read as settled, cites the record wherever `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` allows that citation, so a reader meets the question from the text that depends on it. A spec of a system that exists states the system as it is built, and where its author suspects a defect, what the system should do is an open question, its Provisional Answer the behavior as built, so the spec states as built nothing the system does not do.
 
 The provisional answer is stated in the record alone, and the text relying on it states only what does not depend on it. Settling an open question is a change like any other. The settled answer is written, wherever it is needed, into each section the record's Impacts names and each section citing the record, replacing any citation of the record there. Then the record is removed, and its record section too once that holds no record.

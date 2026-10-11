@@ -53,7 +53,7 @@ Grep before drafting, per `specs/methodology/sourcing-and-citation.md § One Hom
 
 ### Check whether a construct applies before writing prose
 
-`specs/methodology/modeling-constructs.md § Purpose` decides whether a passage is a construct or prose, `specs/methodology/modeling-constructs.md § When to Use Which` which construct it is, and `specs/methodology/modeling-constructs.md § Constructs` the form it is written in.
+`specs/methodology/modeling-constructs.md § Purpose` decides whether a passage is a construct or prose, routing included however it reads, by the count that section sets; `specs/methodology/modeling-constructs.md § When to Use Which` which construct it is, and `specs/methodology/modeling-constructs.md § When to Use Which § A Configured Instance` the same where its rows, states or steps are the system's data; `specs/methodology/modeling-constructs.md § When to Use Which § Combining Constructs` how one hands its work to another; and `specs/methodology/modeling-constructs.md § Constructs` the form it is written in.
 
 ### Draft with the source file open
 

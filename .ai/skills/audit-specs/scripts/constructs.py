@@ -16,7 +16,7 @@ DECLARING = "modeling-constructs.md § Constructs § Declaring a Construct"
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs
 # modeling-constructs.md § Constructs § Declaring a Construct: the constructs a **Construct:** field may name; a Record Form is
 # declared by its titles
-NAMES = ("State Machine", "Decision Table", "Decision Tree", "DAG", "Algorithm", "Constraint")
+NAMES = ("State Machine", "Decision Table", "DAG", "Algorithm", "Constraint")
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
@@ -28,6 +28,8 @@ FIELD_TABLES = {
     DECLARED: (
         ("Construct", "yes", "", "`§ Constructs`"),
         ("Order", "where the construct leaves open the order it takes its inputs or gives its results in", "", "text"),
+        ("Held In", "no", "none", "text"),
+        ("Extends", "no", "none", "text"),
     ),
     "Constructs § Decision Table": (
         ("Hit Policy", "no", "Unique", "`§ Constructs § Decision Table`"),
@@ -78,7 +80,7 @@ DEFAULTS = {f: d for f, _, _, d in FIELD_TABLE if d}
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
 # the fields whose value is a list, each item beneath the field's key, an Algorithm's Inputs and Output taking none
 # on the key's line; a Default Output is one where its table has several outcome columns
-LIST_FIELDS = ("Inputs", "Output", "Reads", "Input Values", "Output Values")
+LIST_FIELDS = ("Inputs", "Output", "Reads", "Input Values", "Output Values", "Held In")
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
 # DMN's hit policies; Unique is the default value, reported where it is written
 POLICIES = ("Any", "Priority", "First", "Rule order", "Output order",
@@ -91,12 +93,10 @@ STATES = ["state", "description", "initial", "terminal"]
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Constraint
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § DAG
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
-# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Tree
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
 # each construct's tables, by their headers; None where a Decision Table's columns are its own
 FORMS = {
     "State Machine": [STATES, ["From", "To", "Trigger"]],
-    "Decision Tree": [["Step", "Question", "Answer", "Result"]],
     "DAG": [["task", "work", "depends_on"]],
     "Algorithm": [["Step", "Action"]],
     "Constraint": [["Constraint", "Applies to", "Enforced by"]],
@@ -131,11 +131,10 @@ FIELD = re.compile(r'^(?P<indent>\s*)(?P<marker>-\s+)?\*\*(?P<key>[^*`]+?):\*\*(
 # underscore within a word, as in a state's name, is no markup
 UNPLAIN = re.compile(r'[*`§;\[\]]|(?:^|\W)_|_(?:\W|$)')
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
-# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Tree
 # a jump as the form writes it, and the parser reading every jump: the phrase in any letters and the step number
-# after it, a whole number or a branch's dotted one, ending at a space, a punctuation mark or the text's end
+# after it, ending at a space, a punctuation mark or the text's end
 JUMP_WORDS = "Go to step"
-JUMP = re.compile(r'(?i)\b' + re.escape(JUMP_WORDS) + r'\b(?:\s+(\d+(?:\.\d+)?)(?=$|[^\w.]|\.(?!\d)))?')
+JUMP = re.compile(r'(?i)\b' + re.escape(JUMP_WORDS) + r'\b(?:\s+(\d+)(?=$|[^\w.]|\.(?!\d)))?')
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
 # the opening of a comparison, and the separator of its two branches, as the form writes them
 COMPARISON_OPENING = "If "
@@ -606,7 +605,7 @@ def construct_findings(r, body, found, sections):
                 found.append((DECLARING, r, table["line"], "a column headed Name that does not open a table it may open"))
             for ln, row in table["rows"]:
                 empty = [header[c] for c, v in enumerate(row) if not v and c < len(header) and header[c] not in notes]
-                if empty and not (name == "Decision Tree" and empty == ["Question"]):
+                if empty:
                     found.append((DECLARING, r, ln, f"a cell holding no value: {empty}"))
                 for c, v in enumerate(row[:len(header)]):
                     if formed and (v == "none" and (name, header[c]) not in NONE_COLUMNS or v == "-"):
@@ -620,8 +619,18 @@ def construct_findings(r, body, found, sections):
             # its whole check runs across files, in algorithm_findings or constraint_findings
             continue
         # each per-file check takes its file's facts, read where its cells hold FEEL
+        # a construct extending another holds a part of one: its tables are checked for their form alone
+        if extends(fields):
+            continue
         {"State Machine": _machine, "Decision Table": _decision_table,
-         "Decision Tree": _tree, "DAG": _dag}[name](r, line, name, fields, tables, found, facts)
+         "DAG": _dag}[name](r, line, name, fields, tables, found, facts)
+
+
+def extends(fields):
+    """Whether a construct's fields declare an Extends: its tables then hold a part of a construct, which the checks
+    of a whole one would report, so they are checked for their form alone."""
+    values = fields if isinstance(fields, dict) else dict((k, v) for _, k, v in fields)
+    return values.get("Extends", "none") != "none"
 
 
 def _paragraphs(r, lines, line, fields, found):
@@ -977,7 +986,7 @@ def submachine_findings(text_of, found, sections, strip_fences, citation, resolv
     machines = {}
     for r, body in text_of.items():
         for line, name, fields, tables, lineage in declarations(strip_fences(body), sections(body)):
-            if name == "State Machine" and len(tables) == 2:
+            if name == "State Machine" and len(tables) == 2 and not extends(fields):
                 protocol = dict((k, v) for _, k, v in fields).get("Protocol") == "Yes"
                 machines[(r, lineage)] = (protocol, tables)
     governs = {}
@@ -1134,7 +1143,7 @@ def recorded_in_findings(text_of, found, sections, strip_fences, citation, resol
     for r, body in text_of.items():
         for line, name, fields, tables, lineage in declarations(strip_fences(body), sections(body)):
             value = dict((k, v) for _, k, v in fields).get("Recorded In")
-            if name != "State Machine" or len(tables) != 2 or value in (None, "none"):
+            if name != "State Machine" or len(tables) != 2 or value in (None, "none") or extends(fields):
                 continue
             mm, cites = READS_ITEM.fullmatch(value.strip()), citation.findall(value)
             named = re.search(r'\[Name: ([^\]]+)\]', value)
@@ -1356,6 +1365,15 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
         return
     idx = list(range(off, off + n))
     outs = list(range(off + n, len(header) - m))
+    # § Its cells: a condition no row tests, or one every row tests by one value where no Default Output and no
+    # multiple-hit policy catches the cases it excludes, tells no case from another; a configured instance's
+    # columns are its data's
+    if len(table["rows"]) > 1 and values.get("Held In", "none") == "none":
+        single = not multi_hit(policy) and "Default Output" not in values
+        for k in idx:
+            cells = {row[k] for _, row in table["rows"] if len(row) > k}
+            if cells == {"-"} or (len(cells) == 1 and single):
+                found.append((rule, r, table["line"], f"a condition column every row tests alike: {header[k]}"))
     computed = [] if values.get("Computed", "none") == "none" else [c.strip() for c in values["Computed"].split(",")]
     if any(c not in [header[k] for k in outs] for c in computed):
         found.append((rule, r, line, "a Computed field naming a column that is no outcome"))
@@ -1541,58 +1559,6 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
             found.append((rule, r, table["line"], f"a case no row matches: {shown}"))
 
 
-def _tree(r, line, name, fields, tables, found, facts=None):
-    rule = f"{RULE} § Decision Tree"
-    rows = tables[0]["rows"]
-    steps, first = {}, {}
-    ids = [row[0] for _, row in rows]
-    if len(set(ids)) != len(ids):
-        found.append((rule, r, tables[0]["line"], "two branches sharing a number"))
-    for ln, row in rows:
-        result = _form_of(row[3])
-        m = re.fullmatch(r'(\d+)\.(\d+)', row[0])
-        if not m:
-            found.append((rule, r, ln, f"a branch numbered other than step and branch: {row[0]}"))
-            continue
-        step = m.group(1)
-        if step not in first:
-            first[step] = ln
-            if not row[1]:
-                found.append((rule, r, ln, f"step {step}'s first branch with no question"))
-        elif row[1]:
-            found.append((rule, r, ln, f"a question written on a branch of step {step} but its first"))
-        steps.setdefault(step, set())
-        if not row[3]:
-            found.append((rule, r, ln, "a branch with no result"))
-        elif any(j[1] for j in jumps(result)) and not (_ends_in_jump(result)
-                                                       and result.lower().startswith(JUMP_WORDS.lower())):
-            found.append((rule, r, ln, f"a result holding a jump and more: {row[3]}"))
-        _jump_form(rule, r, ln, result, row[3], found)
-        steps[step] |= {j[1] for j in jumps(result) if j[1]}
-    numbers = {i.split(".")[0] for i in ids}
-    for ln, row in rows:
-        for target in [j[1] for j in jumps(_form_of(row[3])) if j[1]]:
-            if "." in target:
-                found.append((rule, r, ln, f"a jump naming a branch, not a step: {target}"))
-            elif target not in numbers:
-                found.append((rule, r, ln, f"a jump to a step the table does not hold: {target}"))
-    if "1" not in steps:
-        found.append((rule, r, tables[0]["line"], "no step 1 to start at"))
-        return
-    reached, todo = {"1"}, ["1"]
-    while todo:
-        s = todo.pop()
-        for t in steps.get(s, ()):
-            if t not in reached:
-                reached.add(t)
-                todo.append(t)
-    for s in steps:
-        if s not in reached:
-            found.append((rule, r, first[s], f"a step no path from step 1 reaches: {s}"))
-        if s in _reach_from(steps, s):
-            found.append((rule, r, first[s], f"a step that leads back to itself: {s}"))
-
-
 def _reach_from(graph, start):
     seen, todo = set(), list(graph.get(start, ()))
     while todo:
@@ -1718,7 +1684,7 @@ def dag_findings(text_of, found, sections, strip_fences, citation, resolve):
     # each DAG's tasks, their works resolved; a nested DAG's gives are its tasks' gives, resolved after all are read
     dags, nested = {}, {}
     for (r, lineage), (line, name, values, tables) in sorted(decls.items()):
-        if name != "DAG" or not tables:
+        if name != "DAG" or not tables or extends(values):
             continue
         header = tables[0]["header"]
         if header[:3] != FORMS["DAG"][0]:
@@ -1764,6 +1730,15 @@ def dag_findings(text_of, found, sections, strip_fences, citation, resolve):
             }
         dags[(r, lineage)] = (line, tables[0]["line"], tasks)
 
+    # an extending DAG's tasks run the DAGs they cite, though its tables are checked for their form alone
+    for (r, lineage), (line, name, values, tables) in sorted(decls.items()):
+        if name == "DAG" and tables and extends(values) and "work" in tables[0]["header"]:
+            wi = tables[0]["header"].index("work")
+            for _, row in tables[0]["rows"]:
+                c = citation.fullmatch(row[wi]) if wi < len(row) else None
+                key = resolve(c.group(1), r) if c else None
+                if key and decls.get(key, (0, ""))[1] == "DAG":
+                    nested.setdefault((r, lineage), set()).add(key)
     # a DAG holding itself through the DAGs its tasks' work cites
     for key in sorted(nested):
         if key in _reach_from(nested, key):
@@ -2403,7 +2378,7 @@ def algorithm_findings(text_of, found, sections, strip_fences, citation, resolve
         if name != "Algorithm" or not tables or not table_ready(tables[0]):
             continue
         rows = tables[0]["rows"]
-        if [row[0] for _, row in rows] != [str(n) for n in range(1, len(rows) + 1)]:
+        if values.get("Extends", "none") == "none" and [row[0] for _, row in rows] != [str(n) for n in range(1, len(rows) + 1)]:
             found.append((rule, key[0], tables[0]["line"], "steps not numbered from 1 in order"))
             unread.add(key)
             continue
@@ -2457,6 +2432,8 @@ def algorithm_findings(text_of, found, sections, strip_fences, citation, resolve
     for key, steps in algos.items():
         r = key[0]
         line, _, values, tables = decls[key]
+        if extends(values):
+            continue
         table = tables[0]
         bind = bind_in(r)
         back_at, scope_at = _algorithm(rule, r, line, values, table, steps, facts_in.get(r, {}), bind, found)
@@ -2638,7 +2615,7 @@ def constraint_findings(text_of, found, warned, sections, strip_fences, citation
         return None
 
     for (r, lineage), (line, name, values, tables) in sorted(decls.items()):
-        if name != "Constraint" or not tables:
+        if name != "Constraint" or not tables or extends(values):
             continue
         table = tables[0]
         header = table["header"]
@@ -2697,6 +2674,78 @@ def constraint_findings(text_of, found, warned, sections, strip_fences, citation
 
 # ---------------------------------------------------------------- a Name column, present where it is cited
 
+def held_in_findings(text_of, found, sections, strip_fences, citation, resolve):
+    """§ Constructs § Declaring a Construct: a Held In, a list, gives an item for each table its construct's form
+    gives, in that order, each a fact's name, a colon and the citation of the Facts record declaring it, whose Type
+    is a list of a context whose entries are named as that table's columns; an Extends cites a construct of the
+    same kind. `citation` and `resolve` are the citation check's own."""
+    records, kinds = {}, {}
+    for r, body in text_of.items():
+        live, secs = strip_fences(body), sections(body)
+        for lineage, span in secs.items():
+            if lineage.rsplit(" § ", 1)[-1] == "Facts":
+                for _, name, d in fact_records(live, {lineage: span}):
+                    records[(r, lineage, name)] = d.get("Type", "")
+        for _, name, _, _, lineage in declarations(live, secs):
+            kinds[(r, lineage)] = name
+    for r, body in text_of.items():
+        for line, name, fields, tables, lineage in declarations(strip_fences(body), sections(body)):
+            values = dict((k, v) for _, k, v in fields)
+            held, ext = values.get("Held In"), values.get("Extends")
+            if held not in (None, "none") and name == "DAG":
+                found.append((DECLARING, r, line, "a DAG declaring Held In, a process configured as data being an Algorithm over it"))
+            elif held not in (None, "none"):
+                items = [i.strip() for i in held.split("\n") if i.strip()]
+                if name in FORMS and len(items) != len(FORMS[name]):
+                    found.append((DECLARING, r, line, f"a Held In giving {len(items)} items for a construct of {len(FORMS[name])} tables"))
+                for item, table in zip(items, tables):
+                    mm, cites = READS_ITEM.fullmatch(item), citation.findall(item)
+                    named = re.search(r'\[Name: ([^\]]+)\]', item)
+                    if not mm or len(cites) != 1 or not named or named.group(1).strip() != mm.group(1).strip():
+                        found.append((DECLARING, r, line, f"a Held In item that is not a fact's name, a colon and the citation of its Facts record: {item}"))
+                        continue
+                    path, section = resolve(cites[0], r)
+                    typ = records.get((path, section, mm.group(1).strip()))
+                    if typ is None:
+                        found.append((DECLARING, r, line, f"a Held In item citing no Facts record: {item}"))
+                        continue
+                    m = re.fullmatch(r'list<context<(.*)>>', typ.strip())
+                    if not m:
+                        found.append((DECLARING, r, line, f"a Held In fact whose Type is no list of a context: {mm.group(1).strip()}"))
+                        continue
+                    entries = [e.split(":")[0].strip() for e in _split_entries(m.group(1))]
+                    if entries != table["header"]:
+                        found.append((DECLARING, r, line, f"a Held In fact whose context's entries are not the table's columns: {entries} against {table['header']}"))
+            if ext not in (None, "none"):
+                cites = citation.findall(ext)
+                if len(cites) != 1 or "[" in cites[0] or citation.sub("", ext).strip():
+                    found.append((DECLARING, r, line, f"an Extends that is not one citation of a construct's section: {ext}"))
+                    continue
+                kind = kinds.get(resolve(cites[0], r))
+                if kind is None:
+                    found.append((DECLARING, r, line, f"an Extends citing no construct: {ext}"))
+                elif kind != name:
+                    found.append((DECLARING, r, line, f"an Extends citing {_a(kind)}, not {_a(name)}: {ext}"))
+
+
+def _split_entries(text):
+    """A context type's entries, split on the commas at its top level."""
+    out, depth, cur = [], 0, ""
+    for ch in text:
+        if ch in "<([{":
+            depth += 1
+        elif ch in ">)]}":
+            depth -= 1
+        if ch == "," and depth == 0:
+            out.append(cur)
+            cur = ""
+        else:
+            cur += ch
+    if cur.strip():
+        out.append(cur)
+    return out
+
+
 def name_column_findings(text_of, cited, found, sections, strip_fences):
     """§ Constructs § Declaring a Construct: a table opens with a Name column exactly where a part
     of it is cited from outside its construct's section. `cited` holds the (path, lineage) pairs a
@@ -2713,8 +2762,7 @@ def name_column_findings(text_of, cited, found, sections, strip_fences):
 
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs
 # a construct's tables known by their leading columns, so one written in an earlier form is found too
-LEADS = (("state", "description"), ("From", "To"), ("Step", "Question"), ("task",), ("Step", "Action"),
-         ("Constraint", "Applies to"))
+LEADS = (("state", "description"), ("From", "To"), ("task",), ("Step", "Action"), ("Constraint", "Applies to"))
 
 
 def construct_candidates(files, sections, strip_fences):
@@ -2735,6 +2783,9 @@ def construct_candidates(files, sections, strip_fences):
             if name == "State Machine" and len(tables) == 2 and _choice_against_a_fact(tables[1]):
                 out.append((r, line, "an exclusive choice testing against a fact or in another of FEEL's forms",
                             f"§ {lineage}: whether two of its guards can hold at once is read"))
+            if dict((k, v) for _, k, v in fields).get("Extends", "none") != "none":
+                out.append((r, line, "a construct extending another",
+                            f"§ {lineage}: whether its tables hold only what its base lacks, and the two read as one are what its construct's section checks for, is read"))
             if name == "Decision Table" and tables and _against_a_fact(fields, tables[0]):
                 out.append((r, line, "cells testing against a fact or in another of FEEL's forms",
                             f"§ {lineage}: which rows a case reaches, and whether every case matches one, is read"))
