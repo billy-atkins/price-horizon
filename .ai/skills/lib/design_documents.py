@@ -269,9 +269,10 @@ def check_form(design):
     return len(designs), problems
 
 
+# @canon-spec specs/methodology/working-files.md § A Design Document § The Kinds of Change
 def kind_of(path, skills):
     """canon, application, or None for a file of neither kind."""
-    if path == "specs/AGENTS.md" or path.startswith("specs/methodology/"):
+    if path in ("specs/AGENTS.md", "specs/architecture.md") or path.startswith("specs/methodology/"):
         return "canon"
     if any(path.startswith(".ai/skills/" + n + "/") for n in skills + ["lib"]):
         return "canon"

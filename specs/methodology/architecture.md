@@ -1,46 +1,19 @@
-## The Shape of the Specifications
+## What the Methodology Holds
 
-The specifications are layered by what governs what, each layer describing a different kind of thing.
-
-```
-specs/
-├── AGENTS.md             the entry point to Spec of Record
-├── index.md
-├── methodology/          the rules for writing specs, and for the code the specs govern
-│   ├── index.md
-│   └── architecture.md
-└── application/          the product being specified
-    ├── index.md
-    ├── product/
-    └── technical/
-```
-
-At the top of `specs/` sits `specs/AGENTS.md`, Spec of Record's entry point. It holds:
-
-- the kinds a change can be, and the skills every change and every check is sent to, each forking on whether the canon or the application specs are touched, and the skills designing, writing and checking code;
-- where to find a rule mid-step;
-- the rules reaching every author: how work is designed, reviewed and approved, who makes each check, and how each round of an adversarial review is settled at the causes of its findings;
-
-The project's own `AGENTS.md`, at its root, holds that project's own instructions to an agent, and points to `specs/AGENTS.md`.
-
-`specs/methodology/scope.md § The Shape of the Scope` draws the whole scope, down to each methodology file, and each directory's own `index.md` lists what it holds, so this tree names only the layers and the files that establish them.
-
-**`specs/methodology/` —** the rules for writing a specification here, and for the code the specs govern:
+`specs/methodology/` holds the rules for writing a specification here, and for the code the specs govern; this overview also describes the skills carrying them out and the code their scripts share (`specs/methodology/spec-placement.md § What an Overview Describes`), and `specs/architecture.md` describes the specifications as a whole. The methodology's files hold:
 
 - what the method governs, how an agent reads it, how the methodology governs itself, how each rule is enforced, how its instructions stay agnostic of the agent reading them, and the terms it gives meanings of its own;
 - which skills belong to the method, how a skill is authored, and how the agent in use is set up;
-- which spec a fact belongs in, at which altitude and in which file, and the persona each spec, and the code they govern, is written as;
+- which spec a fact belongs in, at which altitude and in which file, what an overview describes beyond its directory, and the persona each spec, and the code they govern, is written as;
 - how a capability domain is named, how a product file names the technical files behind it, what a product module is and what a change to its code reads, and where and in what form an open question is recorded, its provisional answer what the specs move forward on and its impacts everything relying on it, a spec of a system that exists stating the system as built, a suspected defect an open question;
 - what the technical stack and the environments hold;
-- where a fact has its one home, which citations are allowed, how a section is titled and cited, how an outside standard the canon relies on is registered and cited, and which renderings of a fact are kept in step;
+- where a fact has its one home, which citations are allowed, how a section is titled and cited, how an outside standard the canon relies on is registered and cited, and how a materialized view is kept in step with its sources and a product spec aligned with its technical counterpart;
 - when a structured construct is required instead of prose and which one, each adopting an outside standard whole where one meets its need, how one hands its work to another and how it reads time; how markup is written; and how a diagram is drawn and sourced;
 - how an expression a construct computes or tests is written, in FEEL, adopted whole, and where a system's own arithmetic, its precision, rounding and decimal places, departs from it;
 - when a capability owes acceptance scenarios;
 - what a finished spec reads like and the trade-off that belongs in one, the clear prose it is written in, where an example is drawn from and how a number is used;
 - the working files, the kinds of file a design is bounded to, and how a steer the user gives a design is recorded, typed and revisited;
 - the rules that reach the code the application specs govern.
-
-**`specs/application/` —** the specification of the product itself, split by what a reader can rely on versus how it is made true. `product/` covers what a user or an integrating caller can experience, rely on, or build against, stated as a capability or a guarantee rather than as an implementation choice. `technical/` covers how each of those facts is actually made true: the algorithms, schemas, service boundaries, models, and infrastructure.
 
 ## The Methodology Governs Itself
 
@@ -56,13 +29,13 @@ The detail files that govern what a spec says, and the one governing code, are n
 - `skills.md` states which skills belong to the method, how a skill is authored, and how the agent in use is set up to carry out what the method leaves to it.
 - `glossary.md` states the terms the method gives meanings of its own, how an entry is written, and where an abbreviation may be used.
 
-**Placement comes first and constrains everything after it —** `spec-placement.md` settles which spec a fact belongs in, at which altitude, in which file. Nothing downstream can be decided before that: a citation cannot be written until there is a file to cite, and a capability cannot owe scenarios until it is known to be a product capability. `spec-placement.md` also sets how a capability domain is named, how a product file names the technical files that build it, what a change to a product module's code reads, and what the technical stack and the environments hold.
+**Placement comes first and constrains everything after it —** `spec-placement.md` settles which spec a fact belongs in, at which altitude, in which file. Nothing downstream can be decided before that: a citation cannot be written until there is a file to cite, and a capability cannot owe scenarios until it is known to be a product capability. `spec-placement.md` also sets what an overview describes beyond its directory, how a capability domain is named, how a product file names the technical files that build it, what a change to a product module's code reads, and what the technical stack and the environments hold.
 
-**A persona for the methodology, the application specs and their code —** `spec-placement.md` also gives the persona the methodology, the product specs, the technical specs and the code they govern are each written as, and the adversarial review of a design changing them framed as.
+**A persona for the methodology, the application specs and their code —** `spec-placement.md` also gives the persona the methodology, `specs/architecture.md`, the product specs, the technical specs and the code they govern are each written as, and the adversarial review of a design changing them framed as.
 
 **Sourcing and citation depends on placement and feeds back into it —** `sourcing-and-citation.md` governs where a fact lives, that a form is defined once, each use an instance of it and a form adding to another a sub-definition of it, how everywhere else points at it, by a citation to a stable heading and never by direction, how an outside standard the canon relies on is registered, its records held in `external-references.md` and cited by each section adopting one, and what happens afterward when the fact changes. Its layering rules are stated in terms of the directories placement defines. The dependency runs both ways in one respect: deciding a fact's one home is a placement decision made under a sourcing rule, which is why the two are the pair most often consulted together.
 
-A fact stated once is often rendered in more than one place: a counterpart spec on the other side of the product and technical split, a directory's own `architecture.md`, a diagram wherever it sits. None of those renderings keeps itself current, so each is a place to revisit when the fact it restates changes, an obligation that outlasts the writing of the file.
+A fact stated once is often restated elsewhere, in a directory's own `architecture.md` or a diagram wherever it sits. Each is a materialized view of the fact's one home in what it restates, never its source, and the home and its views work together: a diagram cites the home of everything it draws, and each home names the diagram back. A product spec and its technical counterpart are kept in step another way, two drawings of one subject, each from its own perspective, neither a summary of the other, kept aligned. None of these keeps itself current, so each is a place to revisit when a change reaches it, an obligation that outlasts the writing of the file.
 
 **Modeling constructs cut across both —** whether a passage is prose or a construct is independent of which spec it sits in or how it is cited. `modeling-constructs.md` applies wherever a rule, a process, an entity's behavior, or an entry recorded repeatedly is being described, at any altitude, in either half of `specs/application/` and in these files; its Record Form reaches the working files too. What it tests is a rule's shape, never how it reads, prose holding only the simplest rules and its choosing table picking the construct for the rest. Each construct but the Record Form adopts an outside standard whole, registered in `external-references.md`: the Decision Table is DMN's decision table, the State Machine UML's state machine, the Algorithm and the DAG UML's activity, and the Constraint UML's Constraint, each meaning what its standard says, its departures named, and each writing its expressions in FEEL as `expressions.md` states it. Its constructs and its Record Form apply `sourcing-and-citation.md`'s rule that a form is defined once, each use an instance of it: a construct that extends another is a sub-definition of it, and any but a DAG whose rows, states or steps are data the system's users change is a configured instance, the tables written its default. It defines the Facts record type for a fact several constructs test, and says how one construct hands its work to another.
 
@@ -92,4 +65,6 @@ What it deliberately leaves unaudited it declines by name rather than by silence
 
 **`implement-specs` carries the specs into code —** it applies `code.md`'s rules: how governed code names what it carries out or checks, how it changes, and what a test is. It designs the code and its tests from one product module's specs as a design document, written as the chief architect would, and takes it through the same reviews as a design changing the specs; the user approves it before any code is written. It then writes the code, runs the local environment's tasks, and checks its own work before `verify-spec-implementation` checks it.
 
-**`verify-spec-implementation` checks the code against its specs —** it is to code what `audit-specs` is to the specs: a script checks the app-spec annotations and lists the spec sections no code cites, and a cold reading judges whether each unit carries out what it cites and whether code with no annotation is wiring. It only reads: the project's tests run where the project's own pipeline runs them.
+**`verify-spec-implementation` checks the code against its specs —** it is to code what `audit-specs` is to the specs: a script checks the app-spec annotations and lists the spec sections no code cites, and a cold reading judges whether each unit carries out what it cites and whether code with no annotation is wiring, and reads the technical overview's account of the code against the code. It only reads: the project's tests run where the project's own pipeline runs them.
+
+**The code the skills' scripts share —** `.ai/skills/lib/` holds what two skills' scripts both need, the design document tooling among it, each module imported by the skills' entry scripts (`specs/methodology/skills.md § Authoring a Skill`).

@@ -36,6 +36,8 @@ REGISTRY_RULE = "skills.md § Registered Skills"
 AUTHORING = "specs/methodology/skills.md § Authoring a Skill"
 SCOPE_TREE = "specs/methodology/scope.md"
 SPECS_AGENTS = "specs/AGENTS.md"
+# @canon-spec specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed
+SPECS_ARCHITECTURE = "specs/architecture.md"  # in specs/AGENTS.md's layer
 GLOSSARY = "specs/methodology/glossary.md"
 GLOSSARY_RULE = "glossary.md § Writing an Entry"
 ABBREVIATION_RULE = "glossary.md § Using an Abbreviation"
@@ -649,15 +651,15 @@ def layer_of(rel):
     for name, prefix in LAYER.items():
         if rel.startswith(prefix):
             return name
-    if rel == SPECS_AGENTS:
+    if rel in (SPECS_AGENTS, SPECS_ARCHITECTURE):
         return "agents"
     return "project" if rel == "AGENTS.md" else None
 
 
 def direction(src_layer, path, rel, line, found, section=True):
-    """A citation never points down a layer except from specs/AGENTS.md; application and
+    """A citation never points down a layer except from specs/AGENTS.md or specs/architecture.md; application and
     methodology never cite each other in either direction; an application spec never
-    cites specs/AGENTS.md; and no spec cites a section of the project's root AGENTS.md,
+    cites specs/AGENTS.md or specs/architecture.md; and no spec cites a section of the project's root AGENTS.md,
     though a plain mention of it is no citation of its content. Shared by both forms."""
     dst_layer = layer_of(path)
     if not (src_layer and dst_layer and src_layer != dst_layer):
@@ -1174,7 +1176,7 @@ def style_and_agent_candidates(root):
             continue
         for n, s in long_sentences(f.read_text(encoding="utf-8")):
             out.append((rel, n, "a long sentence of chained clauses, which may need a second read", s.strip()))
-        if rel == SPECS_AGENTS or rel.startswith("specs/methodology/"):
+        if rel in (SPECS_AGENTS, SPECS_ARCHITECTURE) or rel.startswith("specs/methodology/"):
             for n, path in application_paths(f.read_text(encoding="utf-8")):
                 out.append((rel, n, "a path into the application specs, which may be an example from inside the house", path))
     return out
@@ -1413,7 +1415,7 @@ def canon_spec_findings(root):
                 path, _, lineage = cite.partition(" § ")
                 target = root / path
                 if not (path == SPECS_AGENTS or path.startswith("specs/methodology/")) or not path.endswith(".md"):
-                    out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation citing outside the canon's specs: " + cite))
+                    out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation citing neither specs/AGENTS.md nor a methodology spec: " + cite))
                 elif path.endswith("/index.md"):
                     out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation citing an index.md, never a citation target: " + cite))
                 elif not target.is_file():

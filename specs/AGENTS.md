@@ -1,10 +1,12 @@
 # Spec of Record — Agent Instructions
 
-The entry point to Spec of Record for these specifications. Read it before any work on a file in Spec of Record's scope (`specs/methodology/scope.md § What Spec of Record Governs`): it sends each change to the procedure that governs it, and holds the rules that reach every author. Read `specs/methodology/glossary.md` next, before anything else (`specs/methodology/scope.md § Progressive Disclosure`).
+The entry point to Spec of Record for these specifications. Read it before any work on a file in Spec of Record's scope (`specs/methodology/scope.md § What Spec of Record Governs`): it sends each change to the procedure that governs it, and holds the rules that reach every author. Read `specs/methodology/glossary.md` next, before anything else (`specs/methodology/scope.md § Progressive Disclosure`); `specs/architecture.md` describes the specifications as a whole.
 
 ## Writing specs
 
 `specs/methodology/` holds the rules for writing a specification and for the code the specs govern. Those rules, and the rules in this file, reach the files in Spec of Record's scope, the methodology's own files included, as `specs/methodology/scope.md § What Spec of Record Governs` sets.
+
+**Keeping specs in step —** what a change reaches beyond the facts it edits is kept in step with them, as `specs/methodology/sourcing-and-citation.md § Keeping Specs in Step` has it: each materialized view of them (`specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Materialized Views`), and the counterpart drawing their subject from the other perspective (`specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Product and Technical Counterparts`).
 
 Every change is of one of the kinds `specs/methodology/working-files.md § A Design Document § The Kinds of Change` defines: to the canon, to the application specs, to code, or to neither. `specs/methodology/working-files.md § A Design Document` also sets when a change's design document declares its kind, and how a change needing two kinds is split. A change goes to the skill for its work, and the skills for the specifications serve every kind of specification alike, each forking on the kind where the work differs:
 
@@ -39,7 +41,7 @@ Running the procedure, rather than recalling the rules, is what puts each rule i
 | Removing drafting residue and hedged framing, or explaining a trade-off | `specs/methodology/spec-style.md § What a Finished Spec Reads Like`, `specs/methodology/spec-style.md § Trade-offs Are Not Journey Language` |
 | Writing prose its primary reader understands on the first read | `specs/methodology/spec-style.md § Clear Prose` |
 | Writing a number, a count, or a reference to an item | `specs/methodology/spec-style.md § Ordinals and Counts` |
-| Keeping a counterpart spec, an `architecture.md` or a diagram in step | `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step` |
+| Keeping a materialized view, an `architecture.md` or a diagram, in step with its sources, or a product spec aligned with its technical counterpart | `specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Materialized Views`, `specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Product and Technical Counterparts`, `specs/methodology/spec-placement.md § What an Overview Describes` |
 | Adding, changing, or re-checking a diagram | `specs/methodology/modeling-constructs.md § Diagrams`, then `.ai/skills/author-mermaid-diagram/` |
 | Recording a proposed change, a steer given it, or work to take up later | `specs/methodology/working-files.md § A Design Document`, `specs/methodology/working-files.md § A Steering Decision`, `specs/methodology/working-files.md § A Follow-up` |
 | Refactoring and refining specs that have landed, the canon's or the application's | `specs/methodology/glossary.md`, `§ Design, Refactor, Refine`, then `.ai/skills/design-specs/` |
