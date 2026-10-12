@@ -57,7 +57,7 @@ It reports what it finds, and edits nothing but the Validated field, which it st
 
 **A change needing both kinds is split —** its canon design reviews the application specs for what it leaves out of step there, records that in its Impact on the Application Specs, and edits none of them. That application work goes to the application design the canon design was spawned from, where there is one, or else is spawned or logged as this section's spawning paragraph has it, and the canon and application designs may be worked in concert. A design changing the specs that leaves code out of step edits none of the code either: it records the code its change leaves out of step in its design frame's Scope, and that work goes to a design changing code, spawned or logged the same way. What the canon design's post-apply audit finds in the application specs settles by `§ A Design Document § Changes After Approval`, and what that table hands on is application work too, added to what its review handed on or handed on the same way, so the canon design completes without editing them. Where the application work finds the canon design wrong, the canon design takes the change while it is in progress or approved, the user reopening an approved one. For any other canon change the application work needs, a change to the canon design once that design is applying or complete among them, the application design spawns a canon design, which blocks it, the user reopening the application design first where it is approved. An application design already applying keeps to what was approved, the canon change spawned or logged without blocking it, as the user decides.
 
-**Applying and committing —** a design's apply begins only once nothing else is uncommitted and no other design is applying in the same checkout. Its changes are committed on their own, one commit for each design even where a branch holds several, so a revert takes exactly that design's changes; where the project has no version control, they are reverted by hand. A design abandoned while applying has the edits it wrote reverted.
+**Applying and committing —** a design's apply begins only as `§ A Design Document § The States It Moves Through` lets it move into applying. Its changes are committed on their own, one commit for each design even where a branch holds several, so a revert takes exactly that design's changes; where the project has no version control, they are reverted by hand. A design abandoned while applying has the edits it wrote reverted.
 
 ### The Kinds of Change
 
@@ -101,24 +101,22 @@ Once the user approves a design, every change it makes to the files is one the u
 | state | description | initial | terminal |
 |---|---|---|---|
 | not-started | recorded, often by the design that spawned it, and not yet worked | Yes | No |
-| in-progress | under the builder's passes or a review, waiting on a design its Depends On names, taking in one that finished, or, its work done, awaiting the user's approval | No | No |
+| in-progress | its work under way, governed by `specs/methodology/design-workflow.md § The Order of a Design's Work § The Work of a Design` | No | No |
 | approved | converged, reviewed, and approved by the user, and not yet applied, awaiting the go-ahead to apply | No | No |
-| applying | its edits being written, its post-apply audit and what that asks for under way, and, where the project has version control, its commit awaiting the user's approval | No | No |
+| applying | its apply under way, governed by `specs/methodology/design-workflow.md § The Order of a Design's Work § The Apply` | No | No |
 | complete | applied, its audit settled; what it decided lives on in the specs it changed | No | Yes |
 | abandoned | withdrawn by the user | No | Yes |
 
 | From | To | Trigger | Guard |
 |---|---|---|---|
 | not-started | in-progress | the work is taken up | none |
-| in-progress | approved | the user approves it | its adversarial review is taken in, with another after any revision that changed its structure (`specs/AGENTS.md § Design, Refactor, Refine`), its validation review has stamped it, and each design its Depends On names is approved or applying |
+| in-progress | approved | none | none |
 | approved | in-progress | the user reopens it | none |
 | approved | in-progress | in-progress of a design its Depends On names is entered | none |
 | approved | in-progress | a design its Depends On names finishes | none |
-| approved | applying | the user gives the go-ahead to apply | its Depends On names none |
-| applying | in-progress | a finding of its post-apply audit exposes a flaw in the design | none |
-| applying | in-progress | the user does not approve a tactical fix a finding of its post-apply audit proposes to the design's own edits | none |
-| applying | complete | the user approves its commit | its edits are written, and each finding of its post-apply audit is settled without sending it back to in progress |
-| applying | complete | none | its edits are written, each finding of its post-apply audit is settled without sending it back to in progress, and the project has no version control |
+| approved | applying | the user gives the go-ahead to apply | its Depends On names none, nothing else is uncommitted, and no other design is applying in the checkout |
+| applying | in-progress | none | exit = "sent back" |
+| applying | complete | none | exit = "applied" |
 | not-started | abandoned | the user abandons it | none |
 | in-progress | abandoned | the user abandons it | none |
 | approved | abandoned | the user abandons it | none |

@@ -12,6 +12,7 @@
 - how an expression a construct computes or tests is written, in FEEL, adopted whole, and where a system's own arithmetic, its precision, rounding and decimal places, departs from it;
 - when a capability owes acceptance scenarios;
 - what a finished spec reads like and the trade-off that belongs in one, the clear prose it is written in, where an example is drawn from and how a number is used;
+- the order a design's work takes, and how a review's reasoning effort is applied;
 - the working files, the kinds of file a design is bounded to, and how a steer the user gives a design is recorded, typed and revisited;
 - the rules that reach the code the application specs govern.
 
@@ -46,6 +47,8 @@ It also sets the form of markup, wherever it is written: `specs/methodology/mode
 **Code is reached by one file —** `code.md` holds the rules that reach the code the application specs govern: which code is governed and which is wiring, how governed code names the specs it carries out or checks, how it changes, and what a test is. Its annotation is a citation written as `sourcing-and-citation.md` gives, without the backticks. No other file's rules reach code, but those it cites (`specs/methodology/scope.md § What Spec of Record Governs`).
 
 **Style applies last, and to every spec —** `spec-style.md` governs what any finished spec reads like, whatever it says and wherever it sits, and its clear prose and its rule on numbers reach the agent instructions and the skills too, each file written for its primary reader.
+
+**The order of a design's work —** `design-workflow.md` orders a design's work, from its frame to its approval and from its apply to its commit, as the two State Machines its Status runs, each state that does work citing the rule or the section doing it; and it says how a review's reasoning effort is applied.
 
 **Working files govern no spec —** `working-files.md` sets the form of the working files: a design document carrying one change through review, with the steers that shaped it, each a selection among the options the builder offered or a perspective the user brought, either revised only by the user, its passes recording how each review round was settled, and the designs it waits on, and how a design changing code differs; a stamp recording when a check passed; and a follow-up holding work not yet done. No spec but `working-files.md` names one (`specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`).
 

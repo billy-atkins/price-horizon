@@ -6,9 +6,9 @@ A skill is part of Spec of Record when it is registered here, and only then; a s
 |---|---|
 | `audit-specs` | `specs/AGENTS.md`, `specs/methodology/` |
 | `author-mermaid-diagram` | `specs/methodology/modeling-constructs.md § Diagrams` |
-| `configure-spec-of-record` | `§ Setting Up an Agent` |
+| `configure-spec-of-record` | `§ Setting Up an Agent`, `specs/methodology/design-workflow.md § A Review's Effort` |
 | `design-specs` | `specs/AGENTS.md`, `specs/methodology/` |
-| `implement-specs` | `specs/methodology/code.md`, `specs/methodology/spec-placement.md § Personas`, `specs/methodology/spec-placement.md § A Product Module`, `specs/methodology/spec-placement.md § Environments`, `specs/methodology/working-files.md § A Design Document` |
+| `implement-specs` | `specs/methodology/code.md`, `specs/methodology/spec-placement.md § Personas`, `specs/methodology/spec-placement.md § A Product Module`, `specs/methodology/spec-placement.md § Environments`, `specs/methodology/working-files.md § A Design Document`, `specs/methodology/design-workflow.md` |
 | `verify-spec-implementation` | `specs/methodology/code.md`, `specs/methodology/spec-placement.md § The Technical Stack`, `specs/methodology/spec-placement.md § What an Overview Describes`, `specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Materialized Views` |
 
 ## Authoring a Skill
@@ -58,4 +58,4 @@ A flag setting how an action runs, rather than choosing one, is named for what i
 
 What only the agent in use can carry out, it sets up for itself, through `.ai/skills/configure-spec-of-record/`, writing what it needs as `specs/methodology/scope.md § Agent Agnostic` allows anything written for one tool.
 
-**A review's reasoning effort —** an agent that applies a review's level (`specs/AGENTS.md § Design, Refactor, Refine`) as it starts a reviewer writes nothing for it. An agent that applies a level only through a definition of its own writes one reviewer definition for each level, named `review-light`, `review-medium` and `review-high`. Each is set to the agent's nearest level and gives no instructions of its own, since the brief the review is started with carries them. The agent keeps them out of version control through the checkout's own exclude file, `.git/info/exclude`, so its set-up changes no committed file.
+**A review's reasoning effort —** an agent applying a review's level through a reviewer definition, as `specs/methodology/design-workflow.md § A Review's Effort` has it, writes one for each level, named `review-light`, `review-medium` and `review-high`. Each is set to the agent's nearest level and gives no instructions of its own, since the brief the review is started with carries them. The agent keeps them out of version control through the checkout's own exclude file, `.git/info/exclude`, so its set-up changes no committed file.
