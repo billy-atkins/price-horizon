@@ -16,7 +16,7 @@ The steps a change to the application specs owes beyond the Workflow of `.ai/ski
 
 **Link a product file to the technical files building it —** within `.ai/skills/design-specs/SKILL.md § Workflow § Write the references`, when a technical file now fulfills a product file's capability, per `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability`.
 
-**Keep the counterpart in step —** within `.ai/skills/design-specs/SKILL.md § Workflow § Synchronize whatever restates what you changed`: a product fact and its technical mechanism name each other and change together, per `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`.
+**Keep the counterpart in step —** within `.ai/skills/design-specs/SKILL.md § Workflow § Synchronize whatever restates what you changed`: a product spec and its technical counterpart name each other and stay aligned, per `specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Product and Technical Counterparts`.
 
 ## Adding a statement changes which rules apply to it
 

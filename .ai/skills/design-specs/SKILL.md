@@ -73,9 +73,9 @@ Record it as an open question, per `specs/methodology/spec-placement.md § An Op
 
 ### Synchronize whatever restates what you changed
 
-`specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`. A section you changed that a diagram renders cites that diagram, wherever it sits, so the diagram to re-check is named in the text you just edited.
+`specs/methodology/sourcing-and-citation.md § Keeping Specs in Step`. A section you changed that a diagram renders cites that diagram, wherever it sits, so the diagram to re-check is named in the text you just edited.
 
-A diagram is the easiest rendering to leave stale and the hardest to notice, because a wrong one is invisible in source and obvious only once rendered. Authoring or re-checking one follows `specs/methodology/modeling-constructs.md § Diagrams` through `.ai/skills/author-mermaid-diagram/`, which covers the altitude check that keeps a label inside what its host file actually states, and the render step that catches what reading the source will not.
+A diagram is the easiest view to leave stale and the hardest to notice, because a wrong one is invisible in source and obvious only once rendered. Authoring or re-checking one follows `specs/methodology/modeling-constructs.md § Diagrams` through `.ai/skills/author-mermaid-diagram/`, which covers the altitude check that keeps a label inside what its host file actually states, and the render step that catches what reading the source will not.
 
 ### Strip drafting residue, and write clearly
 
@@ -101,7 +101,7 @@ The search is cheap and mechanical. Take the fact's distinctive nouns and grep f
 
 ## Compression distortion
 
-`specs/methodology/spec-placement.md § Index, Architecture, Detail` requires `architecture.md` to describe its whole directory in its own words while not accumulating full detail, which means compressing its detail files. Every clause compressing a paragraph into a phrase is an opportunity to assert something the source does not.
+`specs/methodology/spec-placement.md § Index, Architecture, Detail` requires `architecture.md` to describe its directory, every directory beneath it and what `specs/methodology/spec-placement.md § What an Overview Describes` names beyond it, in its own words while not accumulating full detail, which means compressing its detail files. Every clause compressing a paragraph into a phrase is an opportunity to assert something the source does not.
 
 The ways it goes wrong, in rough order of frequency:
 

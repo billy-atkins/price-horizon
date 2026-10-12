@@ -1,6 +1,6 @@
 ---
 name: verify-spec-implementation
-description: Check that code truthfully carries out the application specs governing it. Use after implement-specs has written code and checked its own work, as a design changing code's post-apply audit, or whenever the code may have drifted from its specs. Its script first checks every app-spec annotation in the application's code, and lists the spec sections no code cites and the files citing none; then a cold reading judges whether each unit does what it cites and whether unannotated code is wiring. It reports what it finds and changes nothing.
+description: Check that code truthfully carries out the application specs governing it. Use after implement-specs has written code and checked its own work, as a design changing code's post-apply audit, or whenever the code may have drifted from its specs. Its script first checks every app-spec annotation in the application's code, and lists the spec sections no code cites and the files citing none; then a cold reading judges whether each unit does what it cites and whether unannotated code is wiring, and reads the technical overview's account of the code against the code. It reports what it finds and changes nothing.
 ---
 
 # Verifying the code against its specs
@@ -31,6 +31,10 @@ Where the script's findings show existing annotations out of step with the specs
 
 For each annotated unit, read the sections it cites, and judge whether the unit carries them out, or checks them as a test does, no more and no less, per `specs/methodology/code.md § Governed Code and Wiring Code` and `specs/methodology/code.md § Tests`, and whether its annotations sit where `specs/methodology/code.md § Citing the Specs From Code` sets, as narrow as the unit, and never in a documentation comment, as `specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code` has it, which the script cannot judge. For each file the script lists as citing no spec, judge whether it is wiring or governed code missing its annotations; a file in a format with no comments is never governed code, and is judged as `specs/methodology/code.md § Governed Code and Wiring Code` sets. For each section it lists as cited by no code, judge whether it states something code must carry out, and so is not yet implemented, or something no code carries out, as an overview does.
 
+### Read the technical overview against the code
+
+The technical specs' `architecture.md` describes the code carrying out the application specs, per `specs/methodology/spec-placement.md § What an Overview Describes`. Read its account of the code against the code, and report what it says that the code does not bear out, per `specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Materialized Views`.
+
 ### Report, and settle as an audit
 
 Write the report to `.ai/tmp/verify-spec-implementation/`, one file per run, clearing an earlier report of the same scope, per `specs/methodology/working-files.md § The Working Files`. Name each finding with its file, its line, what it fails and the rule or spec it fails. Run as a design changing code's post-apply audit, its findings are settled with the user by `specs/methodology/working-files.md § A Design Document § Changes After Approval`.
@@ -44,3 +48,4 @@ Each check names the rule it enforces (`specs/methodology/scope.md § Rules and 
 | Annotations | `--check-annotations`, then reading | `specs/methodology/code.md § Citing the Specs From Code` |
 | Governed code and wiring | reading, from `--list-candidates` | `specs/methodology/code.md § Governed Code and Wiring Code` |
 | Tests | reading | `specs/methodology/code.md § Tests` |
+| The technical overview's account of the code | reading | `specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Materialized Views` |

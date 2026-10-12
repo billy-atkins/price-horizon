@@ -18,7 +18,7 @@
 
 **The why, kept with the what —** code holds what a system does, rarely why. The specs hold both, so the next engineer, or the next agent, starts from a record of the reasons rather than rediscovering them, and settled questions stay settled.
 
-**One home per fact, cited everywhere else —** every rule and definition is stated once, and everything that relies on it cites that home, down to the section. A change lands in one place, and everything depending on it can be found. Two copies of a rule are not redundancy; they are a defect waiting for the first edit to one of them.
+**One home per fact, cited everywhere else —** every rule and definition is stated once, and everything that relies on it cites that home, down to the section. A change lands in one place, and everything depending on it can be found. Two copies of a rule are not redundancy; they are a defect waiting for the first edit to one of them. The diagrams and the overviews, in all they restate, are materialized views of those homes, never the source of what they restate, kept in step whenever a home changes, so the one home and its views work together.
 
 **Every rule has a check —** scripts check whatever the files alone decide, because they are deterministic and spend no tokens; independent AI agents perform the remaining checks, the judgment-based, semantic ones that only they can; and a rule that leaves no trace in the files, such as reading a file fresh before editing it, is a named step of the skill that applies it.
 
@@ -79,7 +79,7 @@ One fact, followed end to end: the product promises that every answer shows how 
 
 ## How to read this repo
 
-For the method, start with `specs/AGENTS.md`, its entry point, and `specs/methodology/architecture.md`, an overview of its rules. For PriceHorizon, start with the two overviews: `specs/application/product/architecture.md`, what a user experiences and can rely on, and `specs/application/technical/architecture.md`, how it is made true, each with diagrams. Every directory under `specs/` has an `index.md` listing what it holds, and `specs/index.md` maps them as a whole. The skills that carry the method out are under `.ai/skills/`, each recording the failures that motivated it. To try the method, have your agent read `specs/AGENTS.md`, which sends each change to the skill that carries it out. The design documents, review reports and list of work still to do are working files, kept out of version control on purpose: what they settle reaches a reader only through the specs.
+For the method, start with `specs/AGENTS.md`, its entry point; then `specs/architecture.md`, the overview of the specifications as a whole, and `specs/methodology/architecture.md`, the overview of the method's rules. For PriceHorizon, start with the two overviews: `specs/application/product/architecture.md`, what a user experiences and can rely on, and `specs/application/technical/architecture.md`, how it is made true, each with diagrams. Every directory under `specs/` has an `index.md` listing what it holds, and `specs/index.md` maps them as a whole. The skills that carry the method out are under `.ai/skills/`, each recording the failures that motivated it. To try the method, have your agent read `specs/AGENTS.md`, which sends each change to the skill that carries it out. The design documents, review reports and list of work still to do are working files, kept out of version control on purpose: what they settle reaches a reader only through the specs.
 
 ## Set up AI skills for Claude Code
 

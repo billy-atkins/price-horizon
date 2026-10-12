@@ -19,6 +19,7 @@ AGENTS.md                      the project's own instructions, pointing to specs
 specs/
 ├── AGENTS.md                  the entry point to Spec of Record
 ├── index.md                   in every directory under specs/: what it holds
+├── architecture.md            the overview of the specifications as a whole
 ├── methodology/               the rules for writing specs, and for the code the specs govern
 │   ├── index.md
 │   ├── architecture.md

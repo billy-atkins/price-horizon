@@ -8,7 +8,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Altitude |  | The level of a file, or of its content, within its directory, from the navigation that names what the directory holds down to the detail that states it. |
 | App-spec annotation |  | A spec annotation in governed code, naming a spec, or a section of one, that the code carries out or, as a test, checks. |
 | Builder |  | The person or agent who does a piece of work and takes it through Design, Refactor, Refine. |
-| Canon |  | The part of the Spec of Record scope that states and applies the method's rules: the entry point to the specifications, the methodology, and the skills the methodology registers, each skill the specification of a procedure, with the code their scripts share. Not a product's specifications, and not a canonical form or version. |
+| Canon |  | The part of the Spec of Record scope that states and applies the method's rules: the specifications' entry point and their overview, the methodology, and the skills the methodology registers, each skill the specification of a procedure, with the code their scripts share. Not a product's specifications, and not a canonical form or version. |
 | Canon-spec annotation |  | A spec annotation in a registered skill's script, or the code the skills share, naming the area of the method's own specifications that a copy the script holds takes its values from. |
 | Capability domain |  | A standing part of what a product does or governs for as long as the product exists, defined by its product owner: a boundary meant to outlive any single change. Not an epic or a sprint, which describe work with an end date. |
 | Citation |  | A pointer from one place in the Spec of Record scope to another, written in a fixed form a reader and a script can both follow. Not a bibliographic reference. |
@@ -25,7 +25,8 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Inside the house |  | A term, abbreviation or example coined or introduced by Spec of Record or the application specs: known to those working within them, and taught by the specs to every agent and engineer who arrives, as a household's own words make sense only to those living in it. Not one known outside them. |
 | Key |  | The name of a field. Not a database key, and not a key in a file's frontmatter. |
 | Layer |  | A level in the order of what governs what among the specifications, each governed by those above it. Not a layer the product's specifications describe. |
-| Methodology owner |  | The persona the methodology is written as, and a design changing it reviewed as. |
+| Materialized view |  | A restatement of facts whose homes are elsewhere, made for its reader and never their source, nor a second home: what a directory's overview restates, a diagram, a summary. Not a database's materialized view, a stored query result, whose sense it borrows. |
+| Methodology owner |  | The persona the methodology and the specifications' overview are written as, and a design changing either reviewed as. |
 | Open question |  | A decision the specs rely on but have not made, recorded with the answer in use until it is settled. Not a question merely unanswered in conversation. |
 | Operating rule |  | A rule about operating Spec of Record: how work on the specifications and the code they govern is done, reviewed, recorded and tooled, rather than what they hold. Not a rule about how the product operates. |
 | Outside the house |  | A term, abbreviation or example common to many across the industry or the domain, a norm agents know from their training and engineers from experience. |

@@ -18,7 +18,7 @@ Before adding a paragraph that states a general rule, check whether that rule al
 
 A form, whether a construct or a record type, is defined once, at one home, and each use of it is an instance setting only the values its definition allows, as an object sets the properties its class defines: nothing is defined at the point of use. It is `§ One Home Per Fact` applied to forms, and DRY as Andrew Hunt and David Thomas first wrote it, in "The Pragmatic Programmer": every piece of knowledge has one authoritative representation.
 
-**Knowledge, not shape —** what one definition holds is one piece of knowledge, whatever shape each use takes. A shape is one chosen view of the knowledge and decides nothing: the same knowledge in several shapes keeps one home, the other shapes views kept in step with it, as `§ Keeping Renderings in Step` keeps a rendering; and different knowledge sharing a shape keeps separate definitions, so each changes on its own. Sharing a definition between two things that only look alike couples them, and the first change to one breaks the other; duplication is far cheaper than the wrong abstraction, as Sandi Metz has it.
+**Knowledge, not shape —** what one definition holds is one piece of knowledge, whatever shape each use takes. A shape is one chosen view of the knowledge and decides nothing: the same knowledge in several shapes keeps one home, the other shapes kept in step with it, as `§ Keeping Specs in Step` keeps them; and different knowledge sharing a shape keeps separate definitions, so each changes on its own. Sharing a definition between two things that only look alike couples them, and the first change to one breaks the other; duplication is far cheaper than the wrong abstraction, as Sandi Metz has it.
 
 **Choosing how related things are defined —** by whether a change to one must reach the other: where every change must, they are one definition, each use an instance of it; where only some must, a base definition holds what they share, and each is a sub-definition of it, holding everything its base holds and more, as a subclass extends its class, never less; and where none need, they keep separate definitions, however alike they look. A form is never typed by its looks, as duck typing types an object: a use that leaves some of a definition's parts unused, its optional parts among them, is an instance of it, never a definition of its own, a sub-definition being earned by what it adds. An application's technical specs choose the same way, between one service or class, a base and its specializations, and separate ones.
 
@@ -52,17 +52,18 @@ What a citation may name, every row its source matches granting what that row li
 |---|---|
 | A product spec | another product spec |
 | A technical spec | another technical spec, a product spec |
-| A methodology spec | another methodology spec; `specs/AGENTS.md`; the skills' directory, a registered skill or a file of one, and the code the skills share, naming what applies its rules |
+| A methodology spec | another methodology spec; `specs/AGENTS.md`; `specs/architecture.md`; the skills' directory, a registered skill or a file of one, and the code the skills share, naming what applies its rules |
 | `specs/AGENTS.md` | any spec; a registered skill or a file of one |
+| `specs/architecture.md` | `specs/AGENTS.md`; any spec; a registered skill or a file of one |
 | "A product spec", "A technical spec", "A methodology spec" | the project's root `AGENTS.md` as a whole file, never a section of it |
 | Code the application specs govern | a product spec, a technical spec, or a section of one, never a record, naming what it carries out or checks with an app-spec annotation (`§ Writing a Citation § Citing From Code`) |
 | A registered skill's script, or the code the skills share | `specs/AGENTS.md` or a methodology spec, or a section of one, naming where a copy it holds takes its values from with a canon-spec annotation (`§ Writing a Citation § Citing From Code`) |
 
-Code is governed by the specs rather than a layer of them. The table is the whole permission for citations from these specs, code, the skills' scripts and `specs/AGENTS.md`. Files outside that set, the project's own root `AGENTS.md` among them, cite these specs under their own rules, the root `AGENTS.md`'s instructions being the project's rather than the method's. No spec other than `specs/methodology/working-files.md` names a working file (`specs/methodology/working-files.md § The Working Files`): none is committed, so the name would point a reader at nothing. `specs/AGENTS.md` is agent instructions rather than a spec, and names the working files its procedures act on.
+Code is governed by the specs rather than a layer of them. The table is the whole permission for citations from these specs, code, the skills' scripts, `specs/AGENTS.md` and `specs/architecture.md`. Files outside that set, the project's own root `AGENTS.md` among them, cite these specs under their own rules, the root `AGENTS.md`'s instructions being the project's rather than the method's. No spec other than `specs/methodology/working-files.md` names a working file (`specs/methodology/working-files.md § The Working Files`): none is committed, so the name would point a reader at nothing. `specs/AGENTS.md` is agent instructions rather than a spec, and names the working files its procedures act on.
 
 A product spec citing a technical spec would make a promise depend on its own implementation; that direction is served instead by the `technical-specs` frontmatter key (`specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability`), deliberately file-level and coarse so it cannot carry a dependency at heading precision. A methodology spec citing an application spec would make a rule depend on the document it governs.
 
-An application spec cites neither a methodology spec nor `specs/AGENTS.md`. Direction is not the reason, since such a citation would point up; subject is. An application spec's subject is the product, and how a spec is authored is no part of it, so a reader of the product has no use for the authoring rule behind a sentence. An application spec may still name a construct, because a construct is what its own content is authored as; what it does not do is reach into the methodology, or into `specs/AGENTS.md`, which holds the method's own rules, for their own claims.
+An application spec cites no methodology spec, and neither `specs/AGENTS.md` nor `specs/architecture.md`. Direction is not the reason, since such a citation would point up; subject is. An application spec's subject is the product, and how a spec is authored is no part of it, so a reader of the product has no use for the authoring rule behind a sentence. An application spec may still name a construct, because a construct is what its own content is authored as; what it does not do is reach into the methodology, or into `specs/AGENTS.md`, which holds the method's own rules, or `specs/architecture.md`, which describes how the method lays the specifications out, for their own claims.
 
 ## Titling a Heading
 
@@ -175,12 +176,18 @@ A record gives these fields, in this order:
 | Relation | no | yes | | "adopts", "maps onto" | how the canon relies on it: `adopts`, the canon's forms being the standard's own; or `maps onto`, the canon's forms being its own, each mapping onto one of the standard's, and the canon's rules holding wherever they differ |
 | Covers | no | yes | | text | the part of the standard the canon relies on |
 
-## Keeping Renderings in Step
+## Keeping Specs in Step
 
-Some facts are stated once and rendered in more than one place. Those renderings are not second homes, and they do not keep themselves current.
+A change reaches more than the facts it edits: each materialized view restating them, and the counterpart drawing their subject from the other perspective. None of these keeps itself current, so each place a change reaches is checked for a matching update, this section's children saying what each kind is kept in step with.
 
-**A product spec and its technical counterpart —** when a fact changes in one, check whether the other needs a matching update. `specs/methodology/spec-placement.md § Product or Technical` requires the two to name each other; keeping them current is this duty.
+### Materialized Views
 
-**A directory's own `architecture.md` —** everything it restates of its detail files, in its prose, its citations and its mapping tables, and everything it connects among them, is kept in step with them (`specs/methodology/spec-placement.md § Index, Architecture, Detail`). When a fact in one of its detail files changes, check whether `architecture.md` needs a matching update too.
+A materialized view (`specs/methodology/glossary.md`), never a second home, is kept in step with its sources, the homes of what it restates:
 
-**A diagram, wherever it sits —** it renders the sections and records its Sources list names, each of which names it back (`specs/methodology/modeling-constructs.md § Diagrams`). When one of them changes, check whether the diagram needs a matching update too.
+**A directory's own `architecture.md` —** its sources are the files in its directory and in every directory beneath it, and what `specs/methodology/spec-placement.md § What an Overview Describes` names beyond it (`specs/methodology/spec-placement.md § Index, Architecture, Detail`); everything it restates of them, in its prose, its citations and its mapping tables, and everything it connects among them, is kept in step with them.
+
+**A diagram, wherever it sits —** its sources are explicit, the sections and records its Sources list names, each of which names it back (`specs/methodology/modeling-constructs.md § Diagrams`).
+
+### Product and Technical Counterparts
+
+A product spec and its technical counterpart are two drawings of one subject, each from its own perspective, neither a summary of the other, and name each other (`specs/methodology/spec-placement.md § Product or Technical`). They are kept aligned.

@@ -39,10 +39,10 @@ Where an audit compares one passage against what it restates, the ways a compres
 
 | Audit | Specs | Enforces |
 |---|---|---|
-| Directory summary currency | canon, application | `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`, `specs/methodology/spec-placement.md § Index, Architecture, Detail`, `specs/methodology/scope.md § The Shape of the Scope` |
-| Counterpart currency | application | `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`, `specs/methodology/spec-placement.md § Product or Technical`, `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` |
+| Directory summary currency | canon, application | `specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Materialized Views`, `specs/methodology/spec-placement.md § Index, Architecture, Detail`, `specs/methodology/spec-placement.md § What an Overview Describes`, `specs/methodology/scope.md § The Shape of the Scope` |
+| Counterpart currency | application | `specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Product and Technical Counterparts`, `specs/methodology/spec-placement.md § Product or Technical`, `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` |
 | Scenario coverage | application | `specs/methodology/acceptance-scenarios.md § Acceptance Scenarios`, `specs/methodology/acceptance-scenarios.md § Deciding What to Write`, `specs/methodology/acceptance-scenarios.md § Keeping a Scenario and Its Prose in Step` |
-| Where a rule lives | canon, application | `specs/methodology/sourcing-and-citation.md § One Home Per Fact`, `specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`, `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`, `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`, `specs/methodology/sourcing-and-citation.md § An External Reference`, `specs/methodology/external-references.md § External References`, `specs/methodology/scope.md § What Spec of Record Governs`, `specs/methodology/scope.md § The Methodology Governs Itself` |
+| Where a rule lives | canon, application | `specs/methodology/sourcing-and-citation.md § One Home Per Fact`, `specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`, `specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Materialized Views`, `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`, `specs/methodology/sourcing-and-citation.md § An External Reference`, `specs/methodology/external-references.md § External References`, `specs/methodology/scope.md § What Spec of Record Governs`, `specs/methodology/scope.md § The Methodology Governs Itself` |
 | Whether the home holds the fact | canon, application | `specs/methodology/sourcing-and-citation.md § One Home Per Fact`, `specs/methodology/sourcing-and-citation.md § Writing a Citation` |
 | Ordinals and counts | canon, application | `specs/methodology/spec-style.md § Ordinals and Counts`, `specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text` |
 | Markup | canon, application | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Emphasis`, `specs/methodology/modeling-constructs.md § Literal Text`, `specs/methodology/sourcing-and-citation.md § Titling a Heading` |
@@ -53,19 +53,19 @@ Where an audit compares one passage against what it restates, the ways a compres
 | Agent agnostic | canon | `specs/methodology/scope.md § Agent Agnostic` |
 | Skill form | canon | `specs/methodology/skills.md § Authoring a Skill`, `specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code`, `specs/methodology/scope.md § Rules and Skills`, `specs/methodology/skills.md § Registered Skills`, `specs/methodology/working-files.md § The Working Files` |
 | Working-file form | canon, application | `specs/methodology/working-files.md § The Working Files`, `specs/methodology/working-files.md § A Follow-up` |
-| Diagram currency | canon, application | `specs/methodology/modeling-constructs.md § Diagrams`, `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step` |
+| Diagram currency | canon, application | `specs/methodology/modeling-constructs.md § Diagrams`, `specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Materialized Views` |
 
 Each audit reads its unit against every rule the sections in its Enforces column state, or the part of one its text names (`specs/methodology/scope.md § Rules and Skills`); what an audit's own text adds is how to read, what is easy to miss, and how a finding is fixed (`specs/methodology/skills.md § Authoring a Skill`).
 
 ### Directory summary currency
 
-The summaries are separate units, because they cover different ground: an `index.md` covers a directory's direct contents, and an `architecture.md` covers everything beneath the directory that owns it. Read the tree once, then check the blueprint against all of it and each `index.md` row against its own file. Of `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`, this audit reads its paragraph on a directory's `architecture.md`.
+The summaries are separate units, because they cover different ground: an `index.md` covers a directory's direct contents, and an `architecture.md` covers everything beneath the directory that owns it, and what its overview describes beyond its directory, code aside. Read the tree once, then check the blueprint against all of it and each `index.md` row against its own file. Of `specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Materialized Views`, this audit reads its paragraph on a directory's `architecture.md`.
 
 The finding usually missed in a blueprint is an omission: a fact its detail files establish that a reader of the blueprint alone would never learn. The test for it is not "is it stated somewhere else" but "would a reader of this file alone form a false impression, or find a later section unfollowable."
 
 ### Where a rule lives
 
-One pass per unit, over every normative statement in it, read against the unit and the files that state the rules, `specs/AGENTS.md` and `specs/methodology/`. A rule in the wrong file and a rule in two files need the same sweep, so they are one audit. Of `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`, this audit reads its statement that a rendering is not a second home.
+One pass per unit, over every normative statement in it, read against the unit and the files that state the rules, `specs/AGENTS.md` and `specs/methodology/`. A rule in the wrong file and a rule in two files need the same sweep, so they are one audit. Of `specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Materialized Views`, this audit reads its statement that a view is never a second home.
 
 Inventory first, then compare. Collect every normative statement in the unit, and in the files that state the rules, before judging any of them — whether a rule already has a home cannot be answered about the first file until the last one has been read, and a pass that judges as it goes degrades into sampling.
 
@@ -77,7 +77,7 @@ One signal is worth naming, because it looks like the opposite of a defect: a pa
 
 Product and technical are never compared with each other, for the reason `specs/methodology/spec-placement.md § Product or Technical` gives.
 
-**An `architecture.md` restates its own directory by design, and those restatements are not findings —** a false-positive trap the audit sets, and an expensive one. An overview restates constantly and by instruction (`specs/methodology/spec-placement.md § Index, Architecture, Detail`), and neither it nor a diagram is a second home (`specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`); an auditor who has not read those sections finds the overview restating half the directory and reports it as the most drifted file present, confidently and at length. What stays a finding, and is easy to miss while discounting everything else it restates, is an `architecture.md` duplicating *itself*, or restating what lives outside its own directory.
+**An `architecture.md` restates its own directory by design, and those restatements are not findings —** a false-positive trap the audit sets, and an expensive one. An overview restates constantly and by instruction (`specs/methodology/spec-placement.md § Index, Architecture, Detail`), and neither it nor a diagram is a second home (`specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Materialized Views`); an auditor who has not read those sections finds the overview restating half the directory and reports it as the most drifted file present, confidently and at length. What stays a finding, and is easy to miss while discounting everything else it restates, is an `architecture.md` duplicating *itself*, or restating what lives outside both its own tree and what `specs/methodology/spec-placement.md § What an Overview Describes` names for it.
 
 Where a duplicate is real, choose the home by `specs/methodology/sourcing-and-citation.md § One Home Per Fact`'s test, a rule several files use placed as that section says, and replace the others with citations. Where `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` forbids that citation, as for an application spec restating a methodology rule, the restatement is cut back to the spec's own content instead.
 
@@ -165,7 +165,7 @@ What is easy to miss: one particular file named by a bare filename another direc
 
 ### Finished style
 
-Run the script with `--list-candidates`, which lists each line holding a phrase the Example column of `specs/methodology/spec-style.md § What a Finished Spec Reads Like`'s table quotes, and each long sentence of chained clauses in the specs and the agent instructions, and each path into the application specs in the methodology or `specs/AGENTS.md`, and use the list as a guide rather than as the boundary. A trade-off that passes its section's test is declined with the reason. For `specs/methodology/spec-style.md § Clear Prose`, read each passage in the unit once, as its primary reader. A passage that takes a second read is a finding, and its fix rewords it without changing what it states. An example in the canon drawn from the application specs is a finding, read for by meaning, the listed paths being where to start. The skills are Skill form's to read for it, through `specs/methodology/skills.md § Authoring a Skill`.
+Run the script with `--list-candidates`, which lists each line holding a phrase the Example column of `specs/methodology/spec-style.md § What a Finished Spec Reads Like`'s table quotes, and each long sentence of chained clauses in the specs and the agent instructions, and each path into the application specs in the methodology, `specs/AGENTS.md` or `specs/architecture.md`, and use the list as a guide rather than as the boundary. A trade-off that passes its section's test is declined with the reason. For `specs/methodology/spec-style.md § Clear Prose`, read each passage in the unit once, as its primary reader. A passage that takes a second read is a finding, and its fix rewords it without changing what it states. An example in the canon drawn from the application specs is a finding, read for by meaning, the listed paths being where to start. The skills are Skill form's to read for it, through `specs/methodology/skills.md § Authoring a Skill`.
 
 ### Working-file form
 
@@ -173,7 +173,7 @@ Of `specs/methodology/working-files.md § The Working Files`, the paragraphs on 
 
 ### Diagram currency
 
-Run only once the script's diagram check passes; if it fails, the work is fixing the citations, and there is nothing yet to compare. Then render the diagram through `.ai/skills/author-mermaid-diagram/`, read every section its Sources list names, and read the picture against them, each label against the diagram's host file, and the list against where each thing it draws lives. A source the current change edited is where to look first. Of `specs/methodology/sourcing-and-citation.md § Keeping Renderings in Step`, this audit reads its paragraph on a diagram. A picture saying something its sources do not takes the report row for a summary that disagrees with what it summarizes; a source missing from the list, or a listed section that is only a summary of the home or broader than `specs/methodology/modeling-constructs.md § Diagrams` asks, takes the row for a required thing that is absent or sits on the wrong side.
+Run only once the script's diagram check passes; if it fails, the work is fixing the citations, and there is nothing yet to compare. Then render the diagram through `.ai/skills/author-mermaid-diagram/`, read every section its Sources list names, and read the picture against them, each label against the diagram's host file, and the list against where each thing it draws lives. A source the current change edited is where to look first. Of `specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Materialized Views`, this audit reads its paragraph on a diagram. A picture saying something its sources do not takes the report row for a summary that disagrees with what it summarizes; a source missing from the list, or a listed section that is only a summary of the home or broader than `specs/methodology/modeling-constructs.md § Diagrams` asks, takes the row for a required thing that is absent or sits on the wrong side.
 
 ## The report
 
@@ -208,10 +208,10 @@ A finding becomes a design document (`specs/methodology/working-files.md § A De
 
 | Audit | Unit |
 |---|---|
-| Directory summary currency | the tree rooted at a directory owning an `architecture.md`, plus each `index.md` beneath it |
+| Directory summary currency | the tree rooted at a directory owning an `architecture.md`, and what its overview describes beyond its directory, code aside, plus each `index.md` beneath it |
 | Counterpart currency | per product file, and each technical file no product file's `technical-specs` names |
 | Scenario coverage | per product file |
-| Where a rule lives | per unit: `AGENTS.md`, `specs/AGENTS.md`, `specs/methodology/`, `specs/application/product/`, `specs/application/technical/` |
+| Where a rule lives | per unit: `AGENTS.md`, `specs/AGENTS.md`, `specs/architecture.md`, `specs/methodology/`, `specs/application/product/`, `specs/application/technical/` |
 | Whether the home holds the fact | per cited section, taking every citation into it in one pass |
 | Ordinals and counts | the files a change touched, or everything in the script's scope for a full run |
 | Markup | the files a change touched, or everything in the script's scope for a full run |
@@ -224,7 +224,7 @@ A finding becomes a design document (`specs/methodology/working-files.md § A De
 | Working-file form | `.ai/follow-ups.md` |
 | Diagram currency | per diagram, with every section its Sources list names |
 
-`specs/index.md` and `specs/application/index.md` sit above every architecture-rooted tree, so a directory summary run names them explicitly or nothing covers them.
+`specs/architecture.md` roots the tree over the whole of `specs/`, so a directory summary run over it reaches `specs/index.md`, above every other architecture-rooted tree, and `specs/application/index.md`, above the application's.
 
 ## What the script checks
 
@@ -233,7 +233,7 @@ Each row describes, in the script's own terms, what it checks for the rule it na
 | Check | Rule |
 |---|---|
 | Every `file § A § B` resolves to that heading path in that file | `specs/methodology/sourcing-and-citation.md § Writing a Citation` |
-| A citation never points down a layer except from `specs/AGENTS.md`, never crosses between application and methodology or from an application spec to `specs/AGENTS.md`, whether it names a section or a whole file, and no spec cites a section of the project's root `AGENTS.md` | `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` |
+| A citation never points down a layer except from `specs/AGENTS.md` or `specs/architecture.md`, never crosses between application and methodology or from an application spec to either, whether it names a section or a whole file, and no spec cites a section of the project's root `AGENTS.md` | `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` |
 | No citation targets an `index.md` | `specs/methodology/sourcing-and-citation.md § Writing a Citation` |
 | A cross-file citation carries a project-root path | `specs/methodology/sourcing-and-citation.md § Writing a Citation` |
 | A section citation into `.ai/skills/` comes only from a file of the same skill | `specs/methodology/skills.md § Authoring a Skill`, `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` |
@@ -294,6 +294,7 @@ The operating rules that leave no trace in the files the audits read, each carri
 | `specs/methodology/skills.md § Setting Up an Agent` | a reviewer definition an agent wrote to set itself up left in version control, which `.ai/skills/audit-specs/scripts/audit-specs.py` reports; an agent not set up is no skipped step, a review then running as the agent allows |
 | `specs/methodology/scope.md § Progressive Disclosure`, `specs/methodology/scope.md § The Shape of the Scope` | a citation naming a heading that does not exist, which the script finds; a fact given a second home, which Where a rule lives finds; a term used against its sense, which Glossary terms finds |
 | `specs/methodology/sourcing-and-citation.md § One Home Per Fact` | a fact given a second home, which Where a rule lives finds; a citation bare where it owed its application or its reason, which Whether the home holds the fact finds |
+| `specs/methodology/sourcing-and-citation.md § Keeping Specs in Step` | a view or a counterpart a change reached left out of step, which Directory summary currency, Diagram currency or Counterpart currency finds, and the technical overview's account of the code, which `.ai/skills/verify-spec-implementation/` finds |
 | `specs/methodology/spec-placement.md § Where a File Goes`, `specs/methodology/spec-placement.md § Naming a Capability Domain` | a file or a domain placed against its test, which Placement finds |
 | `specs/methodology/scope.md § Rules and Skills` | a rule section neither table names, nor, for `specs/methodology/code.md`, the check on code's, or an operating rule no Workflow step cites, which the script finds |
 | `specs/methodology/spec-placement.md § Personas` | a spec, or a design changing code, that does not read as its persona's, which the design's adversarial review finds; an adversarial review not framed as its persona, which leaves nothing in the files, the user being its check |

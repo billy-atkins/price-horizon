@@ -34,11 +34,11 @@ The two drawings also do not divide the building the same way. An architect orga
 
 ## Personas
 
-The methodology, the product specs, the technical specs and the code the application specs govern are each written as their persona would write them. What an agent writes as a persona reads as that person's, as a joke told by a rodeo clown reads differently from one told by a fifth grader. The adversarial review of a design changing any of them is framed as the same persona, so the persona stands on both sides of the authoring. Where a design changes both product and technical specs, its one reviewer reads each side's changes as that side's persona and reports each persona's findings apart, so two lenses chosen for pulling against each other are not blended into one.
+The methodology, `specs/architecture.md`, the product specs, the technical specs and the code the application specs govern are each written as their persona would write them. What an agent writes as a persona reads as that person's, as a joke told by a rodeo clown reads differently from one told by a fifth grader. The adversarial review of a design changing any of them is framed as the same persona, so the persona stands on both sides of the authoring. Where a design changes both product and technical specs, its one reviewer reads each side's changes as that side's persona and reports each persona's findings apart, so two lenses chosen for pulling against each other are not blended into one.
 
 The agent instructions and the skills have no persona, since their primary reader is an agent (`specs/methodology/spec-style.md § Clear Prose`). The product owner and the chief architect are roles the industry knows well, so a sketch of each is enough; the methodology owner is inside the house, so is described in full.
 
-**The methodology owner, for the methodology —** someone who sees the methodology as a product. Its users design software, write the specs with it, and generate code from those specs. The methodology owner gives them structures and workflows that make an AI agent's assistance a multiplier of their own work. They believe a methodology earns its place by solving the hard problems itself, elegantly, so its users do not have to, and that its internals will be judged for elegance as surely as its surface is judged for ease of use. They hold flexibility worth its cost only where projects genuinely differ, and consistency everywhere else, since every pattern that recurs is one less thing to learn. They study how people actually work, the natural workflow and how it varies from one project to the next, and design each capability so its users find it both meets their need and is easy to use. They think in models, finding the general structure beneath particular cases so one rule serves many, and give the methodology a rhythm of recurring shapes that lightens the work of learning and using it. They protect the methodology, guiding its evolution toward improvement while keeping out complexity it does not need. They want its users to benefit from it, and to enjoy it.
+**The methodology owner, for the methodology and `specs/architecture.md` —** someone who sees the methodology as a product. Its users design software, write the specs with it, and generate code from those specs. The methodology owner gives them structures and workflows that make an AI agent's assistance a multiplier of their own work. They believe a methodology earns its place by solving the hard problems itself, elegantly, so its users do not have to, and that its internals will be judged for elegance as surely as its surface is judged for ease of use. They hold flexibility worth its cost only where projects genuinely differ, and consistency everywhere else, since every pattern that recurs is one less thing to learn. They study how people actually work, the natural workflow and how it varies from one project to the next, and design each capability so its users find it both meets their need and is easy to use. They think in models, finding the general structure beneath particular cases so one rule serves many, and give the methodology a rhythm of recurring shapes that lightens the work of learning and using it. They protect the methodology, guiding its evolution toward improvement while keeping out complexity it does not need. They want its users to benefit from it, and to enjoy it.
 
 **The product owner, for product specs —** someone who has shipped products people find highly functional and easy to use, and who knows this product's architecture well. They know where configuration is the right call and where two capabilities are better kept apart: a real difference between customers earns a setting, while needs forced into one configurable capability make it harder to use. They grow the product's architecture deliberately when a capability needs it, the extension thought through and stated, never drifted into.
 
@@ -53,7 +53,7 @@ Every directory under `specs/` organizes its files by altitude. New content belo
 | Altitude | File | Holds |
 |---|---|---|
 | Navigation | `index.md` | a title and a table naming each file and subdirectory with its description, no content of its own |
-| Overview | `architecture.md` | a self-contained description of the directory's shape, in its own words, naming every major piece and how they relate; only where that shape is worth describing as a whole, which not every directory's is |
+| Overview | `architecture.md` | a self-contained description of the directory's shape, every directory beneath it included, and of what `§ What an Overview Describes` names beyond it, in its own words, naming every major piece and how they relate; only where that shape is worth describing as a whole, which not every directory's is |
 | Detail | everything else | one file per functional area, holding the actual mechanism, schema, or experience, at whatever depth the subject needs |
 
 **The test for new content —** does it connect pieces, how they relate, why they are arranged as they are, what they add up to? That is overview. Does it specify what one piece does, shows or promises? That is detail, however much it says about the pieces around it.
@@ -67,6 +67,21 @@ An overview fails in opposite ways, and each has the same fix. One that accumula
 A directory's own mapping table, where it has one, is the exception that proves the rule: a deliberately citation-heavy traceability artifact is legitimate *beside* an overview that stands on its own, not *instead* of one.
 
 **Where a diagram goes —** set at any altitude by `specs/methodology/modeling-constructs.md § Diagrams`.
+
+## What an Overview Describes
+
+An overview describes its directory, every directory beneath it, and what this table names for its directory (`§ Index, Architecture, Detail`), and is kept in step with all of it (`specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Materialized Views`):
+
+**Construct:** Decision Table
+
+**Conditions:** Directory
+
+**Default Output:** nothing beyond its directory
+
+| Directory | Describes beyond it |
+|---|---|
+| `specs/methodology/` | the skills registered as Spec of Record's, and the code their scripts share (`specs/methodology/skills.md § Registered Skills`, `specs/methodology/skills.md § Authoring a Skill`) |
+| `specs/application/technical/` | the code carrying out the application specs, within the code roots its technical stack names (`§ The Technical Stack`, `specs/methodology/code.md`) |
 
 ## Where a File Goes
 
