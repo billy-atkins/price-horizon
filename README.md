@@ -1,6 +1,6 @@
 # PriceHorizon, built with Spec of Record
 
-**Spec of Record** is a spec-driven development method for the agentic software development lifecycle, in which the specification, not the code, is the durable source of truth: the specs say what a system does and why. A software engineer designs each change with an AI agent, and the agent authors it, with the engineer as the human in the loop at every decision. Every rule the method states has a check: a script where a script can decide, an independent AI reviewer where it takes judgment. Today the method governs specifications, its own included; generating code from them is its next phase.
+**Spec of Record** is a spec-driven development method for the agentic software development lifecycle, in which the specification, not the code, is the durable source of truth: the specs say what a system does and why. A software engineer designs each change with an AI agent, and the agent authors it, with the engineer as the human in the loop at every decision. Every rule the method states has a check: a script where a script can decide, an independent AI reviewer where it takes judgment. The method governs specifications, its own included, and the code built from them; PriceHorizon has no code yet, so generating it is the method's next test.
 
 **PriceHorizon** is the worked example: the full product and technical specification of an AI answer engine for competitive pricing, written and governed with Spec of Record. Both are the work of [Billy Atkins](https://www.linkedin.com/in/billy-atkins). PriceHorizon and Acme AI, the SaaS company behind it, are fictional; the method, and the rigor applied to it, are real.
 
@@ -10,7 +10,7 @@
 - **The approach —** keep the specs. They stay the record of what the system does and why, kept true through every change, so code can be built from them rather than the other way round.
 - **What makes it hold —** one home per fact; structured, checkable forms where prose would hide gaps; a test scenario for every promise; and a check for every rule, because a rule without a check is only a suggestion.
 - **How it is built —** through its own process. The methodology is written in the language it defines, changed through the design and review process it prescribes, and audited by the checks it sets.
-- **See for yourself —** this repo holds about 50 product and technical specification files with over 130 acceptance scenarios, a methodology governing them and itself, and the skills that carry it out. Some of the method only shows in use, so the best test is to take a change through it with your own agent.
+- **See for yourself —** this repo holds some 50 product and technical specification files with nearly 150 acceptance scenarios, a methodology governing them and itself, and the skills that carry it out. Some of the method only shows in use, so the best test is to take a change through it with your own agent.
 
 ## How Spec of Record differs from other spec-driven development
 
@@ -31,21 +31,24 @@
 Every change beyond a small edit the engineer approves directly runs the same loop, and each step exists because skipping it once cost something. The engineer is the human in the loop: agents author, review and audit, but nothing is approved, applied, fixed or committed without the engineer's decision.
 
 - **Design, Refactor, Refine —** the agent authors each change as a design document starting from the problem it solves, restructured until it stops moving, then refined for clarity and elegance: the fewest, simplest instructions that do the job.
-- **The engineer designs, the agent authors —** the software engineer designs each change with the agent and decides what it is. Those decisions are recorded in the engineer's own words, so reviewers check the design against what was decided rather than reopening it.
+- **The engineer designs, the agent authors —** the software engineer designs each change with the agent and decides what it is. Each decision is recorded in the engineer's own words, as a selection among options the agent offered or a perspective the engineer brought, so reviewers check the design against what was decided rather than reopening it, and only the engineer revises one.
 - **Measure twice, cut once —** the authoring agent checks its whole work before any review, as a software engineer would rather find their own defect than have QA find it.
-- **An adversarial reviewer —** a separate AI agent, with none of the authoring agent's context and so none of its builder bias, reviews the design for what is over-engineered and for what is under-engineered. The engineer chooses the reviewer's model and reasoning effort.
-- **Validation and approval —** another fresh agent checks that the design's record matches what it does, and stamps it with a content hash; the engineer then approves it, approves it and has it applied, or keeps it in progress.
-- **Apply, audit, commit —** the approved change is applied, then audited, by script and by a fresh agent, and committed as one change on the engineer's go-ahead. The engineer settles each finding: a tactical fix is made only once the engineer approves it, and a flaw sends the design back; three review rounds in a row with flaws stop the work for the engineer to reassess, so review cannot spiral unnoticed.
+- **An adversarial reviewer —** a separate AI agent, with none of the authoring agent's context and so none of its builder bias, reviews the design for what is over-engineered and for what is under-engineered, grouping its findings by the design decision each touches and naming the engineer's decision each traces to. The engineer chooses the reviewer's model and reasoning effort.
+- **Settling a round at its causes —** a reviewer's findings are often symptoms of a cause it does not name. The authoring agent groups each round's findings, with earlier rounds', by the design decision they touch, asks what let them in, and proposes one change at the causes; where that change would go against an earlier decision of the engineer's, it proposes revising a selection before a perspective. The engineer decides, and the agent proves the change with a worked case before the next review.
+- **Validation and approval —** another fresh agent checks the design's record, each decision in the engineer's words and typed, each review and each deferred piece of work accounted for, and stamps it with a content hash; the engineer then approves it, approves it and has it applied, or keeps it in progress.
+- **Apply, audit, commit —** the approved change is applied, then audited, by script and by a fresh agent, and committed as one change on the engineer's go-ahead. The engineer decides how each audit finding settles: a tactical fix is made only once the engineer approves it, and a flaw sends the design back; three review rounds in a row with flaws stop the work for the engineer to reassess, so review cannot spiral unnoticed.
 
 ## Where it is going
 
-Spec of Record can now specify, evolve and audit itself. Its next two phases take it to code.
+Spec of Record can specify, evolve and audit itself, and it now specifies the code built from its specs. Available now:
 
-**Next, generating code from the specs —** an annotation and two skills, designed in sequence, the annotation first:
+- **`@app-spec` —** an annotation through which code names the specification sections it carries out or checks, the missing link between spec and code in most spec-driven methods.
+- **`implement-specs` —** designing the code for one product module from its specs, taken through the same reviews as a change to the specs, then writing it, its tests and the wiring between them.
+- **`verify-spec-implementation` —** checking that code truthfully carries out its specifications: a script for the annotations, an independent reading for the rest.
 
-- **`@app-spec` —** an annotation through which code names the specification sections it carries out, the missing link between spec and code in most spec-driven methods.
-- **`implement-specs` —** generating code from the specifications.
-- **`verify-spec-implementation` —** checking that code truthfully carries out its specifications.
+**Next, PriceHorizon's code —** generated from its specs, once they are written in the construct forms the method now defines, on the stack and environments its technical specs set, with Playwright tests generated from its acceptance scenarios.
+
+**Coming to the method —** how an open question's provisional answer is drafted and brought to the engineer.
 
 **Then, reverse engineering specs from existing code —** so a team can bring a codebase it already has under the method:
 
@@ -67,8 +70,8 @@ It is a design project, not an implementation: there is no application code yet.
 ## What the specifications look like
 
 - **Two layers that answer to each other —** `specs/application/product/` states what a user can rely on, and `specs/application/technical/` states how it is made true. Each names the other, so the two cannot drift apart silently, and the technical overview maps each layer of the answer to the mechanism that produces it.
-- **Structure where prose would hide gaps —** where a rule or a process has to be checkably complete, it is written as one of an approved set of constructs, such as a decision table, a state machine or an algorithm, because prose can describe anything but cannot be checked for what it leaves out.
-- **Unsettled decisions marked where they apply —** a decision the specs rely on but have not made is recorded as an open question in the file it affects, with the answer in use until it is settled and everything that depends on it, so it is never mistaken for settled prose.
+- **Structure where prose would hide gaps —** a rule one fact decides, sending its cases to at most two outcomes, is prose; anything more is written as one of an approved set of constructs, because prose can describe anything but cannot be checked for what it leaves out. The constructs are standards an engineer or an agent already knows, adopted whole: DMN's decision table, UML's state machine, activity and constraint, with every expression in FEEL, DMN's expression language, stated in the method itself. The audit script parses FEEL's whole grammar, so a guard naming a fact nothing declares, or comparing values of two kinds, is caught before anyone reads it.
+- **Unsettled decisions marked where they apply —** a decision the specs rely on but have not made is recorded as an open question in the file it affects, with a provisional answer the specs move forward on and every place relying on it, so the question never blocks the work and it is never mistaken for settled prose; settling it is a change of its own, which writes the answer everywhere it reached and removes the question.
 - **A scenario for every promise —** each capability states, in Given, When, Then form, how each of its promises would be tested, so a promise that could never be checked shows up as one.
 - **Diagrams that cite their sources —** and each source cites the diagram back, so a change to what a drawing shows points to the drawing that needs to follow it.
 
