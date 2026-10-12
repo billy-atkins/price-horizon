@@ -25,6 +25,7 @@ specs/
 │   ├── architecture.md
 │   ├── acceptance-scenarios.md
 │   ├── code.md
+│   ├── design-workflow.md
 │   ├── expressions.md
 │   ├── external-references.md
 │   ├── glossary.md

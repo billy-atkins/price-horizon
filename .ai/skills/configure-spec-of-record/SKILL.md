@@ -11,7 +11,7 @@ This skill sets up the agent in use for what Spec of Record leaves to it, as `sp
 
 ### Find what you can apply
 
-Establish whether you set a reviewer's model and its reasoning effort as you start it, or its reasoning effort only through a definition of your own, and your nearest level to each of light, medium and high, per `specs/methodology/skills.md § Setting Up an Agent`.
+Establish whether you set a reviewer's model and its reasoning effort as you start it, or its reasoning effort only through a definition of your own, and your nearest level to each of light, medium and high, per `specs/methodology/design-workflow.md § A Review's Effort`.
 
 ### Confirm with the user before writing
 
@@ -23,11 +23,11 @@ Where you apply reasoning effort only through a definition of your own, write on
 
 ### Tell the user how to load them
 
-Where you load such definitions only as a session starts, tell the user to restart you once they are written, even where they were there before, since you cannot tell which version this session loaded, and to resume the conversation where you offer that, so the work in hand is not lost. Until then, a review runs as you allow (`specs/AGENTS.md § Design, Refactor, Refine`).
+Where you load such definitions only as a session starts, tell the user to restart you once they are written, even where they were there before, since you cannot tell which version this session loaded, and to resume the conversation where you offer that, so the work in hand is not lost. Until then, a review runs as you allow, as `specs/methodology/design-workflow.md § A Review's Effort` has it.
 
 ## A reasoning effort that never reached the reviewer
 
-The agent took a reviewer's model as it started one, but its reasoning effort only from a definition file, and none existed, so the review ran at the agent's default reasoning effort while the user had chosen another. A reviewer definition for each level closes the gap; until one exists, the review runs as the agent allows (`specs/AGENTS.md § Design, Refactor, Refine`).
+The agent took a reviewer's model as it started one, but its reasoning effort only from a definition file, and none existed, so the review ran at the agent's default reasoning effort while the user had chosen another. A reviewer definition for each level closes the gap; until one exists, the review runs as the agent allows, as `specs/methodology/design-workflow.md § A Review's Effort` has it.
 
 ## Reviewer definitions the session could not see
 
