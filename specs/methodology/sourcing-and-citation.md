@@ -72,7 +72,7 @@ A heading's title is a stable slug for whatever the section covers, not prose to
 | Rule | Form |
 |---|---|
 | No `§` in the heading itself | `## Vision`, never `## § Vision` |
-| No `[` in the heading itself, which opens a record's identifying values, or a part's identifier, in a citation | `## Session Timeout`, never `## Session Timeout [draft]` |
+| No `[` in the heading itself, which opens a record's identifying values, a part's identifier or a row's key, in a citation | `## Session Timeout`, never `## Session Timeout [draft]` |
 | Unique among headings sharing its parent, a top-level heading's parent being its file | two headings under different parents may share a title |
 
 A numbered heading, or one counting its children, is the heading case of `specs/methodology/spec-style.md § Ordinals and Counts`. A heading pays for it twice, since its title is also the text of every citation naming it: renumbering sections, or retitling one whose count went stale, changes those citations as well.
@@ -91,6 +91,7 @@ A nested section in the same file    § Parent § Child
 A record                             § Plural Name [Key: value]
 A record in another file             path/from/root.md § Plural Name [Key: value; Key: value]
 A part of a construct                path/from/root.md § Section [Key: value]
+A row of a Basic Table               path/from/root.md § Section [Key: value]
 A section in another file            path/from/root.md § Parent § Child
 A whole file                         path/from/root.md
 An index.md                          never a citation target
@@ -102,9 +103,9 @@ A section is named by its full lineage of heading titles, one segment per level 
 
 A record (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) is named by the citation of the record section holding it, then a space and, in square brackets inside the same span, its identifying fields, like a query parameter selecting one record from the section. Each is written `Key: value`, in the order its type's Reference Key gives them, separated by a semicolon and a space: `[Name: Session Timeout]` after an `Open Questions` section's citation, or `[Country: Canada; Tax Year: 2025]` for a type identified by two fields. An identifying value holds no semicolon (`specs/methodology/modeling-constructs.md § Constructs § Record Form`), so the pairs are split at `; `. Each value is compared with the record's after trimming the space around it, and must match exactly, as a title does.
 
-A part of a construct (`specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct`) is named the same way, by its construct's section and its identifier.
+A part of a construct (`specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct`) is named the same way, by its construct's section and its identifier, and a row of a Basic Table by its section and the columns its Reference Key names (`specs/methodology/modeling-constructs.md § Constructs § Basic Table`).
 
-**What cannot be cited —** there is no form for citing a bold lead-in or any other non-heading content but a record or a part of a construct; `§ Titling a Heading` says when such content becomes a heading. A directory's `index.md` carries no heading lineage of its own.
+**What cannot be cited —** there is no form for citing a bold lead-in or any other non-heading content but a record, a part of a construct or a row of a Basic Table declaring a Reference Key; `§ Titling a Heading` says when such content becomes a heading. A directory's `index.md` carries no heading lineage of its own.
 
 **A title that names a kind of section rather than one particular section —** it resolves to no single heading anywhere, so it is not a citation and takes no `§`. A rule referring to `Test Scenarios` generally, where the level varies by context, names a kind; a rule referring to one file's own `## Glossary` names a section.
 
