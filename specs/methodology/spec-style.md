@@ -9,7 +9,7 @@ Content that only makes sense to someone present for the discussion that produce
 | Meta-commentary about the act of writing | "worth stating plainly," "worth being explicit about," "a principle worth stating rather than leaving implicit" | state the principle; do not narrate the decision to state it |
 | Arguing against an alternative the document never proposed | defining a chosen approach by contrast with a technology mentioned nowhere else | state what was chosen and why it is right, on its own terms |
 | Referencing the document's own revision history | "as discussed," "this corrects an earlier version," "now formalized," "the same way the current one did" | a spec has one state, the current one |
-| Hedged framing left over from drafting | "for now," "at this point," attached to a settled decision | state a final decision as final; record a genuinely open one as an open question (`specs/methodology/spec-placement.md § An Open Question`) rather than hedging it inside settled prose |
+| Hedged framing left over from drafting | "for now," "at this point," attached to a settled decision | state a final decision as final; record a genuinely open one as an open question (`specs/methodology/spec-placement.md § Open Question`) rather than hedging it inside settled prose |
 
 ## Trade-offs Are Not Journey Language
 
@@ -55,6 +55,8 @@ A person designs the agent instructions and the skills, deciding what they say a
 **A chain of qualifying clauses —** the usual way one sentence comes to hold several ideas: a main clause, then clause after clause joined by commas, each qualifying the one before. Each clause is easy to write, and the whole is hard to read. Split the chain into sentences, or into a list when its parts are alike.
 
 **An example in the canon —** an example maps what a reader does not yet know onto what it does. One from outside the house lands with any agent, from its training. One drawn from the application specs, their own files, domains or vocabulary, lands only with an agent that has already read them, which a cold agent loading only what its step needs often has not. So an example in the canon is never drawn from the application specs, unless it names the project the canon is checked in rather than illustrating a rule; the methodology may illustrate itself.
+
+**Words its reader already uses —** a rule is written in words its reader can apply without looking anything up, and gives an example of what passes and what fails wherever its words alone leave the reader unsure: a heading "names a thing, as `Payroll Run`, or asks the question its construct answers, never an activity, as `Running payroll`" (`specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct`), not a grammarian's term for either. A term the canon adopts from a standard it registers, or defines in its glossary, is the reader's own once cited; a term from a discipline the reader need not know is not.
 
 **The test —** the primary reader, arriving cold, understands the passage on the first read.
 

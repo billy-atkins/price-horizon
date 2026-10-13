@@ -34,7 +34,7 @@ from pathlib import Path
 REGISTRY = "specs/methodology/skills.md"
 # @canon-spec specs/methodology/working-files.md § A Design Document § The Kinds of Change
 KINDS = ("canon", "application", "code", "neither")
-# working-files.md § A Design Document and § A Steering Decision
+# working-files.md § A Design Document and § Steering Decision
 PLANS = ".ai/plans/design-specs"  # set by the entry script calling main
 # @canon-spec specs/methodology/working-files.md § A Design Document
 CODE_PLANS = "implement-specs"  # the plans folder of the designs changing code, whose kind is code
@@ -57,15 +57,40 @@ OPTIONAL = ("Steering Decisions",)
 # approved or further holds
 FRAME = ("Scope", "Approach", "Outcomes")
 NOT_YET_STATED = "Not yet stated."
-# @canon-spec specs/methodology/working-files.md § A Steering Decision
-# the type's table of record fields, copied here as this tooling reads it, each row's Field, Identifies,
-# Required, Default Value and Values cells; steer_table_problems holds the copy to that section's table, STEER_HOME
-STEER_TABLE = (("Name", "yes", "yes", "", "text"), ("Prompted By", "no", "yes", "", "text"),
-               ("Type", "no", "yes", "", '"selection", "perspective"'),
-               ("Steer", "no", "yes", "", "text"), ("Decision", "no", "yes", "", "text"))
-STEER_TYPES = tuple(re.findall(r'"([^"]+)"', next(v for f, _, _, _, v in STEER_TABLE if f == "Type")))
-STEER_FIELDS = tuple(f for f, _, _, _, _ in STEER_TABLE)
-STEER_HOME = ("specs/methodology/working-files.md", "A Steering Decision")
+# @canon-spec specs/methodology/working-files.md § Steering Decision
+# where the Steering Decision type is declared: its fields and its Type's values are read from that declaration,
+# this tooling holding no copy of them
+STEER_HOME = ("specs/methodology/working-files.md", "Steering Decision")
+
+
+def steer_type(root=None):
+    """The Steering Decision type as its declaration gives it -> (its fields in order, its Type field's values,
+    problems with the declaration: no Record Form, a Plural Name other than Steering Decisions, a Reference Key
+    other than Name, or no table of its record fields)."""
+    path, title = STEER_HOME
+    # the checkout's root: the one given, or the nearest directory up from this file, or else from where it runs,
+    # holding the declaration's file
+    here = Path(__file__).resolve()
+    base = Path(root) if root else next((p for p in (*here.parents, Path.cwd(), *Path.cwd().parents) if (p / path).exists()), Path.cwd())
+    if not (base / path).exists():
+        return (), (), [(path, "no file declares the Steering Decision type")]
+    text = (base / path).read_text(encoding="utf-8").replace("\r\n", "\n")
+    lines = [l.strip() for l in (section(text, title) or "").split("\n")]
+    problems = [] if "**Construct:** Record Form" in lines else ["no Record Form declares the Steering Decision type"]
+    if "**Plural Name:** Steering Decisions" not in lines:
+        problems.append("the Steering Decision type declares no Plural Name Steering Decisions, the title a design's record section takes")
+    if "**Reference Key:** Name" not in lines:
+        problems.append("the Steering Decision type declares no Reference Key Name")
+    head = next((i for i, l in enumerate(lines) if l.startswith("| Field | Unique | Required | Default Value | Values |")), None)
+    rows = []
+    for l in lines[head + 2:] if head is not None else []:
+        if not l.startswith("|"):
+            break
+        rows.append([c.strip() for c in l.strip("|").split("|")])
+    if not rows:
+        problems.append("the Steering Decision type gives no table of its record fields")
+    types = next((tuple(re.findall(r'"([^"]+)"', row[4])) for row in rows if row[0] == "Type" and len(row) > 4), ())
+    return tuple(row[0] for row in rows), types, [(path, p) for p in problems]
 # working-files.md § A Design Document: an adversarial review's or post-apply audit's pass,
 # its lead-in and what follows it to the next, names the model and effort it ran on.
 # @canon-spec specs/methodology/working-files.md § A Design Document
@@ -182,15 +207,18 @@ def check_steers(body):
     if not items:
         return ["Steering Decisions holds no record"]
     problems, seen = [], set()
+    fields, types, declared = steer_type()
+    if not fields:
+        return [p for _, p in declared] or ["the Steering Decision type declares no fields"]
     for item in items:
         keys = re.findall(r"^[ \t]*" + KEY, item, re.M)
-        if keys != list(STEER_FIELDS):
-            problems.append("a steering decision's fields are %s, not %s" % (", ".join(keys), ", ".join(STEER_FIELDS)))
+        if keys != list(fields):
+            problems.append("a steering decision's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
             continue
         name = re.match(KEY + r" ?(.*)", item).group(2).strip()
         type_ = re.search(r"^[ \t]*\*\*Type:\*\* ?(.*)$", item, re.M).group(1).strip()
-        if type_ not in STEER_TYPES:
-            problems.append("steering decision %s has a Type that is not one of %s: %s" % (name, ", ".join(STEER_TYPES), type_))
+        if type_ not in types:
+            problems.append("steering decision %s has a Type that is not one of %s: %s" % (name, ", ".join(types), type_))
         if name in seen:
             problems.append("two steering decisions share the Name " + name)
         seen.add(name)
@@ -198,20 +226,9 @@ def check_steers(body):
 
 
 def steer_table_problems(root):
-    """-> problems where STEER_TABLE, this tooling's copy of the Steering Decisions record fields,
-    differs from their table in working-files.md § A Steering Decision, on any of its five columns."""
-    path, title = STEER_HOME
-    text = (root / path).read_text(encoding="utf-8").replace("\r\n", "\n")
-    lines = (section(text, title) or "").split("\n")
-    head = next((i for i, l in enumerate(lines) if l.startswith("| Field | Identifies | Required | Default Value | Values |")), None)
-    rows = []
-    for l in lines[head + 2:] if head is not None else []:
-        if not l.startswith("|"):
-            break
-        rows.append(tuple(c.strip() for c in l.strip().strip("|").split("|"))[:5])
-    if tuple(rows) != STEER_TABLE:
-        return [(path, "the Steering Decisions fields table in § %s is %s, the tooling's copy %s" % (title, rows or "none", list(STEER_TABLE)))]
-    return []
+    """-> problems with the Steering Decision type's declaration, which this tooling reads a steering decision's
+    fields from."""
+    return steer_type(root)[2]
 
 
 def check_form(design):
@@ -595,7 +612,7 @@ def design_problems(design):
     """Every check on one design: its form, its Target's kind, and what the workstack
     finds wrong with it. Any problem the form and kind checks report counts, whatever it
     is filed under, so a skills registry that cannot be read stops a stamp."""
-    found = check_form(design)[1] + check_specs(design, Path.cwd())[1] + steer_table_problems(Path.cwd())
+    found = check_form(design)[1] + check_specs(design, Path.cwd())[1] + steer_table_problems(None)
     return found + [(t, p) for t, p in check_stack(design.parent)[1] if t == design.stem]
 
 

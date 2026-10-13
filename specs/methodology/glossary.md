@@ -12,8 +12,9 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Canon-spec annotation |  | A spec annotation in a registered skill's script, or the code the skills share, naming the area of the method's own specifications that a copy the script holds takes its values from. |
 | Capability domain |  | A standing part of what a product does or governs for as long as the product exists, defined by its product owner: a boundary meant to outlive any single change. Not an epic or a sprint, which describe work with an end date. |
 | Citation |  | A pointer from one place in the Spec of Record scope to another, written in a fixed form a reader and a script can both follow. Not a bibliographic reference. |
+| Closed set |  | A set whose every member the specs list, so a member is added or removed only by changing the specs: the cases a Decision Table defines one by one, or the instances of one entity type a product spec defines as a record type. Not a set that changes while the product runs. |
 | Cold agent |  | An agent arriving with no context but what it reads, and so with no attachment to the decisions of whoever did the work before it. |
-| Construct |  | A structured form, one of a bounded set the method approves, in which a rule, a process, an entity's behavior or a repeated entry is written rather than in free prose. Not the programming sense. |
+| Construct |  | A structured form, one of a bounded set the method approves, in which a rule, a process, an entity's behavior, a repeated entry or a closed set is written rather than in free prose. Not the programming sense. |
 | Design document |  | A plan describing one change to the specifications or to code taken through Design, Refactor, Refine, from the problem it solves to the edits that make it. Not a design the product's architecture describes. |
 | Design frame |  | A statement of a change, made by its builder: its scope, the cases the change governs and what tells them apart; its approach, the principle the solution applies; and its outcomes, what a successful solution achieves and how that is judged. Not a frame of a user interface, nor a frame of reference. After Kees Dorst's account of framing in design reasoning, in "Frame Innovation" (2015) and "The core of 'design thinking' and its application", in "Design Studies" (2011). |
 | Design, Refactor, Refine | DRR | A process by which work is brought to elegance: a draft that solves the problem, then structural change until the structure settles, then its wording. |
@@ -23,7 +24,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Governed code |  | Code that carries out a spec, or a test that checks one. Not code a governance process approves. |
 | Home |  | The one place where a fact or a rule is stated. |
 | Inside the house |  | A term, abbreviation or example coined or introduced by Spec of Record or the application specs: known to those working within them, and taught by the specs to every agent and engineer who arrives, as a household's own words make sense only to those living in it. Not one known outside them. |
-| Key |  | The name of a field. Not a database key, and not a key in a file's frontmatter. |
+| Key |  | A name or a value that selects one thing among many: a field's key, the name it is written with, selects the field; a record type's Reference Key, the field or fields whose values a citation names, selects one of its records, as a database's key selects a row. Not a key in a file's frontmatter. |
 | Layer |  | A level in the order of what governs what among the specifications, each governed by those above it. Not a layer the product's specifications describe. |
 | Materialized view |  | A restatement of facts whose homes are elsewhere, made for its reader and never their source, nor a second home: what a directory's overview restates, a diagram, a summary. Not a database's materialized view, a stored query result, whose sense it borrows. |
 | Methodology owner |  | The persona the methodology and the specifications' overview are written as, and a design changing either reviewed as. |
@@ -37,7 +38,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Product module |  | A capability domain as the product architecture names it, a folder or a single file, bounding the scope of a change to the code that carries it out. Not a Python module, and not a module of the code. |
 | Progressive disclosure |  | A way of reading in which what a step needs is loaded at the step that needs it, rather than everything at once. |
 | Reasoning effort |  | A setting of the model an agent runs on: how far it reasons before it answers. Not how far a review reaches, nor how many reviewers run it. |
-| Record |  | An entry of a record type, written in the Record Form. Not the product's stored data. |
+| Record |  | An entry of a record type, written in the Record Form: an entry written repeatedly, or a member of a closed set a product spec defines. Not data the product stores and changes while it runs. |
 | Record section |  | A section holding the records of one record type. |
 | Refactor and Refine cycle | RR cycle | The Refactor and Refine of Design, Refactor, Refine, run over specifications that have landed, their state at a baseline commit standing as the design: a change to their structure and wording that leaves what they state. Not the Refactor and Refine within a design still in flight. |
 | Rube Goldberg machine |  | A mechanism far more elaborate than the task it performs, as the cartoonist's contraptions chain many steps to do something simple: a mechanism, role or safeguard whose complexity no stated need justifies, where a light switch would do. |

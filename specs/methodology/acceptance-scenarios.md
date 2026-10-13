@@ -19,7 +19,11 @@ The title is the same every time and does not restate the capability, because th
 
 ## Deciding What to Write
 
-A capability's own section is the only source for its scenarios: never another file's prose about the same subject, and never a case invented from imagination. The scenarios it owes:
+A capability's own section is the only source for its scenarios: never another file's prose about the same subject, and never a case invented from imagination.
+
+### Scenarios a Capability Owes
+
+The scenarios a capability's own section owes:
 
 **Construct:** Decision Table
 
