@@ -96,7 +96,7 @@ Whatever either writes is kept out of version control and outside the scope, and
 
 ## Rules and Skills
 
-The methodology's files state rules. They do not sequence the work, record what goes wrong while following it, check whether a result conforms, or teach the craft a rule assumes; the skills `specs/methodology/skills.md` registers do, and a cold agent needs them to follow the method in practice. `specs/AGENTS.md` states rules too, and sequences the work through Design, Refactor, Refine. No skill is a rule's home: where a skill and a rule disagree, the rule governs and the skill is what needs correcting.
+The methodology's files state rules. They do not sequence the work, record what goes wrong while following it, check whether a result conforms, or teach the craft a rule assumes; the skills `specs/methodology/skills.md` registers do, and a cold agent needs them to follow the method in practice. `specs/AGENTS.md` states rules too, and sequences the work through Design, Refactor, Refine. The methodology's files and `specs/AGENTS.md`, with the specifications' overview, make up the core canon (`specs/methodology/glossary.md`); the skills, with the code they share, are the rest of the canon. No skill is a rule's home: where a skill and a rule disagree, the rule governs and the skill is what needs correcting.
 
 A rule without a check is a suggestion, so every rule of Spec of Record is enforced, and a rule added or changed takes its check with it, in the same change.
 

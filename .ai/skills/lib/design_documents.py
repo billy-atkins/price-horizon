@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The design document tooling the skills writing design documents share: checks what a proposal
-quotes and cites, holds design documents to their form, and shows what a Refactor and Refine cycle
-changed.
+quotes and cites, holds design documents to their form, lists a design's edits, and shows what a
+Refactor and Refine cycle changed.
 
 A proposal that says "replace X with Y" is applicable only if X appears in the
 target file, exactly, once, and only if every heading it cites exists; a design
@@ -24,6 +24,7 @@ everything up to the next '--- ' is one anchor, verbatim, newlines included. Lin
 
 import argparse
 import datetime
+import difflib
 import hashlib
 import re
 import subprocess
@@ -57,6 +58,13 @@ OPTIONAL = ("Steering Decisions",)
 # approved or further holds
 FRAME = ("Scope", "Approach", "Outcomes")
 NOT_YET_STATED = "Not yet stated."
+# @canon-spec specs/methodology/working-files.md § A Design Document
+# an edit's bold lead-in, naming the file it edits: the text it replaces then its replacement, or a new file
+EDIT_LEAD = re.compile(r"^\*\*`([^`]+)` —\*\* (this text|a new file):\s*$")
+# @canon-spec specs/methodology/working-files.md § A Design Document
+# a lead-in naming a file in backticks, however many, and one naming an edit's form however it ends
+FILE_LEAD = re.compile(r"^\*\*`*([^`]*)")
+LEAD_WORDS = re.compile(r"^\*\*`[^`]+` —\*\* (this text|a new file)\b")
 # @canon-spec specs/methodology/working-files.md § Steering Decision
 # where the Steering Decision type is declared: its fields and its Type's values are read from that declaration,
 # this tooling holding no copy of them
@@ -280,6 +288,8 @@ def check_form(design):
         if values.get("Status") in ("approved", "applying", "complete"):
             for part in [p for p in FRAME if frame.get(p) == NOT_YET_STATED]:
                 problems.append((name, values["Status"] + ", but its design frame's " + part + " is not yet stated"))
+        for p in edit_form_problems(text):
+            problems.append((name, p))
         body = section(text, "Steering Decisions")
         for p in check_steers(body) if body is not None else []:
             problems.append((name, p))
@@ -711,6 +721,88 @@ def check_workstack(value):
     return folder if not isinstance(folder, Path) else report("check-workstack", check_stack(folder)[1])
 
 
+def edits(text):
+    """-> each edit of a design document's The Design, as (line, file, the words it removes, the words it adds),
+    a new file adding every word it holds, its text read untruncated, its quote markers and fences set aside."""
+    lines = text.split("\n")
+    start = next((i for i, l in enumerate(lines) if l.rstrip() == "## The Design"), len(lines))
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+    out, fenced = [], False
+    for i in range(start + 1, end):
+        line = lines[i]
+        lead = EDIT_LEAD.match(line) if not fenced else None
+        if lead:
+            out.append({"line": i + 1, "file": lead.group(1), "new file": lead.group(2) == "a new file", "old": [], "new": [], "now": "old"})
+            continue
+        if not fenced and line.startswith("**") and " —** " in line:
+            out.append(None)  # a lead-in of what the design does, no edit's text
+            continue
+        body = re.sub(r"^>\s?", "", line)
+        if body.startswith("```"):
+            fenced = not fenced
+            continue
+        edit = out[-1] if out else None
+        if edit is None:
+            continue
+        if line.rstrip() == "becomes:" and not edit["new file"]:
+            edit["now"] = "new"
+            continue
+        edit["new" if edit["new file"] else edit["now"]].append(body)
+    found = []
+    for edit in (e for e in out if e):
+        old_words = " ".join(edit["old"]).split()
+        new_words = " ".join(edit["new"]).split()
+        removed, added = [], []
+        for tag, a1, a2, b1, b2 in difflib.SequenceMatcher(None, old_words, new_words, autojunk=False).get_opcodes():
+            if tag in ("delete", "replace"):
+                removed.append(" ".join(old_words[a1:a2]))
+            if tag in ("insert", "replace"):
+                added.append(" ".join(new_words[b1:b2]))
+        found.append((edit["line"], edit["file"], removed, added))
+    return found
+
+
+def show_edits(value):
+    """Print every edit of a design document, for a reader to match what the design does against; decides nothing."""
+    design = design_file(value)
+    if design is None:
+        return 2
+    found = edits(read_design(design)[3])
+    sys.stdout.reconfigure(encoding="utf-8")  # the quoted text's characters, whatever the console's code page
+    print("== show-edits %s" % design.stem)
+    for line, path, removed, added in found:
+        print("%d %s" % (line, path))
+        for words in removed:
+            print("  - %s" % words)
+        for words in added:
+            print("  + %s" % words)
+    print("%d edits" % len(found))
+    return 0
+
+
+def edit_form_problems(text):
+    """working-files.md § A Design Document: each edit of The Design in a form that section gives,
+    `this text:` then `becomes:`, or `a new file:`; an edit in another form is reported, as is a `this text:`
+    with no `becomes:`, since the listing reads only those forms."""
+    lines = (section(text, "The Design") or "").split("\n")
+    out, fenced = [], False
+    for i, line in enumerate(lines):
+        if re.sub(r"^>\s?", "", line).startswith("```"):
+            fenced = not fenced
+            continue
+        if fenced or not line.startswith("**`"):
+            continue
+        lead = EDIT_LEAD.match(line)
+        rest = lines[i + 1:]
+        if lead and lead.group(2) == "this text":
+            end = next((j for j, l in enumerate(rest) if l.startswith("**") and " —** " in l), len(rest))
+            if "becomes:" not in (l.rstrip() for l in rest[:end]):
+                out.append("an edit quoting the text it replaces with no becomes: " + FILE_LEAD.match(line).group(1))
+        elif not lead and (LEAD_WORDS.match(line) or line.rstrip().endswith(":") and next((l for l in rest if l.strip()), "").startswith((">", "```"))):
+            out.append("an edit in neither form, this text: then becomes:, or a new file: " + FILE_LEAD.match(line).group(1))
+    return out
+
+
 def show_validation(value):
     design = design_file(value)
     if design is None:
@@ -833,6 +925,8 @@ FLAGS = (
      "print a design document's stamped hash, its hash now, and whether it is validated, stale or never stamped"),
     ("--stamp-validation", "DESIGN", stamp_validation,
      "run every check on one design document and, if it passes, write its validation stamp; the validation review alone runs it"),
+    ("--show-edits", "DESIGN", show_edits,
+     "list every edit a design document quotes in the forms working-files.md § A Design Document gives, untruncated: its line, the file it edits, and the words it removes and adds; decides nothing"),
     ("--show-refactor-and-refine-of-existing-specs", "BASELINE", show_refactor_and_refine_of_existing_specs,
      "show what a Refactor and Refine cycle over existing specs changed since the baseline commit, for a reader to trace: lines now repeated, lost and new, each with the files holding it; decides nothing; run from the repository's root on a tree with the cycle's changes applied"),
 )

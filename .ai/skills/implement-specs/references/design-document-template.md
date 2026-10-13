@@ -41,11 +41,11 @@
 
 ## The Design
 
-{what the design does; then each unit of governed code, where it is, its app-spec annotations, sorted, and what it does; the wiring, and what it connects; and the tests, and what each checks; quoting existing code only where it changes it}
+{what the design does; then each unit of governed code, where it is, its app-spec annotations, sorted, and what it does; the wiring, and what it connects; and the tests, and what each checks; quoting existing code only where it changes it, each such edit in the forms `specs/methodology/working-files.md § A Design Document` gives}
 
 ## The Builder's Passes
 
-{what each pass and each review changed, each under a bold lead-in naming it, an adversarial review's opening Adversarial review and a post-apply audit's Post-apply audit, each review named with its report and the model and reasoning effort it ran on, and the flaws the user settled among its findings, an adversarial review's also the decisions its findings fell on, their causes, the steers they pressed on and what the user decided of them, any revision of the frame, the change, the findings fixed where they sit with their reasons and the worked cases; and the local environment's tasks run on the code, and what each showed}
+{what each pass and each review changed, each under a bold lead-in naming it, an adversarial review's opening Adversarial review and a post-apply audit's Post-apply audit, each review but a validation review named with its report, and the model and reasoning effort it ran on, and the flaws the user settled among its findings, an adversarial review's also the decisions its findings fell on, their causes, the steers they pressed on and what the user decided of them, any revision of the frame, the change, the findings fixed where they sit with their reasons and the worked cases; the fixes made for a validation review, with the findings of it the user settled, quoting the user, one pass naming the kinds of findings and no report; and the local environment's tasks run on the code, and what each showed}
 
 ## Deliberately Left Alone
 
