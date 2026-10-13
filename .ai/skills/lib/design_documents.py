@@ -27,8 +27,10 @@ import datetime
 import difflib
 import hashlib
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -50,9 +52,12 @@ UNSTAMPED = ("Validated", "Status")
 # @canon-spec specs/methodology/working-files.md § A Design Document
 IMPACT = "Impact on the Application Specs"  # a canon design's, and no other design's
 # @canon-spec specs/methodology/working-files.md § A Design Document
-SECTIONS = ("The Problem", "The Design Frame", "Steering Decisions", "The Design", IMPACT, "The Builder's Passes", "Deliberately Left Alone")
+SECTIONS = ("The Problem", "Design Goals", "The Design Frame", "Steering Decisions", "The Design", IMPACT, "The Builder's Passes", "Deliberately Left Alone")
 # @canon-spec specs/methodology/working-files.md § A Design Document
 OPTIONAL = ("Steering Decisions",)
+# @canon-spec specs/methodology/working-files.md § A Design Document
+# the goals, required as the frame is, but in a design complete or abandoned
+UNTIL_FINISHED = ("Design Goals",)
 # @canon-spec specs/methodology/working-files.md § A Design Document
 # the design frame's level-three headings, in order, and the text a part not yet stated holds, which no design
 # approved or further holds
@@ -69,26 +74,28 @@ LEAD_WORDS = re.compile(r"^\*\*`[^`]+` —\*\* (this text|a new file)\b")
 # where the Steering Decision type is declared: its fields and its Type's values are read from that declaration,
 # this tooling holding no copy of them
 STEER_HOME = ("specs/methodology/working-files.md", "Steering Decision")
+# @canon-spec specs/methodology/working-files.md § Design Goal
+GOAL_HOME = ("specs/methodology/working-files.md", "Design Goal")
 
 
-def steer_type(root=None):
-    """The Steering Decision type as its declaration gives it -> (its fields in order, its Type field's values,
-    problems with the declaration: no Record Form, a Plural Name other than Steering Decisions, a Reference Key
+def declared_type(home, plural, root=None):
+    """A record type as its declaration gives it -> (its table of record fields, a row to a field, problems with the
+    declaration: no Record Form, a Plural Name other than the one a design's record section takes, a Reference Key
     other than Name, or no table of its record fields)."""
-    path, title = STEER_HOME
+    path, title = home
     # the checkout's root: the one given, or the nearest directory up from this file, or else from where it runs,
     # holding the declaration's file
     here = Path(__file__).resolve()
     base = Path(root) if root else next((p for p in (*here.parents, Path.cwd(), *Path.cwd().parents) if (p / path).exists()), Path.cwd())
     if not (base / path).exists():
-        return (), (), [(path, "no file declares the Steering Decision type")]
+        return [], [(path, "no file declares the %s type" % title)]
     text = (base / path).read_text(encoding="utf-8").replace("\r\n", "\n")
     lines = [l.strip() for l in (section(text, title) or "").split("\n")]
-    problems = [] if "**Construct:** Record Form" in lines else ["no Record Form declares the Steering Decision type"]
-    if "**Plural Name:** Steering Decisions" not in lines:
-        problems.append("the Steering Decision type declares no Plural Name Steering Decisions, the title a design's record section takes")
+    problems = [] if "**Construct:** Record Form" in lines else ["no Record Form declares the %s type" % title]
+    if "**Plural Name:** " + plural not in lines:
+        problems.append("the %s type declares no Plural Name %s, the title a design's record section takes" % (title, plural))
     if "**Reference Key:** Name" not in lines:
-        problems.append("the Steering Decision type declares no Reference Key Name")
+        problems.append("the %s type declares no Reference Key Name" % title)
     head = next((i for i, l in enumerate(lines) if l.startswith("| Field | Unique | Required | Default Value | Values |")), None)
     rows = []
     for l in lines[head + 2:] if head is not None else []:
@@ -96,9 +103,24 @@ def steer_type(root=None):
             break
         rows.append([c.strip() for c in l.strip("|").split("|")])
     if not rows:
-        problems.append("the Steering Decision type gives no table of its record fields")
+        problems.append("the %s type gives no table of its record fields" % title)
+    return rows, [(path, p) for p in problems]
+
+
+def steer_type(root=None):
+    """The Steering Decision type as its declaration gives it -> (its fields in order, its Type field's values,
+    problems with the declaration)."""
+    rows, problems = declared_type(STEER_HOME, "Steering Decisions", root)
     types = next((tuple(re.findall(r'"([^"]+)"', row[4])) for row in rows if row[0] == "Type" and len(row) > 4), ())
-    return tuple(row[0] for row in rows), types, [(path, p) for p in problems]
+    return tuple(row[0] for row in rows), types, problems
+
+
+def goal_type(root=None):
+    """The Design Goal type as its declaration gives it -> (its fields in order, problems with the declaration)."""
+    rows, problems = declared_type(GOAL_HOME, "Design Goals", root)
+    return tuple(row[0] for row in rows), problems
+
+
 # working-files.md § A Design Document: an adversarial review's or post-apply audit's pass,
 # its lead-in and what follows it to the next, names the model and effort it ran on.
 # @canon-spec specs/methodology/working-files.md § A Design Document
@@ -233,10 +255,39 @@ def check_steers(body):
     return problems
 
 
+def check_goals(body):
+    """-> problems with a Design Goals section: `Not yet stated.`, or a Records field and each record its type's
+    fields in order, its Name a slug, no two sharing a Name."""
+    if body.strip() == NOT_YET_STATED:
+        return []
+    if not re.search(r"^\*\*Records:\*\*\s*$", body, re.M):
+        return ["Design Goals has no Records field"]
+    items = re.split(r"^- ", body.split("**Records:**", 1)[1], flags=re.M)[1:]
+    if not items:
+        return ["Design Goals holds no record"]
+    fields, declared = goal_type()
+    if not fields:
+        return [p for _, p in declared] or ["the Design Goal type declares no fields"]
+    problems, seen = [], set()
+    for item in items:
+        keys = re.findall(r"^[ \t]*" + KEY, item, re.M)
+        if keys != list(fields):
+            problems.append("a design goal's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
+            continue
+        name = re.match(KEY + r" ?(.*)", item).group(2).strip()
+        # working-files.md § Design Goal: a Name in kebab-case, as a design document's file name is
+        if kebab(name) != name:
+            problems.append("a design goal's Name is not in kebab-case: " + name)
+        if name in seen:
+            problems.append("two design goals share the Name " + name)
+        seen.add(name)
+    return problems
+
+
 def steer_table_problems(root):
-    """-> problems with the Steering Decision type's declaration, which this tooling reads a steering decision's
-    fields from."""
-    return steer_type(root)[2]
+    """-> problems with the Steering Decision and Design Goal types' declarations, which this tooling reads their
+    records' fields from."""
+    return steer_type(root)[2] + goal_type(root)[1]
 
 
 def check_form(design):
@@ -278,7 +329,7 @@ def check_form(design):
                 problems.append((name, "a review's lead-in is not written as the form sets it, Adversarial review or Post-apply audit: " + p[:40].strip()))
             if REVIEW.match(p) and not RAN_ON.search(p):
                 problems.append((name, "a review's pass names no model and reasoning effort, as on {model} at {effort} effort or on {model} as the agent allows: " + p[:60].strip()))
-        want = [s for s in SECTIONS if (s in sections or s not in OPTIONAL) and (s != IMPACT or values.get("Specs") == "canon")]
+        want = [s for s in SECTIONS if (s in sections or (s not in OPTIONAL and (s not in UNTIL_FINISHED or values.get("Status") not in FINISHED))) and (s != IMPACT or values.get("Specs") == "canon")]
         if sections != want:
             problems.append((name, "its sections are %s, not %s" % (", ".join(sections), ", ".join(want))))
         frame = frame_parts(text)
@@ -293,6 +344,16 @@ def check_form(design):
         body = section(text, "Steering Decisions")
         for p in check_steers(body) if body is not None else []:
             problems.append((name, p))
+        goals = section(text, "Design Goals")
+        for p in check_goals(goals) if goals is not None else []:
+            problems.append((name, p))
+        if goals is not None and goals.strip() == NOT_YET_STATED and values.get("Status") in ("approved", "applying", "complete"):
+            problems.append((name, values["Status"] + ", but its design goals are not yet stated"))
+        # specs/AGENTS.md § Design, Refactor, Refine: the frame cites the goals it rests on by Names the design holds
+        held = set(re.findall(r"^- \*\*Name:\*\* (.+?)\s*$", goals or "", re.M))
+        cites = re.findall(r"`§ Design Goals \[Name: ([^\]]+)\]`", section(text, "The Design Frame") or "")
+        for cited in sorted({c.strip() for c in cites} - held - {"…"}):
+            problems.append((name, "a citation of a goal the design does not hold: " + cited))
     return len(designs), problems
 
 
@@ -724,42 +785,126 @@ def check_workstack(value):
 def edits(text):
     """-> each edit of a design document's The Design, as (line, file, the words it removes, the words it adds),
     a new file adding every word it holds, its text read untruncated, its quote markers and fences set aside."""
-    lines = text.split("\n")
-    start = next((i for i, l in enumerate(lines) if l.rstrip() == "## The Design"), len(lines))
-    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
-    out, fenced = [], False
-    for i in range(start + 1, end):
-        line = lines[i]
-        lead = EDIT_LEAD.match(line) if not fenced else None
-        if lead:
-            out.append({"line": i + 1, "file": lead.group(1), "new file": lead.group(2) == "a new file", "old": [], "new": [], "now": "old"})
-            continue
-        if not fenced and line.startswith("**") and " —** " in line:
-            out.append(None)  # a lead-in of what the design does, no edit's text
-            continue
-        body = re.sub(r"^>\s?", "", line)
-        if body.startswith("```"):
-            fenced = not fenced
-            continue
-        edit = out[-1] if out else None
-        if edit is None:
-            continue
-        if line.rstrip() == "becomes:" and not edit["new file"]:
-            edit["now"] = "new"
-            continue
-        edit["new" if edit["new file"] else edit["now"]].append(body)
     found = []
-    for edit in (e for e in out if e):
-        old_words = " ".join(edit["old"]).split()
-        new_words = " ".join(edit["new"]).split()
+    for line, f, old, new in quoted(text):
+        old_words, new_words = ([w for l in (s or "").splitlines() if not l.startswith("```") for w in l.split()] for s in (old, new))
         removed, added = [], []
         for tag, a1, a2, b1, b2 in difflib.SequenceMatcher(None, old_words, new_words, autojunk=False).get_opcodes():
             if tag in ("delete", "replace"):
                 removed.append(" ".join(old_words[a1:a2]))
             if tag in ("insert", "replace"):
                 added.append(" ".join(new_words[b1:b2]))
-        found.append((edit["line"], edit["file"], removed, added))
+        found.append((line, f, removed, added))
     return found
+
+
+def quoted(text):
+    """-> each edit of a design document's The Design as it quotes it, (line, file, the text it replaces, its
+    replacement), the text replaced None for a new file, its quote markers and fences set aside."""
+    lines = text.split("\n")
+    start = next((i for i, l in enumerate(lines) if l.rstrip() == "## The Design"), len(lines))
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+    out = []
+    for i in range(start + 1, end):
+        lead = EDIT_LEAD.match(lines[i])
+        if lead:
+            out.append([lead.group(1), lead.group(2) == "a new file", [], [], "old", i + 1])
+        elif out and lines[i].rstrip() == "becomes:" and not out[-1][1]:
+            out[-1][4] = "new"
+        elif out and lines[i].startswith(">"):
+            out[-1][3 if out[-1][1] or out[-1][4] == "new" else 2].append(re.sub(r"^>\s?", "", lines[i]))
+        elif out and lines[i].startswith("**") and " —** " in lines[i]:
+            out.append([None, False, [], [], "old", i + 1])
+
+    def body(quote, code):
+        quote = list(quote)
+        while quote and not quote[0].strip():
+            quote.pop(0)
+        while quote and not quote[-1].strip():
+            quote.pop()
+        if code and quote and quote[0].startswith("```") and quote[-1].startswith("```"):
+            quote = quote[1:-1]
+        return "\n".join(quote)
+    return [(line, f, None if new_file else body(old, not f.endswith(".md")), body(new, not f.endswith(".md")))
+            for f, new_file, old, new, _, line in out if f]
+
+
+# @canon-spec specs/methodology/working-files.md § A Design Document
+# a form the method is still adding: the checks run in a copy of the repository holding the edits of each design named
+COPIED = ("specs", ".ai/skills", ".ai/plans")
+
+
+def with_applied(withs, argv):
+    """--with-edits-of: runs the other actions asked for in a copy of the repository, its root files, specs, skills and plans, holding the
+    quoted edits of each design named, and copies back a design document a stamp wrote; -> the actions' exit status."""
+    root = Path.cwd()
+    copy = Path(tempfile.mkdtemp(prefix="design-specs-with-"))
+    try:
+        for d in COPIED:
+            if (root / d).is_dir():
+                shutil.copytree(root / d, copy / d, ignore=shutil.ignore_patterns("__pycache__"))
+        for f in root.iterdir():
+            if f.is_file():
+                shutil.copy2(f, copy / f.name)
+        for value in withs:
+            design = design_file(value)
+            if design is None:
+                return 2
+            for _, f, old, new in quoted(design.read_text(encoding="utf-8").replace("\r\n", "\n")):
+                target = copy / f
+                if old is None:
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_text(new + "\n", encoding="utf-8", newline="\n")
+                    continue
+                now = target.read_text(encoding="utf-8").replace("\r\n", "\n") if target.is_file() else ""
+                # already applied, as while the design is applying: its replacement there and, unless the replacement
+                # holds the text it replaces, that text gone
+                if new in now and (old in new or old not in now):
+                    continue
+                if now.count(old) == 1:
+                    target.write_text(now.replace(old, new), encoding="utf-8", newline="\n")
+                else:
+                    sys.stderr.write("--with-edits-of %s: an edit's text is not in %s exactly once, nor its replacement already there\n" % (value, f))
+                    return 2
+        rest, skip = [], False
+        for a in argv[1:]:
+            if skip:
+                skip = False
+            elif a == "--with-edits-of":
+                skip = True
+            elif not a.startswith("--with-edits-of="):
+                flag, eq, value = a.partition("=")
+                path = Path(value if eq else a)
+                full = (path if path.is_absolute() else root / path).resolve()
+                if not a.startswith("-") or eq:
+                    under = full.relative_to(root.resolve()).parts if full.is_relative_to(root.resolve()) else ()
+                    if full.exists() and any(under[:len(Path(d).parts)] == Path(d).parts for d in COPIED):
+                        shown = full.relative_to(root.resolve()).as_posix()
+                    elif full.exists():
+                        shown = str(full)
+                    else:
+                        shown = value if eq else a
+                    a = flag + "=" + shown if eq else shown
+                rest.append(a)
+        try:
+            entry = Path(argv[0]).resolve().relative_to(root.resolve())
+        except ValueError:
+            sys.stderr.write("--with-edits-of: run the entry script from the repository's root\n")
+            return 2
+        stamped = [rest[i + 1] for i, a in enumerate(rest[:-1]) if a == "--stamp-validation"]
+        stamped += [a.split("=", 1)[1] for a in rest if a.startswith("--stamp-validation=")]
+        for value in stamped:
+            if Path(value).is_absolute():
+                sys.stderr.write("--with-edits-of: a design stamped lies outside the copied folders, so its stamp could not be copied back: %s\n" % value)
+                return 2
+        status = subprocess.run([sys.executable, str(copy / entry)] + rest, cwd=copy).returncode
+        for value in stamped:
+            mine, theirs = copy / value, root / value
+            if mine.is_file() and theirs.is_file() and mine.read_bytes() != theirs.read_bytes():
+                theirs.write_bytes(mine.read_bytes())
+        return status
+    finally:
+        shutil.rmtree(copy, ignore_errors=True)
 
 
 def show_edits(value):
@@ -836,6 +981,8 @@ def stamp_validation(value):
     if dict(fields).get("Status") not in ("approved", "applying", "complete"):
         problems += [(name, "its design frame's %s is not yet stated" % p) for p in FRAME
                      if frame_parts(text).get(p) == NOT_YET_STATED]
+        if (section(text, "Design Goals") or "").strip() == NOT_YET_STATED:
+            problems.append((name, "its design goals are not yet stated"))
     if problems:
         report("stamp-validation, not stamped", problems)
         return 1
@@ -942,7 +1089,10 @@ def main(argv, plans=PLANS):
             parser.add_argument(flag, metavar=metavar, nargs="?", const=PLANS, action="append", help=help_text)
         else:
             parser.add_argument(flag, metavar=metavar, action="append", help=help_text)
+    parser.add_argument("--with-edits-of", metavar="DESIGN", action="append", help="run the other actions with the edits of this design document applied, in a copy of the repository, for a record using a form a design changing the method adds; given more than once, each design's edits applied in turn")
     args = vars(parser.parse_args(argv[1:]))
+    if args["with_edits_of"]:
+        return with_applied(args["with_edits_of"], argv)
     chosen = [(run, value) for flag, _, run, _ in FLAGS for value in args[flag[2:].replace("-", "_")] or []]
     if not chosen:
         parser.print_usage(sys.stderr)

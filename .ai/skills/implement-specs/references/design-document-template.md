@@ -13,6 +13,15 @@
 
 {the product module it carries out, then the specs it carries into code, cited, and what the code lacks}
 
+## Design Goals
+
+{`Not yet stated.` until the user agrees the goals; then:}
+
+**Records:**
+
+- **Name:** {a slug}
+  **Description:** {what the goal asks}
+
 ## The Design Frame
 
 ### Scope
@@ -21,11 +30,11 @@
 
 ### Approach
 
-{the principle the solution applies}
+{the principle the solution applies, citing by Name the goals it rests on}
 
 ### Outcomes
 
-{what a successful solution achieves, and how that is judged}
+{what a successful solution achieves, and how that is judged, each outcome citing by Name the goals it rests on}
 
 ## Steering Decisions
 
@@ -45,7 +54,7 @@
 
 ## The Builder's Passes
 
-{what each pass and each review changed, each under a bold lead-in naming it, an adversarial review's opening Adversarial review and a post-apply audit's Post-apply audit, each review but a validation review named with its report, and the model and reasoning effort it ran on, and the flaws the user settled among its findings, an adversarial review's also the decisions its findings fell on, their causes, the steers they pressed on and what the user decided of them, any revision of the frame, the change, the findings fixed where they sit with their reasons and the worked cases; the fixes made for a validation review, with the findings of it the user settled, quoting the user, one pass naming the kinds of findings and no report; and the local environment's tasks run on the code, and what each showed}
+{what each pass and each review changed, each under a bold lead-in naming it, an adversarial review's opening Adversarial review and a post-apply audit's Post-apply audit, each review but a validation review named with its report, and the model and reasoning effort it ran on, and the flaws the user settled among its findings, an adversarial review's also the decisions its findings fell on, their causes, the steers they pressed on and what the user decided of them, any revision of the goals or the frame, the change, the findings fixed where they sit with their reasons and the worked cases; the fixes made for a validation review, with the findings of it the user settled, quoting the user, one pass naming the kinds of findings and no report; and the local environment's tasks run on the code, and what each showed}
 
 ## Deliberately Left Alone
 
