@@ -95,7 +95,7 @@ POLICIES = ("Any", "Priority", "First", "Rule order", "Output order",
 
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
 # a States table's headers
-STATES = ["state", "description", "initial", "terminal"]
+STATES = ["State", "description", "initial", "terminal"]
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Constraint
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § DAG
@@ -104,7 +104,7 @@ STATES = ["state", "description", "initial", "terminal"]
 # each construct's tables, by their headers; None where a Decision Table's columns are its own
 FORMS = {
     "State Machine": [STATES, ["From", "To", "Trigger"]],
-    "DAG": [["task", "work", "depends_on"]],
+    "DAG": [["Task", "work", "depends_on"]],
     "Algorithm": [["Step", "Action"]],
     "Constraint": [["Constraint", "Applies to", "Enforced by"]],
     "Decision Table": [None],
@@ -170,6 +170,14 @@ def _a(name):
 
 def _cells(row):
     return [c.strip() for c in row.strip().strip("|").split("|")]
+
+
+# the two key columns renamed as a citation writes them, read in their old spelling until the tables are migrated
+OLD_KEYS = {"state": "State", "task": "Task"}
+
+
+def _keyed(cells):
+    return [OLD_KEYS.get(c, c) for c in cells]
 
 
 # @canon-spec specs/methodology/modeling-constructs.md § Literal Text
@@ -570,11 +578,18 @@ def construct_findings(r, body, found, sections):
     lines = body.split(chr(10))
     for line, name, fields, tables, lineage in decls:
         _paragraphs(r, lines, line, fields, found)
-    # a field a construct sets, outside the block a Construct field opens
+    # a field a construct sets, outside the block a Construct field opens; but a Reference Key a construct's definition
+    # declares, or one opening a Basic Table directly after it (modeling-constructs.md § Constructs § Basic Table)
     owned = {ln for _, _, fields, _, _ in decls for ln, _, _ in fields}
     own_keys = {k for keys in OWN_FIELDS.values() for k in keys}
-    for i, l in enumerate(body.split(chr(10)), 1):
+    definitions = [(h, end) for lin, (h, end) in sections.items() if r == "specs/methodology/modeling-constructs.md"
+                   and lin.startswith("Constructs § ") and lin.split(" § ")[-1] in FORMS and lin.count(" § ") == 1]
+    for i, l in enumerate(lines, 1):
         f = _margin_field(l)
+        if f and f["key"] == "Reference Key":
+            after = next((n for n in lines[i:] if n.strip()), "")
+            if after.startswith("|") or any(h < i - 1 < end for h, end in definitions):
+                continue
         if f and f["key"] in own_keys and i not in owned:
             found.append((DECLARING, r, i, f"a {f['key']} field outside a construct's block"))
     seen = {}
@@ -608,11 +623,11 @@ def construct_findings(r, body, found, sections):
             named = header[:1] == ["Name"] and k in NAMEABLE.get(name, set())
             cols = header[1:] if named else header
             extra = OPTIONAL_COLUMNS.get((name, k), [])
-            if form is not None and cols not in [form + [x for i, x in enumerate(extra) if n >> i & 1] for n in range(2 ** len(extra))]:
+            if form is not None and _keyed(cols) not in [form + [x for i, x in enumerate(extra) if n >> i & 1] for n in range(2 ** len(extra))]:
                 found.append((DECLARING, r, table["line"], f"{_a(name)} table headed {header}, not {form}"
                               + (f" and then any of {extra}, in order" if extra else "")))
                 ok = False
-            formed = form is not None and cols[:len(form)] == form
+            formed = form is not None and _keyed(cols[:len(form)]) == form
             for ln, row in table["rows"]:
                 ident = [row[0]] if named or (name == "State Machine" and k == 0) or name == "DAG" else []
                 for v in ident:
@@ -1820,7 +1835,7 @@ def dag_findings(text_of, found, sections, strip_fences, citation, resolve):
         if name != "DAG" or not tables or extends(values):
             continue
         header = tables[0]["header"]
-        if header[:3] != FORMS["DAG"][0]:
+        if _keyed(header[:3]) != FORMS["DAG"][0]:
             continue  # its form is the declaring check's to report
         wi, di = header.index("work"), header.index("depends_on")
         col = {c: header.index(c) for c in ("guard", "timeout", "tolerated") if c in header}
@@ -2895,7 +2910,7 @@ def name_column_findings(text_of, cited, found, sections, strip_fences):
 
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs
 # a construct's tables known by their leading columns, so one written in an earlier form is found too
-LEADS = (("state", "description"), ("From", "To"), ("task",), ("Step", "Action"), ("Constraint", "Applies to"))
+LEADS = (("State", "description"), ("From", "To"), ("Task", "work"), ("Step", "Action"), ("Constraint", "Applies to"))
 
 
 def construct_candidates(files, sections, strip_fences):
@@ -2957,7 +2972,7 @@ def construct_candidates(files, sections, strip_fences):
                     rows.append(_cells(nxt))
                 # a construct's form shows its tables with placeholder rows, and declares none
                 template = any("..." in row for row in rows)
-                lead = header[1:] if header[:1] == ("Name",) else header
+                lead = tuple(_keyed(list(header[1:] if header[:1] == ("Name",) else header)))
                 if not template and any(lead[:len(k)] == k for k in LEADS):
                     out.append((r, i + 1, "a construct's table with no declaration", l.strip()[:120]))
     return out

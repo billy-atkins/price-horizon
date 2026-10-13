@@ -116,6 +116,8 @@ TYPES = {}
 _TEXT_OF = {}
 # modeling-constructs.md § Fields: every key a form declares, and where that form places it.
 FIELDS = "modeling-constructs.md § Fields"
+# modeling-constructs.md § Constructs § Basic Table: its headers, its Reference Key and its rows
+TABLES = "modeling-constructs.md § Constructs § Basic Table"
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
 # @canon-spec specs/methodology/modeling-constructs.md § Diagrams
 # @canon-spec specs/methodology/spec-placement.md § Environments
@@ -617,6 +619,30 @@ def environment_findings(r, body, found):
         found.append((rule, r, 0, f"{local} environments are local, not exactly one"))
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Fields
+# a word of a header written as a field key's word is, opening with a capital and made of letters or digits, a hyphen
+# joining two parts of one word; and a proper noun's own casing, a capital after a lower-case letter within the word
+HEADER_WORD = re.compile(r"^[A-Z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*$")
+OWN_CASING = re.compile(r"^[A-Za-z0-9]*[a-z][A-Z][A-Za-z0-9]*$")
+
+
+def header_findings(r, body, found):
+    """modeling-constructs.md § Constructs § Basic Table: each Basic Table's header is written as a field key is (§ Fields), but a
+    header in backticks and a word in a proper noun's own casing; a construct's table, in its block, follows its
+    construct's definition and is no Basic Table."""
+    live = strip_fences(body)
+    lines = live.split("\n")
+    in_construct = {t["line"] for _, _, _, tables, _ in constructs.declarations(live, sections(body)) for t in tables}
+    for i, l in enumerate(lines):
+        if not l.startswith("|") or i + 1 >= len(lines) or not re.match(r"^\|[-| :]+\|\s*$", lines[i + 1]) \
+                or (i > 0 and lines[i - 1].startswith("|")) or i + 1 in in_construct:
+            continue
+        for h in constructs._cells(l):
+            if not h or h in ("...", "-") or h.startswith("`") or all(HEADER_WORD.match(w) or OWN_CASING.match(w) for w in h.split(" ")):
+                continue
+            found.append((TABLES, r, i + 1, f"a header not written as a field key is: {h}"))
+
+
 def field_findings(r, body, found):
     """modeling-constructs.md § Fields: each field's key is one a form declares, it sits
     where that form places it, and a key at the left margin follows a blank line."""
@@ -664,16 +690,47 @@ def field_findings(r, body, found):
 
 
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
-# modeling-constructs.md § Constructs § Declaring a Construct: a part of a construct is named by
-# its construct's section and one identifier, read from the column its construct's tables give it,
-# and each construct holds only the kinds of part it has.
-PART_COLUMNS = {"State": "state", "Step": "Step", "Task": "task", "Name": "Name"}
+# a part of a construct is named by its construct's section and its key, the column its construct's definition
+# declares in a Reference Key field, read from the canon before any citation: {construct: {key, ...}}
+CONSTRUCT_KEYS = {}
 # the (path, lineage) of each construct a part's citation by Name names, from outside its section
 NAME_CITED = set()
-# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
-PART_KEYS = {"State Machine": {"State", "Name"},
-             "Decision Table": {"Name"}, "DAG": {"Task"},
-             "Algorithm": {"Step"}, "Constraint": {"Name"}}
+
+
+def construct_keys(text_of):
+    """modeling-constructs.md § Constructs § Declaring a Construct: each construct's Reference Key, read from its
+    definition's section, one column or a list's items, one to a keyed table in the order its tables come, each the table, a
+    colon and its column -> CONSTRUCT_KEYS {construct: {column: its table's index, or None for every table}}; a definition
+    naming none reported."""
+    out, home = [], "specs/methodology/modeling-constructs.md"
+    body = strip_fences(text_of.get(home, ""))
+    for lineage, (h, end) in sections(body).items():
+        parts = lineage.split(" § ")
+        if len(parts) != 2 or parts[0] != "Constructs" or parts[1] not in constructs.FORMS:
+            continue
+        lines = body.split("\n")[h + 1:end]
+        i = next((k for k, l in enumerate(lines) if l.startswith("**Reference Key:**")), None)
+        if i is None:
+            out.append((constructs.DECLARING, home, h + 1, f"a construct's definition declaring no Reference Key: {parts[1]}"))
+            continue
+        value = lines[i][len("**Reference Key:**"):].strip()
+        if value:
+            CONSTRUCT_KEYS[parts[1]] = {value: None}
+            continue
+        # a list, read to its last item past any blank line before it: one item to each of the construct's tables, a table,
+        # a colon and its column
+        items = []
+        for l in lines[i + 1:]:
+            if not items and not l.strip():
+                continue
+            if not l.startswith("- "):
+                break
+            items.append(l[2:])
+        if not items or len(items) != len(constructs.FORMS[parts[1]]) or any(not it.partition(":")[2].strip() for it in items):
+            out.append((constructs.DECLARING, home, h + 1 + i, f"a construct's definition whose Reference Key is empty, or a list not giving a table and its column for each of its tables: {parts[1]}"))
+            continue
+        CONSTRUCT_KEYS[parts[1]] = {it.partition(":")[2].strip(): k for k, it in enumerate(items)}
+    return out
 
 
 def part_citation(sel, path, target, text_of, r, line, found):
@@ -683,20 +740,97 @@ def part_citation(sel, path, target, text_of, r, line, found):
     body = text_of[path]
     declared = [d for d in constructs.declarations(strip_fences(body), sections(body)) if d[4] == target]
     if not declared:
-        found.append((rule, r, line, f"a bracket on a section that is no record section and declares no construct: § {target}"))
+        table = basic_tables(body).get(target)
+        if table is None:
+            found.append((rule, r, line, f"a bracket on a section that is no record section, declares no construct and holds no Basic Table declaring a Reference Key: § {target}"))
+        else:
+            row_citation(sel, target, table, r, line, found)
         return
     _, construct, _, tables, _ = declared[0]
     m = KEY_VALUE.match(sel.strip())
-    if not m or m.group(1) not in PART_KEYS.get(construct, set()) or ";" in sel:
-        found.append((rule, r, line, f"a part citation not written as one identifier a {construct} has: [{sel}]"))
+    if not m or m.group(1) not in CONSTRUCT_KEYS.get(construct, set()) or ";" in sel:
+        found.append((rule, r, line, f"a part citation not written as one key a {construct} has: [{sel}]"))
         return
-    column, value = PART_COLUMNS[m.group(1)], m.group(2).strip()
-    values = [row[t["header"].index(column)] for t in tables if column in t["header"]
+    column, value = m.group(1), m.group(2).strip()
+    k = CONSTRUCT_KEYS[construct][column]
+    values = [row[constructs._keyed(t["header"]).index(column)] for t in (tables if k is None else tables[k:k + 1])
+              if column in constructs._keyed(t["header"])
               for _, row in t["rows"] if len(row) == len(t["header"])]
     if not [v for v in values if v == value]:
         found.append((rule, r, line, f"a part citation matches no part: § {target} [{sel}]"))
     elif m.group(1) == "Name" and (path != r or not sections(body)[target][0] < line - 1 < sections(body)[target][1]):
         NAME_CITED.add((path, target))
+
+
+def basic_tables(body):
+    """modeling-constructs.md § Constructs § Basic Table: each section's Basic Table that a Reference Key field directly before it
+    declares, in live text -> {lineage: {"key": [column], "header": [cell], "rows": [(line, [cell])], "line": n}}."""
+    live = strip_fences(body)
+    lines, secs = live.split("\n"), sorted(sections(body).items(), key=lambda x: x[1][0])
+    decls = constructs.declarations(live, sections(body))
+    in_construct = {t["line"] for _, _, _, tables, _ in decls for t in tables}
+    declared = {lin for _, _, _, _, lin in decls}
+    out = {}
+    for i, l in enumerate(lines):
+        if not l.startswith("|") or (i and lines[i - 1].startswith("|")) or i + 1 in in_construct:
+            continue
+        k = i - 1
+        while k >= 0 and not lines[k].strip():
+            k -= 1
+        if k < 0 or not lines[k].startswith("**Reference Key:**"):
+            continue
+        owner = [lin for lin, (h, end) in secs if h < i < end]
+        rows, j = [], i + 2
+        while j < len(lines) and lines[j].startswith("|"):
+            rows.append((j + 1, constructs._cells(lines[j])))
+            j += 1
+        key = [c.strip() for c in lines[k][len("**Reference Key:**"):].split(",") if c.strip()]
+        lineage = owner[-1] if owner else ""
+        if lineage in out:
+            out[lineage]["more"].append(k + 1)
+            continue
+        out[lineage] = {"key": key, "header": constructs._cells(l), "rows": rows, "line": i + 1, "field": k + 1, "more": [],
+                        "beside": lineage in declared}
+    return out
+
+
+def row_citation(sel, target, table, r, line, found):
+    """sourcing-and-citation.md § Writing a Citation: a Basic Table's row is named by the columns its Reference Key
+    names, in their order, and matches exactly one row."""
+    rule = "sourcing-and-citation.md § Writing a Citation"
+    pairs = [KEY_VALUE.match(p.strip()) for p in sel.split("; ")]
+    if not all(pairs) or [p.group(1) for p in pairs] != table["key"]:
+        found.append((rule, r, line, f"a row citation naming {[p.group(1) for p in pairs if p] or sel}, not its table's Reference Key {table['key']}: § {target}"))
+        return
+    idx = [table["header"].index(k) for k in table["key"] if k in table["header"]]
+    wanted = [p.group(2).strip() for p in pairs]
+    hits = [row for _, row in table["rows"] if len(idx) == len(wanted) and [row[i] if i < len(row) else "" for i in idx] == wanted]
+    if len(hits) != 1:
+        found.append((rule, r, line, f"a row citation matches {len(hits)} rows: § {target} [{sel}]"))
+
+
+def basic_findings(r, body, found):
+    """modeling-constructs.md § Constructs § Basic Table: a Basic Table's Reference Key names columns its header holds, each row's
+    values under them are identifying values, unique alone or together, and a section holds one such table and none where it
+    declares another construct."""
+    for lineage, t in basic_tables(body).items():
+        if t["beside"]:
+            found.append((TABLES, r, t["field"], f"a table declaring a Reference Key in a section declaring a construct: § {lineage}"))
+        for ln in t["more"]:
+            found.append((TABLES, r, ln, f"a second table declaring a Reference Key in one section: § {lineage}"))
+        missing = [k for k in t["key"] if k not in t["header"]]
+        if not t["key"] or missing:
+            found.append((TABLES, r, t["field"], f"a Reference Key naming no column its table holds: {', '.join(missing) or 'none'}"))
+            continue
+        idx = [t["header"].index(k) for k in t["key"]]
+        seen = set()
+        for ln, row in t["rows"]:
+            values = tuple(row[i] if i < len(row) else "" for i in idx)
+            if any(not v or UNPLAIN.search(v) for v in values):
+                found.append((TABLES, r, ln, f"a key value that is not plain text: {values}"))
+            if values in seen:
+                found.append((TABLES, r, ln, f"two rows sharing their key: {values}"))
+            seen.add(values)
 
 
 def record_citation(sel, path, target, text_of, r, line, found):
@@ -864,6 +998,8 @@ def check(root, warned=None):
     # the record types the specs declare, by their Plural Names, before any record is read
     found += declared_types(text_of)
     found += closed_set_findings(text_of)
+    # each construct's Reference Key, read from its definition before any part is cited
+    found += construct_keys(text_of)
 
     for f in files:
         r, body = rel[f], text[f]
@@ -1003,6 +1139,10 @@ def check(root, warned=None):
                        not re.search(rf'^\s*{kw}\b', chunk, re.M):
                         found.append(("acceptance-scenarios.md § Acceptance Scenarios", r, 0,
                                       f"scenario has no {kw}: {title}"))
+
+        # modeling-constructs.md § Constructs § Basic Table: its headers, its Reference Key and its rows
+        header_findings(r, body, found)
+        basic_findings(r, body, found)
 
         # mermaid blocks: declared as flowcharts, in the form a diagram takes, and cited
         # back by their sources. Scoped to specs/ because a skill may legitimately carry a
