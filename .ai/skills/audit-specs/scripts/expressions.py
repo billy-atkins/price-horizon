@@ -8,7 +8,7 @@ kind where it can be told, and reports only what it can decide; it evaluates not
 import difflib
 import re
 
-# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct § A Fact
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct § Fact
 # a fact's name: words separated by single spaces, each opening with a letter and holding letters, digits and
 # apostrophes, a hyphen joining two runs of them; and a boolean fact's, a question, any words ending in a question mark;
 # the one copy, which constructs.py reads too
@@ -249,6 +249,7 @@ class _Parser:
         self.known = known  # a name the caller knows though no fact is named it, or None
         self.bound = []  # names bound by a loop, a quantifier, a filter or a function, innermost last
         self.open = 0  # how many filters over items of unknown shape enclose the parse, their entries unnamed
+        self.compared = None  # each (fact, word) a comparison of a fact with a quoted word gives, where kept, or None
 
     # -- tokens
     def peek(self, k=0):
@@ -340,10 +341,18 @@ class _Parser:
         return a
 
     def comparison(self):
+        i0, u0 = self.i, len(self.used) if self.used is not None else 0
         a = self.additive()
+        side = (self.toks[i0:self.i], self.used[u0:] if self.used is not None else [])
         if self.at("=", "!=", "<", "<=", ">", ">="):
-            self.take()
-            self._same(a, self.additive(), "a comparison")
+            op = self.take()[1]
+            j0, v0 = self.i, len(self.used) if self.used is not None else 0
+            b = self.additive()
+            if op in ("=", "!="):
+                other = (self.toks[j0:self.i], self.used[v0:] if self.used is not None else [])
+                self._compared(side, other[0])
+                self._compared(other, side[0])
+            self._same(a, b, "a comparison")
             return "boolean"
         if self.at("between"):
             self.take()
@@ -353,14 +362,49 @@ class _Parser:
             return "boolean"
         if self.at("in"):
             self.take()
+            j0 = self.i
+            # its test ends where its operand does, so an `and`, an `or` or a `then` after it is the guard's, not the test's
             if self.at("(") and self._parenthesized_tests():
                 self.take("(")
                 self.positive_tests(a)
                 self.take(")")
+            elif self.at("<", "<=", ">", ">=", "=", "!="):
+                self.take()
+                self._same(a, self.additive(), "a comparison")
             else:
-                self.positive_test(a)
+                self.scoped([("?", a)], self.additive)
+            # each of its tests, or its list's items, that is a quoted word, `=` or `!=` perhaps before it, compared
+            tests = self.toks[j0:self.i]
+            if len(tests) > 1 and tests[0] in (("op", "("), ("op", "[")) and tests[-1] in (("op", ")"), ("op", "]")):
+                tests = tests[1:-1]
+            piece, depth = [], 0
+            for tok in tests + [("op", ",")]:
+                if tok[0] == "op" and tok[1] in "([{":
+                    depth += 1
+                elif tok[0] == "op" and tok[1] in ")]}":
+                    depth -= 1
+                if tok == ("op", ",") and depth == 0:
+                    if piece[:1] in ([("op", "=")], [("op", "!=")]):
+                        piece = piece[1:]
+                    self._compared(side, piece)
+                    piece = []
+                else:
+                    piece.append(tok)
             return "boolean"
         return a
+
+    def _compared(self, side, other):
+        """Keeps (fact, word) where `side` is one fact's name alone and `other` one quoted word, each perhaps within
+        parentheses, where comparisons are kept."""
+        toks, names = side
+        while len(toks) > 2 and toks[0] == ("op", "(") and toks[-1] == ("op", ")"):
+            toks = toks[1:-1]
+        while len(other) > 2 and other[0] == ("op", "(") and other[-1] == ("op", ")"):
+            other = other[1:-1]
+        if self.compared is None or len(names) != 1 or len(other) != 1 or other[0][0] != "str":
+            return
+        if [v for _, v in toks] == [v for _, v in _tokens(names[0])]:
+            self.compared.append((names[0], other[0][1][1:-1]))
 
     def _parenthesized_tests(self):
         """Whether `( … )` after `in` holds several tests, a comma at its own depth, rather than one expression."""
@@ -811,6 +855,20 @@ def check_tests(text, facts, value=None, known=None):
         return p.problems
     except FeelError as e:
         return [f"a cell in no form FEEL has: {e}"]
+
+
+def compared(text, facts):
+    """A FEEL boolean, and the facts it may name -> each (fact, word) it compares a fact with a quoted word in, by `=` or
+    `!=` either way round or by `in` a list or tests, each word standing as a test of its own, wherever it stands; None
+    where it is no whole expression FEEL has. A name is read as FEEL reads it, the longest run of words naming a fact
+    winning (DMN 10.3.1.6)."""
+    try:
+        p = _Parser(text, facts, used=[])
+        p.compared = []
+        p.expr()
+        return p.compared if p.i == len(p.toks) else None
+    except FeelError:
+        return None
 
 
 def function_table_findings(text):

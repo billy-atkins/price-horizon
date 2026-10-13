@@ -9,9 +9,9 @@ How an expression is written wherever a construct computes or tests a value, so 
 | Algorithm | a computation's value, a comparison's condition, a loop's list and its order, a run's argument and a Terminates cell |
 | DAG | a task's guard and its timeout |
 | Constraint | its rule |
-| Facts record | its Values, a function's Derivation and an Initial Value |
+| Facts record | its Values where they cite no closed set, a function's Derivation and an Initial Value |
 
-`§ Expressions § FEEL` states FEEL in the canon's own words, each statement citing the section of DMN it rests on, so nothing FEEL means is left to recall; where this file is silent, FEEL means what DMN's chapter 10 says (`specs/methodology/external-references.md § External References [Name: DMN]`). A construct's section says which of FEEL's forms its checks decide and which it leaves to reading, and states any writing of FEEL's it narrows to one, as `specs/methodology/sourcing-and-citation.md § An External Reference` has a section state it.
+`§ Expressions § FEEL` states FEEL in the canon's own words, each statement citing the section of DMN it rests on, so nothing FEEL means is left to recall; where this file is silent, FEEL means what DMN's chapter 10 says (`specs/methodology/external-references.md § External References [Name: DMN]`). A construct's section says which of FEEL's forms its checks decide and which it leaves to reading, and states any writing of FEEL's it narrows to one, as `specs/methodology/sourcing-and-citation.md § External Reference` has a section state it.
 
 ### FEEL
 
@@ -67,7 +67,7 @@ A comment is `//` to the line's end or `/*` to `*/` (DMN 10.3.1.2).
 
 #### Unary Tests
 
-A unary test is what a Decision Table's condition cell, an Input Values item and a Facts record's Values hold: a test of one value, which that value meets or not, written without the value (DMN 10.3.1.2, grammar rules 7, 8, 13 to 16; Table 55):
+A unary test is what a Decision Table's condition cell, an Input Values item and a Facts record's Values hold where they cite no closed set's record section (`specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct § Fact`): a test of one value, which that value meets or not, written without the value (DMN 10.3.1.2, grammar rules 7, 8, 13 to 16; Table 55):
 
 - `-`, met by any value;
 - a comparison and an end, `< 10`, `>= date("2024-01-01")`, `= base rate`, `!= "Gold"`;
@@ -98,7 +98,7 @@ Numbers add, subtract, multiply and divide exactly to 34 significant digits, a d
 **A system's own arithmetic —** FEEL's numbers hold 34 significant digits, rounded to the nearest, a tie to the even neighbour, as `§ Expressions § FEEL § Its Values` states: IEEE 754's decimal128 (DMN 10.3.2.3.1; `specs/methodology/external-references.md § External References [Name: IEEE 754]`). A system computing otherwise is specified by what follows, a departure, DMN fixing FEEL's context where this lets a construct state another:
 
 - **A precision and a rounding mode —** a construct whose section gives the fields states the significant digits its system holds each operation's result to, and the mode it rounds by; each operation's result is then rounded to the decimal places that many significant digits leave, by the mode's function. An operation is each arithmetic operator applied, and each step a function aggregating numbers takes, as `sum` adds and `product` multiplies its items one by one in their order, each result rounded.
-- **Decimal places —** a value written to a fact whose Facts record states its decimal places (`specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct § A Fact`) is rounded to them by the writing construct's rounding mode, half even where it states none, a Decision Table's outcome among the values written; DMN's item definitions round nothing, so this too departs from DMN. A part of a fact holds no decimal places of its own, so money a step computes by multiplying or dividing is written to a fact holding them before a part takes it; a sum or difference of money already held to them, or money a function gives, needs none.
+- **Decimal places —** a value written to a fact whose Facts record states its decimal places (`specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct § Fact`) is rounded to them by the writing construct's rounding mode, half even where it states none, a Decision Table's outcome among the values written; DMN's item definitions round nothing, so this too departs from DMN. A part of a fact holds no decimal places of its own, so money a step computes by multiplying or dividing is written to a fact holding them before a part takes it; a sum or difference of money already held to them, or money a function gives, needs none.
 - **The modes —** each named for the function DMN gives it (DMN Table 76), the value rounded as that function rounds it:
 
 | Mode | Rounds as | A tie, or any value between two neighbours |

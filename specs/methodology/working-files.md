@@ -12,7 +12,7 @@ A working file is never committed, since no reader of the specs needs it. Which 
 
 **A skill's plans are `.ai/plans/<skill-name>/` —** a skill describing a change before making it writes each plan to a file of its own in that directory, creating the directory if it is not there. One directory per skill so that one skill's plans are never mistaken for another's, and one file per plan so each is read, reviewed and handed to a cold agent whole.
 
-An open question about what is specified is not a working file's to hold; it is recorded in a spec, per `specs/methodology/spec-placement.md § An Open Question`.
+An open question about what is specified is not a working file's to hold; it is recorded in a spec, per `specs/methodology/spec-placement.md § Open Question`.
 
 ## A Design Document
 
@@ -30,7 +30,7 @@ Each design document is a file of its own, one per change taken through `specs/A
 | Validated | a `**Validated:**` field | yes | | the stamp its validation review left, per `§ A Stamp`, leaving out the Validated and Status fields, or none; current while the design is approved |
 | The Problem | a `## The Problem` section | yes | | what is wrong, stated on its own, before any fix |
 | The Design Frame | a `## The Design Frame` section | yes | | the design frame (`specs/methodology/glossary.md`) the user agreed or adjusted (`specs/AGENTS.md § Design, Refactor, Refine`), under level-three headings in this order: Scope, holding the cases the change governs and what tells them apart, then how the sweep for affected content was done and what it found, what it left out included; Approach; and Outcomes. A part not yet stated reads `Not yet stated.`, which no design approved or further holds |
-| Steering Decisions | a `## Steering Decisions` record section | once the user has steered the design | | each steer the user gave, per `§ A Steering Decision` |
+| Steering Decisions | a `## Steering Decisions` record section | once the user has steered the design | | each steer the user gave, per `§ Steering Decision` |
 | The Design | a `## The Design` section | yes | | what the design does, then each edit, introduced by a bold lead-in naming the file it edits (`specs/methodology/modeling-constructs.md § Bold Lead-ins`) and quoting exactly the text it replaces or follows, so it can be verified and applied as written |
 | Impact on the Application Specs | a `## Impact on the Application Specs` section | in a canon design | | each application file and section the canon change leaves out of step, what it leaves out of step there and what the application work must do, or that none was found; and how the application specs were reviewed |
 | The Builder's Passes | a `## The Builder's Passes` section | yes | | what each pass and each review changed, each under a bold lead-in naming it, and each review named with its report; and the builder's own check of what its edits change in a script or code, each ephemeral differential test (`specs/methodology/glossary.md`) of a changed script or each of the local environment's tasks it ran on code, and what each showed. An adversarial review's lead-in opens `Adversarial review`, and a post-apply audit's `Post-apply audit`. Each of those two names the model and reasoning effort it ran on, as `on {model} at {effort} effort`, the effort one of the levels `specs/AGENTS.md § Design, Refactor, Refine` names, or as `on {model} as the agent allows` where the agent could not apply the effort chosen, and records the flaws the user settled among its findings; an adversarial review's pass also records the decisions of the design its findings fell on, the cause named for each, the steers the causes pressed on and what the user decided of them, or none, the frame's revision where the frame let findings in, the change, each finding fixed where it sits with its reason, and the worked cases proving the change |
@@ -44,9 +44,9 @@ Each design document is a file of its own, one per change taken through `specs/A
 
 **Unwinding —** a finished design is deleted once no design names it in Depends On, so what it settled or why it was dropped stays readable until the designs that waited on it have taken it in. When a design is abandoned, each open design it spawned goes on as a design of its own, or is abandoned with it, as the user decides. A Spawned By naming a design since deleted stays, as the spawned design's history.
 
-**A validation review holds it to this form —** before the user is asked to approve a design, a cold agent other than the builder checks the document against this section and `§ A Steering Decision`, through the design script for what it decides and by reading for what it cannot:
+**A validation review holds it to this form —** before the user is asked to approve a design, a cold agent other than the builder checks the document against this section and `§ Steering Decision`, through the design script for what it decides and by reading for what it cannot:
 
-- each steer is recorded as a steering decision in the user's words, not paraphrased or left in The Builder's Passes, its Type the one `§ A Steering Decision` gives it, and nothing is recorded as one that `§ A Steering Decision` calls no steer;
+- each steer is recorded as a steering decision in the user's words, not paraphrased or left in The Builder's Passes, its Type the one `§ Steering Decision` gives it, and nothing is recorded as one that `§ Steering Decision` calls no steer;
 - a steering decision records the user's agreement or adjustment to its design frame;
 - the Source holds the request that opened the design;
 - each piece of deferred work names a follow-up or a design document that exists;
@@ -91,10 +91,12 @@ Once the user approves a design, every change it makes to the files is one the u
 | one the user judges wrong | set aside, and recorded in the pass with the reason |
 | "one exposing a flaw in the design", "one proposing a tactical fix to the design's own edits that the user does not approve" | sends the design back to in progress: its changes to the files are reverted, and it is revised and worked afresh from the files as they stood before its apply, with what was learned |
 | a canon design's, in the application specs | handed on as application work, as `§ A Design Document`'s paragraph on a change needing both kinds has it |
-| one outside the design's own edits | settled as the user chooses, and recorded in the pass: folded in as a direct edit (`specs/AGENTS.md § Design, Refactor, Refine`); dropped; logged as a follow-up; or given a design, one of its own, standing apart or spawned from this one, or an existing design not yet applied taking it in, as `§ A Steering Decision § A Decision About Other Work` has it |
+| one outside the design's own edits | settled as the user chooses, and recorded in the pass: folded in as a direct edit (`specs/AGENTS.md § Design, Refactor, Refine`); dropped; logged as a follow-up; or given a design, one of its own, standing apart or spawned from this one, or an existing design not yet applied taking it in, as `§ Steering Decision § A Decision About Other Work` has it |
 | a tactical fix the user approves | made as a direct edit (`specs/AGENTS.md § Design, Refactor, Refine`), and recorded in the audit's pass |
 
 ### The States It Moves Through
+
+The states a design document's Status moves through, and what moves it from one to the next:
 
 **Construct:** State Machine
 
@@ -140,9 +142,9 @@ A design changing code starts from applied specs, or from the specs as a design 
 
 Its post-apply audit is `.ai/skills/verify-spec-implementation/`, reading the code it wrote as `.ai/skills/audit-specs/` reads the specs a design changed.
 
-## A Steering Decision
+## Steering Decision
 
-A design's Steering Decisions record only the user's steers, the decisions a steering decision records (`specs/methodology/glossary.md`), new scope or a flaw's fix among them. A steer differs from the user's direction about how the work proceeds, and from a decision about other work, which is no steer of the design being worked (`§ A Steering Decision § Telling a Steer Apart`).
+A design's Steering Decisions record only the user's steers, the decisions a steering decision records (`specs/methodology/glossary.md`), new scope or a flaw's fix among them. A steer differs from the user's direction about how the work proceeds, and from a decision about other work, which is no steer of the design being worked (`§ Steering Decision § Telling a Steer Apart`).
 
 **A go-ahead to take in findings —** is a steer for the findings that change what the design is and direction for the tactical ones; an answer carrying both is recorded for the part that decides the design.
 
@@ -150,9 +152,15 @@ A design's Steering Decisions record only the user's steers, the decisions a ste
 
 **A steer's Type —** a steer is a selection where the user merely selects one of the options the builder offered, a literal selection; every other steer is a perspective, whatever its form, such as emphasis, a negative remark, a nudge or a strong direction for the design. Selecting an option is easier than sharing a perspective, and a perspective originates with the user.
 
-A design's steering decisions sit in its record section titled `Steering Decisions`, each a record in the Record Form (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) of the type named Steering Decisions:
+A design's steering decisions sit in its record section of this type, a record type (`specs/methodology/modeling-constructs.md § Constructs § Record Form`):
 
-| Field | Identifies | Required | Default Value | Values | Holds |
+**Construct:** Record Form
+
+**Plural Name:** Steering Decisions
+
+**Reference Key:** Name
+
+| Field | Unique | Required | Default Value | Values | Holds |
 |---|---|---|---|---|---|
 | Name | yes | yes | | text | a short name for what was decided |
 | Prompted By | no | yes | | text | what the steer answered: a question, proposal or account the builder gave, with the options it offered where it offered any, a review's finding named by its ID, or the user's own initiative |
@@ -161,6 +169,8 @@ A design's steering decisions sit in its record section titled `Steering Decisio
 | Decision | no | yes | | text | the essence of what the steer decided, in a sentence or two |
 
 ### Telling a Steer Apart
+
+#### Steer, Direction or Other Work
 
 How a steer, direction about the work and a decision about other work are each recorded, an answer carrying more than one taken a part at a time:
 

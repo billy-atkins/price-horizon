@@ -58,7 +58,6 @@ SCRIPT_SUFFIXES = {".py", ".ps1", ".sh"}
 # @canon-spec specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed
 LAYER = {"methodology": "specs/methodology/", "product": "specs/application/product/",
          "technical": "specs/application/technical/"}
-ROLE_TABLE = "specs/application/product/roles.md"
 
 CITATION = constructs.CITATION  # the form written once, in constructs.py, which its construct checks read too
 # A whole file is a valid citation form and carries no section token, so CITATION
@@ -78,53 +77,43 @@ NUMBERED_ITEM = re.compile(r'^\s*\d+[.)]\s')
 WORKING_FILE = re.compile(r'\.ai/(?:plans\b|follow-ups\.md|tmp\b)')
 WORKING_FILES_HOME = "specs/methodology/working-files.md"
 
-# modeling-constructs.md § Constructs § Record Form. The record types this script checks: each type's
-# name, which titles its record sections, the section defining it, and its table of record fields,
-# copied here as this script reads it, each row's Field, Identifies, Required, Default Value and Values
-# cells; record_type_findings holds each copy to its home. Any section fields beyond Diagrams, and
-# a type's own placement, are this script's to carry out. A type with no entry here is read by
-# the Construct choice and form audit alone.
+# modeling-constructs.md § Constructs § Record Form: every record type is read from its declaration, by declared_types,
+# the canon's own among them; the script holds no copy of one. A type's own placement is this script's to carry out.
 RECORD_FORM = "modeling-constructs.md § Constructs § Record Form"
-# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct § A Fact
-# @canon-spec specs/methodology/sourcing-and-citation.md § An External Reference
-# @canon-spec specs/methodology/spec-placement.md § An Open Question
-RECORD_TYPES = {
-    "Open Questions": {
-        "table": (("Name", "yes", "yes", "", "text"), ("Open Question", "no", "yes", "", "text"),
-                  ("Provisional Answer", "no", "yes", "", "text"), ("Impacts", "no", "yes", "", "text")),
-        "section_fields": [],
-        "home": "spec-placement.md § An Open Question",
-        "last_top_level": True,
-    },
-    "External References": {
-        "table": (("Name", "yes", "yes", "", "text"), ("Title", "no", "yes", "", "text"),
-                  ("Version", "no", "yes", "", "text"), ("URL", "no", "yes", "", "text"),
-                  ("Relation", "no", "yes", "", '"adopts", "maps onto"'), ("Covers", "no", "yes", "", "text")),
-        "section_fields": [],
-        "home": "sourcing-and-citation.md § An External Reference",
-        "last_top_level": False,
-    },
-    "Facts": {
-        "table": (("Name", "yes", "yes", "", "text"),
-                  ("Type", "no", "yes", "", "text"),
-                  ("Values", "no", "no", "none", "text"), ("Unit", "no", "no", "none", "text"),
-                  ("Decimal Places", "no", "no", "none", "text"),
-                  ("Derivation", "no", "no", "none", "text"),
-                  ("Initial Value", "no", "no", "none", "text"),
-                  ("May Be Absent", "no", "no", "No", '"Yes", "No"'), ("Means", "no", "yes", "", "text")),
-        "section_fields": [],
-        "home": "modeling-constructs.md § Constructs § Declaring a Construct § A Fact",
-        "last_top_level": False,
-    },
-}
-for _spec in RECORD_TYPES.values():
-    _spec["fields"] = [f for f, _, _, _, _ in _spec["table"]]
-    _spec["identifying"] = [f for f, ident, _, _, _ in _spec["table"] if ident == "yes"]
-    _spec["required"] = [f for f, _, req, _, _ in _spec["table"] if req == "yes"]
-    _spec["defaults"] = {f: d for f, _, _, d, _ in _spec["table"] if d}
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct § Fact
+# @canon-spec specs/methodology/spec-placement.md § Open Question
+# the homes of the types a rule of this script reads by their declaration: the Fact type, whose Plural Name titles a
+# file's Facts sections, the types whose record section is its file's last top-level section, and the types whose
+# records' Impacts each carry a section citation
+FACT_HOME = "specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct § Fact"
+LAST_TOP_LEVEL = ("specs/methodology/spec-placement.md § Open Question",)
+IMPACTS_CITED = ("specs/methodology/spec-placement.md § Open Question",)
+
+
+def derive(spec):
+    """A type's fields, its identifying fields, its Reference Key, and its unique, required, defaulted and listed fields,
+    from its tables."""
+    spec["fields"] = [f for f, _, _, _, _ in spec["table"]]
+    spec["identifying"] = list(spec["key"])
+    spec["unique"] = [f for f, unique, _, _, _ in spec["table"] if unique == "yes"]
+    spec["required"] = [f for f, _, req, _, _ in spec["table"] if req == "yes"]
+    spec["defaults"] = {f: d for f, _, _, d, _ in spec["table"] if d}
     # modeling-constructs.md § Constructs § Record Form: a field's values, where its Values cell lists them
-    _spec["values"] = {f: constructs.quoted_values(v) for f, _, _, _, v in _spec["table"]
-                       if constructs.quoted_values(v) is not None}
+    spec["values"] = {f: constructs.quoted_values(v) for f, _, _, _, v in spec["table"]
+                      if constructs.quoted_values(v) is not None}
+    # a record field whose Values cite a closed set's record section, its values that set's members
+    spec["cited"] = {f: v for f, _, _, _, v in spec["table"] if constructs.CITED_SET.fullmatch(v)}
+    # its section fields, each row's Field, Required, Default Value and Values
+    sec = spec.get("section_table", ())
+    spec["section_required"] = [f for f, req, _, _ in sec if req == "yes"]
+    spec["section_defaults"] = {f: d for f, _, d, _ in sec if d}
+    spec["section_values"] = {f: constructs.quoted_values(v) for f, _, _, v in sec if constructs.quoted_values(v) is not None}
+    return spec
+
+
+# every record type the specs declare, by its Plural Name, filled by declared_types before the checks run
+TYPES = {}
+_TEXT_OF = {}
 # modeling-constructs.md § Fields: every key a form declares, and where that form places it.
 FIELDS = "modeling-constructs.md § Fields"
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
@@ -137,11 +126,6 @@ FIELD_KEYS = {"Caption": "diagram", "Sources": "diagram",
 ENVIRONMENTS = "specs/application/technical/environments.md"
 # @canon-spec specs/methodology/spec-placement.md § Environments
 KINDS = ("local", "integration", "shared", "production")
-for _type, _spec in RECORD_TYPES.items():
-    for _key in _spec["fields"]:
-        FIELD_KEYS[_key] = "record"
-    for _key in _spec["section_fields"]:
-        FIELD_KEYS[_key] = "record section"
 FIELD_LINE = constructs.FIELD  # the form written once, in constructs.py
 RECORD_SELECTOR = re.compile(r'^(.*?)\s+\[(.*)\]$')
 # modeling-constructs.md § Bold Lead-ins and § Emphasis: bold marks only a field or a dash
@@ -300,7 +284,150 @@ def resolve(cite, host):
     return path, (m.group(1).strip() if m else target)
 
 
-def parse_records(body, lineage):
+def type_of(title, r):
+    """modeling-constructs.md § Constructs § Record Form: the record type a section titled `title` holds in file `r`,
+    one whose Plural Name it is and whose records may sit there, a canon type's in any file under specs/ and an application spec's
+    type's in the application specs; or None."""
+    spec = TYPES.get(title)
+    return spec if spec and r.startswith(spec["reach"]) else None
+
+
+def declared_types(text_of):
+    """modeling-constructs.md § Constructs § Record Form: each record type a Record Form declares under specs/, by its
+    Plural Name, read from its declaration, a type extending another holding its base's fields first; each added to TYPES
+    and its fields' keys to FIELD_KEYS, and the closed-set resolver set. -> the
+    declarations' own findings: a defining section titled other than with the type's name, bare; a Plural Name two
+    types share; a field a type and its base both name; and a Reference Key naming a field the type does not give or
+    does not require."""
+    out, raw, ext = [], {}, {}
+    # the canon's declarations first, so a type sharing a canon type's Plural Name is the one reported
+    for r, body in sorted(text_of.items(), key=lambda kv: (not kv[0].startswith("specs/methodology/"), kv[0])):
+        if not r.startswith("specs/"):
+            continue
+        for line, name, fields, tables, lineage in constructs.declarations(strip_fences(body), sections(body)):
+            values = dict((k, v) for _, k, v in fields)
+            plural = values.get("Plural Name", "").strip()
+            rec = [t for t in tables if t["header"] == constructs.RECORD_FIELDS]
+            if name != "Record Form" or not plural or not rec:
+                continue  # its form is the construct check's to report
+            title, home = lineage.split(" § ")[-1], f"{r} § {lineage}"
+            if re.match(r"(?:A|An) ", title) or title == plural:
+                out.append((RECORD_FORM, r, line, f"a record type's section titled other than with the type's name, bare: {title}"))
+            if plural in raw:
+                out.append((RECORD_FORM, r, line, f"a Plural Name another record type declares: {plural}"))
+                continue
+            sec = [t for t in tables if t["header"] == constructs.SECTION_FIELDS]
+            raw[plural] = {"table": tuple(tuple(row[:5]) for _, row in rec[0]["rows"] if len(row) == 6),
+                           "key": [k.strip() for k in values.get("Reference Key", "").split(",") if k.strip()],
+                           "section_table": tuple(tuple(row[:4]) for _, row in sec[0]["rows"] if len(row) == 5) if sec else (),
+                           "home": home, "last_top_level": home in LAST_TOP_LEVEL, "declared": (r, line),
+                           "reach": "specs/application/" if r.startswith("specs/application/") else "specs/"}
+            ext[plural] = (values.get("Extends", "none"), r)
+    by_home = {spec["home"]: p for p, spec in raw.items()}
+
+    def base_of(p):
+        e, r = ext[p]
+        cites = CITATION.findall(e) if e != "none" else []
+        return by_home.get(" § ".join(resolve(cites[0], r))) if len(cites) == 1 else None
+
+    def chain(p, seen=()):
+        b = base_of(p)
+        return (chain(b, seen + (p,)) if b and b not in seen + (p,) else ()) + (p,)
+    # each type's own tables, read before any is extended, so a chain of bases is read once
+    own = {p: (spec["table"], spec["section_table"], spec["key"]) for p, spec in raw.items()}
+    for p, spec in raw.items():
+        types = chain(p)
+        spec["table"] = tuple(row for t in types for row in own[t][0])
+        # each field with the file declaring it, where a citation in its Values resolves
+        spec["origin"] = {row[0]: raw[t]["declared"][0] for t in types for row in own[t][0]}
+        # its Reference Key, its own or its nearest base's, of fields it gives and requires
+        spec["key"] = next((own[t][2] for t in reversed(types) if own[t][2]), [])
+        required = {row[0]: row[2] for row in spec["table"]}
+        for k in spec["key"] if len(types) > 1 else []:
+            if required.get(k) != "yes":
+                out.append((RECORD_FORM, *spec["declared"], f"a Reference Key naming a field the type does not give or does not require: {k}"))
+        spec["section_table"] = tuple(row for t in types for row in own[t][1])
+        spec["section_fields"] = [row[0] for row in spec["section_table"]]
+        names = [row[0] for row in spec["table"]] + spec["section_fields"]
+        for f in sorted({f for f in names if names.count(f) > 1}):
+            out.append((RECORD_FORM, *spec["declared"], f"a field a record type and its base both name: {f}"))
+        TYPES[p] = derive(spec)
+        for key in spec["fields"]:
+            FIELD_KEYS.setdefault(key, "record")
+        for key in spec["section_fields"]:
+            FIELD_KEYS.setdefault(key, "record section")
+    _TEXT_OF.update(text_of)
+    constructs.CLOSED_SET = closed_set
+    constructs.FACTS_SECTION = next((p for p, spec in TYPES.items() if spec["home"] == FACT_HOME), None)
+    constructs.READ_FACT = read_fact
+    return out
+
+
+def closed_set(body, cell):
+    """modeling-constructs.md § Constructs § Declaring a Construct § Fact: the identifying values of the records in the
+    record section a Facts record's Values cites, of a type identifying its records by one field, or None where it
+    cites no such section."""
+    cites = CITATION.findall(cell)
+    if len(cites) != 1 or "[" in cites[0]:
+        return None
+    path, target = resolve(cites[0], None)
+    text = body if path is None else _TEXT_OF.get(path)
+    # a section of another file read as the type reaching that file; one of the citing file read by its title's type,
+    # record_findings reporting it where that type's records may not sit
+    spec = type_of(target.split(" § ")[-1], path) if path else TYPES.get(target.split(" § ")[-1])
+    if text is None or target not in sections(text) or not spec or len(spec["identifying"]) != 1:
+        return None
+    records, _ = parse_records(text, target, spec["section_fields"])
+    return [v for rec in records for k, v, _ in rec if k == spec["identifying"][0]]
+
+
+def read_fact(host, cite, name):
+    """modeling-constructs.md § Constructs § Decision Table: the Facts record a Reads item cites, in its file or another,
+    -> (Type, Values, May Be Absent), or None where it cites none."""
+    path, target = resolve(cite, host)
+    text = _TEXT_OF.get(path)
+    if text is None or target not in sections(text):
+        return None
+    for _, n, d in constructs.fact_records(strip_fences(text), {target: sections(text)[target]}):
+        if n == name:
+            return constructs.facts_of([(0, n, d)])[n]
+    return None
+
+
+def closed_set_findings(text_of):
+    """modeling-constructs.md § Constructs § Record Form: a closed set's records sit in the one record section a fact's
+    Values cite; another section of its type holding records where they may sit is reported."""
+    out, homes = [], {}
+    for r, body in text_of.items():
+        if not r.startswith("specs/"):
+            continue
+        for _, _, d in constructs.fact_records(strip_fences(body), sections(body)):
+            if d.get("cited"):
+                path, target = resolve(CITATION.findall(d["cited"])[0], r)
+                homes[(path, target)] = target.split(" § ")[-1]
+    for (path, target), title in homes.items():
+        spec = type_of(title, path)
+        if not spec:
+            continue
+        for r, body in text_of.items():
+            if not r.startswith(spec["reach"]):
+                continue
+            live = strip_fences(body).split("\n")
+            for lineage, (h, end) in sections(body).items():
+                if lineage.split(" § ")[-1] == title and (r, lineage) != (path, target) and "**Records:**" in live[h + 1:end]:
+                    out.append((RECORD_FORM, r, h + 1, f"a second record section of the closed set {path} § {target}"))
+    return out
+
+
+def unnamed_record_sections(r, body):
+    """modeling-constructs.md § Constructs § Record Form: the lineage of each section of file `r` holding a Records
+    field whose title is the Plural Name of no type whose records may sit there."""
+    live = strip_fences(body).split("\n")
+    return {lineage for lineage, (h, end) in sections(body).items()
+            if not type_of(lineage.split(" § ")[-1], r) and "**Records:**" in live[h + 1:end]}
+
+
+def parse_records(body, lineage, section_keys=()):
     """modeling-constructs.md § Constructs § Record Form: a record section's records.
 
     -> (records, problems): each record a list of (key, value, line) in the order
@@ -341,6 +468,13 @@ def parse_records(body, lineage):
         elif cites != sorted(cites):
             problems.append((RECORD_FORM, h, "a record section's Diagrams list is not sorted"))
         skip()
+    # the section fields its type declares, each a paragraph of its own
+    while k < len(rows) and FIELD_LINE.match(rows[k][1]) and not FIELD_LINE.match(rows[k][1])["indent"] \
+            and not FIELD_LINE.match(rows[k][1])["marker"] and rows[k][1].strip() != "**Records:**":
+        k += 1
+        while k < len(rows) and rows[k][1].strip():
+            k += 1
+        skip()
     if k >= len(rows) or rows[k][1].strip() != "**Records:**":
         problems.append((RECORD_FORM, h, "a record section does not hold its records under **Records:**"))
         return records, problems
@@ -377,19 +511,42 @@ def parse_records(body, lineage):
 def record_findings(r, body, found):
     """Each record section in a file: its shape, its type's fields, and its placement."""
     lines = body.split("\n")
+    live = strip_fences(body).split("\n")
+    for lineage in unnamed_record_sections(r, body):
+        found.append((RECORD_FORM, r, sections(body)[lineage][0] + 1, f"a record section titled with no declared type's Plural Name: {lineage.split(' § ')[-1]}"))
     for lineage in sections(body):
         title = lineage.split(" § ")[-1]
-        spec = RECORD_TYPES.get(title)
-        if not spec:
-            continue
+        spec = type_of(title, r)
+        if not spec or spec["home"] == f"{r} § {lineage}":
+            continue  # no type's, or its type's own definition, titled with its Plural Name and reported at the declaration
+        # the section fields its type declares, before its Records, each a paragraph at the left margin
+        given = [(mm["key"], (mm["value"] or "").strip(), i) for i in range(sections(body)[lineage][0] + 1, sections(body)[lineage][1])
+                 for mm in [FIELD_LINE.match(live[i])] if mm and not mm["indent"] and not mm["marker"] and mm["key"] in spec["section_fields"]]
+        for i in range(sections(body)[lineage][0] + 1, sections(body)[lineage][1]):
+            mm = FIELD_LINE.match(live[i])
+            if live[i].strip() == "**Records:**":
+                break
+            if mm and not mm["indent"] and not mm["marker"] and mm["key"] in FIELD_KEYS and mm["key"] not in spec["section_fields"] + ["Diagrams", "Records"]:
+                found.append((spec["home"], r, i + 1, f"a section field its type does not declare: {mm['key']}"))
+        keys = [k for k, _, _ in given]
+        if keys != [f for f in spec["section_fields"] if f in keys]:
+            found.append((spec["home"], r, sections(body)[lineage][0] + 1, f"a record section's section fields are {keys}, not in the order {spec['section_fields']}"))
+        for f in spec["section_required"]:
+            if f not in keys:
+                found.append((spec["home"], r, sections(body)[lineage][0] + 1, f"a record section without the section field its type requires: {f}"))
+        for k, v, i in given:
+            if spec["section_defaults"].get(k) == v:
+                found.append((spec["home"], r, i + 1, f"the {k} field written at its default value, {v}"))
+            if k in spec["section_values"] and v not in spec["section_values"][k]:
+                found.append((spec["home"], r, i + 1, f"the {k} field holds a value its type does not allow: {v}"))
         home = spec["home"]
         h, end = sections(body)[lineage]
         if spec["last_top_level"] and (" § " in lineage or end != len(lines)):
             found.append((home, r, h + 1, f"the {title} section is not its file's last top-level section"))
-        records, problems = parse_records(body, lineage)
+        records, problems = parse_records(body, lineage, spec["section_fields"])
         for rule, at, msg in problems:
             found.append((rule, r, at + 1, msg))
-        names = set()
+        names, given = set(), set()
         for rec in records:
             keys = [key for key, _, _ in rec]
             at = rec[0][2] + 1
@@ -407,6 +564,11 @@ def record_findings(r, body, found):
             for key, value in values.items():
                 if key in spec["values"] and value not in spec["values"][key]:
                     found.append((home, r, at, f"the {key} field holds a value its type does not allow: {value}"))
+                # resolved in the file declaring the field, where its citation is written
+                origin = spec.get("origin", {}).get(key)
+                members = closed_set(strip_fences(_TEXT_OF[origin]), spec["cited"][key]) if key in spec["cited"] and origin else None
+                if members is not None and value not in members:
+                    found.append((home, r, at, f"the {key} field holds a value its closed set does not: {value}"))
             for key in spec["identifying"]:
                 if not values[key] or UNPLAIN.search(values[key]):
                     found.append((RECORD_FORM, r, at, f"an identifying value is not plain text: {key}: {values[key]}"))
@@ -414,7 +576,11 @@ def record_findings(r, body, found):
             if ident in names:
                 found.append((RECORD_FORM, r, at, f"two records share their identifying values: {ident}"))
             names.add(ident)
-            if "Impacts" in values and not CITATION.search(values["Impacts"]):
+            for key in [f for f in spec["unique"] if [f] != spec["identifying"]]:
+                if values.get(key) and (key, values[key]) in given:
+                    found.append((RECORD_FORM, r, at, f"two records share a value of {key}, a field unique on its own: {values[key]}"))
+                given.add((key, values.get(key)))
+            if spec["home"] in IMPACTS_CITED and "Impacts" in values and not CITATION.search(values["Impacts"]):
                 found.append((home, r, at, "a record's Impacts carries no section citation"))
 
 
@@ -457,6 +623,7 @@ def field_findings(r, body, found):
     raw = body.split("\n")
     live = strip_fences(body).split("\n")
     secs = sorted(sections(body).items(), key=lambda x: x[1][0])
+    unnamed = unnamed_record_sections(r, body)
     for i, line in enumerate(live):
         mm = FIELD_LINE.match(line)
         if not mm:
@@ -464,27 +631,35 @@ def field_findings(r, body, found):
         indent, dash, key = mm["indent"], mm["marker"], mm["key"]
         owner = [(lin, s) for lin, s in secs if s[0] < i < s[1]]
         lineage, (h, end) = owner[-1] if owner else ("", (-1, len(raw)))
+        if lineage in unnamed:
+            continue  # record_findings reports the section once, its type unknown
         title = lineage.split(" § ")[-1]
-        place = FIELD_KEYS.get(key)
+        spec = type_of(title, r)
+        if spec and spec["home"] == f"{r} § {lineage}":
+            spec = None  # its type's own definition, no record section of it
+        if spec and (indent or dash) and key in spec["fields"]:
+            continue  # a record's own field, whatever another form declares by the same key (§ Fields)
+        # a type's own section field, whatever another form declares by the same key
+        place = "record section" if spec and not indent and not dash and key in spec["section_fields"] else FIELD_KEYS.get(key)
         if place is None:
             found.append((FIELDS, r, i + 1, f"a field whose key no form declares: {key}"))
             continue
         if place == "diagram":
             ok = any(raw[j].startswith("```mermaid") for j in range(h + 1, end))
         elif place == "record section":
-            ok = title in RECORD_TYPES and not indent and not dash
+            ok = spec is not None and not indent and not dash
         elif place == "environment":
             ok = r == ENVIRONMENTS and not indent and not dash
         elif place == "construct":
             # modeling-constructs.md § Constructs § Declaring a Construct: a paragraph of its own
             ok = not indent and not dash
         else:
-            ok = title in RECORD_TYPES and key in RECORD_TYPES[title]["fields"] and bool(indent or dash)
+            ok = spec is not None and key in spec["fields"] and bool(indent or dash)
         if not ok:
             found.append((FIELDS, r, i + 1, f"the {key} field outside the place its form gives it"))
         # Record Form: a blank line precedes each section field, at the left margin, or
         # Markdown renders it inside the line above; a record's own fields are stacked
-        if title in RECORD_TYPES and not indent and not dash and i > 0 and raw[i - 1].strip():
+        if spec and not indent and not dash and i > 0 and raw[i - 1].strip():
             found.append((RECORD_FORM, r, i + 1, f"the {key} field directly after a non-blank line"))
 
 
@@ -529,7 +704,7 @@ def record_citation(sel, path, target, text_of, r, line, found):
     identifying field of its type, in order, and matches exactly one record."""
     rule = "sourcing-and-citation.md § Writing a Citation"
     title = target.split(" § ")[-1]
-    spec = RECORD_TYPES.get(title)
+    spec = type_of(title, path)
     if not spec:
         part_citation(sel, path, target, text_of, r, line, found)
         return
@@ -542,7 +717,7 @@ def record_citation(sel, path, target, text_of, r, line, found):
         found.append((rule, r, line, f"a record citation names {keys}, not {spec['identifying']}"))
         return
     wanted = [p.group(2).strip() for p in pairs]
-    records, _ = parse_records(text_of[path], target)
+    records, _ = parse_records(text_of[path], target, spec["section_fields"])
     hits = [rec for rec in records
             if [dict((k, v) for k, v, _ in rec).get(key, "").strip() for key in keys] == wanted]
     if len(hits) != 1:
@@ -609,7 +784,7 @@ def diagram_findings(r, body, text_of, known, lineage, found):
             sh, se = sections(text_of[path])[target]
             back = False
             own = strip_fences("\n".join(src[sh + 1:se])).split("\n")
-            if target.split(" § ")[-1] in RECORD_TYPES:
+            if type_of(target.split(" § ")[-1], path):
                 # a record section, or a record, cites its diagrams in its Diagrams field only
                 start = next((k for k, l in enumerate(own) if l.strip() == "**Diagrams:**"), None)
                 field = []
@@ -686,15 +861,9 @@ def check(root, warned=None):
     lineage = {rel[f]: lineages(text[f]) for f in files}
     known = set(rel.values())
     text_of = {rel[f]: text[f] for f in files}
-
-    # roles, for the scenario-actor check
-    roles = set()
-    rt = root / ROLE_TABLE
-    if rt.exists():
-        for line in rt.read_text(encoding="utf-8").split("\n"):
-            m = re.match(r'\|\s*([A-Z][A-Za-z ]+?)\s*\|', line)
-            if m and m.group(1) not in ("Role", "Field", "Step"):
-                roles.add(m.group(1).strip())
+    # the record types the specs declare, by their Plural Names, before any record is read
+    found += declared_types(text_of)
+    found += closed_set_findings(text_of)
 
     for f in files:
         r, body = rel[f], text[f]
@@ -893,6 +1062,8 @@ def check(root, warned=None):
     constructs.effect_findings(text_of, found, sections, strip_fences, CITATION, resolve)
     # the facts an exclusive choice's guard compares a fact with, declared in any file
     constructs.guard_fact_findings(text_of, found, sections, strip_fences)
+    # the word a guard tests a fact for, one of the fact's Values
+    constructs.guard_value_findings(text_of, found, sections, strip_fences)
     # the fact a machine's state is recorded in, its Values holding each state
     constructs.recorded_in_findings(text_of, found, sections, strip_fences, CITATION, resolve)
     # a configured instance's Held In, and the construct an Extends extends
@@ -1340,31 +1511,10 @@ def glossary_candidates(root):
 
 
 def record_type_findings(root):
-    """modeling-constructs.md § Constructs § Record Form and § Constructs § Declaring a Construct: this
-    script's copy of each record type's fields table, and constructs.py's of each table of the fields a
-    construct declares, by the section defining it, each against its table where it is defined, row by row, so a change to either is a
-    finding until the copy is brought into step."""
+    """modeling-constructs.md § Constructs § Declaring a Construct: constructs.py's copy of each table of the fields a
+    construct declares, by the section defining it, against its table where it is defined, row by row, so a change to
+    either is a finding until the copy is brought into step; a record type has no copy, read from its declaration."""
     out = []
-    for title, spec in RECORD_TYPES.items():
-        name, lineage = spec["home"].split(" § ", 1)
-        path = "specs/methodology/" + name
-        text = (root / path).read_text(encoding="utf-8")
-        span = sections(text).get(lineage)
-        lines = text.split("\n")[span[0]:span[1]] if span else []
-        rows, h = [], next((i for i, l in enumerate(lines) if l.startswith("| Field | Identifies | Required | Default Value | Values |")), None)
-        if h is None:
-            out.append((RECORD_FORM, path, (span[0] + 1) if span else 0, f"no table of the {title} type's record fields"))
-            continue
-        for l in lines[h + 2:]:
-            if not l.startswith("|"):
-                break
-            rows.append(tuple(c.strip() for c in l.strip().strip("|").split("|"))[:5])
-        for row in rows:
-            if len(row) > 4 and not constructs.values_form(row[4]):
-                out.append((RECORD_FORM, path, span[0] + h + 1, f"a Values cell in none of its forms: {row[4]}"))
-        if tuple(rows) != spec["table"]:
-            out.append((RECORD_FORM, path, span[0] + h + 1,
-                        f"the {title} type's fields table differs from the audit script's copy: {rows} against {list(spec['table'])}"))
     path = "specs/methodology/modeling-constructs.md"
     text = (root / path).read_text(encoding="utf-8")
     for rule, line, msg in constructs.field_table_findings(text, sections(text)):

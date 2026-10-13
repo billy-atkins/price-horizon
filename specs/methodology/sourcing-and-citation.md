@@ -88,8 +88,8 @@ The token for referencing a section is `§`, followed by a space, and preceded b
 ```
 A section in the same file           § Title
 A nested section in the same file    § Parent § Child
-A record                             § Type [Key: value]
-A record in another file             path/from/root.md § Type [Key: value; Key: value]
+A record                             § Plural Name [Key: value]
+A record in another file             path/from/root.md § Plural Name [Key: value; Key: value]
 A part of a construct                path/from/root.md § Section [Key: value]
 A section in another file            path/from/root.md § Parent § Child
 A whole file                         path/from/root.md
@@ -100,7 +100,7 @@ A cross-file citation gives the path from the project root, exactly as it would 
 
 A section is named by its full lineage of heading titles, one segment per level from the top of the file down to the target. A level-1 heading is the file's own title rather than a section, so a lineage starts below it; a top-level section is one segment on its own. A child heading is only guaranteed unique within its own parent's scope, so its citation carries every ancestor's title down to it.
 
-A record (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) is named by the citation of the record section holding it, then a space and, in square brackets inside the same span, its identifying fields, like a query parameter selecting one record from the section. Each is written `Key: value`, in the order its type's table gives them, separated by a semicolon and a space: `[Name: Session Timeout]` after an `Open Questions` section's citation, or `[Country: Canada; Tax Year: 2025]` for a type identified by two fields. An identifying value holds no semicolon (`specs/methodology/modeling-constructs.md § Constructs § Record Form`), so the pairs are split at `; `. Each value is compared with the record's after trimming the space around it, and must match exactly, as a title does.
+A record (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) is named by the citation of the record section holding it, then a space and, in square brackets inside the same span, its identifying fields, like a query parameter selecting one record from the section. Each is written `Key: value`, in the order its type's Reference Key gives them, separated by a semicolon and a space: `[Name: Session Timeout]` after an `Open Questions` section's citation, or `[Country: Canada; Tax Year: 2025]` for a type identified by two fields. An identifying value holds no semicolon (`specs/methodology/modeling-constructs.md § Constructs § Record Form`), so the pairs are split at `; `. Each value is compared with the record's after trimming the space around it, and must match exactly, as a title does.
 
 A part of a construct (`specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct`) is named the same way, by its construct's section and its identifier.
 
@@ -115,6 +115,8 @@ A part of a construct (`specs/methodology/modeling-constructs.md § Constructs �
 Other text is cited, never pointed at by direction. A sentence referring to text elsewhere, whether a section, a table, a step or a rule, names it by citation, by containment, or, where no citation is allowed there, by name. It never points at it as "above", "below", "the next step" or "the preceding table".
 
 A direction holds only while nothing moves. Reorder steps, insert a section or move a table, and every direction pointing across the change silently points at the wrong text. A citation follows its heading wherever it moves under the same parent, and once the heading moves elsewhere or is retitled, the citation fails loudly, reported by the audit script. A spec written with directions leaves that trap for whoever edits it next; one written with citations can be reordered freely. Text worth referring to sits in a section of its own; where it does not, it is given a heading before it is cited (`§ Titling a Heading`).
+
+#### Direction Wordings
 
 Whether a wording is a direction:
 
@@ -155,9 +157,9 @@ In a language with block comments only, each annotation is a block comment of it
 
 **A comment, not a language's own annotation —** it is not a Java annotation, a C# attribute or a decorator, so it compiles the same in every language and needs no tool to know it.
 
-## An External Reference
+## External Reference
 
-The canon adopts an outside standard where an agent or a software engineer already knows it from training or experience, so a form or a meaning the canon relies on reads without the canon teaching it. A standard is registered where a rule adopts it, or maps the rule's own forms onto it, for something an author writes or an agent reads by. It is registered once, as a record of the type named External References in `specs/methodology/external-references.md § External References`, pinned to the version or revision the canon relies on, so what the canon means holds still as the standard moves on, and an author reaching for the name finds the one text it means.
+The canon adopts an outside standard where an agent or a software engineer already knows it from training or experience, so a form or a meaning the canon relies on reads without the canon teaching it. A standard is registered where a rule adopts it, or maps the rule's own forms onto it, for something an author writes or an agent reads by. It is registered once, as a record of this type in `specs/methodology/external-references.md § External References`, pinned to the version or revision the canon relies on, so what the canon means holds still as the standard moves on, and an author reaching for the name finds the one text it means.
 
 **What is not registered —** a digest or an encoding a script computes, as SHA-256 and UTF-8, named in the rule using it; a convention no one publishes, as kebab-case, defined where it is used; a standard a registered one adopts in turn, as GFM extends CommonMark, which that record covers; and a tool or a product a rule names only as an example of what one of its forms maps onto.
 
@@ -165,9 +167,15 @@ The canon adopts an outside standard where an agent or a software engineer alrea
 
 **Moving a version —** relying on another version of a standard, or on more of it than its record covers, is a change to the canon that changes the record, each section citing it, and the checks of what those sections state, together.
 
-A record gives these fields, in this order:
+External Reference is a record type (`specs/methodology/modeling-constructs.md § Constructs § Record Form`), whose records give these fields, in this order:
 
-| Field | Identifies | Required | Default Value | Values | Holds |
+**Construct:** Record Form
+
+**Plural Name:** External References
+
+**Reference Key:** Name
+
+| Field | Unique | Required | Default Value | Values | Holds |
 |---|---|---|---|---|---|
 | Name | yes | yes | | text | the standard's short name, as its readers know it |
 | Title | no | yes | | text | its full title, and who publishes or stewards it |

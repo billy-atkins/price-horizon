@@ -14,9 +14,9 @@ RULE = "modeling-constructs.md § Constructs"
 DECLARING = "modeling-constructs.md § Constructs § Declaring a Construct"
 
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs
-# modeling-constructs.md § Constructs § Declaring a Construct: the constructs a **Construct:** field may name; a Record Form is
-# declared by its titles
-NAMES = ("State Machine", "Decision Table", "DAG", "Algorithm", "Constraint")
+# modeling-constructs.md § Constructs § Declaring a Construct: the constructs a **Construct:** field may name, a Record Form
+# among them, declaring a record type
+NAMES = ("State Machine", "Decision Table", "DAG", "Algorithm", "Constraint", "Record Form")
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
@@ -56,13 +56,20 @@ FIELD_TABLES = {
         ("Protocol", "no", "No", '"Yes", "No"'),
         ("Recorded In", "no", "none", "text"),
     ),
+    # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
+    "Constructs § Record Form": (
+        ("Plural Name", "yes", "", "text"),
+        ("Reference Key", "where it extends no type", "", "text"),
+    ),
 }
 # the fields every construct declares beyond its Construct field, and each field with the construct setting it
 COMMON = tuple(f for f, _, _, _ in FIELD_TABLES[DECLARED] if f != "Construct")
-FIELD_TABLE = tuple((f, "every construct but a Record Form", r, d) for f, r, d, _ in FIELD_TABLES[DECLARED]) \
+FIELD_TABLE = tuple((f, "every construct", r, d) for f, r, d, _ in FIELD_TABLES[DECLARED]) \
     + tuple((f, title.split(" § ")[1], r, d) for title, rows in FIELD_TABLES.items() if title != DECLARED
             for f, r, d, _ in rows)
 OWN_FIELDS = {c: COMMON + tuple(f for f, fc, _, _ in FIELD_TABLE if fc == c) for c in NAMES}
+# a Record Form declares neither an Order nor a Held In, which give a type no meaning
+OWN_FIELDS["Record Form"] = tuple(f for f in OWN_FIELDS["Record Form"] if f not in ("Order", "Held In"))
 REQUIRED = {c: tuple(f for f, fc, req, _ in FIELD_TABLE if fc == c and req == "yes") for c in NAMES}
 # each field with the section defining it, and with its Values cell
 FIELD_RULE = {f: "modeling-constructs.md § " + title for title, rows in FIELD_TABLES.items() for f, _, _, _ in rows}
@@ -102,6 +109,10 @@ FORMS = {
     "Constraint": [["Constraint", "Applies to", "Enforced by"]],
     "Decision Table": [None],
 }
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
+# a record type's tables: a table of its section fields, where it declares any, then its table of record fields
+SECTION_FIELDS = ["Field", "Required", "Default Value", "Values", "Holds"]
+RECORD_FIELDS = ["Field", "Unique", "Required", "Default Value", "Values", "Holds"]
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § DAG
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
@@ -532,6 +543,9 @@ def declarations(body, sections):
                 # the block ends with the last table its form gives; a table beside it is no part of it
                 if name in FORMS and len(tables) == len(FORMS[name]):
                     break
+                # a record type's block ends with its table of record fields
+                if name == "Record Form" and tables and tables[-1]["header"] == RECORD_FIELDS:
+                    break
             elif f and not tables:
                 fields.append((j + 1, f["key"], (f["value"] or "").strip()))
             elif l.startswith("- ") and fields and not tables:
@@ -552,7 +566,7 @@ def construct_findings(r, body, found, sections):
     records = fact_records(body, sections)
     facts = facts_of(records)
     for ln, msg in fact_record_findings(records):
-        found.append((f"{DECLARING} § A Fact", r, ln, msg))
+        found.append((f"{DECLARING} § Fact", r, ln, msg))
     lines = body.split(chr(10))
     for line, name, fields, tables, lineage in decls:
         _paragraphs(r, lines, line, fields, found)
@@ -571,9 +585,16 @@ def construct_findings(r, body, found, sections):
         if lineage in seen:
             found.append((DECLARING, r, line, f"a second construct in one section: § {lineage}"))
         seen[lineage] = line
+        # § Constructs § Declaring a Construct: its section opens with prose describing it, before its Construct field
+        h = sections[lineage][0] if lineage in sections else -1
+        if not any(l.strip() and not l.lstrip().startswith(("#", "|", "```")) and not FIELD.match(l) for l in lines[h + 1:line - 1]):
+            found.append((DECLARING, r, line, f"{_a(name)} whose section opens with no description before its Construct field"))
         _fields(r, line, name, fields, found)
         if not tables:
             found.append((DECLARING, r, line, f"{_a(name)} declared with no table"))
+            continue
+        if name == "Record Form":
+            _record_type(r, line, fields, tables, found)
             continue
         forms = FORMS[name]
         if len(tables) != len(forms):
@@ -624,6 +645,49 @@ def construct_findings(r, body, found, sections):
             continue
         {"State Machine": _machine, "Decision Table": _decision_table,
          "DAG": _dag}[name](r, line, name, fields, tables, found, facts)
+
+
+def _record_type(r, line, fields, tables, found):
+    """§ Constructs § Record Form: a record type's tables, a table of its section fields where it declares any, then
+    its table of record fields, each row a field named once, its Default Value empty where it is required (§ Fields),
+    its Values in one of its forms, its Unique yes or no, and a Reference Key, its own or its base's, naming fields it
+    gives and requires, a one-field key's field marked Unique, an extending type declaring none of its own."""
+    rule = f"{RULE} § Record Form"
+    heads = [t["header"] for t in tables]
+    if heads not in ([RECORD_FIELDS], [SECTION_FIELDS, RECORD_FIELDS]):
+        found.append((rule, r, line, f"a record type's tables headed {heads}, not {RECORD_FIELDS} after any table of its section fields headed {SECTION_FIELDS}"))
+        return
+    for table in tables:
+        header, seen = table["header"], set()
+        for ln, row in table["rows"]:
+            if len(row) != len(header):
+                found.append((DECLARING, r, ln, f"a row of {len(row)} cells under a header of {len(header)}"))
+                continue
+            cell = dict(zip(header, row))
+            if not cell["Field"] or cell["Field"] in seen:
+                found.append((rule, r, ln, f"a field unnamed, or named twice: {cell['Field']}"))
+            seen.add(cell["Field"])
+            if "Unique" in cell and cell["Unique"] not in ("yes", "no"):
+                found.append((rule, r, ln, f"a Unique cell neither yes nor no: {cell['Field']}"))
+            if not cell["Required"] or (cell["Default Value"] == "") != (cell["Required"] != "no"):
+                found.append((rule, r, ln, f"a Default Value given where its field is required, or left empty where it is not: {cell['Field']}"))
+            if not values_form(cell["Values"]):
+                found.append((rule, r, ln, f"a Values cell in none of its forms: {cell['Values']}"))
+            if not cell["Holds"]:
+                found.append((DECLARING, r, ln, f"a cell holding no value: ['Holds']"))
+    # its Reference Key, of fields its own table gives and requires; a key reaching its base's is the declaring script's
+    key = [k.strip() for k in dict((k, v) for _, k, v in fields).get("Reference Key", "").split(",") if k.strip()]
+    own = {row[0]: row[2] for _, row in tables[-1]["rows"] if len(row) == len(RECORD_FIELDS)}
+    unique = {row[0]: row[1] for _, row in tables[-1]["rows"] if len(row) == len(RECORD_FIELDS)}
+    if key and extends(fields):
+        found.append((rule, r, line, "a Reference Key on a type extending another, which takes its base's"))
+    if len(key) == 1 and unique.get(key[0]) == "no":
+        found.append((rule, r, line, f"a one-field Reference Key whose field is not marked Unique: {key[0]}"))
+    if not key and not extends(fields):
+        found.append((rule, r, line, "a record type with no Reference Key"))
+    for k in key:
+        if k in own and own[k] != "yes" or k not in own and not extends(fields):
+            found.append((rule, r, line, f"a Reference Key naming a field the type does not give or does not require: {k}"))
 
 
 def extends(fields):
@@ -1085,6 +1149,34 @@ def effect_findings(text_of, found, sections, strip_fences, citation, resolve):
                     found.append((f"{RULE} § State Machine", r, ln, f"an Effect cell citing no Algorithm or Decision Table: {cell}"))
 
 
+def guard_value_findings(text_of, found, sections, strip_fences):
+    """§ Constructs § State Machine: a guard testing a fact for a word, by `=`, `!=` or `in`, wherever FEEL's grammar puts
+    it, tests one of the fact's Values, a quoted list or a closed set its Values cite; the fact is the one the machine's
+    own file declares, or else the one other files declare alike, a name declared otherwise in several left to reading."""
+    by_name = {}
+    for r, body in text_of.items():
+        for f, d in facts_of(fact_records(strip_fences(body), sections(body))).items():
+            by_name.setdefault(f, {})[r] = quoted_values(d[1])
+    for r, body in text_of.items():
+        own = facts_of(fact_records(strip_fences(body), sections(body)))
+        for line, name, fields, tables, lineage in declarations(strip_fences(body), sections(body)):
+            if name != "State Machine" or len(tables) != 2 or "Guard" not in tables[1]["header"]:
+                continue
+            g = tables[1]["header"].index("Guard")
+            for ln, row in tables[1]["rows"]:
+                text = row[g] if g < len(row) else NONE_CELL
+                if text.strip() == NONE_CELL:
+                    continue
+                for fact, word in expressions.compared(text, {f: None for f in by_name}) or []:
+                    if fact in own:
+                        values = quoted_values(own[fact][1])
+                    else:
+                        kinds = {tuple(v) if v is not None else None for v in by_name.get(fact, {}).values()}
+                        values = list(next(iter(kinds))) if len(kinds) == 1 and None not in kinds else None
+                    if values is not None and word not in values:
+                        found.append((f"{RULE} § State Machine", r, ln, f"a guard testing {fact} for a value outside its Values: {word}"))
+
+
 def guard_fact_findings(text_of, found, sections, strip_fences):
     """§ Constructs § State Machine: a fact an exclusive choice's guard compares a fact with, in a test the checks read,
     is one a guard of its choice tests, a Facts section of any file declares, or `exit`, of the kind of the fact it is
@@ -1130,16 +1222,18 @@ def guard_fact_findings(text_of, found, sections, strip_fences):
 
 def recorded_in_findings(text_of, found, sections, strip_fences, citation, resolve):
     """§ Constructs § State Machine: a Recorded In field names the fact the entity records its state in, a fact's name,
-    a colon and the citation of the Facts record declaring it, whose Values, a quoted list, hold each state's name.
+    a colon and the citation of the Facts record declaring it, whose Values, a quoted list or a closed set's citation
+    read as one, hold each state's name.
     `citation` and `resolve` are the citation check's own."""
     rule = f"{RULE} § State Machine"
-    records = {}
+    records, cited = {}, {}
     for r, body in text_of.items():
         live, secs = strip_fences(body), sections(body)
         for lineage, span in secs.items():
-            if lineage.rsplit(" § ", 1)[-1] == "Facts":
+            if lineage.rsplit(" § ", 1)[-1] == FACTS_SECTION:
                 for _, name, d in fact_records(live, {lineage: span}):
                     records[(r, lineage, name)] = d.get("Values", "none")
+                    cited[(r, lineage, name)] = d.get("cited")
     for r, body in text_of.items():
         for line, name, fields, tables, lineage in declarations(strip_fences(body), sections(body)):
             value = dict((k, v) for _, k, v in fields).get("Recorded In")
@@ -1162,6 +1256,17 @@ def recorded_in_findings(text_of, found, sections, strip_fences, citation, resol
             for ln, row in tables[0]["rows"]:
                 if row and row[0] not in listed:
                     found.append((rule, r, ln, f"a state not among the Values of the fact its machine is recorded in: {row[0]}"))
+            # a state drawn from a closed set opens its description with the citation of its member's record
+            source = cited.get((path, section, mm.group(1).strip()))
+            if source:
+                home = resolve(citation.findall(source)[0], path)
+                for ln, row in tables[0]["rows"]:
+                    if len(row) < 2 or row[0] not in listed:
+                        continue
+                    opening = re.match(r'`([^`]+)`', row[1])
+                    named = re.search(r'\[[^:\]]+: ([^\]]+)\]$', opening.group(1)) if opening else None
+                    if not named or resolve(opening.group(1), r) != home or named.group(1).strip() != row[0]:
+                        found.append((rule, r, ln, f"a state drawn from a closed set whose description opens with no citation of its member's record: {row[0]}"))
 
 
 # ---------------------------------------------------------------- Decision Table
@@ -1170,7 +1275,7 @@ LIST_OR_RANGE = re.compile(r'(?:null\s*,\s*)?(?:' + QUOTED + r'|[\[\(].+\.\..+[\
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
 # a Reads item: a fact's or an outcome's name, a colon, and the citation of where it is declared or decided
 READS_ITEM = re.compile(r'([^:`]+?):\s*`[^`]*§[^`]+`')
-# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct § A Fact
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct § Fact
 # a Facts record's Type, and the kind of value a cell tests for it
 TYPE_KINDS = {"string": "word", "number": "number", "boolean": "boolean", "date": "date", "time": "time",
               "date and time": "date and time", "days and time duration": "days and time duration",
@@ -1229,11 +1334,24 @@ def _shown(x, kinds):
     return x
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct § Fact
+# a Facts record's Values written as one citation, of the record section holding a closed set; and the resolver
+# audit-specs.py sets, (the file's text, the cell) -> the identifying values of the records it cites, or None
+CITED_SET = re.compile(r'`[^`]*§[^`]+`')
+CLOSED_SET = None
+# the title of a file's Facts sections, the Fact type's Plural Name, which audit-specs.py reads from its declaration
+FACTS_SECTION = None
+# and the resolver of a fact a Decision Table reads from another file, (the table's file, the citation, the fact's
+# name) -> (Type, Values, May Be Absent), or None
+READ_FACT = None
+
+
 def fact_records(body, sections):
-    """Each record of a file's Facts sections -> [(line, name, {field: value})]."""
+    """Each record of a file's Facts sections -> [(line, name, {field: value})], a Values citing a closed set read as
+    the quoted list of its members."""
     lines, out = body.split(chr(10)), []
     for lineage, (h, end) in sections.items():
-        if lineage.rsplit(" § ", 1)[-1] != "Facts":
+        if lineage.rsplit(" § ", 1)[-1] != FACTS_SECTION:
             continue
         for i in range(h, end):
             f = FIELD.match(lines[i])  # a record's fields, its first after a list marker, the rest indented
@@ -1241,6 +1359,10 @@ def fact_records(body, sections):
                 out.append((i + 1, (f["value"] or "").strip(), {}))
             elif f and out and out[-1][0] > h:
                 out[-1][2][f["key"]] = (f["value"] or "").strip()
+    for _, _, d in out:
+        members = CLOSED_SET(body, d["Values"]) if CLOSED_SET and CITED_SET.fullmatch(d.get("Values", "")) else None
+        if members is not None:
+            d["Values"], d["cited"] = ", ".join(f'"{m}"' for m in members), d["Values"]
     return out
 
 
@@ -1250,7 +1372,7 @@ def facts_of(records):
 
 
 def fact_record_findings(records):
-    """§ Constructs § Declaring a Construct § A Fact: a record whose name is no fact's name, or a boolean fact's
+    """§ Constructs § Declaring a Construct § Fact: a record whose name is no fact's name, or a boolean fact's
     asking no question, and Values naming a fact -> [(line, message)]."""
     out = []
     for line, name, d in records:
@@ -1288,7 +1410,13 @@ def fact_record_findings(records):
         if name.split() and name.split()[0] in expressions.KEYWORDS:
             out.append((line, f"a fact's name opening with a word FEEL keeps: {name}"))
 
-        out += [(line, m) for m in _value_list_problems(d.get("Values", "none"), f"the Facts record {name}'s Values")]
+        if CITED_SET.fullmatch(d.get("Values", "")):
+            # a citation fact_records left as written names no record section of a closed set
+            out.append((line, f"a Facts record's Values citing no record section of a type identifying its records by one field: {name}"))
+        else:
+            out += [(line, m) for m in _value_list_problems(d.get("Values", "none"), f"the Facts record {name}'s Values")]
+        if d.get("cited") and d.get("Type") != "string":
+            out.append((line, f"a Facts record's Values citing a closed set on a fact whose Type is not string: {name}"))
     return out
 
 
@@ -1389,6 +1517,11 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
             found.append((rule, r, line, f"a Reads item named otherwise than the Facts record it cites: {item}"))
         else:
             reads.append(mm.group(1).strip())
+            # a fact read from another file, typed by its record as a fact its file declares is
+            cites = CITATION.findall(item)
+            read = READ_FACT(r, cites[0], mm.group(1).strip()) if READ_FACT and len(cites) == 1 else None
+            if read and mm.group(1).strip() not in facts:
+                facts = dict(facts, **{mm.group(1).strip(): read})
     typed = {f: kind_of_type(t) for f, (t, _, _) in facts.items()}
     known = dict({h: None for h in reads}, **typed)
     for k in idx:
@@ -2683,7 +2816,7 @@ def held_in_findings(text_of, found, sections, strip_fences, citation, resolve):
     for r, body in text_of.items():
         live, secs = strip_fences(body), sections(body)
         for lineage, span in secs.items():
-            if lineage.rsplit(" § ", 1)[-1] == "Facts":
+            if lineage.rsplit(" § ", 1)[-1] == FACTS_SECTION:
                 for _, name, d in fact_records(live, {lineage: span}):
                     records[(r, lineage, name)] = d.get("Type", "")
         for _, name, _, _, lineage in declarations(live, secs):
@@ -2694,7 +2827,7 @@ def held_in_findings(text_of, found, sections, strip_fences, citation, resolve):
             held, ext = values.get("Held In"), values.get("Extends")
             if held not in (None, "none") and name == "DAG":
                 found.append((DECLARING, r, line, "a DAG declaring Held In, a process configured as data being an Algorithm over it"))
-            elif held not in (None, "none"):
+            elif held not in (None, "none") and name != "Record Form":
                 items = [i.strip() for i in held.split("\n") if i.strip()]
                 if name in FORMS and len(items) != len(FORMS[name]):
                     found.append((DECLARING, r, line, f"a Held In giving {len(items)} items for a construct of {len(FORMS[name])} tables"))

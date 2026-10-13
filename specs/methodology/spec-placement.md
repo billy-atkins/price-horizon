@@ -27,7 +27,9 @@ The two drawings also do not divide the building the same way. An architect orga
 |---|---|---|
 | "DAG", "State Machine for a process" | a business-readable table of its steps, decision points and outcomes | the DAG or State Machine that carries it out |
 | Constraint | the plain guarantee | its enforcement, what its Enforced by names |
-| "State Machine for an entity's or a system's status", "Decision Table", "Record Form" | the construct itself | the same construct |
+| "State Machine for an entity's or a system's status", "Decision Table" | the construct itself | the same construct |
+| Record Form of entries written repeatedly | the construct itself | the same construct |
+| Record Form of a closed set | the closed set, its type and its records | the data storing it, its database design and any enum naming its members, citing the set |
 | Algorithm | no rendering, since a business reader has no use for step-by-step computation | the Algorithm |
 
 **A promise that cannot be built —** writing the technical spec tests a product promise against what is actually possible. A promise no mechanism can make true is amended in the product spec, as the user decides (`§ Personas`), rather than left standing.
@@ -122,7 +124,9 @@ A product specification is organized by capability domain (`specs/methodology/gl
 
 Before writing or extending a product spec, ask what a product owner, or a salesperson pitching the system, would call the capability domain it belongs to, never which open file already talks about something similar.
 
-Read the product specs' `architecture.md` first. It gives each domain a section of its own, describing what the domain covers and closing with the files that serve it, so its sections are the domains the specs recognize. Then the content's home:
+### Home of New Product Content
+
+Which file new product content goes in, decided by the capability domain it belongs to. Read the product specs' `architecture.md` first. It gives each domain a section of its own, describing what the domain covers and closing with the files that serve it, so its sections are the domains the specs recognize. Then the content's home:
 
 **Construct:** Decision Table
 
@@ -133,6 +137,8 @@ Read the product specs' `architecture.md` first. It gives each domain a section 
 | true | true | that file |
 | true | false | a new file in the domain's subfolder, the content a genuinely separate sub-capability |
 | false | - | a new domain, named as a plain noun phrase for something the product durably does or governs, never a sprint, a milestone, or a technical mechanism's name, added to the product specs' `architecture.md` as its own section, subfolder or root file decided by `§ Where a File Goes` |
+
+### Traps Before a New Product File
 
 Traps worth checking for before finalizing any new product file:
 
@@ -249,11 +255,17 @@ Then, where it has any, a table of its tasks, headed Task, Command and Does, and
 
 As it works, the agent writing code runs the targeted form of a test task on the tests citing the specs its work carries out (`specs/methodology/code.md § Tests`). Before its work is checked, it runs every build, lint and test task of the local environment, so a task that no longer works is found as soon as code is written. A project whose specs give no local environment, or whose local environment lacks any of these tasks, has code an agent cannot check: a gap in the specs, which the agent presents rather than writing code around it.
 
-## An Open Question
+## Open Question
 
-An open question is recorded in the spec whose area it applies to, methodology, product or technical, and in the file whose scope covers everything the question impacts. That file must be able to cite every section the question's Impacts names (`specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`). A file's open questions sit in a record section titled `Open Questions`, the file's last top-level section, so a reader finds them all in one place, after the settled content they qualify. Each is a record in the Record Form (`specs/methodology/modeling-constructs.md § Constructs § Record Form`), of the type named Open Questions:
+An open question is recorded in the spec whose area it applies to, methodology, product or technical, and in the file whose scope covers everything the question impacts. That file must be able to cite every section the question's Impacts names (`specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`). A file's open questions sit in its record section of this type, a record type (`specs/methodology/modeling-constructs.md § Constructs § Record Form`), the file's last top-level section, so a reader finds them all in one place, after the settled content they qualify:
 
-| Field | Identifies | Required | Default Value | Values | Holds |
+**Construct:** Record Form
+
+**Plural Name:** Open Questions
+
+**Reference Key:** Name
+
+| Field | Unique | Required | Default Value | Values | Holds |
 |---|---|---|---|---|---|
 | Name | yes | yes | | text | a short name for what is undecided |
 | Open Question | no | yes | | text | what is undecided, asked as a question |
