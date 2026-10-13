@@ -13,6 +13,15 @@
 
 {the problem}
 
+## Design Goals
+
+{`Not yet stated.` until the user agrees the goals; then:}
+
+**Records:**
+
+- **Name:** {a slug}
+  **Description:** {what the goal asks}
+
 ## The Design Frame
 
 ### Scope
@@ -21,11 +30,11 @@
 
 ### Approach
 
-{the principle the solution applies}
+{the principle the solution applies, citing by Name the goals it rests on}
 
 ### Outcomes
 
-{what a successful solution achieves, and how that is judged}
+{what a successful solution achieves, and how that is judged, each outcome citing by Name the goals it rests on}
 
 ## Steering Decisions
 
@@ -63,7 +72,7 @@ becomes:
 
 ## The Builder's Passes
 
-{each pass and each review under a bold lead-in naming it, an adversarial review's opening Adversarial review and a post-apply audit's Post-apply audit, each of those two naming the model and reasoning effort it ran on, and what it changed, and the flaws the user settled among its findings, an adversarial review's also the decisions its findings fell on, their causes, the steers they pressed on and what the user decided of them, any revision of the frame, the change, the findings fixed where they sit with their reasons and the worked cases; the fixes made for a validation review, with the findings of it the user settled, quoting the user, one pass naming the kinds of findings and no report; and each ephemeral differential test of a script the design changes, and what it showed}
+{each pass and each review under a bold lead-in naming it, an adversarial review's opening Adversarial review and a post-apply audit's Post-apply audit, each of those two naming the model and reasoning effort it ran on, and what it changed, and the flaws the user settled among its findings, an adversarial review's also the decisions its findings fell on, their causes, the steers they pressed on and what the user decided of them, any revision of the goals or the frame, the change, the findings fixed where they sit with their reasons and the worked cases; the fixes made for a validation review, with the findings of it the user settled, quoting the user, one pass naming the kinds of findings and no report; and each ephemeral differential test of a script the design changes, and what it showed}
 
 ## Deliberately Left Alone
 

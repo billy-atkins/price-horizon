@@ -4,17 +4,17 @@ The order a design's work takes, and what moves it back, as two State Machines i
 
 ### The Work of a Design
 
-A design enters its work by the reason its Status entered in-progress, and its change leads back to another adversarial review wherever needs review? holds (`§ The Order of a Design's Work § Facts`). A design its Depends On names finishes, a class of occurrences, when its Status enters complete or enters abandoned (`specs/methodology/working-files.md § A Design Document`).
+A design enters its work by the reason its Status entered in-progress, and its change leads back to another adversarial review wherever needs review? or needs reframing? holds (`§ The Order of a Design's Work § Facts`). A design its Depends On names finishes, a class of occurrences, when its Status enters complete or enters abandoned (`specs/methodology/working-files.md § A Design Document`).
 
 **Construct:** State Machine
 
 | state | description | initial | terminal |
 |---|---|---|---|
 | entered | the design has entered in-progress, by its Status's move | Yes | No |
-| framing | the builder states the design frame, or revisits it, and brings it to the user, as `specs/AGENTS.md § Design, Refactor, Refine` has the frame come first, taking in each steer the user gives and each design its Depends On names that has finished (`specs/methodology/working-files.md § A Design Document`) | No | No |
+| framing | the builder agrees the design goals with the user and states the design frame, or revisits either, and brings them to the user, as `specs/AGENTS.md § Design, Refactor, Refine` has the goals, then the frame, come first, taking in each steer the user gives and each design its Depends On names that has finished (`specs/methodology/working-files.md § A Design Document`) | No | No |
 | drafting | the builder takes the design through Design, Refactor, Refine (`specs/AGENTS.md § Design, Refactor, Refine`), recording each steer as it is given (`specs/methodology/working-files.md § Steering Decision`) and taking in each design its Depends On names that has finished (`specs/methodology/working-files.md § A Design Document`), checks its whole work, as its row of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` sets, and offers the user the review's model and reasoning effort | No | No |
 | reviewing | a cold agent runs the adversarial review, as `specs/AGENTS.md § Design, Refactor, Refine` has it | No | No |
-| settling | the builder groups the round's findings, weighs the steers they press on and brings the user the causes and the change it proposes, as `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round` has it, taking in each steer the user gives and each design its Depends On names that has finished, one finishing while the design was reviewed among them | No | No |
+| settling | the builder groups the round's findings, weighs them against the design's goals and weighs the steers they press on and brings the user the causes and the change it proposes, as `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round` has it, taking in each steer the user gives and each design its Depends On names that has finished, one finishing while the design was reviewed among them | No | No |
 | reassessing | the builder and the user step back and reassess, as `specs/AGENTS.md § Design, Refactor, Refine` has a phase not converging, taking in each design its Depends On names that has finished | No | No |
 | changing | the builder revises the design, as the user decided, taking in each steer the user gives and each design its Depends On names that has finished (`specs/methodology/working-files.md § A Design Document`), and proves the change, as `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round` has it | No | No |
 | waiting | the design waits for each design its Depends On names to be approved or applying, as `specs/methodology/working-files.md § A Design Document` has a design validated and approved only then | No | No |
@@ -29,7 +29,8 @@ A design enters its work by the reason its Status entered in-progress, and its c
 | entered | changing | none | entry reason = "reopened" |
 | entered | changing | none | entry reason = "a dependency finished" |
 | entered | waiting | none | entry reason = "a dependency moved back" |
-| framing | drafting | the user agrees or adjusts the frame | none |
+| framing | drafting | the user agrees the goals and agrees or adjusts the frame | none |
+| drafting | framing | the user gives a steer | needs reframing? |
 | drafting | reviewing | the user chooses the review's model and effort | none |
 | reviewing | settling | none | none |
 | reviewing | changing | the user gives a steer | none |
@@ -37,9 +38,10 @@ A design enters its work by the reason its Status entered in-progress, and its c
 | settling | changing | the user decides the round's settlement | consecutive flawed rounds < 3 |
 | reassessing | framing | the user decides the reassessment | reassessment != "go on" |
 | reassessing | changing | the user decides the reassessment | reassessment = "go on" |
-| changing | drafting | none | needs review? |
-| changing | validating | none | not(needs review?) and depends on ready? |
-| changing | waiting | none | not(needs review?) and not(depends on ready?) |
+| changing | framing | none | needs reframing? |
+| changing | drafting | none | not(needs reframing?) and needs review? |
+| changing | validating | none | not(needs reframing?) and not(needs review?) and depends on ready? |
+| changing | waiting | none | not(needs reframing?) and not(needs review?) and not(depends on ready?) |
 | waiting | validating | depends on ready? becomes true | none |
 | waiting | changing | the user gives a steer | none |
 | waiting | changing | a design its Depends On names finishes | none |
@@ -110,7 +112,11 @@ The order a design's apply takes, begun only as `specs/methodology/working-files
 
 - **Name:** needs review?
   **Type:** boolean
-  **Means:** whether the design's structure has moved since the last adversarial review it settled began, or it has settled none since it was last framed, so that it takes another before it is validated (`specs/AGENTS.md § Design, Refactor, Refine`)
+  **Means:** whether the design's structure, its goals or its frame have moved since the last adversarial review it settled began, or it has settled none since it was last framed, so that it takes another before it is validated (`specs/AGENTS.md § Design, Refactor, Refine`)
+
+- **Name:** needs reframing?
+  **Type:** boolean
+  **Means:** whether a steer the design took in changed its goals or its frame and the user has not yet approved the change, so they go back to the user for approval, the frame re-evaluated against goals that changed (`specs/AGENTS.md § Design, Refactor, Refine`)
 
 - **Name:** depends on ready?
   **Type:** boolean
