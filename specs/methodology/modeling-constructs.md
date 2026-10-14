@@ -1,97 +1,90 @@
 ## Purpose
 
-This file defines the bounded, approved set of structured modeling constructs, rather than free prose, for authoring specs in this repo. Prose can describe anything, since human language has no limit, but it cannot be checked for what it leaves out: a paragraph can describe a process while never mentioning what happens under some condition, and nothing about reading it flags the gap. Each construct can be checked for exactly that:
+This file defines the bounded, approved set of structured modeling constructs, rather than free prose, for authoring specs in this repo. Prose can describe anything, since human language has no limit, but it cannot be checked for what it leaves out: a paragraph can describe a process while never mentioning what happens under some condition, and nothing about reading it flags the gap. A construct can be checked for exactly that, the definition of each construct an author uses listing what an instance of it is checked for, and `§ When to Use Which` chooses one wherever a rule needs it, prose everywhere else.
 
-**Construct:** Decision Table
-
-**Conditions:** Construct
-
-| Construct | Checked for |
-|---|---|
-| State Machine | two states sharing a name; no initial state, or more than one; a From or To naming a state its States table does not hold; a state the initial state cannot reach; a state that is not terminal with no way out, or a terminal state with one; two transitions from one state on the same trigger, or on none, whose guards, read as a Unique Decision Table, can both hold, or a guard no case meets; such a guard in no form FEEL has, or giving no yes or no, or testing as a boolean a fact whose name asks no question, or a fact whose name holds a word FEEL keeps; a state that cannot stay where, once its work is done, some case takes no transition out of it; a fork no join closes, or a join no fork opens; a Transitions table's columns other than From, To and Trigger, then a Guard, an Effect or both in that order, or such a column every cell of which is none; a guard comparing a fact with another no guard of its choice tests and no Facts record declares, or of another kind; an Effect cell citing no Algorithm or Decision Table; a Recorded In field that is not a fact's name, a colon and the citation of a Facts record, a record it cites whose Values are neither a quoted list nor the citation of a closed set, or a state not among them, or a state drawn from a closed set whose description opens with no citation of its member's record, or a guard testing a fact for a word outside the fact's Values; or a protocol machine with an Effect column, a transition with no trigger or a governed state; and of a submachine state, a state governed by more than one machine, a machine governing itself, a governed state that is terminal or not left as its machine's exits have it, the words `governed by` naming no machine or a part of one, or naming none, and a description citing a machine's whole section without them |
-| Decision Table | a cell in no form FEEL or its departure for a cell has, a value tested after `=`, or a condition column testing values of more than one kind; an expression or a cell in no form FEEL has, naming what no fact, binding or function names, combining values of two kinds, reaching by a path a part a value does not hold, calling a function FEEL does not build in, or giving one a number of arguments none of its signatures takes, a minus before what is neither a number nor a duration, a filter testing neither a yes or no nor a place, or an `@` value in no form; a question's outcome other than `true`, `false` or `null`; a condition's header neither a fact's name nor a computation; a cell, a computed header or a computed outcome naming a fact nothing declares, or combining values of two kinds, or a cell ending at a fact of another kind than its column; a Reads item that is no fact's name, a colon and a citation, or a Computed field naming no outcome column; a condition column of a table of two or more rows holding one and the same cell in every row, `-`, or one test where it takes one row's outcome and gives no Default Output, a configured instance's aside; a cell testing another kind than its fact's Type, or `null` where its fact may not be absent; an Input Values item given for a fact a Facts record declares, empty, written plain, in no form of FEEL's unary tests, or naming a fact; a cell outside its column's values; where it takes one row's outcome and gives no Default Output, a case no row matches; a First table falling through by a Default Output; a row that gives no case its outcome; an outcome cell outside a Computed column written as a test or a list; and, by its hit policy, a case two rows match where it is Unique, two rows a case matches giving different outcomes where it is Any, an outcome missing from its Output Values where it is Priority or Output order, an aggregating Collect's outcome other than one column, of numbers but for a count, or a case two rows match whose outcomes cannot both be carried out where it is Rule order, Output order or a Collect that does not aggregate |
-| DAG | no Runs When field; two tasks sharing a name; a work that is neither `none`, alone or leaving facts, nor a citation resolving to an Algorithm, a Decision Table or a DAG, one citing a part of a construct, or a DAG holding itself through the tasks it cites; a Decision Table a task runs whose outcome column no fact declares, or a `none` leaving a fact nothing declares; a dependency naming a task the table does not hold, or `ended` on a task that can only end done; a task that depends on itself, directly or through others, and so never runs; a guard in no form FEEL has, giving no yes or no, naming a fact nothing declares, combining values of two kinds or reaching a part a fact does not hold; a timeout that is neither a FEEL duration literal nor a declared fact of a duration type; a tolerated that is neither `Yes` nor `No`, or `Yes` on a task that cannot fail; a guard or a timeout column every cell of which is `none`, or a tolerated column every cell of which is `No`; two tasks free at once whose work gives one fact, or one of which reads, by its work or its guard, a fact the other gives; a task reading a fact a task after it gives without reading it, or a fact that some task before it gives and none gives surely, whose record does not say it may be absent; or a Runs When citing a construct that does not run the DAG, or leaving out a DAG or a State Machine that does |
-| Algorithm | no Inputs, Output or Runs When field, an Inputs item that is neither a fact's name nor a name, a colon and a citation, an Output item that is no fact's name, or an Output fact its Inputs do not name that nothing sets; two steps sharing a number; a jump to a step the table does not hold; a Precision that is no whole number above zero and below 34, or a Rounding Mode that is neither a mode `specs/methodology/expressions.md` names nor a fact the Algorithm knows whose Values hold only modes; a step in none of its forms, a comparison not written in its form, whose condition gives no yes or no or whose branch is a loop, a computation not written `Set` a fact or its part `to` an expression, a run not written `Run`, a citation, its arguments and what it gives, a run citing no Algorithm or Decision Table, a loop over a list not written in its form, or work citing an Algorithm or a Decision Table whole; an expression in no form FEEL has, naming a fact the step does not know, combining values of two kinds, or reaching a part a fact does not hold; a value written to a fact, a part or an Input of another kind, or a part set by a path that is not names joined by `.` or that reaches through a list; a run giving a fact the construct run does not give, naming as an argument no fact it takes, or leaving a fact it takes neither given nor known; a comparison whose only work is setting one fact; a comparison both of whose branches go back to an earlier step or to its own; a step that is no comparison going back; a loop's body that is not the steps after it, reaches past the body holding it or holds the table's last step, a jump into or out of a body, a loop over what is no list, or a pass `at once` setting a fact other than its item and what it gathers; a step going back or a run recurring with no Terminates cell, a Terminates cell giving no number or citing no Constraint, or citing one nothing enforces, one on a step that neither goes back nor recurs, or a Terminates column every cell of which is none; a jump or an `End` that does not end its branch, or an `End` with words after it; a last step, or a branch of it, that neither ends nor jumps; or a Runs When citing a construct that does not run it, or leaving out one that does |
-| Constraint | a rule in no form FEEL has, giving no yes or no, naming a fact nothing declares, combining values of two kinds or reaching a part a fact does not hold; an Applies to that is neither `always` nor `after` or `before` a citation, or citing a step or a task, a construct that is no operation, a record section, or a State Machine and no transition of it; or an Enforced by that is neither citations joined by `and` nor `nothing:` and words; a rule nothing keeps listed as a warning, never a finding |
-| Record Form | a record type declared with no Plural Name, or with tables other than any table of its section fields and then its table of record fields, a field it or its base names twice, a Unique cell neither yes nor no, no Reference Key, its own or its base's, or one naming a field the type does not give or does not require, or a Default Value given where its field is required or left empty where it is not; its section titled with an article or with its Plural Name; a Plural Name another type declares; a record section titled with no declared type's Plural Name, or with a type's but holding no records; a section field its type requires missing, given out of order, at its default or outside its Values, or one its type does not declare; a value outside a closed set its field cites; a second record section of a closed set; a record missing a field its type requires, holding one its type does not define, holding a value its type's Values do not allow, or giving its fields out of their order; or two records in one section sharing the values of their identifying fields, or a value of a field its type marks Unique; a Reference Key on a type extending another, or of one field not marked Unique; and a Facts record whose name is no fact's name, opens with a word FEEL keeps, or, a boolean fact's, asks no question, or whose Values are empty, written plain, in no form of FEEL's unary tests, or name a fact, or cite no record section of a type identifying its records by one field, or cite one on a fact whose Type is not `string`, or whose Type is no type FEEL names, or whose Decimal Places is neither a whole number nor a fact its file declares, or sits on a fact that is neither a number nor a function giving one, or whose Derivation sits on a fact that is no function, or is in no form of a FEEL function, or whose Initial Value is in no form FEEL has or of another kind than its Type |
-| Basic Table | a header not written as a field key is, but a header in backticks and a word in a proper noun's own casing; a Reference Key naming a column its table does not hold; a key value that is not plain text, or two rows sharing their key; a second table declaring a Reference Key in one section, or one in a section declaring another construct |
-
-Use one of the constructs `§ Constructs` defines when a rule, a process, an entity's behavior, an entry written repeatedly into the specs or the working files, or a closed set a product spec defines, needs that kind of checkable completeness, and use prose everywhere else: prose states a rule one fact decides, sending its cases to at most two outcomes, the fact's and its otherwise, and a rule reading two or more facts, or one fact sending its cases to more than two outcomes, takes the construct `§ When to Use Which` chooses, however it reads, since routing written in an author's own words never looks like a rule to the one writing it; a claim that something holds of the system's facts sends no case anywhere and is a Constraint's (`§ Constructs § Constraint`), and a request turned away for a reason is one of the outcomes counted. The set is bounded and approved: a new construct earns its place only by filling a real gap none of the existing ones cover, not by preference for a different notation, and extending the set is a deliberate decision, made by updating this file first, never an ad hoc addition inside a single spec. Any table outside a declared construct's block is a Basic Table (`§ Constructs § Basic Table`), whatever it holds, chosen by no question of `§ When to Use Which` and checked for its form and its citations rather than for what it leaves out. Each construct is a definition (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`): its section in `§ Constructs`, with `§ Constructs § Declaring a Construct` for a construct a `**Construct:**` field declares, defines what each use of it sets, each use an instance the audit checks against it, as `specs/methodology/scope.md § Rules and Skills` has a rule's checks made. The Record Form's instances are record types, each a definition whose records are its instances (`§ Constructs § Record Form`). The Decision Table is DMN's whole decision table (`specs/methodology/external-references.md § External References [Name: DMN]`), with the information requirements chaining one decision to another, written as a table's Reads field; DMN's other parts, its Decision Requirements Diagrams, its Business Knowledge Models, its decision services and its boxed expressions, are outside the set, and a project needing one adds it so. The State Machine adopts UML's state machine, the Algorithm and the DAG UML's activity and the Constraint UML's Constraint (`specs/methodology/external-references.md § External References [Name: UML]`); the Record Form and the Basic Table follow no outside standard, since none meets their need. The Fact record type relies on DMN's item definitions, as `§ Constructs § Declaring a Construct § Fact` states.
-
-The line between a construct and prose runs through a construct's own section too, the one defining it in `§ Constructs` and a spec's section holding an instance alike, between what its tables write and what the section's prose holds. A thing the prose could state is a column, a field or a form of the construct, with a check, where an outcome the spec states depends on it and the files alone could check what it says, as an exclusive choice's Guard column is, whether a move is taken deciding where the entity goes, or, in an instance, is written nowhere where its tables already give it, as the order of an Algorithm's steps is given by their numbers; where no stated outcome depends on it, it is prose, as an Algorithm's work in words is, which decides nothing; and where a stated outcome depends on it but only a judgment can check what it says, it is prose, and a reading audit asks it, as what a state's work is. Where a stated outcome depends on it and whether the files could check it is arguable, the form is favored, since a rule without a check is a suggestion (`specs/methodology/scope.md § Rules and Skills`), and a form that costs a new construct or a notation is the deliberate decision extending the set, made by updating this file first.
-
-This file also sets the form of markup, wherever it is written, each Markdown file in scope being written in GitHub Flavored Markdown (`specs/methodology/external-references.md § External References [Name: GFM]`):
-
-- `§ Fields` and `§ Bold Lead-ins`, the two things a bold phrase opening a line can be, which Record Form and a diagram's fields rely on;
-- `§ Emphasis`, how prose stresses a word;
-- `§ Literal Text`, what backticks mark.
-
-`§ When to Use Which` is itself modeled with a Decision Table, so a reader applies the same discipline this file asks of every other spec, and `§ When to Use Which § Combining Constructs` says how one construct hands its work to another. `§ Time` says how a construct reads time.
-
-Each construct is authored as a table, a record type as its tables of fields, its records a list in a record section of their own (`§ Constructs § Record Form`). A table is the one representation that is precise, referable row by row, readable in plain text with no rendering step, and parseable without ambiguity, and a record list keeps those properties for entries whose fields hold prose. A diagram never substitutes for either, since checkable completeness is a construct's job alone; `§ Diagrams` states the one disciplined way a rendering for a human reader is checked in beside them.
+The set is bounded and approved: a new definition, a construct, an abstract base or an interface, earns its place only by filling a real gap none of the existing ones cover, not by preference for a different notation, and extending the set is a deliberate decision, made by updating this file first, never an ad hoc addition inside a single spec.
 
 ## Fields
 
-A field is written as a line opening with its key in bold, the colon inside the bold, then a space and its value: `**Field Name:** value`. It opens a paragraph, a line of its own within one, or a list item, its marker a hyphen; the hyphen and any indentation before the key are no part of it.
+A field, wherever it is written, a spec's, a working file's or a construct's, is written as a line opening with its key in bold, the colon inside the bold, then a space and its value: `**{Field Label}:** {value}`, each part in braces replaced. It opens a paragraph, a line of its own within one, or a list item, its marker a hyphen; the hyphen and any indentation before the key are no part of it. A bold phrase closing on a dash is a lead-in instead (`specs/methodology/spec-style.md § Bold Lead-ins`).
 
-**Its key —** one the form defining the field declares, so a reader or a script looks a field up by a name it already knows. An unknown key is an error, not a new field, and a field appears only where the form declaring its key places it. A key means what its form defines: two forms may declare the same key, a design document's Status and a follow-up's, or a fact's Type and a steering decision's, each read by the form whose field it is. A key is one or more words separated by single spaces. Each word begins with a capital and is made of letters or digits, a hyphen joining two parts of one word as in `Sign-off`, and the key holds no other punctuation, so it stays plain and matches exactly wherever it is written.
+**Key —** one the form defining the field declares, so a reader or a script looks a field up by a name it already knows. An unknown key is an error, not a new field, and a field appears only where the form declaring its key places it. A key means what its form defines: two forms may declare the same key, a design document's Status and a follow-up's, or a fact's Type and a steering decision's, each read by the form whose field it is. A field's key is a field label, as `Sign-off` or `Default Value` is, so it stays plain and matches exactly wherever it is written.
 
 **Required, or its default value —** each form declaring a field says whether it is required: yes, no, or the condition under which it is. A form declaring other parts in the same table as its fields, sections, say, says the same of each of them. One required under a condition is present where the condition holds and absent where it does not. One that is not required has a default value, which a reader and a script take in its place when it is absent, as a typed language reads a value or its default. A default value of `none` leaves its absence as it is. A field that is not required is written only where its value differs from its default value, so each thing has one way to be said. A form declaring its fields in a table gives a Required and a Default Value column, the default value empty where the field is required, under a condition too; one declaring a field in prose says so in its prose. A required field or part missing is an error, as an unknown key is.
 
-**Its value —** runs from the key to the next line opening with a field's key, or to the end of the paragraph. Where the form defining the field says so, the value is instead a list: the key stands on a line of its own and the list sits directly beneath it, ending at the next line whose very first character opens a field's key, with no list marker or indentation before it, or at the end of its section.
+**Value —** runs from the key to the next line opening with a field's key, or to the end of the paragraph. Where the form defining the field says so, the value is instead a list: the key stands on a line of its own and the list sits directly beneath it, ending at the next line whose very first character opens a field's key, with no list marker or indentation before it, or at the end of its section.
 
-## Bold Lead-ins
+## Defining Constructs
 
-A bold lead-in is a bold phrase, not a field (`§ Fields`), opening a paragraph or a list item to label it for a reader scanning the page. It ends in an em dash inside the bold, with a space before the dash: `**The test —**`. When it introduces the block beneath it, a list, a table or paragraphs, it stands on a line of its own; otherwise the text it introduces follows it on its line. The character closing the bold tells the two apart: a colon makes a field, a dash a lead-in, and a bold phrase opening a line closes on nothing else. Unlike a field, its words are the author's own, defined by no form, so nothing looks one up by name, and nothing cites one (`specs/methodology/sourcing-and-citation.md § Writing a Citation`).
+How every construct's definition and its instances work, stated before any definition in `§ Constructs` relies on it. A construct's section in `§ Constructs` is its definition, and each use of it an instance (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`), as a class and its objects are: every instance is held to the rules of its construct's definition, of each definition that one extends and of each interface they implement. A definition is written in the constructs themselves, as a self-hosted compiler's language states its own rules, so it may use an instance of any construct, one defined after it among them: a table of fields or a `Column | Holds` table in a definition is a Basic Table, held to `§ Constructs § Basic Table`, a table of fields' columns those `§ Constructs § Construct` gives. The audit checks each instance against its definition, as `specs/methodology/scope.md § Rules and Skills` has a rule's checks made.
 
-## Emphasis
+**A shape two definitions share —** a shape alone relates no definitions. Where definitions share what they are, a base they extend or an interface they implement states it once (`§ Defining Constructs § Inheritance`, `§ Defining Constructs § Interfaces and Members`); where they only represent a similar need the same way, each defines what its own need takes, citing neither the other nor the first to use the shape.
 
-Emphasis is italic, `*word*`, on a word or a short phrase inside a sentence, where stress changes what the sentence means. Italic is the one emphasis. Bold marks only a field (`§ Fields`) or a bold lead-in (`§ Bold Lead-ins`), both opening a line. A line never opens with italic, since a phrase opening a line to label it is a lead-in. A point that needs more than italic is given structure instead: its own sentence, a lead-in, or, for a rule that must hold, a Constraint (`§ Constructs § Constraint`).
+**Form or prose —** the line between a construct and prose runs through a construct's own section, the one defining it in `§ Constructs` and a spec's section holding an instance alike, between what its tables write and what the section's prose holds. A thing the prose could state is a column, a field or a form of the construct, with a check, where an outcome the spec states depends on it and the files alone could check what it says, as an exclusive choice's Guard column is, whether a move is taken deciding where the entity goes, or, in an instance, is written nowhere where its tables already give it, as the order of an Algorithm's steps is given by their numbers; where no stated outcome depends on it, it is prose, as an Algorithm's work in words is, which decides nothing; and where a stated outcome depends on it but only a judgment can check what it says, it is prose, and a reading audit asks it, as what a state's work is. Where a stated outcome depends on it and whether the files could check it is arguable, the form is favored, since a rule without a check is a suggestion (`specs/methodology/scope.md § Rules and Skills`), and a form that costs a new construct or a notation is the deliberate decision extending the set, made by updating this file first.
 
-## Literal Text
-
-Backticks mark literal text: something written exactly so elsewhere, a path, a citation, an identifier, a field's key, a heading's title, a value, or a command, so a reader can copy it and a script can match it. A span opens and closes with one backtick, so literal text holds no backtick. A name is not literal text: a product, a method, a company, or a role is written plain, capitalized as a proper noun. A record type's Plural Name is literal where it stands for a section's title, `Open Questions`; the idea it names is plain prose, an open question.
-
-## Constructs
-
-### Declaring a Construct
-
-This section's rules are those of a construct a `**Construct:**` field declares; a table outside any such construct's block is a Basic Table, which takes its rules from `§ Constructs § Basic Table` alone. A declared construct is declared where it is used, so a reader and an audit know it as one. Its declaration is a `**Construct:**` field (`§ Fields`) opening a paragraph of its own before the construct's first table. Its value is the construct's name, as its section under `§ Constructs` is titled: `State Machine`, say. The fields a construct sets for itself, a Decision Table's `**Hit Policy:**` or an Algorithm's `**Inputs:**` and `**Output:**`, follow it in the order this section's table and then its own section's table give them, each opening a paragraph of its own, and its tables follow them. The declaration, its fields and its tables make one block, ending with the last table its form gives: a sentence introducing the construct ends before its `**Construct:**` field, and nothing else sits among them (`specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text`). A record type is declared so too, at the section defining it, and a record section's title names its type by the type's Plural Name (`§ Constructs § Record Form`). A record is named by its identifying fields, as a part is by its identifier.
-
-Each construct's section defines the fields its instances declare (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`), in a table of the shape `§ Constructs § Record Form` sets for a construct's fields. The Decision Table, the State Machine, the DAG, the Algorithm and the Constraint each also declare a Reference Key: the column a citation selects a part of each of its tables by, which every instance takes, as a record type's records take their type's (`§ Constructs § Record Form`). It is one column, or, for a construct of two keyed tables, a list, an item for each in the order its tables come: the table, a colon and its column. It is written as a `**Reference Key:**` field opening a paragraph of its own before the construct's table of fields, or, where it declares no fields, before the paragraph introducing its first table, so it never stands directly before a table as a Basic Table's does. The fields every construct declares, a Record Form neither Order nor Held In, its own section adding its own:
+**A definition's fields —** each a field (`§ Fields`) opening a paragraph of its own, in this table's order and then each member of an interface it sets, directly after the prose opening its section and before any lead-in or table, so a definition's fields always come first:
 
 | Field | Required | Default Value | Values | Holds |
 |---|---|---|---|---|
-| Construct | yes | | `§ Constructs` | its name, as its section under `§ Constructs` is titled, but `Declaring a Construct` and `Basic Table`, which no Construct field names |
-| Order | where the construct leaves open the order it takes its inputs or gives its results in | | text | that order, or `any` where its result is the same in every order, so a result is never left to an order no one chose, unless a Constraint enforced by `nothing:` records that the system leaves it open (`§ Constructs § Constraint`) |
-| Held In | no | none | text | where it is a configured instance (`§ When to Use Which § A Configured Instance`), a list, an item for each table its form gives, in that order: the name of the fact the system holds that table's rows in, as data its users change, a colon and the citation of the Facts record declaring it, as a Decision Table's Reads item is written; the record's Type a list of a context whose entries are named as that table's columns, its Name column among them where it has one, so the data and the written table, its default instance, are held to one shape |
-| Extends | no | none | text | the citation of the construct of the same kind it extends, which it is a sub-definition of (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`), holding everything its base holds and more: its tables hold what it adds, read as one construct with its base |
+| Modifier | no | none | "Abstract", "Interface" | what kind of definition it is, as `§ Defining Constructs § Modifiers` has each; none for a concrete definition, which its instances declare |
+| Extends | where it is neither `§ Constructs § Construct` nor an interface, or is an interface extending interfaces | | text | the citation of the one definition it extends, its base; for an interface, a list of the interfaces it extends |
+| Implements | no | none | text | a list, a citation of each interface it implements |
 
-A fact several constructs test is declared as `§ Constructs § Declaring a Construct § Fact` has it. A Held In naming a fact nothing declares, or one whose Type is no list of a context, or a context whose entries are not the table's columns, or giving an item for other than each table its form gives, and an Extends citing no construct, or one of another kind, and a DAG declaring Held In, or a Record Form declaring Order or Held In, and a construct whose section opens with no description before its Construct field, are reported; a construct declaring Extends is checked for its fields and its tables' form, and for nothing its section checks a whole construct for, since its tables hold a part of one.
+A Modifier, an Implements or a member Specified By Definition, the Locator among them, outside a definition's section is reported.
 
-**One construct to a section —** a section holds at most one declared construct of its own, not counting its subsections', so a citation of the section names the construct. Whatever prose the section needs sits between its heading and the `**Construct:**` field, or after the construct's last table, never inside its block, and another construct, a Constraint on an Algorithm's output say, takes a section of its own. A construct's several tables, a State Machine's States and Transitions, are one construct, and a Basic Table, such as a definition, an index or a catalogue, may sit beside it, declaring no Reference Key, so a bracket on the section names the construct's parts alone.
+**Fields and lead-ins in a definition —** a definition's text uses a field wherever a form declares the key, and a lead-in everywhere else, as any text does (`§ Fields`, `specs/methodology/spec-style.md § Bold Lead-ins`). Its own fields are those this section's table declares; a member it sets is a field its interface's table of members declares; and the fields its instances declare, written in each instance and never in the definition, are its interfaces' members Specified By Instance, the members Specified By Definition Or Instance it leaves to them, and the fields of its own table of fields. Every other bold label in a definition, introducing its fields, its columns, its checks or its naming, is a lead-in, for a reader scanning it.
 
-**Its description —** a construct's section opens with prose saying what the construct models, before its `**Construct:**` field, written for a reader meeting it for the first time, so the specs carry what documentation drawn from them tells the people using the system. A record type's description is the same prose, before its declaration.
+### Inheritance
 
-**Its name —** the heading of the section holding a construct is the construct's name, which its citations and its readers use, and it names a thing, or asks the question the construct answers, never an activity: a State Machine is named for the entity it follows, `Work Order`; a record type for the entity its records are, `Work Order Status`; a Decision Table for what it decides, `Intake Route`; and an Algorithm or a DAG for its process as a thing, `Report Assembly` or `Nightly Pricing`, never `Running payroll` or `Extract Prices`. A section titled for an activity, as `§ Constructs § Declaring a Construct` is, gives its construct a subsection named for what the construct is; one titled for a thing or a question, as `§ When to Use Which` is, holds its construct itself.
+**Extending —** a definition extends at most one base, as single inheritance has it, and every definition but `§ Constructs § Construct` itself and an interface extends it, directly or through its base. It holds everything its base holds, implements every interface its base implements, and states only what it adds: it may add fields, columns and rules, and bound what its base leaves open, never loosen or redefine what its base states, nor declare again a field or a column its base declares. A level is earned by the change test of `specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`, however deep a chain runs. A base's section comes before the section of every definition extending it, so the canon reads top down and no definition extends itself; using a construct needs no such order. An instance extending another instance of its construct is the instance's own `Extends` field (`§ Constructs § Declared Construct`).
 
-**Its columns —** a construct's tables hold every column its form gives and no other, a Name column, a Decision Table's annotations, a State Machine's Guard and Effect, an Algorithm's Terminates and a DAG's guard, timeout and tolerated, where its section gives them, aside, and every cell holds a value, or `none` or `-` where its form gives one, but for a Decision Table's annotation, which may be left empty, and a record type's Default Value, left empty where its field is required (`§ Fields`).
+**Checks —** an Extends citing no definition, or one whose section comes after its own; a definition but an interface citing more than one; a definition but `§ Constructs § Construct` and an interface giving none; and a field or a column a definition declares where a definition it extends declares it, are reported.
 
-#### Part Identifier
+### Modifiers
 
-The form a part's citation takes.
+A definition's Modifier field says what kind of definition it is, from a closed set; one giving none is concrete, its instances declared where they are used.
 
-**A part of a construct —** is named by a citation of the construct's section followed, in square brackets inside the same span, by `Key: value`, the column its construct's Reference Key names and the part's value in that column, its identifier (`§ Constructs § Declaring a Construct`), as a record is named by its identifying fields (`specs/methodology/sourcing-and-citation.md § Writing a Citation`), so a reader and an audit can find the part and check it is there. A part is named so wherever it is named from outside its construct's section; within the section, the construct's cells and the prose around it name it by its value alone, as a jump names a step. A citation names one part, and several parts take a citation each.
+**Abstract —** a definition no instance declares: a base stating once what the definitions extending it share, as `§ Constructs § Construct` and `§ Constructs § Tabular Construct` are. How it may leave an interface's member to the definitions extending it is `§ Defining Constructs § Interfaces and Members`'.
 
-A table its construct's Reference Key names `Name` for opens with a column headed `Name` exactly where a part of it is cited from outside its construct's section: the column comes with the first such citation and goes with the last, and while it is there every row gives a Name. No condition or outcome column is headed `Name`.
+**Interface —** a contract definitions on different branches implement, never a base they extend: a capability they share, stated once, never a mixin bringing its contents into a definition unseen, implemented as `§ Defining Constructs § Interfaces and Members` has it.
 
-Each part's identifier, its value under its construct's key, is an identifying value (`§ Constructs § Record Form`), and no two parts of one kind in a construct share one. A state's name and a task's name also hold no comma and not the word `and`, since a From, a To and a depends_on list them by those, and a task's name does not end in the word `ended`, since a depends_on marks by it a task waited for however it ended. An Algorithm's steps are numbered from 1 in order.
+No definition is both abstract and an interface. A Construct field naming an abstract definition or an interface, and a Modifier neither `Abstract` nor `Interface`, are reported.
+
+### Interfaces and Members
+
+**Implementing an interface —** a definition implements as many interfaces as it needs, citing each in its Implements field, composition by reference (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`), and implements every interface its base implements; an interface extends one or more interfaces, its contracts carrying no structure to collide, and a definition implementing it implements those too. An interface's section comes after `§ Constructs § Construct` and before the section of every definition implementing it or extending it.
+
+**Members —** what an interface asks of each definition implementing it, each a field, given in the interface's table of members: a table of fields (`§ Constructs § Construct`) with a `Specified By` column after `Field`, saying who sets the field, a row's Required, Default Value and Values how it is set, by whoever its Specified By names:
+
+| Specified By | A Member |
+|---|---|
+| Definition | set by every concrete definition implementing the interface, in a field of its own, every instance alike, and declared by no instance; an abstract definition may leave it to the definitions extending it |
+| Instance | declared by each instance as the interface's row has it, and set by no definition |
+| Definition Or Instance | set by a definition, every instance alike, or left to each instance, declared as the interface's row has it; an instance never declares one its definition sets |
+
+A definition leaving a member to its instances may narrow it by a row of its own table of fields, as `§ Constructs § Record Form` requires its Reference Key where a type extends no other; it never removes one, a member some of an interface's implementers cannot take being an interface of its own, which only those taking it implement. A member a definition sets is never set again by its instance or by a definition extending it. A definition's own fields, those `§ Defining Constructs`' table declares, are never an interface's members. Declared Construct's Extends, which an instance declares, and a definition's own Extends share a key and are two fields, each read by the form declaring it (`§ Fields`).
+
+**Checks —** an Implements citing what is no interface, or one whose section comes after its own; an interface whose section comes before `§ Constructs § Construct`'s, an interface extending what is no interface, and a definition extending an interface; a member Specified By Definition a concrete definition implementing its interface leaves unset, and one Specified By Instance a definition sets; a field a definition sets or narrows that is a member of no interface it implements, its bases' and the interfaces they extend among them; a member set where a definition it extends sets it; and an instance declaring a member its definition sets, are reported.
+
+### References and Names
+
+**A reference to a definition —** a Construct field, and a definition's Extends or Implements field, is the citation of the definition it names, an instance's Extends citing the instance it extends (`§ Constructs § Declared Construct`), (`specs/methodology/sourcing-and-citation.md § Writing a Citation`), locally qualified as any citation is, its path left out only within the definition's own file: `specs/methodology/modeling-constructs.md § Constructs § Decision Table` in any other file. Its citation, not its name, keeps a definition apart from every other, a construct an application defines among them. A Construct field that is no citation of its construct's definition, locally qualified, is reported, but a bare name in the application specs, read so until they are migrated.
+
+**A definition's name —** says what its instances are, or, for a definition others build on, what it adds to a construct, as `Tabular Construct` and `Keyed Construct` do, and stands on its own wherever it is read, never a bare adjective or a participle, so a name is chosen for its reader; the reading audit judges it.
+
+### Declaring a Construct
+
+**Recognized by their shape —** some forms are so basic that a reader and an agent know them on sight and need nothing to say what they are: a field, a bold key and its value (`§ Fields`), and a Basic Table, any table outside a declared construct's block (`§ Constructs § Basic Table`). Every other construct names itself: it implements `§ Constructs § Declared Construct`, its instance opening with a `**Construct:**` field citing its definition.
+
+**The block —** the `**Construct:**` field (`§ Fields`) opens a paragraph of its own before the construct's first table. The fields a construct sets for itself, a Decision Table's `**Hit Policy:**` or an Algorithm's `**Inputs:**` and `**Output:**`, follow it in the order the tables of the interfaces it implements give the members its instances declare, in its Implements' order, and then its own section's table, a member its own table narrows taking its place there, each opening a paragraph of its own, and its tables follow them. The declaration, its fields and its tables make one block, ending with the last table its form gives, nothing else sitting among them (`specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text`).
+
+**One construct to a section —** a section holds at most one declared construct of its own, not counting its subsections', so a citation of the section names the construct. Whatever prose the section needs sits between its heading and the `**Construct:**` field, or after the construct's last table, never inside its block, and another construct, a Constraint on an Algorithm's output say, takes a section of its own. A construct's multiple tables, a State Machine's States and Transitions, are one construct, and a Basic Table, such as a definition, an index or a catalogue, may sit beside it, as `§ Constructs § Basic Table` has a Basic Table beside a construct, so a bracket on the section names the construct's parts alone.
 
 #### Fact
 
-A fact several constructs test, where it is one fact by `specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`, is declared once, as DMN's item definition is (`specs/methodology/external-references.md § External References [Name: DMN]`). It narrows the item definition to a value of one type FEEL names, a list, a context or a function among them, and adds the unit a number is counted in, the decimal places a value written to it is rounded to, the FEEL function a derived value is given by, its value as its entity is created, whether the fact may be absent and what it means. A fact's name is words separated by single spaces, each opening with a letter and holding letters, digits and apostrophes, a hyphen joining two runs of them, but a boolean fact's, which is a question, any words ending in a question mark; its first word is none FEEL keeps for itself (`specs/methodology/expressions.md § Expressions § FEEL § Names`); and its Values are values, never a fact's name. Its Initial Value is UML's default value, a Property's defaultValue evaluated when an instance is created, its section 9.5.3 (`specs/methodology/external-references.md § External References [Name: UML]`). A Decision Table names a fact it tests as `§ Constructs § Decision Table` sets. A file's facts sit in its record section of this type, a record type (`§ Constructs § Record Form`), in the file whose subject owns them:
+A fact multiple constructs test, where it is one fact by `specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`, is declared once, as DMN's item definition is (`specs/methodology/external-references.md § External References [Name: DMN]`). It narrows the item definition to a value of one type FEEL names, a list, a context or a function among them, and adds the unit a number is counted in, the decimal places a value written to it is rounded to, the FEEL function a derived value is given by, its value as its entity is created, whether the fact may be absent and what it means. A fact's name is words separated by single spaces, each opening with a letter and holding letters, digits and apostrophes, a hyphen joining two runs of them, but a boolean fact's, which is a question, any words ending in a question mark; its first word is none FEEL keeps for itself (`specs/methodology/expressions.md § Expressions § FEEL § Names`); and its Values are values, never a fact's name. Its Initial Value is UML's default value, a Property's defaultValue evaluated when an instance is created, its section 9.5.3 (`specs/methodology/external-references.md § External References [Name: UML]`). A Decision Table names a fact it tests as `§ Constructs § Decision Table` sets. A file's facts sit in its record section of this type, a record type (`§ Constructs § Record Form`), in the file whose subject owns them:
 
-**Construct:** Record Form
+**Construct:** `§ Constructs § Record Form`
 
 **Plural Name:** Facts
 
@@ -109,19 +102,141 @@ A fact several constructs test, where it is one fact by `specs/methodology/sourc
 | May Be Absent | no | no | No | "Yes", "No" | whether it may have no value |
 | Means | no | yes | | text | what the fact is |
 
+**Checks —** a Facts record whose name is no fact's name, opens with a word FEEL keeps, or, a boolean fact's, asks no question, or whose Values are empty, written plain, in no form of FEEL's unary tests, or name a fact, or cite no record section of a type identifying its records by one field, or cite one on a fact whose Type is not `string`, or whose Type is no type FEEL names, or whose Decimal Places is neither a whole number nor a fact its file declares, or sits on a fact that is neither a number nor a function giving one, or whose Derivation sits on a fact that is no function, or is in no form of a FEEL function, or whose Initial Value is in no form FEEL has or of another kind than its Type, is reported.
+
+## Constructs
+
+The definitions, each held to `§ Defining Constructs`.
+
+### Construct
+
+The root every other definition but an interface extends, holding what every construct shares: an instance's fields, given by its definition, so every construct's fields are declared one way and checked alike.
+
+**Modifier:** Abstract
+
+**Fields —** an instance declares only the fields its definition gives (`§ Fields`), those of each interface it implements among them. A definition gives them in a table of fields, as is each table of fields the definitions under `§ Constructs` are written with, a row to each field, its columns each headed by a field label:
+
+| Column | Holds |
+|---|---|
+| `Field` | the field's key |
+| `Required` | whether it must be given, yes, no, or the condition under which it must, by an instance, by a definition for its own fields, or, in an interface's table of members, by whoever its Specified By names |
+| `Default Value` | its default value, empty where it is required, as `§ Fields` has it |
+| `Values` | the values it may hold, as Values has them |
+| `Holds` | what is stated in it |
+
+Every cell holds a value but a required field's Default Value.
+
+**Checks —** an instance declaring a field its definition does not give, a record type's table of fields holding a row of more or fewer cells than its header, a cell holding no value but a required field's Default Value, and a Values cell in none of Values' forms, are reported.
+
+**Values —** what a field may hold: a list of its values, each in double quotes and separated by commas, which the audit checks every value against; a citation of the section that lists them, a closed set's record section among them, whose records' identifying values the audit checks every value against too; or `text`, any value its Holds describes.
+
+### Declared Construct
+
+What a construct that names itself shares, every construct but the Basic Table, a form recognized by its shape (`§ Defining Constructs § Declaring a Construct`): each instance opens with a `**Construct:**` field, so a reader and an audit know it as one wherever it sits, and is described and named as this section has it.
+
+**Modifier:** Interface
+
+**Members —** the fields every instance declares:
+
+| Field | Specified By | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Construct | Instance | yes | | text | the citation of its construct's definition (`§ Defining Constructs § References and Names`), a concrete definition implementing this one |
+| Extends | Instance | no | none | text | the citation of the construct of the same kind it extends, which it is a sub-definition of (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`), holding everything its base holds and more: its tables hold what it adds, read as one construct with its base |
+
+An Extends citing no construct, or one of another kind, and a construct whose section opens with no description before its Construct field, are reported; a construct declaring Extends is checked for its fields and its tables' form, and for nothing its section checks a whole construct for, since its tables hold a part of one.
+
+**Description —** a construct's section opens with prose saying what the construct models, before its `**Construct:**` field, written for a reader meeting it for the first time, so the specs carry what documentation drawn from them tells the people using the system. A record type's description is the same prose, before its declaration.
+
+**Name —** the heading of the section holding a construct is the construct's name, which its citations and its readers use: it names a thing, as `Payroll Run`, or asks the question the construct answers, never an activity, as `Running payroll`. A section titled for an activity gives its construct a subsection named for what the construct is, as `§ Defining Constructs § Declaring a Construct` gives its Fact; one titled for a thing or a question, as `§ When to Use Which` is, holds its construct itself. Not every construct is named, a form recognized by its shape, as a Basic Table is, naming nothing, and a definition's own guidance for naming its instances is optional, given only where the construct has guidance of its own, its instances otherwise left to this rule. This guides the names of a construct's instances, so a definition no instance declares, an abstract definition or an interface, gives none; its own name is guided by `§ Defining Constructs § References and Names`.
+
+### Ordered Construct
+
+What a construct whose result could depend on the order it takes its inputs or gives its results in shares: that order stated, never left to one no one chose.
+
+**Modifier:** Interface
+
+**Members —** the order, as an instance declares it:
+
+| Field | Specified By | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Order | Instance | where the construct leaves open the order it takes its inputs or gives its results in | | text | that order, or `any` where its result is the same in every order, so a result is never left to an order no one chose, unless a Constraint enforced by `nothing:` records that the system leaves it open (`§ Constructs § Constraint`) |
+
+### Configured Construct
+
+What a construct whose rows, states or steps the system stores as data shares, as `§ When to Use Which § A Configured Instance` has a configured instance: the facts holding that data named, its written tables an example of it, so the data its users change is held to a shape the specs write and the audit checks.
+
+**Modifier:** Interface
+
+**Members —** where the data is held, as an instance declares it:
+
+| Field | Specified By | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Held In | Instance | no | none | text | where it is a configured instance (`§ When to Use Which § A Configured Instance`), a list, an item for each table its form gives, in that order: the name of the fact the system holds that table's rows in, as data its users change, a colon and the citation of the Facts record declaring it, as a Decision Table's Reads item is written; the record's Type a list of a context whose entries are named as that table's columns, its Name column among them where it has one, so the data and the written table, an example of it, are held to one shape |
+
+A Held In naming a fact nothing declares, or one whose Type is no list of a context, or a context whose entries are not the table's columns, or giving an item for other than each table its form gives, is reported.
+
+### Keyed Construct
+
+What a construct whose instances' parts are cited shares: a part of an instance selected by a citation naming its key's values (`specs/methodology/sourcing-and-citation.md § Writing a Citation`), so any part of a keyed instance is cited, and its citation checked, the same way.
+
+**Modifier:** Interface
+
+**Members —** its key, and how a key reaches a part:
+
+| Field | Specified By | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Reference Key | Definition Or Instance | no | none | text | what selects one part: the names of its key's columns or fields, in order and separated by commas, one key, multiple naming one part together, as a tuple does; or, where its construct keeps its keys in more than one place, a list, an item to each place, the path to its key |
+| Locator | Definition | yes | | text | where its instances keep their keys, and how a key or a path to it reaches one part, so an agent reading the definition knows how to reach a keyed target |
+
+**Parts —** each part's values under its key are its identifying values, unique, alone or together, among the parts of the section a citation of them names, and a citation's value matches one exactly. An identifying value is short, kept stable for its part's life, and plain text on one line, with no Markdown, backtick, `§`, `;` or `]`, since a citation names one part by its identifying values (`specs/methodology/sourcing-and-citation.md § Writing a Citation`).
+
+**Checks —** a part's key value that is not plain text, two parts of one section sharing their key's values, a definition's Reference Key giving no path to a column of each place where its instances keep their keys in more than one, and a citation written as no key its construct has, or matching no part, are reported.
+
+**Key or a path to it —** a construct whose instances keep their keys in one place is cited by its key alone, `[Name: Session Timeout]`; one keeping them in more than one place, multiple keyed tables or nested constructs, by a path to the key, its levels joined by dots, `one.two.three.key`, in its Reference Key, an item to each place its keys are kept, in the order they come, and in every citation of one of its parts, `[Table.Key: value]`. It is JSONPath's dot notation for a member's name (`specs/methodology/external-references.md § External References [Name: JSONPath]`), naming the path to the key and nothing more, as a column qualified by its table is written. Each level is a field label, the name its definition gives the place or the key, so the dots always part the levels.
+
+#### Part Identifier
+
+The form a part's citation takes, Keyed Construct's contract applied to a construct's parts.
+
+**A part of a construct —** is named as `§ Constructs § Keyed Construct` has a part named, its value under its construct's key its identifier, so a reader and an audit can find the part and check it is there. A part is named so wherever it is named from outside its construct's section; within the section, the construct's cells and the prose around it name it by its value alone, as a jump names a step. A citation names one part, and multiple parts take a citation each.
+
+A table its construct's Reference Key names `Name` for opens with a column headed `Name` exactly where a part of it is cited from outside its construct's section: the column comes with the first such citation and goes with the last, and while it is there every row gives a Name.
+
+### Tabular Construct
+
+The tabular structure every construct extending it takes: a table of rows and columns, any number of each, which a construct extending it may bound, its columns, its rows or both. A table is the one representation that is precise, referable row by row, readable in plain text with no rendering step, and parseable without ambiguity, which is why a construct whose instances write rows extends this one.
+
+**Modifier:** Abstract
+
+**Extends:** `§ Constructs § Construct`
+
+**A field-label column —** a column headed by a field label (`specs/methodology/glossary.md`) is a field of each row, as a record's field is (`§ Constructs § Record Form`): its header names what every cell in it holds, and each cell holds the row's value of it.
+
+**Columns —** a construct extending it gives the columns its tables take in a `Column | Holds` table, introduced by a sentence saying which of them are headed by field labels: a row to each column, its header in backticks, or, where a table takes any number of columns of a kind, a row to that kind, named in words, in the order the table gives them. Each row says what the column's cells hold, and, for a column headed by no field label, what its header represents.
+
+**What its tables hold —** an instance's tables hold every column its definition gives and no other, a column its definition gives as optional written only where its definition says, and every cell holds a value, or `none` or `-` where its definition gives one, but a cell its definition lets stand empty.
+
+**Checks —** an instance's table headed otherwise than its definition gives, a row of more or fewer cells than its header, a cell holding no value where its definition gives it none, and `none` or `-` where its definition gives neither, are reported.
+
 ### Decision Table
 
-A table deciding what follows for a case. Each row states, in its condition columns, the cases it matches, and in its outcome columns what follows for them. A rule that is a lookup, one condition sending its cases to more than two outcomes, is authored as a Decision Table with a single condition column, and a decision whose conditions are asked in an order is one too, as A tree of questions has it.
+A table deciding what follows for a case, so every case a rule decides is written down and checked for one that two rows decide or none does. Each row states, in its condition columns, the cases it matches, and in its outcome columns what follows for them. A rule that is a lookup, one condition sending its cases to more than two outcomes, is authored as a Decision Table with a single condition column, and a decision whose conditions are asked in an order is one too, as A tree of questions has it.
 
-| Condition | ... | Outcome | ... |
-|---|---|---|---|
-| ... | ... | ... | ... |
+It is the decision table of DMN, the Object Management Group's Decision Model and Notation (`specs/methodology/external-references.md § External References [Name: DMN]`), and its cells, its computed headers and its computed outcomes are written in FEEL, DMN's expression language, adopted whole as `specs/methodology/expressions.md § Expressions § FEEL` states it, its departure for a cell a word written plain. DMN's information requirements, chaining one decision to another, are written as a table's Reads field; DMN's other parts, its Decision Requirements Diagrams, its Business Knowledge Models, its decision services and its boxed expressions, are outside the set, and a project needing one adds it so. That file and the hit policies this section gives are all an author needs, so an agent that cannot fetch DMN, or does not know it, loses nothing a Decision Table relies on.
 
-It is the decision table of DMN, the Object Management Group's Decision Model and Notation (`specs/methodology/external-references.md § External References [Name: DMN]`), and its cells, its computed headers and its computed outcomes are written in FEEL, DMN's expression language, adopted whole as `specs/methodology/expressions.md § Expressions § FEEL` states it, its departure for a cell a word written plain. That file and the hit policies this section gives are all an author needs, so an agent that cannot fetch DMN, or does not know it, loses nothing a Decision Table relies on.
+**Extends:** `§ Constructs § Tabular Construct`
+
+**Implements:**
+- `§ Constructs § Declared Construct`
+- `§ Constructs § Ordered Construct`
+- `§ Constructs § Configured Construct`
+- `§ Constructs § Keyed Construct`
 
 **Reference Key:** Name
 
-**Its fields —** after those every construct declares (`§ Constructs § Declaring a Construct`):
+**Locator:** a row of its table, matched by its Name column, its keys kept in one place, so a citation writes its key alone, `[Name: …]`
+
+**Fields —** after those its interfaces give:
 
 | Field | Required | Default Value | Values | Holds |
 |---|---|---|---|---|
@@ -134,11 +249,20 @@ It is the decision table of DMN, the Object Management Group's Decision Model an
 | Output Values | where its hit policy is Priority or Output order | | text | a list, an item for each outcome column it ranks by: its header, a colon, and its values as strings in double quotes separated by commas, highest priority first, the one writing of DMN's output values a ranking reads |
 | Default Output | no | none | text | the outcome where no row matches: a value, or, with several outcome columns, a list, an item for each: its header, a colon and its value |
 
-**Its columns —** its condition columns come first, after a Name column where it has one (`§ Constructs § Declaring a Construct`). Its outcome columns follow them, one or more of each, and then its annotations, columns that only describe or illustrate a row, which neither the match nor the check reads. Its `**Conditions:**` field names its condition columns, a lookup's one among them, so which columns are conditions is declared, never inferred. A condition's or an annotation's header holds no comma, and no header an Input Values or Output Values item names holds a colon, since those fields separate headers by them. An outcome cell outside a Computed column is never written as a test, `-`, `not(…)`, a comparison or a range, nor as a list, which would show a condition declared an outcome. Its `**Annotations:**` field names its annotations.
+Its columns are of these kinds, `Name` and each annotation headed by a field label:
 
-**Its facts —** each condition column tests one fact. Its header names the fact, as `§ Constructs § Declaring a Construct § Fact` has a fact's name written. Where the column tests a value computed from facts, its header is that computation in FEEL instead, DMN's input expression (DMN 8.2.3): a header holding `+`, `*`, `/`, `<`, `>`, `=`, a bracket, a parenthesis, a minus between spaces or a dot between two words, a path such as `installment.due date`, computes, and no other does, so a word such as `and`, `in` or `between` leaves a header a name. A computed header holds no comma, so its functions take one argument and it writes no list. A question, a header ending in a question mark, names a boolean fact, its values `true` and `false`, however its words read. A fact its file's Facts section declares by its name (`§ Constructs § Declaring a Construct § Fact`) is typed by that record: its column's cells test values of its Type, and its Values, or a question's `true` and `false`, are the column's values, so the table's Input Values field gives it no item; `null` joins them, and tests it, only where it may be absent. A fact or an outcome read from elsewhere is an item of the `**Reads:**` field, its name beside the citation of the Facts record declaring it or of the construct deciding it, so a table reads another's outcome as one of its facts, DMN's information requirement (DMN 6.3.13); a fact so read is typed by its record, as a fact its file declares is, wherever the record sits. A cell, a computed header or a computed outcome names only a condition's fact, a fact its file's Facts section declares, or a Reads item, and a cell ends only at a fact of its column's kind.
+| Column | Holds |
+|---|---|
+| `Name` | the row's name (`§ Constructs § Keyed Construct § Part Identifier`) |
+| a condition | the tests its cells make of the value its header names, as Facts has it |
+| an outcome | what follows for the row's cases, under its header's name |
+| an annotation | what describes or illustrates the row |
 
-**Its cells —** a row matches a case only when all its conditions hold. Each condition cell holds only what tests its condition, what explains or illustrates the value going in an annotation, and tests it by FEEL's unary tests (`specs/methodology/expressions.md § Expressions § FEEL § Unary Tests`), which say what it means, or by a value written plain. The table's checks of overlap and coverage decide a table whose every cell is in one of the forms the checks read and ends at no fact, and the reading audit reads any other table for them.
+**Columns —** its condition columns come first, after a Name column where it has one (`§ Constructs § Keyed Construct § Part Identifier`), and no condition or outcome column is headed `Name`. Its outcome columns follow them, one or more of each, and then its annotations, columns that only describe or illustrate a row, which neither the match nor the check reads, a cell of one left empty where it has nothing to add. Its `**Conditions:**` field names its condition columns, a lookup's one among them, so which columns are conditions is declared, never inferred. A condition's header holds no comma, and no header an Input Values or Output Values item names holds a colon, since those fields separate headers by them. An outcome cell outside a Computed column is never written as a test, `-`, `not(…)`, a comparison or a range, nor as a list, which would show a condition declared an outcome. Its `**Annotations:**` field names its annotations.
+
+**Facts —** each condition column tests one fact. Its header names the fact, as `§ Defining Constructs § Declaring a Construct § Fact` has a fact's name written. Where the column tests a value computed from facts, its header is that computation in FEEL instead, DMN's input expression (DMN 8.2.3): a header holding `+`, `*`, `/`, `<`, `>`, `=`, a bracket, a parenthesis, a minus between spaces or a dot between two words, a path such as `installment.due date`, computes, and no other does, so a word such as `and`, `in` or `between` leaves a header a name. A computed header holds no comma, so its functions take one argument and it writes no list. A question, a header ending in a question mark, names a boolean fact, its values `true` and `false`, however its words read. A fact its file's Facts section declares by its name (`§ Defining Constructs § Declaring a Construct § Fact`) is typed by that record: its column's cells test values of its Type, and its Values, or a question's `true` and `false`, are the column's values, so the table's Input Values field gives it no item; `null` joins them, and tests it, only where it may be absent. A fact or an outcome read from elsewhere is an item of the `**Reads:**` field, its name beside the citation of the Facts record declaring it or of the construct deciding it, so a table reads another's outcome as one of its facts, DMN's information requirement (DMN 6.3.13); a fact so read is typed by its record, as a fact its file declares is, wherever the record sits. A cell, a computed header or a computed outcome names only a condition's fact, a fact its file's Facts section declares, or a Reads item, and a cell ends only at a fact of its column's kind.
+
+**Cells —** a row matches a case only when all its conditions hold. Each condition cell holds only what tests its condition, what explains or illustrates the value going in an annotation, and tests it by FEEL's unary tests (`specs/methodology/expressions.md § Expressions § FEEL § Unary Tests`), which say what it means, or by a value written plain. The table's checks of overlap and coverage decide a table whose every cell is in one of the forms the checks read and ends at no fact, and the reading audit reads any other table for them.
 
 The forms the checks read are these:
 
@@ -155,15 +279,15 @@ A condition column's cells, and its Input Values, test values of one kind, words
 
 An outcome decided when any one of several conditions holds is written as a row for each; under Unique, the rows are written so no case matches two. For an outcome decided when condition A is a or condition B is b, one row tests A for `a`, with `-` for B, and another tests A by `not(a)` and B for `b`.
 
-**Its outcomes —** an outcome cell holds a value, what the case is sent to. It is never an action done, the canon's rule: evaluating a table changes nothing, FEEL having no side effects, DMN 10.3, and a table's input expressions none on one another, DMN 8.2.8, so what acts on the outcome is the construct running the table. What becomes of a request, turned away for a reason or taken, is such an outcome, as `§ Constructs § Decision Table § A Request Turned Away` has it. It is written as a condition's cell writes one, a word plain or quoted alike, a number, a date, a date and time, a time, a duration, `true`, `false` or `null`, a question's outcome `true`, `false` or `null` alone. A column its `**Computed:**` field names holds in each cell a FEEL expression over the facts a cell may name, as `principal * rate` (DMN 8.2.10, 8.3.3). A FEEL expression, in a computed outcome or a computed header, is any FEEL writes (`specs/methodology/expressions.md § Expressions § FEEL § Its Expressions`), naming only those facts and the functions FEEL builds in, a word in it written in quotes; and an outcome computed by a walk whose order changes it cites the Algorithm doing it. Its outcome columns are decided by its conditions together, and an outcome other conditions decide is a table of its own, a part needing both citing both.
+**Outcomes —** an outcome cell holds a value, what the case is sent to. It is never an action done, the canon's rule: evaluating a table changes nothing, FEEL having no side effects, DMN 10.3, and a table's input expressions none on one another, DMN 8.2.8, so what acts on the outcome is the construct running the table. What becomes of a request, turned away for a reason or taken, is such an outcome, as `§ Constructs § Decision Table § A Request Turned Away` has it. It is written as a condition's cell writes one, a word plain or quoted alike, a number, a date, a date and time, a time, a duration, `true`, `false` or `null`, a question's outcome `true`, `false` or `null` alone. A column its `**Computed:**` field names holds in each cell a FEEL expression over the facts a cell may name, as `principal * rate` (DMN 8.2.10, 8.3.3). A FEEL expression, in a computed outcome or a computed header, is any FEEL writes (`specs/methodology/expressions.md § Expressions § FEEL § Its Expressions`), naming only those facts and the functions FEEL builds in, a word in it written in quotes; and an outcome computed by a walk whose order changes it cites the Algorithm doing it. Its outcome columns are decided by its conditions together, and an outcome other conditions decide is a table of its own, a part needing both citing both.
 
-**Its values —** an `**Input Values:**` field gives a condition's possible values, as DMN's input values do, for each condition it names. A question takes no item, Its facts giving its values. A cell naming a value they do not hold, or matching none they hold, is outside them. Where every condition gives them, the table takes one row's outcome and no cell tests against a fact, whether every case matches a row is decided rather than read. An `**Output Values:**` field gives, for each outcome column a Priority or an Output order table ranks by, its values as a list, highest priority first, and is written for no other hit policy; where it names several columns, rows rank by the first, then by the next where they tie. A case matching no row takes the table's Default Output where it gives one, and `null` where it does not, under every hit policy (DMN 10.3.2.10); a `**Default Output:**` field, optional, gives that outcome. A table taking every row a case matches, Rule order, Output order or a Collect, is not checked for a case no row matches, `null` there meaning that no row applies. Under First, the outcome where no other row matches is a last row testing nothing, `-` in every condition, which a Name can cite, never a Default Output, the one of DMN's two writings the section keeps. A Default Output written `none` is the field absent, so an outcome meaning that nothing follows takes a word of its own.
+**Values —** an `**Input Values:**` field gives a condition's possible values, as DMN's input values do, for each condition it names. A question takes no item, Facts giving its values. A cell naming a value they do not hold, or matching none they hold, is outside them. Where every condition gives them, the table takes one row's outcome and no cell tests against a fact, whether every case matches a row is decided rather than read. An `**Output Values:**` field gives, for each outcome column a Priority or an Output order table ranks by, its values as a list, highest priority first, and is written for no other hit policy; where it names several columns, rows rank by the first, then by the next where they tie. A case matching no row takes the table's Default Output where it gives one, and `null` where it does not, under every hit policy (DMN 10.3.2.10); a `**Default Output:**` field, optional, gives that outcome. A table taking every row a case matches, Rule order, Output order or a Collect, is not checked for a case no row matches, `null` there meaning that no row applies. Under First, the outcome where no other row matches is a last row testing nothing, `-` in every condition, which a Name can cite, never a Default Output, the one of DMN's two writings the section keeps. A Default Output written `none` is the field absent, so an outcome meaning that nothing follows takes a word of its own.
 
 **What is one —** a table that defines each case of a closed set and states what follows for it is a Decision Table, since it decides, unless it is another construct's own table, a State Machine's transitions or an Algorithm's steps, say. A table saying only what a term, a value, a form or an example is, or where something is stated, decides nothing: it is a definition, an index or a catalogue, a Basic Table. So is a table whose rows sample an open set of cases, since it cannot be checked for a case it leaves out. A closed set a product spec defines, its members each with fields saying what it is, is the records of a record type, deciding nothing (`§ Constructs § Record Form`).
 
-**Its hit policy —** which of the rows a case matches give it its outcome, named in a `**Hit Policy:**` field as DMN names it, its default value DMN's default, as its table of fields gives:
+**Hit policy —** which of the rows a case matches give it its outcome, named in a `**Hit Policy:**` field as DMN names it, its default value DMN's default, as its table of fields gives:
 
-| Hit policy | A case |
+| Hit Policy | A Case |
 |---|---|
 | Unique | matches one row at most, since no two rows can match one case |
 | Any | may match several rows, each giving the same outcome |
@@ -182,7 +306,7 @@ A table taking the outcome of every row it matches, Rule order, Output order or 
 
 Where a support ticket is sent: by its severity, then a known fix, then its plan.
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Hit Policy:** First
 
@@ -203,43 +327,78 @@ Where a support ticket is sent: by its severity, then a known fix, then its plan
 
 Whether a known fix matches is never asked of a critical ticket, and the plan only of one no fix matches, as the tree would ask them; which fix matches, a decision of its own, would be a table of its own, read by the Reads of a table testing it.
 
+**Name —** a Decision Table is named for what it decides, `Intake Route`.
+
+**Checks —** an instance is reported for:
+
+- a cell in no form FEEL or its departure for a cell has, a value tested after `=`, or a condition column testing values of more than one kind;
+- an expression or a cell in no form FEEL has, naming what no fact, binding or function names, combining values of two kinds, reaching by a path a part a value does not hold, calling a function FEEL does not build in, or giving one a number of arguments none of its signatures takes, a minus before what is neither a number nor a duration, a filter testing neither a yes or no nor a place, or an `@` value in no form;
+- a question's outcome other than `true`, `false` or `null`;
+- a condition's header neither a fact's name nor a computation;
+- an annotation's header that is no field label;
+- a cell, a computed header or a computed outcome naming a fact nothing declares, or combining values of two kinds, or a cell ending at a fact of another kind than its column;
+- a Reads item that is no fact's name, a colon and a citation, or a Computed field naming no outcome column;
+- a condition column of a table of two or more rows holding one and the same cell in every row, `-`, or one test where it takes one row's outcome and gives no Default Output, a configured instance's aside;
+- a cell testing another kind than its fact's Type, or `null` where its fact may not be absent;
+- an Input Values item given for a fact a Facts record declares, empty, written plain, in no form of FEEL's unary tests, or naming a fact;
+- a cell outside its column's values;
+- where it takes one row's outcome and gives no Default Output, a case no row matches;
+- a First table falling through by a Default Output;
+- a row that gives no case its outcome;
+- an outcome cell outside a Computed column written as a test or a list;
+- and, by its hit policy, a case two rows match where it is Unique, two rows a case matches giving different outcomes where it is Any, an outcome missing from its Output Values where it is Priority or Output order, an aggregating Collect's outcome other than one column, of numbers but for a count, or a case two rows match whose outcomes cannot both be carried out where it is Rule order, Output order or a Collect that does not aggregate.
+
 #### A Request Turned Away
 
-A check the system makes of a request, a command, an action asked for or a record saved, deciding whether it goes on and, where it does not, for what reason, is a Decision Table over the request where `§ Purpose` counts it a construct, its outcomes the reasons and what becomes of the request otherwise; a check of one fact turning a request away or taking it is prose, by that count. It is no Constraint, which states what holds (`§ Constructs § Constraint`): a request turned away is an outcome the system chooses.
+A check the system makes of a request, a command, an action asked for or a record saved, deciding whether it goes on and, where it does not, for what reason, is a Decision Table over the request where `§ When to Use Which` counts it a construct, its outcomes the reasons and what becomes of the request otherwise; a check of one fact turning a request away or taking it is prose, by that count. It is no Constraint, which states what holds (`§ Constructs § Constraint`): a request turned away is an outcome the system chooses.
 
 - **The first reason, or every one —** under First, the rows stand in the order the system checks, a reason's row and a row sending the request on ranked by that order, and the last row tests nothing and takes the request. Under Rule order, the rows are the reasons alone, every one that applies given in the rows' order, and a request no row matches is taken, the table giving `null`; what becomes of a taken request otherwise, held or sent elsewhere, is chosen in its own right, once no reason applies.
 - **Stage by stage, or item by item —** reasons given a stage at a time are an Algorithm running each stage's table in turn and ending at the first stage that gives one; reasons given for each item of a list, its loop running the table on each.
 - **What runs it —** an Algorithm's step runs the table, and the Algorithm ends where the request is turned away, its Output giving the outcome; a State Machine's transitions, or a DAG's tasks, are guarded by the outcome the table gives. The table runs before any write it guards. A request turned away completes its run, which is no failure, so nothing it wrote is undone (`§ Constructs § Constraint`, its paragraph When it holds).
-- **What it keeps —** a rule holding of what the system stores, which no taken request can break, is a Constraint `always`, Enforced by the rows turning away the requests that would break it, each cited by its Name. A precondition, a rule `before` the operation, is what the operation relies on, Enforced by the parts of what runs the operation that make it hold; the check this section writes is never one.
+- **What it keeps —** a rule holding of what the system stores, which no taken request can break, is a Constraint `always`, Enforced By the rows turning away the requests that would break it, each cited by its Name. A precondition, a rule `before` the operation, is what the operation relies on, Enforced By the parts of what runs the operation that make it hold; the check this section writes is never one.
 - **An action a state does not allow —** a protocol machine refuses it by its structure, the reasons it distinguishes being this table over the request (`§ Constructs § State Machine § What It Means`).
 
 ### DAG
 
-A table of distinct tasks in an acyclic process: each the construct doing its work, the tasks it waits for, and, where it has them, its guard, its timeout and whether its failure is tolerated. Every task is considered on every run, and the tasks nothing orders run at once. It is UML's activity (`specs/methodology/external-references.md § External References [Name: UML]`), adopted whole and written as a table of tasks forked and joined, with no tie to any engine, so it maps onto the DAG an orchestrator such as Airflow, Dagster or Argo Workflows defines; `§ Constructs § DAG § What It Means` states what UML means for what its table writes, and names each departure the canon makes.
+A table of distinct tasks in an acyclic process: each the construct doing its work, the tasks it waits for, and, where it has them, its guard, its timeout and whether its failure is tolerated. Every task is considered on every run, and the tasks nothing orders run at once. Written so, what each task waits for, and what may run at once, is explicit and checked rather than implied. It is UML's activity (`specs/methodology/external-references.md § External References [Name: UML]`), adopted whole and written as a table of tasks forked and joined, with no tie to any engine, so it maps onto the DAG an orchestrator such as Airflow, Dagster or Argo Workflows defines; `§ Constructs § DAG § What It Means` states what UML means for what its table writes, and names each departure the canon makes.
+
+**Extends:** `§ Constructs § Tabular Construct`
+
+**Implements:**
+- `§ Constructs § Declared Construct`
+- `§ Constructs § Ordered Construct`
+- `§ Constructs § Keyed Construct`
 
 **Reference Key:** Task
 
-**Its fields —** after those every construct declares (`§ Constructs § Declaring a Construct`):
+**Locator:** a task, a row of its table matched by its Task column, its keys kept in one place, so a citation writes its key alone, `[Task: …]`
+
+**Fields —** after those its interfaces give:
 
 | Field | Required | Default Value | Values | Holds |
 |---|---|---|---|---|
 | Runs When | yes | | text | what runs it: the citation of each construct running it, a State Machine whose state's description cites it as the state's work, or a DAG whose task's work cites it; or the occurrence it answers, written as a State Machine's trigger is written (`§ Constructs § State Machine § What It Means`), a request, a file arriving or a job's run among them, a job's run saying what a missed and a late run do (`§ Time`) |
 
-Authored as a table.
+Authored as a table, its columns each headed by a field label:
 
-| Task | work | depends_on |
-|---|---|---|
-| The task's name | The construct doing the task's work, or `none` | The tasks it waits for, or `none` |
+| Column | Holds |
+|---|---|
+| `Task` | the task's name |
+| `Work` | the construct doing the task's work, or `none` |
+| `Depends On` | the tasks it waits for, or `none` |
+| `Guard` | what must hold on a run for the task to run, or `none` |
+| `Timeout` | how long the task may run, or `none` |
+| `Tolerated` | `Yes` where the run goes on past the task's failure, or `No` |
 
-After its depends_on, the table adds a `guard` column, each cell what must hold on a run for the task to run, or `none`, where any of its tasks has a guard; then a `timeout` column, each cell how long the task may run, or `none`, where any has a timeout; and then a `tolerated` column, each cell `Yes` where the run goes on past the task's failure or `No`, where any task's is `Yes`. A column every cell of which would be `none` or `No` is not written.
+After `Depends On` come the `Guard` column, written where any of its tasks has a guard, the `Timeout` column, where any has a timeout, and the `Tolerated` column, where any task's failure is tolerated, in that order; a column every cell of which would be `none` or `No` is not written.
 
-**Its tasks —** a task's name is plain text holding no comma, not the word `and` and not ending in the word `ended`, so a dependency list reads whole. Its work is `{citation}`, the Algorithm, the Decision Table or the DAG doing it, as the worked example's check margins cites its Algorithm, run once the task runs: an Algorithm reads its Inputs from the facts the file declares, among them what an earlier task gave, and gives its Output; a Decision Table reads its conditions' facts the same and gives each outcome column's value as the fact of that column's name, its outcome columns headed by facts the file declares; and a DAG is run whole as the task, reading what its tasks read, by work or guard, less what they give, and giving what they give, no DAG holding itself through the tasks it cites. Or it is `none` where the work is done outside the specs, a person's task or an external system's, a file arriving or another system's job ending among them, written `none, leaving {fact}, {fact}` where it leaves facts the tasks after it read, as `none, leaving margins`, each a fact the file declares, the prose after the table saying whose the work is and when it counts as done. A DAG's work is never an Algorithm's work in words, a step's (`§ Constructs § Algorithm`), but this citation or `none`. The occurrence that starts a run is its Runs When, never a task; a task whose work is `none` waits only within a run, after what it depends on. Its depends_on is `none`, or a list, `{task}, {task}`, as `extract prices, extract costs`, each item a task it waits for to be done, or `{task} ended`, as `load ended`, a task it waits for to have ended however it did, as a task that reports or cleans up does, written only of a task that can end other than done. No task depends on itself, directly or through the tasks it depends on. Its guard is `{condition}`, a FEEL boolean over the facts its file declares (`specs/methodology/expressions.md § Expressions § FEEL`), as `some m in margins satisfies m.flagged?`, read as the task would run, a guard reading facts as the task's work does. Its timeout is `@"{duration}"`, a FEEL duration, as `@"PT30M"`, or a fact of that type the file declares. Its tolerated is `Yes`, written only of a task that can fail, or `No`. A dependency the logic needs is a row's depends_on, never an order written in prose; a construct a DAG would run twice with different inputs is an Algorithm whose steps run it with its bindings, the task citing that Algorithm, since a task's work reads and gives facts by name alone.
+**Tasks —** a task's name is plain text holding no comma, not the word `and` and not ending in the word `ended`, so a dependency list reads whole. Its work is `{citation}`, the Algorithm, the Decision Table or the DAG doing it, as the worked example's check margins cites its Algorithm, run once the task runs: an Algorithm reads its Inputs from the facts the file declares, among them what an earlier task gave, and gives its Output; a Decision Table reads its conditions' facts the same and gives each outcome column's value as the fact of that column's name, its outcome columns headed by facts the file declares; and a DAG is run whole as the task, reading what its tasks read, by work or guard, less what they give, and giving what they give, no DAG holding itself through the tasks it cites. Or it is `none` where the work is done outside the specs, a person's task or an external system's, a file arriving or another system's job ending among them, written `none, leaving {fact}, {fact}` where it leaves facts the tasks after it read, as `none, leaving margins`, each a fact the file declares, the prose after the table saying whose the work is and when it counts as done. A DAG's work is never an Algorithm's work in words, a step's (`§ Constructs § Algorithm`), but this citation or `none`. The occurrence that starts a run is its Runs When, never a task; a task whose work is `none` waits only within a run, after what it depends on. Its dependencies are `none`, or a list, `{task}, {task}`, as `extract prices, extract costs`, each item a task it waits for to be done, or `{task} ended`, as `load ended`, a task it waits for to have ended however it did, as a task that reports or cleans up does, written only of a task that can end other than done. No task depends on itself, directly or through the tasks it depends on. Its guard is `{condition}`, a FEEL boolean over the facts its file declares (`specs/methodology/expressions.md § Expressions § FEEL`), as `some m in margins satisfies m.flagged?`, read as the task would run, a guard reading facts as the task's work does. Its timeout is `@"{duration}"`, a FEEL duration, as `@"PT30M"`, or a fact of that type the file declares. Its tolerated is `Yes`, written only of a task that can fail, or `No`. A dependency the logic needs is a row's Depends On, never an order written in prose; a construct a DAG would run twice with different inputs is an Algorithm whose steps run it with its bindings, the task citing that Algorithm, since a task's work reads and gives facts by name alone.
 
-**Its run —** a run of a DAG considers every task. A task runs once each task it depends on is done or skipped, or has ended where it waits for that, and its guard, where it has one, holds, the tasks free at once running at once; a task whose guard does not hold is skipped; a task is unreached where a task it waits for to be done failed or was unreached; and a task whose timeout passes before it is done fails, its work ended and what it wrote undone as a failed operation's is, a nested DAG's run failing with it. A task fails where the run of the construct its work cites fails, as an operation does (`§ Constructs § Constraint`), an Algorithm's or a DAG's run, a Decision Table's never, or where its timeout passes; work that is `none` ends done, or fails by its timeout alone, what goes wrong outside the specs being a fact it leaves. So a task can fail where its work is an Algorithm or a DAG or it has a timeout; it can be unreached where a task it waits for to be done can fail or be unreached, a guard alone only skipping, and a dependency `ended` never leaving its waiter unreached; and it can end other than done where it can fail, be skipped or be unreached. A task ends done, skipped, failed or unreached; `{task} ended` waits for any of these; and a task that is not done gives nothing, the facts its work would give or its `none` would leave holding what they held before it, or no value where nothing had set them. A failed task whose tolerated is `No` fails the run; one whose tolerated is `Yes` ends failed, its own writes undone, and the run goes on, what waited for it to be done unreached and what waited for it `ended` run. The run ends once no task is running and none can run, and fails where a task failed whose tolerated is `No`. A run that fails is all or none, as `§ Constructs § Constraint` has an operation, except for what a task wrote that reaches a failed task through a dependency `ended`, which is kept, as a report or a clean-up is; what a nested DAG's run keeps so, it keeps, its parent task's failure undoing the rest of what that run wrote. Facts pass between tasks by name, a task's work, and its guard, reading what the file declares and what the tasks it reaches through its dependencies gave, never a fact a task after it gives, unless that task reads it too and so rewrites it; the facts the occurrence gives a run, its date or the request among them, are facts the file declares, set as the run begins. A fact a task reads that some task it reaches gives is declared May Be Absent (`§ Constructs § Declaring a Construct § Fact`) unless one such task gives it surely, a giver being sure where it is not guarded, not reached through a dependency `ended`, and, within a nested DAG, neither tolerated nor waiting to be done, directly or through others, for a task that is, since there the nested run completes past the failure and its parent task ends done, and an Output the work's Inputs also name given surely by any task, a nested DAG's tasks' works' among them, the fact holding its earlier value where the task is not done; a tolerated task in the reader's own DAG gives surely to what waits for it to be done, which is unreached where it fails and never reads. Two tasks free at once, neither reaching the other through its dependencies, give no fact in common and neither reads, by its work or its guard, a fact the other gives, since an order the run leaves open would decide its value; a result an order among free tasks changes states that order (`§ Constructs § Declaring a Construct`, its Order field).
+**Run —** a run of a DAG considers every task. A task runs once each task it depends on is done or skipped, or has ended where it waits for that, and its guard, where it has one, holds, the tasks free at once running at once; a task whose guard does not hold is skipped; a task is unreached where a task it waits for to be done failed or was unreached; and a task whose timeout passes before it is done fails, its work ended and what it wrote undone as a failed operation's is, a nested DAG's run failing with it. A task fails where the run of the construct its work cites fails, as an operation does (`§ Constructs § Constraint`), an Algorithm's or a DAG's run, a Decision Table's never, or where its timeout passes; work that is `none` ends done, or fails by its timeout alone, what goes wrong outside the specs being a fact it leaves. So a task can fail where its work is an Algorithm or a DAG or it has a timeout; it can be unreached where a task it waits for to be done can fail or be unreached, a guard alone only skipping, and a dependency `ended` never leaving its waiter unreached; and it can end other than done where it can fail, be skipped or be unreached. A task ends done, skipped, failed or unreached; `{task} ended` waits for any of these; and a task that is not done gives nothing, the facts its work would give or its `none` would leave holding what they held before it, or no value where nothing had set them. A failed task whose tolerated is `No` fails the run; one whose tolerated is `Yes` ends failed, its own writes undone, and the run goes on, what waited for it to be done unreached and what waited for it `ended` run. The run ends once no task is running and none can run, and fails where a task failed whose tolerated is `No`. A run that fails is all or none, as `§ Constructs § Constraint` has an operation, except for what a task wrote that reaches a failed task through a dependency `ended`, which is kept, as a report or a clean-up is; what a nested DAG's run keeps so, it keeps, its parent task's failure undoing the rest of what that run wrote. Facts pass between tasks by name, a task's work, and its guard, reading what the file declares and what the tasks it reaches through its dependencies gave, never a fact a task after it gives, unless that task reads it too and so rewrites it; the facts the occurrence gives a run, its date or the request among them, are facts the file declares, set as the run begins. A fact a task reads that some task it reaches gives is declared May Be Absent (`§ Defining Constructs § Declaring a Construct § Fact`) unless one such task gives it surely, a giver being sure where it is not guarded, not reached through a dependency `ended`, and, within a nested DAG, neither tolerated nor waiting to be done, directly or through others, for a task that is, since there the nested run completes past the failure and its parent task ends done, and an Output the work's Inputs also name given surely by any task, a nested DAG's tasks' works' among them, the fact holding its earlier value where the task is not done; a tolerated task in the reader's own DAG gives surely to what waits for it to be done, which is unreached where it fails and never reads. Two tasks free at once, neither reaching the other through its dependencies, give no fact in common and neither reads, by its work or its guard, a fact the other gives, since an order the run leaves open would decide its value; a result an order among free tasks changes states that order (`§ Constructs § Ordered Construct`).
 
 **What the table does not write —** a task waiting for whichever of several tasks ends first is a State Machine's transition on the first occurrence (`§ Constructs § State Machine`), never a dependency; a task's retries, a pool or a priority among tasks are operations, stated in the prose after the table or held by a Constraint, never a row; and a flow over an unbounded stream, windowed or joined as it runs, is not written, as `§ Constructs § Algorithm` has a stream, a pipeline run once per event being a DAG whose Runs When is the event.
 
-**What is no DAG —** a process that waits within a task's work on anything but that task's completion is a State Machine, whose trigger is the wait, and one that repeats a step on a condition or branches into different downstream handling, with no wait, is a State Machine or an Algorithm, as `§ When to Use Which` chooses; the same work once per item of a list is an Algorithm's loop `at once` (`§ Constructs § Algorithm`), gathering what each pass gives, a task's work being such an Algorithm where a DAG holds it; and a process whose tasks or their order are configured as data is an Algorithm over the configuration, its loop taking each configured task in turn, a default configuration being an instance, data, never a DAG.
+**What is no DAG —** a process that waits within a task's work on anything but that task's completion is a State Machine, whose trigger is the wait, and one that repeats a step on a condition or branches into different downstream handling, with no wait, is a State Machine or an Algorithm, as `§ When to Use Which` chooses; the same work once per item of a list is an Algorithm's loop `at once` (`§ Constructs § Algorithm`), gathering what each pass gives, a task's work being such an Algorithm where a DAG holds it; and a process whose tasks or their order are configured as data is an Algorithm over the configuration, its loop taking each configured task in turn, a configuration shipped with the system being an instance, data, never a DAG.
 
 **A worked example —** a nightly pricing run, two extracts free at once, a check of the margins they give with a timeout, a review a person makes only where a margin is flagged, a load that waits for the check and the review, and a report that runs however the load ended and whose own failure the run tolerates, written whole as a file would hold it:
 
@@ -248,11 +407,11 @@ After its depends_on, the table adds a `guard` column, each cell what must hold 
 
 The nightly pricing run: prices and costs extracted, margins checked and reviewed, then loaded and reported.
 
-**Construct:** DAG
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § DAG`
 
 **Runs When:** the nightly pricing run, at 02:00 on each business date, a missed run caught up on the next and a late run taken when it comes
 
-| task | work | depends_on | guard | timeout | tolerated |
+| Task | Work | Depends On | Guard | Timeout | Tolerated |
 |---|---|---|---|---|---|
 | extract prices | `§ Price Extraction` | none | none | none | No |
 | extract costs | `§ Cost Extraction` | none | none | none | No |
@@ -267,7 +426,7 @@ Review flagged is the pricing analyst's: each flagged margin is confirmed or cor
 
 The night's valid prices, taken from the price feed.
 
-**Construct:** Algorithm
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 
 **Inputs:**
 
@@ -288,7 +447,7 @@ The night's valid prices, taken from the price feed.
 
 The night's valid costs, taken from the cost feed.
 
-**Construct:** Algorithm
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 
 **Inputs:**
 
@@ -309,7 +468,7 @@ The night's valid costs, taken from the cost feed.
 
 Each sku's margin, flagged where it falls below the floor.
 
-**Construct:** Algorithm
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 
 **Inputs:**
 
@@ -332,7 +491,7 @@ Each sku's margin, flagged where it falls below the floor.
 
 The load of the reviewed margins, giving how many were written.
 
-**Construct:** Algorithm
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 
 **Inputs:**
 
@@ -353,7 +512,7 @@ The load of the reviewed margins, giving how many were written.
 
 The run's report of what it loaded for the business date.
 
-**Construct:** Algorithm
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 
 **Inputs:**
 
@@ -413,7 +572,26 @@ The run's report of what it loaded for the business date.
   **Means:** the run's report, what it loaded and the business date it priced
 ```
 
-**Its checks —** a DAG's names, dependencies, cycles, guards, timeouts and tolerated cells are checked in its file, and its works, what its tasks give and read and what runs it across files, its citations resolved: no Runs When field, two tasks sharing a name, a name holding a comma or the word `and` or ending in the word `ended`, a work that is neither `none`, alone or leaving facts, nor a citation resolving to an Algorithm, a Decision Table or a DAG, a work citing a part of a construct, a DAG holding itself through the tasks it cites, a Decision Table a task runs whose outcome column no fact declares, a `none` leaving a fact nothing declares, a dependency naming a task the table does not hold, a dependency `ended` on a task that can only end done, a task depending on itself directly or through others, a guard in no form FEEL has, giving no yes or no, naming a fact nothing declares, combining values of two kinds or reaching a part a fact does not hold, a timeout that is neither `@"{duration}"` whole nor a declared fact of a duration type, a tolerated that is neither `Yes` nor `No` or `Yes` on a task that cannot fail, a guard or a timeout column every cell of which is `none` or a tolerated column every cell of which is `No`, two tasks free at once whose work gives one fact or one of which reads, by its work or its guard, a fact the other gives, a task reading a fact a task after it gives without reading it, a task reading a fact that some task it reaches gives and none gives surely whose record, in the DAG's file or the file of the work reading it, does not say it may be absent, and a Runs When citing a construct that does not run the DAG or leaving out one that does, each reported; and an Algorithm a task's work cites has that DAG among what runs it, which its Runs When names (`§ Constructs § Algorithm`). Whether each task's work is the whole of it, whether a task whose work is `none` is said to be whose and when done, and whether what runs the DAG is run on it are read.
+**Name —** a DAG is named for its process as a thing, `Nightly Pricing`, never for an activity, `Extract Prices`.
+
+**Checks —** a DAG's names, dependencies, cycles, guards, timeouts and tolerated cells are checked in its file, and its works, what its tasks give and read and what runs it across files, its citations resolved, an Algorithm a task's work cites having that DAG among what runs it, which its Runs When names (`§ Constructs § Algorithm`). Whether each task's work is the whole of it, whether a task whose work is `none` is said to be whose and when done, and whether what runs the DAG is run on it are read.
+
+An instance is reported for:
+
+- no Runs When field;
+- two tasks sharing a name;
+- a task's name holding a comma or the word `and`, or ending in the word `ended`;
+- a work that is neither `none`, alone or leaving facts, nor a citation resolving to an Algorithm, a Decision Table or a DAG, one citing a part of a construct, or a DAG holding itself through the tasks it cites;
+- a Decision Table a task runs whose outcome column no fact declares, or a `none` leaving a fact nothing declares;
+- a dependency naming a task the table does not hold, or `ended` on a task that can only end done;
+- a task that depends on itself, directly or through others, and so never runs;
+- a guard in no form FEEL has, giving no yes or no, naming a fact nothing declares, combining values of two kinds or reaching a part a fact does not hold;
+- a timeout that is neither a FEEL duration literal nor a declared fact of a duration type;
+- a tolerated that is neither `Yes` nor `No`, or `Yes` on a task that cannot fail;
+- a Guard or a Timeout column every cell of which is `none`, or a Tolerated column every cell of which is `No`;
+- two tasks free at once whose work gives one fact, or one of which reads, by its work or its guard, a fact the other gives;
+- a task reading a fact a task after it gives without reading it, or a fact that some task before it gives and none gives surely, whose record does not say it may be absent;
+- a Runs When citing a construct that does not run the DAG, or leaving out a DAG or a State Machine that does.
 
 #### What It Means
 
@@ -433,11 +611,20 @@ A DAG means what UML's activity means for what its table writes, each statement 
 
 A model of the states a system or an entity can be in, the transitions between them, and the conditions under which each is taken: it answers where the entity is in its journey, and what happens when something happens in a given state, so a reviewer can check that every case is covered. It is UML's state machine (`specs/methodology/external-references.md § External References [Name: UML]`), adopted whole and written as tables, with no tie to any serialization or execution engine; `§ Constructs § State Machine § What It Means` states what UML means for what its tables write, and names each departure the canon makes from UML. A machine whose every transition is taken on its trigger alone, an entity's plain lifecycle, is a State Machine leaving its optional parts unused, no construct of its own (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`).
 
-**Reference Key:**
-- States: State
-- Transitions: Name
+**Extends:** `§ Constructs § Tabular Construct`
 
-**Its fields —** after those every construct declares (`§ Constructs § Declaring a Construct`):
+**Implements:**
+- `§ Constructs § Declared Construct`
+- `§ Constructs § Configured Construct`
+- `§ Constructs § Keyed Construct`
+
+**Reference Key:**
+- States.State
+- Transitions.Name
+
+**Locator:** a state, a row of its States table matched by its State column, or a transition, a row of its Transitions table matched by its Name column, its keys kept in more than one place, so a citation writes the path to its key, `[States.State: …]` or `[Transitions.Name: …]`
+
+**Fields —** after those its interfaces give:
 
 | Field | Required | Default Value | Values | Holds |
 |---|---|---|---|---|
@@ -446,24 +633,29 @@ A model of the states a system or an entity can be in, the transitions between t
 
 Authored as a States table and a Transitions table.
 
-A States table:
+A States table, its columns each headed by a field label:
 
-| Column | Description |
+| Column | Holds |
 |---|---|
-| State | The name of the state |
-| description | What it means for an entity to be in this state |
-| initial | Whether the entity starts in this state, Yes or No, one state alone being initial |
-| terminal | Whether this state ends the machine's run, Yes or No |
+| `State` | the name of the state, holding no comma and not the word `and`, since a From and a To list states by those |
+| `Description` | what it means for an entity to be in this state |
+| `Initial` | whether the entity starts in this state, Yes or No |
+| `Terminal` | whether this state ends the machine's run, Yes or No |
 
 A state drawn from a closed set, its machine recording its state in a fact whose Values cite the set's record section (`§ Constructs § Record Form`), opens its description with the citation of its own member's record, and of no other, for what holding it means, and then states any work it does in this machine, so a set several workflows draw on keeps its meaning in one home and each workflow its own work.
 
-A Transitions table:
+A Transitions table, its columns each headed by a field label:
 
-| From | To | Trigger |
-|---|---|---|
-| ... | ... | What happens to move the entity on, of a kind `§ Constructs § State Machine § What It Means` names, or none |
+| Column | Holds |
+|---|---|
+| `Name` | the transition's name (`§ Constructs § Keyed Construct § Part Identifier`) |
+| `From` | the state or states the entity leaves |
+| `To` | the state or states the entity enters |
+| `Trigger` | what happens to move the entity on, of a kind `§ Constructs § State Machine § What It Means` names, or none |
+| `Guard` | what must hold when the trigger happens for the transition to be taken, or none |
+| `Effect` | the citation of the Algorithm or the Decision Table the transition runs, or none |
 
-After its Trigger, a Transitions table adds a Guard column, each cell what must hold when the trigger happens for the transition to be taken, or none, where any of its transitions has a guard, and then an Effect column, each cell the citation of the Algorithm or the Decision Table the transition runs, or none, where any runs an effect; a column every cell of which would be none is not written.
+After `Trigger` come the `Guard` column, written where any of its transitions has a guard, and the `Effect` column, where any runs an effect, in that order; a column every cell of which would be none is not written.
 
 A guard testing a fact for a word, by `=`, `!=` or `in` a list or tests, wherever it stands in the guard, tests one of the fact's Values, as a Decision Table's cell does: the fact its machine's own file declares, or else the one other files declare alike; a name other files declare with differing Values is read, not checked.
 
@@ -479,13 +671,33 @@ What a State Machine expresses beyond a move its trigger alone decides:
 
 Every fork is closed by one join, from states its branches reach, and a join closes one fork.
 
+**Name —** a State Machine is named for the entity it follows, `Work Order`.
+
+**Checks —** an instance is reported for:
+
+- two states sharing a name;
+- no initial state, or more than one;
+- a From or To naming a state its States table does not hold;
+- a state the initial state cannot reach;
+- a state that is not terminal with no way out, or a terminal state with one;
+- two transitions from one state on the same trigger, or on none, whose guards, read as a Unique Decision Table, can both hold, or a guard no case meets;
+- such a guard in no form FEEL has, or giving no yes or no, or testing as a boolean a fact whose name asks no question, or a fact whose name holds a word FEEL keeps;
+- a state that cannot stay where, once its work is done, some case takes no transition out of it;
+- a fork no join closes, or a join no fork opens;
+- a Transitions table's columns other than From, To and Trigger, then a Guard, an Effect or both in that order, or such a column every cell of which is none;
+- a guard comparing a fact with another no guard of its choice tests and no Facts record declares, or of another kind;
+- an Effect cell citing no Algorithm or Decision Table;
+- a Recorded In field that is not a fact's name, a colon and the citation of a Facts record, a record it cites whose Values are neither a quoted list nor the citation of a closed set, or a state not among them, or a state drawn from a closed set whose description opens with no citation of its member's record, or a guard testing a fact for a word outside the fact's Values;
+- a protocol machine with an Effect column, a transition with no trigger or a governed state;
+- of a submachine state, a state governed by more than one machine, a machine governing itself, a governed state that is terminal or not left as its machine's exits have it, the words `governed by` naming no machine or a part of one, or naming none, and a description citing a machine's whole section without them.
+
 #### What It Means
 
 A State Machine means what UML's state machine means for what its tables write, each statement citing the section of UML it rests on, so neither an author nor a reader needs to recall the standard. The canon's rules beyond UML are its departures, each named where it is stated: an action a protocol machine does not take refused; a protocol machine's transitions taken on an actor's action alone; conditions one occurrence makes true together taken in one step; an exclusive choice's guards never both holding; relative time counted from entering the state; a terminal state in a fork's branch ending the run; a join carrying a trigger; `exit` naming which terminal state the machine governing a state reached; and, in `§ Time`, an instant already past taken at once and an instant following its fact.
 
 **One occurrence at a time —** the machine handles each thing that happens fully before it takes the next, taking the transitions it enables until it reaches states where it waits, UML's run-to-completion, its section 14.2.3.9.1. An occurrence no transition is enabled by is discarded, but in a protocol machine. A state's work being done is handled ahead of anything else waiting. Conditions one occurrence makes true together are taken in its one step, a departure, UML dispatching each event on its own, the transitions they enable from one state an exclusive choice.
 
-**A state and its initial state —** a state is UML's state; the initial state is the one the machine enters as its run begins, the target of UML's initial Pseudostate's transition, its section 14.2.3.7. Before its run begins and once it has ended, a machine is in no state, its sections 14.2.3.4.2 and 14.2.3.8.3. What must outlast a run is a fact the entity records: its status, named by the entity, as `loan status`, declared in a Facts section (`§ Constructs § Declaring a Construct § Fact`), its Values the values it may take, listed, or the citation of the record section holding a closed set, their one home; the machine names that fact in its Recorded In field, and its states are those of the values it uses, a terminal state's among them, a value it does not use left out.
+**A state and its initial state —** a state is UML's state; the initial state is the one the machine enters as its run begins, the target of UML's initial Pseudostate's transition, its section 14.2.3.7. Before its run begins and once it has ended, a machine is in no state, its sections 14.2.3.4.2 and 14.2.3.8.3. What must outlast a run is a fact the entity records: its status, named by the entity, as `loan status`, declared in a Facts section (`§ Defining Constructs § Declaring a Construct § Fact`), its Values the values it may take, listed, or the citation of the record section holding a closed set, their one home; the machine names that fact in its Recorded In field, and its states are those of the values it uses, a terminal state's among them, a value it does not use left out.
 
 **A state's work —** what its description says goes on in it, begun when the state is entered, UML's entry and doActivity Behaviors, its section 14.2.3.4.3; done, it lets a transition with no trigger be taken, UML's completion transition, its section 14.2.3.8.3, at once for a state whose description states no work, and once the run of the machine governing it ends for a submachine state. A transition taken while the work runs cuts it short. A transition from a state to itself leaves the state and enters it again, UML's external transition, its section 14.2.3.8.1, its work, the run of the machine governing it and its relative times starting afresh.
 
@@ -495,7 +707,7 @@ A State Machine means what UML's state machine means for what its tables write, 
 
 **A trigger —** names what happens, UML's event, its sections 13.3.3.2 to 13.3.3.4, its kind decided by what moves the entity:
 
-**Construct:** Decision Table
+**Construct:** `§ Constructs § Decision Table`
 
 **Hit Policy:** First
 
@@ -548,14 +760,14 @@ A design adds a form for one where a spec needs what these writings cannot say.
 
 A State Machine's state whose work is the run of another State Machine, started by entering the state, is UML's submachine state, its section 14.2.3.4.7, governed by that machine. A machine run apart from the state, another entity's or one started elsewhere, is no state's work: a state waiting on it is left on a trigger, a part of it being reached. Its description says it is governed: the words `governed by`, which name only a machine, then that machine's section cited. A description citing another machine's whole section always says them, so a state referring to a machine it is not governed by cites one of its parts.
 
-- **Its machine —** one at most; a machine never governs itself, directly or through those it governs; a governed state is never terminal, a terminal state having no work.
+- **Machine —** one at most; a machine never governs itself, directly or through those it governs; a governed state is never terminal, a terminal state having no work.
 - **Entering it —** at the governing machine's initial state, by however many transitions reach it, the transitions from that initial state guarded by why it was entered, where that matters.
 - **Leaving it by its machine's end —** by transitions with no trigger, as its table of exits has them, `exit` the one fact their guards test: a holder that routes on a fact as well leads each transition guarded by `exit` to a state with no work, whose own transitions route on that fact.
 - **Leaving it on a trigger —** a transition with a trigger, taken from whatever state the governing machine is in, UML's group Transition, its sections 14.2.3.4.7 and 14.2.3.8.2. A trigger every state of the work leaves the same way, to one state outside it, is written once, on the outermost governed state whose every state it so leaves, and on no state inside it; one only some states of the work take, or take differently, is written inside the work, on each state taking it, leading to a terminal state where it ends the work.
 
 Its table of exits:
 
-**Construct:** Decision Table
+**Construct:** `§ Constructs § Decision Table`
 
 **Conditions:** Its machine's terminal states, Where it stands
 
@@ -568,11 +780,21 @@ Its table of exits:
 
 ### Algorithm
 
-A precise, step-by-step computational procedure that produces a value or a transformation. Unlike a DAG or a State Machine, which orchestrate named tasks or services, an Algorithm specifies the computation inside one of those tasks, or any calculation that is not itself an orchestration. It is UML's activity (`specs/methodology/external-references.md § External References [Name: UML]`), adopted whole and written as a numbered table of steps taken one at a time, with no tie to any language or engine; `§ Constructs § Algorithm § What It Means` states what UML means for what its table writes, and names each departure the canon makes from UML.
+A precise, step-by-step computational procedure that produces a value or a transformation. Unlike a DAG or a State Machine, which orchestrate named tasks or services, an Algorithm specifies the computation inside one of those tasks, or any calculation that is not itself an orchestration. Each step written in one of its forms is checked, so a computation is stated exactly rather than described. It is UML's activity (`specs/methodology/external-references.md § External References [Name: UML]`), adopted whole and written as a numbered table of steps taken one at a time, with no tie to any language or engine; `§ Constructs § Algorithm § What It Means` states what UML means for what its table writes, and names each departure the canon makes from UML.
+
+**Extends:** `§ Constructs § Tabular Construct`
+
+**Implements:**
+- `§ Constructs § Declared Construct`
+- `§ Constructs § Ordered Construct`
+- `§ Constructs § Configured Construct`
+- `§ Constructs § Keyed Construct`
 
 **Reference Key:** Step
 
-**Its fields —** after those every construct declares (`§ Constructs § Declaring a Construct`):
+**Locator:** a step, a row of its table matched by its Step column, its keys kept in one place, so a citation writes its key alone, `[Step: …]`
+
+**Fields —** after those its interfaces give:
 
 | Field | Required | Default Value | Values | Holds |
 |---|---|---|---|---|
@@ -582,7 +804,7 @@ A precise, step-by-step computational procedure that produces a value or a trans
 | Precision | no | 34 | text | the significant digits each operation's result is rounded to, a whole number above zero and below 34, where its system's arithmetic holds fewer than FEEL's (`specs/methodology/expressions.md § Expressions § FEEL § Arithmetic and Time`) |
 | Rounding Mode | no | half even | text | the mode each operation's result is rounded by, and a value written to a fact holding decimal places: one of the modes `specs/methodology/expressions.md § Expressions § FEEL § Arithmetic and Time` names, or the name of a fact the Algorithm knows whose Values hold only those modes, where the system's configuration chooses it |
 
-**Its facts —** a step names only a fact its Inputs or its Output name, a fact its file's Facts section declares, a fact a step sets, a loop's item and what it gathers, and a part of any of them, reached by FEEL's path, as `transaction.amount` (`specs/methodology/expressions.md § Expressions § FEEL § Its Expressions`). A fact its file's Facts section declares is typed by its record, a list's or a context's by the type its record names, so a path into it is typed too; a fact read from another file, and any other, is known by name alone, its kind read.
+**Facts —** a step names only a fact its Inputs or its Output name, a fact its file's Facts section declares, a fact a step sets, a loop's item and what it gathers, and a part of any of them, reached by FEEL's path, as `transaction.amount` (`specs/methodology/expressions.md § Expressions § FEEL § Its Expressions`). A fact its file's Facts section declares is typed by its record, a list's or a context's by the type its record names, so a path into it is typed too; a fact read from another file, and any other, is known by name alone, its kind read.
 
 **A stored value and a derived one —** a fact's value never changes once set, as a FEEL context never does (`specs/methodology/expressions.md § Expressions § FEEL § Lists, Contexts and Functions`): setting a part gives the fact a new value, that part replaced and every other as it was. So:
 
@@ -590,7 +812,7 @@ A precise, step-by-step computational procedure that produces a value or a trans
 - **A value the system derives from others —** read by a call, `{function}({value})`, given the current value, as `fully paid(period)`; never by a path, as `period.fully paid`, which keeps what it held before a step changed what it derives from. In a filter the call is given `item`, as `periods[not(fully paid(item))]`.
 - **An item copied from a list —** a value too: once a step changes the list, the item is read from the list again, `{list}[{key} = {item}.{key}][1]`, as `periods[number = target.number][1]`, before it is changed, run or merged back, so no step works on, or merges back, a version older than the list's.
 
-The function a step calls is a fact its file's Facts section declares (`§ Constructs § Declaring a Construct § Fact`), its Type `function<{parameters}> -> {type}`, or one a step sets, and it is of one of these kinds:
+The function a step calls is a fact its file's Facts section declares (`§ Defining Constructs § Declaring a Construct § Fact`), its Type `function<{parameters}> -> {type}`, or one a step sets, and it is of one of these kinds:
 
 - **A derived value —** of what it is given, as whether a period is fully paid; where the specs define it, its record's Derivation holds the FEEL function giving it.
 - **A computation a system makes outside the specs —** as a library's or a service's; its record holds no Derivation, and its Means says what computes it.
@@ -614,30 +836,31 @@ A computation another construct specifies is never a function: it is run. For ex
 
 Step 2 reads the EMI step 1 set, where `period.fully paid` would give what was true before it.
 
-**Its expressions —** a computation's expression, a comparison's condition, a loop's list and its order, a run's argument and a Terminates cell are FEEL (`specs/methodology/expressions.md § Expressions § FEEL`), each judged with the facts the step may name in scope. The checks decide each one's form, the names it holds and the kinds it combines and gives, a condition's a yes or no, a loop's list a list and a Terminates cell's a number, and that a value written to a fact, a part or an Input is of the kind its record types it; whether work computes or decides, and whether what it reads is what it means, is read.
+**Expressions —** a computation's expression, a comparison's condition, a loop's list and its order, a run's argument and a Terminates cell are FEEL (`specs/methodology/expressions.md § Expressions § FEEL`), each judged with the facts the step may name in scope. The checks decide each one's form, the names it holds and the kinds it combines and gives, a condition's a yes or no, a loop's list a list and a Terminates cell's a number, and that a value written to a fact, a part or an Input is of the kind its record types it; whether work computes or decides, and whether what it reads is what it means, is read.
 
-Authored as a numbered table of steps:
+Authored as a numbered table of steps, its columns each headed by a field label:
 
-| Step | Action |
+| Column | Holds |
 |---|---|
-| 1 | ... |
-| ... | ... |
+| `Step` | the step's number, the steps numbered from 1 in order |
+| `Action` | what the step does, one of the kinds Steps names |
+| `Terminates` | why a step's loop ends, as A loop that must end has it, or `none` |
 
-**Its steps —** each step is one of these, and nothing else, a loop or a comparison a step of its own, never folded into another's work:
+**Steps —** each step is one of these, and nothing else, a loop or a comparison a step of its own, never folded into another's work:
 
 - **A computation —** `Set {fact} to {expression}`, giving the fact the expression's value; or `Set {fact}.{path} to {expression}`, giving the fact its value with that part's replaced, as FEEL's `context put` gives it, its path names joined by `.`, each reaching into a context and none through a list. A value a later step reads is set so, never in words. A value a condition chooses is one computation, FEEL's `if … then … else`, never a comparison whose only work is setting one fact, on one branch or both.
 - **A run —** `Run` and the citation of the Algorithm or the Decision Table it runs, and of nothing else; then, for each fact the construct takes that the fact of the same name here does not give, ` with {input} as {expression}`, these separated by commas; then, where the run gives facts a later step reads, `, giving` and what it gives separated by commas, each a fact the construct run gives, written by its name, or `{output} as {fact}` where the fact here that holds it has another name. An Algorithm takes its Inputs and gives its Output; a Decision Table takes its conditions' facts, the facts of value its computed headers and computed outcomes name, a function they call being the table's own, and its Reads, and gives its outcomes. Each fact it takes that no `with` gives is the fact of its name here. A run of the Algorithm it belongs to, or of a construct running it back, an Algorithm's run or a Decision Table's computed outcome, recurs.
-- **A loop over a list —** `For each {item} of {list}, {order}: steps {n} to {m}`, its body the steps from the one after it to step m, each pass taking the next item through them, the loop ending once every item has passed and the step after step m following. Its order is `by` a FEEL expression over the item and `ascending` or `descending`, a tie broken by `, then by` another; `in any order`, where no order changes what the loop gives; `in an order the system leaves open`, where an order changes it and none is fixed, the exception the Order field allows (`§ Constructs § Declaring a Construct`); or `at once`, every pass running at the same time, a pass setting only its item and what it gathers, by a computation, a run or a loop it holds. A loop gathering a fact each pass sets writes `, gathering {fact} into {list}` before its colon. The list is set once the loop ends, and holds one value for each pass that set the fact. Its order is the order of the list walked as it stood when the loop began, sorted by the loop's keys where it has them, whatever order the passes ran in. A body reading the list reads what it held before the loop. A loop gathering its own item gathers it from every pass, changed or not, so updating some items keeps the rest. A body holds whole loops of its own, never the table's last step, and is entered only from its loop and left only at `End`: a jump from it names a step of it, and a jump from outside it names none. The order a loop walks its list is the loop's own; an Algorithm's Order field names the order it takes its Inputs and gives its Output.
+- **A loop over a list —** `For each {item} of {list}, {order}: steps {n} to {m}`, its body the steps from the one after it to step m, each pass taking the next item through them, the loop ending once every item has passed and the step after step m following. Its order is `by` a FEEL expression over the item and `ascending` or `descending`, a tie broken by `, then by` another; `in any order`, where no order changes what the loop gives; `in an order the system leaves open`, where an order changes it and none is fixed, the exception the Order field allows (`§ Constructs § Ordered Construct`); or `at once`, every pass running at the same time, a pass setting only its item and what it gathers, by a computation, a run or a loop it holds. A loop gathering a fact each pass sets writes `, gathering {fact} into {list}` before its colon. The list is set once the loop ends, and holds one value for each pass that set the fact. Its order is the order of the list walked as it stood when the loop began, sorted by the loop's keys where it has them, whatever order the passes ran in. A body reading the list reads what it held before the loop. A loop gathering its own item gathers it from every pass, changed or not, so updating some items keeps the rest. A body holds whole loops of its own, never the table's last step, and is entered only from its loop and left only at `End`: a jump from it names a step of it, and a jump from outside it names none. The order a loop walks its list is the loop's own; an Algorithm's Order field names the order it takes its Inputs and gives its Output.
 - **A comparison —** `If {condition}, {branch}; otherwise, {branch}`, the condition a FEEL boolean expression, as `unprocessed amount > 0 and processing type = "horizontal"`; each branch a computation, a run or work, or nothing, written `continue`.
 - **Work —** anything else the system does, written in words: posting, deleting, recording, sending. It computes no value a later step reads, decides nothing and runs no construct, a value being a computation's, a choice a comparison's and a construct's run a run's: it cites no Algorithm or Decision Table whole, a citation of one of its steps or rows referring to it and running nothing.
 
-**Its ends —** each branch, and each step that is no comparison, ends `Go to step` and the number of a step the table holds, or `End`, or else continues to the next step. A loop's last step continuing takes the next pass. `End` ends the run, inside a loop's body as anywhere, its Output's facts holding the values set, a list the loop was gathering left as it stood before the loop; it is written alone, a result named by a computation before it. Each fact the Output names is set by a computation, given by a run or gathered by a loop on every path to `End`, but one its Inputs also name, which, where no step on the path sets it, holds the value it was given. The last step, and each branch of it where it is a comparison, ends `End` or goes to another step, so the Algorithm ends only at an `End`.
+**Ends —** each branch, and each step that is no comparison, ends `Go to step` and the number of a step the table holds, or `End`, or else continues to the next step. A loop's last step continuing takes the next pass. `End` ends the run, inside a loop's body as anywhere, its Output's facts holding the values set, a list the loop was gathering left as it stood before the loop; it is written alone, a result named by a computation before it. Each fact the Output names is set by a computation, given by a run or gathered by a loop on every path to `End`, but one its Inputs also name, which, where no step on the path sets it, holds the value it was given. The last step, and each branch of it where it is a comparison, ends `End` or goes to another step, so the Algorithm ends only at an `End`.
 
 **A loop that must end —** a loop is a loop over a list, a comparison one of whose branches goes back to an earlier step or to its own, or a run recurring; a step that is no comparison never goes back, so a loop whose test falls in its middle is written with its test at the step going back. A loop over a list ends with its list, fixed as the loop begins. Every other loop states why it ends in a `Terminates` column after Action: in the cell of each step going back or recurring, a FEEL expression giving the number that shrinks with each pass toward an end the step reaches, as `high - low`, or the citation of the Constraint its end rests on, one something keeps; `none` in every other cell; the column written only where a step goes back or recurs.
 
 **Arithmetic —** a number is FEEL's (`specs/methodology/expressions.md § Expressions § FEEL § Its Values`), unless the Algorithm's Precision and Rounding Mode state its system's, each operation then rounded as `specs/methodology/expressions.md § Expressions § FEEL § Arithmetic and Time` has it. A value written to a fact holding decimal places is rounded to them under either, by the Algorithm's Rounding Mode, as that section has it. Any other value is rounded only by a computation calling `decimal` or one of FEEL's rounding functions (`specs/methodology/expressions.md § Expressions § FEEL § Its Functions`), its decimal places a number or a fact choosing them, never by the word `rounded`. An Algorithm holds one precision and one rounding mode for every step: steps its system computes with another are an Algorithm of their own, run, stating theirs, and one operation rounded otherwise is rounded by its computation's own call.
 
-**Order —** a result that could depend on an order states it, as the Order field has it (`§ Constructs § Declaring a Construct`), a loop's order with its ties broken, and a remainder's share given by the order that takes it.
+**Order —** a result that could depend on an order states it, as the Order field has it (`§ Constructs § Ordered Construct`), a loop's order with its ties broken, and a remainder's share given by the order that takes it.
 
 **A worked example —** a schedule's instalments, each period given its share of the rate by a Decision Table, in a system holding 19 significant digits and rounding money half up, written whole as a file would hold it:
 
@@ -646,7 +869,7 @@ Authored as a numbered table of steps:
 
 A schedule's instalments, each period's share of the rate applied to its balance, and the total still due.
 
-**Construct:** Algorithm
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 
 **Inputs:**
 
@@ -699,6 +922,27 @@ A schedule's instalments, each period's share of the rate applied to its balance
 
 Step 1 walks the list in its keys' order and gathers each updated item back into it, the list set once the loop ends; step 2 runs a Decision Table, giving each fact it takes by `with` and writing its outcome `Share` to a fact of another name by `as`; step 3 multiplies money, so it writes to a fact holding decimal places, rounded to cents half up, each operation first held to 19 digits, and reads a value the ledger computes by a call; step 4 sets a part from that fact, a part holding no decimal places of its own; and step 5 reads a value the specs derive, by a call given each current period, its `settled` defined once by its Derivation.
 
+**Name —** an Algorithm is named for its process as a thing, `Report Assembly`, never for an activity, `Running payroll`.
+
+**Checks —** an instance is reported for:
+
+- no Inputs, Output or Runs When field, an Inputs item that is neither a fact's name nor a name, a colon and a citation, an Output item that is no fact's name, or an Output fact its Inputs do not name that nothing sets;
+- two steps sharing a number;
+- a jump to a step the table does not hold;
+- a Precision that is no whole number above zero and below 34, or a Rounding Mode that is neither a mode `specs/methodology/expressions.md` names nor a fact the Algorithm knows whose Values hold only modes;
+- a step in none of its forms, a comparison not written in its form, whose condition gives no yes or no or whose branch is a loop, a computation not written `Set` a fact or its part `to` an expression, a run not written `Run`, a citation, its arguments and what it gives, a run citing no Algorithm or Decision Table, a loop over a list not written in its form, or work citing an Algorithm or a Decision Table whole;
+- an expression in no form FEEL has, naming a fact the step does not know, combining values of two kinds, or reaching a part a fact does not hold;
+- a value written to a fact, a part or an Input of another kind, or a part set by a path that is not names joined by `.` or that reaches through a list;
+- a run giving a fact the construct run does not give, naming as an argument no fact it takes, or leaving a fact it takes neither given nor known;
+- a comparison whose only work is setting one fact;
+- a comparison both of whose branches go back to an earlier step or to its own;
+- a step that is no comparison going back;
+- a loop's body that is not the steps after it, reaches past the body holding it or holds the table's last step, a jump into or out of a body, a loop over what is no list, or a pass `at once` setting a fact other than its item and what it gathers;
+- a step going back or a run recurring with no Terminates cell, a Terminates cell giving no number or citing no Constraint, or citing one nothing enforces, one on a step that neither goes back nor recurs, or a Terminates column every cell of which is none;
+- a jump or an `End` that does not end its branch, or an `End` with words after it;
+- a last step, or a branch of it, that neither ends nor jumps;
+- a Runs When citing a construct that does not run it, or leaving out one that does.
+
 #### What It Means
 
 An Algorithm means what UML's activity means for what its table writes, each statement citing the section of UML it rests on, so neither an author nor a reader needs to recall the standard. The canon's rules beyond UML are its departures, each named where it is stated: a loop going back or a run recurring stating why it ends; a value a later step reads set only by a computation; a run's arguments and what it gives matched to the construct's facts by name; a gathered list in the order of the list walked, whatever order the passes ran in, holding the item of every pass where a loop gathers its own item, and left as it stood where an `End` in the body ends the run; a Decision Table run as a Behavior; an Output its Inputs also name holding what it was given where nothing sets it; and `End` inside a loop's body ending the whole run.
@@ -723,27 +967,39 @@ An Algorithm means what UML's activity means for what its table writes, each sta
 
 ### Constraint
 
-A rule that must hold of a system's facts, independent of any single decision point or process step: an invariant on the state or output of something else, or a condition an operation requires as it begins or guarantees once it ends. It is UML's Constraint (`specs/methodology/external-references.md § External References [Name: UML]`), adopted whole and written as a table of rules, each a FEEL boolean, with no tie to any language or engine; `§ Constructs § Constraint § What It Means` states what UML means for what its table writes, and names what the canon adds to UML.
+A rule that must hold of a system's facts, independent of any single decision point or process step: an invariant on the state or output of something else, or a condition an operation requires as it begins or guarantees once it ends. Written so, what must hold and what keeps it are stated, and a rule nothing keeps is recorded rather than hidden. It is UML's Constraint (`specs/methodology/external-references.md § External References [Name: UML]`), adopted whole and written as a table of rules, each a FEEL boolean, with no tie to any language or engine; `§ Constructs § Constraint § What It Means` states what UML means for what its table writes, and names what the canon adds to UML.
+
+**Extends:** `§ Constructs § Tabular Construct`
+
+**Implements:**
+- `§ Constructs § Declared Construct`
+- `§ Constructs § Configured Construct`
+- `§ Constructs § Keyed Construct`
 
 **Reference Key:** Name
 
-Authored as a table.
+**Locator:** a rule, a row of its table matched by its Name column, its keys kept in one place, so a citation writes its key alone, `[Name: …]`
 
-| Constraint | Applies to | Enforced by |
-|---|---|---|
-| The rule | When the rule holds | What keeps the rule |
+Authored as a table, its columns each headed by a field label:
 
-**Its rule —** a FEEL boolean (`specs/methodology/expressions.md § Expressions § FEEL`) over the facts its file declares, each named as its Facts record declares it (`§ Constructs § Declaring a Construct § Fact`), as `sum(portions) + overpayment = amount`; a Constraint sits in the file whose Facts section declares the facts its rules name, so a rule names no fact another file declares, and reaches another construct's facts only as When it holds has it. A rule of every entity of a kind names the fact holding them all, a list, and quantifies over it, `every {item} in {list} satisfies {rule}`, as `every t in transactions satisfies t.debits = t.credits`; a value as it stood before an operation is a fact declared for it, `balance before`; and a rule reaching along a chain of entities calls a function fact that gives the chain, as `ancestors(record)`. A rule governing some values only tests them in itself, `if {condition} then {rule} else true`, as `if currency.decimal places = 0 then modulo(amount, currency.multiple) = 0 else true`, since Applies to says when a rule holds, never of which values; a State Machine's state invariant is such a rule, narrowed by the fact the machine's Recorded In names, `if status = "active" then balance >= 0 else true`. Its explanation, where it needs one, is prose after the table.
+| Column | Holds |
+|---|---|
+| `Name` | the rule's name (`§ Constructs § Keyed Construct § Part Identifier`) |
+| `Constraint` | the rule |
+| `Applies To` | when the rule holds |
+| `Enforced By` | what keeps the rule |
 
-**When it holds —** an operation is a run of an Algorithm or of a DAG, a transition taken with its effect, an occurrence a State Machine answers, or what a section's own text states is done, and each is all or none: an operation either completes, reaching its end, or fails, stopped by an error, a timeout or a precondition it cannot meet, and what a failed one wrote is undone, so a rule holding as it began holds as it ends (`§ Constructs § Constraint § What It Means`). A request turned away completes, and keeps what it wrote, as `§ Constructs § Decision Table § A Request Turned Away` has it. A construct whose operation keeps less than all of its writes states so where it says what a failure does. Applies to is `always`, `after {citation}` or `before {citation}`, the citation an operation's. A rule `always` holds at every rest, whenever no operation is running. A rule `after` an operation holds once a run of it completes, the operation's postcondition; a rule that holds only once some part has run, as a summary a job recomputes, is `after` that operation. A rule `before` an operation holds as its run begins, its precondition, what the operation relies on, Enforced by the parts of what runs the operation that make it hold; a check the system makes of a request is none, as `§ Constructs § Decision Table § A Request Turned Away` has it. Beside the file's facts, a rule `after` an Algorithm reads its Inputs and Output, one `before` it reads its Inputs, one `after` or `before` a transition reads those of the Algorithm its effect runs, one `before` a DAG reads what the work of its first tasks takes and one `after` it what the work of its tasks takes and gives, as `§ Constructs § DAG` has them, and one `after` or `before` an operation a section's own text states reads the file's facts alone. The citation names the operation whole, an Algorithm's or a DAG's section, a transition by its Name, or a section whose own text states what is done, never a step or a task.
+**Rule —** a FEEL boolean (`specs/methodology/expressions.md § Expressions § FEEL`) over the facts its file declares, each named as its Facts record declares it (`§ Defining Constructs § Declaring a Construct § Fact`), as `sum(portions) + overpayment = amount`; a Constraint sits in the file whose Facts section declares the facts its rules name, so a rule names no fact another file declares, and reaches another construct's facts only as When it holds has it. A rule of every entity of a kind names the fact holding them all, a list, and quantifies over it, `every {item} in {list} satisfies {rule}`, as `every t in transactions satisfies t.debits = t.credits`; a value as it stood before an operation is a fact declared for it, `balance before`; and a rule reaching along a chain of entities calls a function fact that gives the chain, as `ancestors(record)`. A rule governing some values only tests them in itself, `if {condition} then {rule} else true`, as `if currency.decimal places = 0 then modulo(amount, currency.multiple) = 0 else true`, since Applies To says when a rule holds, never of which values; a State Machine's state invariant is such a rule, narrowed by the fact the machine's Recorded In names, `if status = "active" then balance >= 0 else true`. Its explanation, where it needs one, is prose after the table.
 
-**Its enforcement —** Enforced by is the canon's addition to UML's Constraint, naming what keeps the rule: the citation of each part of another construct, a step, a row, a transition or a task, or of a section whose own text states the mechanism, that keeps it where a write could break it, several joined by `and`, `{citation} and {citation}`, since an invariant is kept only where every operation changing its facts keeps it. A rule a Decision Table turning requests away keeps is Enforced by that table's rows, as `§ Constructs § Decision Table § A Request Turned Away` has it. A part that breaks the rule, tolerates its breach or runs on no path keeps nothing, and is no enforcement. A rule nothing keeps is written so the specs say what holds and what does not: its Enforced by is `nothing: {what breaks it or leaves it unkept}`, citing after those words any part that keeps some of it. A rule some paths keep and others do not is written by its paths, each by when its rule holds: a path whose rule holds at every rest is an `always` row narrowed by the fact that tells the path apart, its source or its writer; a path whose rule holds only as its own operation completes is a row `after` that operation; and the path nothing keeps is the row opening `nothing:`. A Constraint enforced by `nothing:` is listed on every audit run as a warning, never a finding: the gap is the system's, recorded, and the specs are complete in recording it.
+**When it holds —** an operation is a run of an Algorithm or of a DAG, a transition taken with its effect, an occurrence a State Machine answers, or what a section's own text states is done, and each is all or none: an operation either completes, reaching its end, or fails, stopped by an error, a timeout or a precondition it cannot meet, and what a failed one wrote is undone, so a rule holding as it began holds as it ends (`§ Constructs § Constraint § What It Means`). A request turned away completes, and keeps what it wrote, as `§ Constructs § Decision Table § A Request Turned Away` has it. A construct whose operation keeps less than all of its writes states so where it says what a failure does. Applies To is `always`, `after {citation}` or `before {citation}`, the citation an operation's. A rule `always` holds at every rest, whenever no operation is running. A rule `after` an operation holds once a run of it completes, the operation's postcondition; a rule that holds only once some part has run, as a summary a job recomputes, is `after` that operation. A rule `before` an operation holds as its run begins, its precondition, what the operation relies on, Enforced By the parts of what runs the operation that make it hold; a check the system makes of a request is none, as `§ Constructs § Decision Table § A Request Turned Away` has it. Beside the file's facts, a rule `after` an Algorithm reads its Inputs and Output, one `before` it reads its Inputs, one `after` or `before` a transition reads those of the Algorithm its effect runs, one `before` a DAG reads what the work of its first tasks takes and one `after` it what the work of its tasks takes and gives, as `§ Constructs § DAG` has them, and one `after` or `before` an operation a section's own text states reads the file's facts alone. The citation names the operation whole, an Algorithm's or a DAG's section, a transition by its Name, or a section whose own text states what is done, never a step or a task.
 
-**A derived value —** a stored fact the system derives from others is a Constraint whose rule is `{fact} = {expression}`, UML's derivation specified by a constraint, `always` where the system keeps it so, or `after` the operation that recomputes it where it lags between runs, Enforced by what writes it; a value the system derives on demand, stored nowhere, is a Facts record's Derivation (`§ Constructs § Algorithm`). No Constraint states a fact's value as its entity is created: that is the Facts record's Initial Value (`§ Constructs § Declaring a Construct § Fact`).
+**Enforcement —** Enforced By is the canon's addition to UML's Constraint, naming what keeps the rule: the citation of each part of another construct, a step, a row, a transition or a task, or of a section whose own text states the mechanism, that keeps it where a write could break it, several joined by `and`, `{citation} and {citation}`, since an invariant is kept only where every operation changing its facts keeps it. A rule a Decision Table turning requests away keeps is Enforced By that table's rows, as `§ Constructs § Decision Table § A Request Turned Away` has it. A part that breaks the rule, tolerates its breach or runs on no path keeps nothing, and is no enforcement. A rule nothing keeps is written so the specs say what holds and what does not: its Enforced By is `nothing: {what breaks it or leaves it unkept}`, citing after those words any part that keeps some of it. A rule some paths keep and others do not is written by its paths, each by when its rule holds: a path whose rule holds at every rest is an `always` row narrowed by the fact that tells the path apart, its source or its writer; a path whose rule holds only as its own operation completes is a row `after` that operation; and the path nothing keeps is the row opening `nothing:`. A Constraint enforced by `nothing:` is listed on every audit run as a warning, never a finding: the gap is the system's, recorded, and the specs are complete in recording it.
+
+**A derived value —** a stored fact the system derives from others is a Constraint whose rule is `{fact} = {expression}`, UML's derivation specified by a constraint, `always` where the system keeps it so, or `after` the operation that recomputes it where it lags between runs, Enforced By what writes it; a value the system derives on demand, stored nowhere, is a Facts record's Derivation (`§ Constructs § Algorithm`). No Constraint states a fact's value as its entity is created: that is the Facts record's Initial Value (`§ Defining Constructs § Declaring a Construct § Fact`).
 
 **A case a Constraint rules out —** a Decision Table covers every case the Values of the facts it tests allow (`§ Constructs § Decision Table`), a Constraint narrowing no table's cases, since a Constraint may fail. A value no fact ever holds is excluded by the fact's Values, where its type alone does not bound them, and a table then need not cover it.
 
-**An approximation —** a rule bounding an approximation states the bound as the rule, `abs({computed} - {intended}) <= {tolerance}`, Enforced by the step that approximates.
+**An approximation —** a rule bounding an approximation states the bound as the rule, `abs({computed} - {intended}) <= {tolerance}`, Enforced By the step that approximates.
 
 **A worked example —** a schedule's instalments, a payment settling one, written whole as a file would hold it: an invariant over every instalment, a postcondition of the settlement reading its Output and a before-value, and a stored total the system derives and keeps only by a nightly job, a warning:
 
@@ -752,7 +1008,7 @@ Authored as a table.
 
 A payment received, settled against its instalment up to what is due.
 
-**Construct:** Algorithm
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 
 **Inputs:**
 
@@ -774,9 +1030,9 @@ A payment received, settled against its instalment up to what is due.
 
 What holds of a schedule's instalments as payments settle them.
 
-**Construct:** Constraint
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Constraint`
 
-| Constraint | Applies to | Enforced by |
+| Constraint | Applies To | Enforced By |
 |---|---|---|
 | every i in instalments satisfies i.paid <= i.due | always | `§ Instalment Settlement [Step: 1]` |
 | instalment.paid >= paid before | after `§ Instalment Settlement` | `§ Instalment Settlement [Step: 1]` |
@@ -807,13 +1063,20 @@ What holds of a schedule's instalments as payments settle them.
   **Means:** the schedule, with the total its nightly job writes
 ```
 
-**Its checks —** a Constraint is checked with its citations resolved, once, across files: each rule in a form FEEL has, judged with the facts in scope, a rule giving no yes or no, naming a fact nothing declares, combining values of two kinds or reaching a part a fact does not hold reported; an Applies to in none of its forms, citing a step or a task, a construct that is no operation, a record section, or a State Machine and no transition of it, reported; an Enforced by that is neither citations joined by `and` nor `nothing:` and words reported, a citation that resolves to nothing being the citation checks'; and a `nothing:` listed as a warning. Which part keeps a rule, whether a section an Applies to cites states in its own text an operation, whether every write able to break a rule is covered and whether a bounded step keeps its bound are read, never decided by the script.
+**Checks —** a Constraint is checked with its citations resolved, once, across files, a citation that resolves to nothing being the citation checks'. Which part keeps a rule, whether a section an Applies To cites states in its own text an operation, whether every write able to break a rule is covered and whether a bounded step keeps its bound are read, never decided by the script.
+
+An instance is reported for:
+
+- a rule in no form FEEL has, judged with the facts in scope, giving no yes or no, naming a fact nothing declares, combining values of two kinds or reaching a part a fact does not hold;
+- an Applies To that is neither `always` nor `after` or `before` a citation, or citing a step or a task, a construct that is no operation, a record section, or a State Machine and no transition of it;
+- an Enforced By that is neither citations joined by `and` nor `nothing:` and words;
+- a rule nothing keeps listed as a warning, never a finding.
 
 #### What It Means
 
 A Constraint means what UML's Constraint means for what its table writes, each statement citing the section of UML it rests on, so neither an author nor a reader needs to recall the standard. The canon's rules beyond UML are its additions, each named where it is stated.
 
-**A rule —** a Constraint, its section 7.6.3, its rule the Constraint's specification, a ValueSpecification of type Boolean, satisfied where it evaluates to true; its language FEEL, which its section 7.6.4 leaves to the Constraint, so FEEL is no departure. The facts the rule names are its constrainedElements, and its Applies to its context, which its section 7.6.3 has decide when the Constraint is evaluated; that `always` is every rest between operations is the canon's, an addition, UML naming no such time.
+**A rule —** a Constraint, its section 7.6.3, its rule the Constraint's specification, a ValueSpecification of type Boolean, satisfied where it evaluates to true; its language FEEL, which its section 7.6.4 leaves to the Constraint, so FEEL is no departure. The facts the rule names are its constrainedElements, and its Applies To its context, which its section 7.6.3 has decide when the Constraint is evaluated; that `always` is every rest between operations is the canon's, an addition, UML naming no such time.
 
 **A precondition and a postcondition —** a rule `before` an operation is a precondition and one `after` it a postcondition of the Behavior the Algorithm, the DAG or the transition's effect is, its section 13.2.3.1, an Activity holding them as a Behavior does, its section 15.2.3.6: a precondition holding as the Behavior is invoked, which an implementation may assume, and a postcondition holding once its invocation completes successfully. That an operation a section's own text states takes them is the canon's, an addition, UML holding a precondition and a postcondition of a Behavior alone. A protocol transition's precondition is its guard and its postcondition a Constraint, as `§ Constructs § State Machine § What It Means` has it.
 
@@ -821,52 +1084,74 @@ A Constraint means what UML's Constraint means for what its table writes, each s
 
 **An operation all or none —** an occurrence a State Machine answers is dispatched only once the one before it is fully processed, its section 14.2.3.9.1; that an occurrence, a run of an Algorithm or of a DAG, or a transition taken is all or none, what it wrote undone where it fails, failing where it does not complete, is the canon's, an addition.
 
-**Enforced by —** the canon's addition: UML holds that an unsatisfied Constraint makes the model's realization invalid, its section 7.6.3, and says nothing of what keeps one satisfied.
+**Enforced By —** the canon's addition: UML holds that an unsatisfied Constraint makes the model's realization invalid, its section 7.6.3, and says nothing of what keeps one satisfied.
 
 ### Basic Table
 
-A table of items of one kind, each row an item and each column one of its fields: the Record Form's pattern laid out in rows (`§ Constructs § Record Form`). It is the one construct no `**Construct:**` field declares: a table outside a construct's block (`§ Constructs § Declaring a Construct`) is a Basic Table, and follows this section, never another construct's.
+A table of items of one kind, each row an item and each column one of its fields: the Record Form's pattern laid out in rows (`§ Constructs § Record Form`), so items of one kind read at a glance and, where keyed, each row can be cited. It is recognized by its shape (`§ Defining Constructs § Declaring a Construct`), the one concrete construct implementing no `§ Constructs § Declared Construct`: a table outside a construct's block is a Basic Table, whatever it holds, and follows this section, never another construct's, chosen by no question of `§ When to Use Which` and checked for its form and its citations rather than for what it leaves out. It follows no outside standard, since none meets its need.
 
-**Its header —** each header is written as a field key is (`§ Fields`), but a header in backticks, literal text written as it is elsewhere (`§ Literal Text`), and a proper noun keeping its own casing, as `macOS`.
+**Extends:** `§ Constructs § Tabular Construct`
 
-**Its Reference Key —** where a row of it is cited, a `**Reference Key:**` field opens a paragraph of its own directly before it, naming the column or columns, in order and separated by commas, a citation selects a row by, each value under them in every row an identifying value (`§ Constructs § Record Form`) and unique, alone or together. A row is cited as a record is, by its section and its key's values (`specs/methodology/sourcing-and-citation.md § Writing a Citation`). A section holds at most one Basic Table declaring a Reference Key, and none where it declares another construct, so a citation's section and key name one row, and a Basic Table declaring none has no row cited.
+**Implements:**
+- `§ Constructs § Keyed Construct`
 
-**Its other columns —** ordinary fields, each row's value read under its header, never cited.
+**Locator:** a row of the table its Reference Key stands before, matched by the columns that key names, its keys kept in one place, so a citation writes its key alone
+
+**Columns —** every column headed by a field label, but a header in backticks, literal text written as it is elsewhere (`specs/methodology/spec-style.md § Literal Text`), and a proper noun keeping its own casing, as `macOS`:
+
+| Column | Holds |
+|---|---|
+| a field | the row's value of the field its header names, however Columns has the header written |
+
+**Reference Key —** where a row of it is cited, a `**Reference Key:**` field (`§ Constructs § Keyed Construct`) opening a paragraph of its own directly before the table; it names only columns its table holds, and a section holds at most one Basic Table declaring a Reference Key, and none where it declares another construct, so a citation's section and key name one row, and a Basic Table declaring none has no row cited.
+
+**Checks —** an instance is reported for:
+
+- a header that is no field label, but a header in backticks and a word in a proper noun's own casing;
+- a Reference Key naming a column its table does not hold;
+- a second table declaring a Reference Key in one section, or one in a section declaring another construct.
 
 ### Record Form
 
-An entry of one kind written repeatedly into a methodology spec, an application spec, or a working file, each record stating the same named fields: what differs between records is each field's value, never which fields there are. A closed set a product spec defines is one too (`specs/methodology/glossary.md`), the instances of one entity type the product holds, as a work order's statuses, settled as a vocabulary before, and apart from, the workflows that use it. A set that changes while the product runs is data, a configured instance's (`§ When to Use Which § A Configured Instance`). A schema of data the product stores is not one, however many records the product holds: the technical specs describe it as they describe data, and a closed set's technical counterpart cites the set rather than restating its records, as `specs/methodology/spec-placement.md § Product or Technical` places it.
+An entry of one kind written repeatedly into a methodology spec, an application spec, or a working file, each record stating the same named fields: what differs between records is each field's value, never which fields there are. Written so, every entry carries the fields its kind needs, each checked, and none goes missing. It follows no outside standard, since none meets its need. A closed set a product spec defines is one too (`specs/methodology/glossary.md`), the instances of one entity type the product holds, as a work order's statuses, settled as a vocabulary before, and apart from, the workflows that use it. A set that changes while the product runs is data, a configured instance's (`§ When to Use Which § A Configured Instance`). A schema of data the product stores is not one, however many records the product holds: the technical specs describe it as they describe data, and a closed set's technical counterpart cites the set rather than restating its records, as `specs/methodology/spec-placement.md § Product or Technical` places it.
 
-A record type is an instance of this form, as a Decision Table is of its section, and its records are its instances (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`). A type is defined at the home of the rule it serves, in a section titled with the type's name, as a construct's section is titled with its own, `## Open Question` say, whose prose says where its records go. It is declared there as a construct is (`§ Constructs § Declaring a Construct`): a `**Construct:**` field naming this form, then its fields, then its tables, a type extending another by Extends holding every field its base holds, in its base's order, and its own after them. Its fields, after those every construct declares:
+**Extends:** `§ Constructs § Construct`
+
+**Implements:**
+- `§ Constructs § Declared Construct`
+- `§ Constructs § Keyed Construct`
+
+**Locator:** a record of the record section a citation names, matched by its identifying fields, each record section keeping its keys in one place, so a citation writes its key alone
+
+A record type is an instance of this form, as a Decision Table is of its section, and its records are its instances (`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`). A type is defined at the home of the rule it serves, in a section titled with the type's name, as a construct's section is titled with its own, `## Open Question` say, whose prose says where its records go. It is declared there as a construct is (`§ Defining Constructs § Declaring a Construct`): a `**Construct:**` field naming this form, then its fields, then its tables, a type extending another by Extends holding every field its base holds, in its base's order, and its own after them. Its fields, after those its interfaces give:
 
 | Field | Required | Default Value | Values | Holds |
 |---|---|---|---|---|
 | Plural Name | yes | | text | the plural of the type's name, which titles each section holding its records and no other section where they may sit, so a definition and a collection of records never share a title: a canon type's records may sit in any file, and an application spec's type's in the application specs, no two types reaching one file sharing a Plural Name |
-| Reference Key | where it extends no type | | text | the field or fields, in order and separated by commas, whose values a citation names to select one record, its identifying fields, several naming one record together, and a key of one field marking that field Unique; a type extending another declares none, taking its base's |
+| Reference Key | where it extends no type | | text | its key (`§ Constructs § Keyed Construct`), its identifying fields, a key of one field marking that field Unique; a type extending another declares none, taking its base's |
 
-Its tables come in this order. Where it declares section fields beyond Diagrams, a table of them comes first, in the shape every construct's table of fields takes: Field, Required, Default Value, Values and Holds. Then comes the table of its record fields, in the order a record gives them, in that shape with a Unique column after Field, marking each field whose values are unique on their own across a record section's records:
+Its tables come in this order, each a table of fields as `§ Constructs § Construct` gives one. Where it declares section fields beyond a record section's own, Diagrams and Records, a table of them comes first. Then comes the table of its record fields, in the order a record gives them, with a column after `Field`, headed by a field label:
 
-| Field | Unique | Required | Default Value | Values | Holds |
-|---|---|---|---|---|---|
-| ... | yes or no | as `§ Fields` sets | as `§ Fields` sets | the values it may hold | What a record states in this field |
+| Column | Holds |
+|---|---|
+| `Unique` | yes or no: whether the field's values are unique on their own across a record section's records |
 
-**Its values —** what a field may hold: a list of its values, each in double quotes and separated by commas, which the audit checks every value against; a citation of the section that lists them, a closed set's record section among them, whose records' identifying values the audit checks every value against too; or `text`, any value its Holds describes.
+**The record section —** a type's records sit together in a record section of their own, titled as its type's Plural Name has it. It holds only fields: `**Diagrams:**`, then any section fields of its own the type declares, facts about the collection as a whole, each given in the order its table of them sets and each required one present, then `**Records:**`, ending the section. A record section's own fields, in a table of fields (`§ Constructs § Construct`):
 
-**The record section —** a type's records sit together in a record section of their own, titled as its type's Plural Name has it. It holds only fields, in this order:
-
-- `**Diagrams:**`, a section field every type has, not required, its default value `none`: its key on a line of its own and beneath it one bullet per citation of a diagram rendering the section or any record in it, sorted in plain character order. Through it, whoever edits a record meets every diagram drawing it;
-- any section fields of its own the type declares, facts about the collection as a whole, each given in the order its table of them sets, and each required one present;
-- `**Records:**`, required, its key on a line of its own and beneath it one list item per record, at least one, ending the section.
+| Field | Required | Default Value | Values | Holds |
+|---|---|---|---|---|
+| Diagrams | no | none | text | a list, a citation of each diagram rendering the section or any record in it, sorted in plain character order, so whoever edits a record meets every diagram drawing it |
+| Records | yes | | text | a list, an item to each record, at least one |
 
 A blank line separates one section field from the next, and one record from the next, and each list value ends as `§ Fields` states, so the Diagrams bullets and the records never run together.
 
 **A record —** its fields (`§ Fields`), at most one per row of its type's table and in that order: the first on the list item's own line, each of the rest on a line indented two spaces directly beneath the one before, every line of the item belonging to one field's value. No blank line falls between a record's fields, since they are one record's facts serving one purpose, and whitespace separates only content that differs. Every record carries every field its type requires, and no field its type does not define, and no two records in one section share the values of their identifying fields. An identifying field is required.
 
-**An identifying value —** short, kept stable for the record's life, and plain text on one line, with no Markdown, backtick, `§`, `;` or `]`, since a citation names one record by its identifying values (`specs/methodology/sourcing-and-citation.md § Writing a Citation`). A type whose natural identifier is long, a question or a description, adds a short one.
+**An identifying value —** a record's is written as `§ Constructs § Keyed Construct` has any part's; a type whose natural identifier is long, a question or a description, adds a short one.
 
 **Why a list —** records are not table rows, because a field holds prose a table cell cannot carry readably. They are not headings, because a heading's section admits any content and further headings, where a list item holding only its fields is bounded, so a reader and a script can tell where one record ends and whether it holds exactly its type's fields.
 
-**A closed set —** a fact whose values are a closed set's members takes them by its Values, the citation of the record section holding them (`§ Constructs § Declaring a Construct § Fact`), so every construct testing the fact draws on the one set: a State Machine recording its state in it, each of its states one of the set and described as `§ Constructs § State Machine` has a state drawn from a closed set described, and a Decision Table's condition testing it, each cell within it. The set's records sit in the one record section cited, its home, and another section of its type holding records where they may sit is reported. Several workflows may each draw on one set, using the members each needs.
+**A closed set —** a fact whose values are a closed set's members takes them by its Values, the citation of the record section holding them (`§ Defining Constructs § Declaring a Construct § Fact`), so every construct testing the fact draws on the one set: a State Machine recording its state in it, each of its states one of the set and described as `§ Constructs § State Machine` has a state drawn from a closed set described, and a Decision Table's condition testing it, each cell within it. The set's records sit in the one record section cited, its home, and another section of its type holding records where they may sit is reported. Several workflows may each draw on one set, using the members each needs.
 
 **A worked example —** a work order's statuses, a closed set a product spec defines, a fact taking its values from them, and a workflow drawing on the set, written whole as a file would hold it:
 
@@ -875,7 +1160,7 @@ A blank line separates one section field from the next, and one record from the 
 
 A status a work order can hold, the set the product owner settles before, and apart from, the workflows that move a work order between them, each with the code integrations exchange for it. Its records sit in this spec.
 
-**Construct:** Record Form
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`
 
 **Plural Name:** Work Order Statuses
 
@@ -926,11 +1211,11 @@ A status a work order can hold, the set the product owner settles before, and ap
 
 The workflow of a work order raised through the portal.
 
-**Construct:** State Machine
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
 
 **Recorded In:** work order status: `§ Facts [Name: work order status]`
 
-| state | description | initial | terminal |
+| State | Description | Initial | Terminal |
 |---|---|---|---|
 | Open | `§ Work Order Statuses [Name: Open]`, waiting in the portal's queue for a dispatcher | Yes | No |
 | Assigned | `§ Work Order Statuses [Name: Assigned]`, its technician notified by the portal | No | No |
@@ -947,11 +1232,26 @@ The workflow of a work order raised through the portal.
 
 The defining section, titled with the type's name, declares it, its Plural Name titling the record section and its Reference Key, Name, what a citation of a status names; Code is unique on its own, never cited. On Hold writes Is Active, where it differs from its default. The fact's Values cite the record section, so its values are the statuses' Names, and the State Machine recorded in it uses all but the retired On Hold, each state's description opening with its status's record and then saying what goes on in it in this workflow.
 
+**Name —** a record type is named for the entity its records are, `Work Order Status`.
+
+**Checks —** an instance is reported for:
+
+- a record type declared with no Plural Name, or with tables other than any table of its section fields and then its table of record fields, a field it or its base names twice, a Unique cell neither yes nor no, no Reference Key, its own or its base's, or one naming a field the type does not give or does not require, or a Default Value given where its field is required or left empty where it is not;
+- its section titled with an article or with its Plural Name;
+- a Plural Name another type declares;
+- a record section titled with no declared type's Plural Name, or with a type's but holding no records;
+- a section field its type requires missing, given out of order, at its default or outside its Values, or one its type does not declare;
+- a value outside a closed set its field cites;
+- a second record section of a closed set;
+- a record missing a field its type requires, holding one its type does not define, holding a value its type's Values do not allow, or giving its fields out of their order;
+- two records in one section sharing a value of a field its type marks Unique;
+- a Reference Key on a type extending another, or of one field not marked Unique.
+
 ## Time
 
 How a construct reads time, wherever a cell, a guard, a trigger or a step reads a date, a time or a duration.
 
-**The clock —** a date or a time is read on a clock: the wall clock, unless a construct names another. A clock other than the wall clock, as a business date a job advances, is a fact of the Type date or date and time, declared once, in the Facts section of the file whose subject owns it (`§ Constructs § Declaring a Construct § Fact`), and named by that fact's name wherever a cell, a guard, a trigger or a step reads it, in any file, its time zone, where it matters, stated in the fact's Means.
+**The clock —** a date or a time is read on a clock: the wall clock, unless a construct names another. A clock other than the wall clock, as a business date a job advances, is a fact of the Type date or date and time, declared once, in the Facts section of the file whose subject owns it (`§ Defining Constructs § Declaring a Construct § Fact`), and named by that fact's name wherever a cell, a guard, a trigger or a step reads it, in any file, its time zone, where it matters, stated in the fact's Means.
 
 **The value in force —** a value that changes from a date on, as a rate or a limit does, is a fact read at an instant: a construct reads it at the start of the period it computes unless its prose names another instant, and a period a change falls within says how it is split. A rule changed from a date is one construct testing the period's date, not two.
 
@@ -967,9 +1267,11 @@ How a construct reads time, wherever a cell, a guard, a trigger or a step reads 
 
 ## When to Use Which
 
+A construct is used where a rule, a process, an entity's behavior, an entry written repeatedly into the specs or the working files, or a closed set a product spec defines needs checkable completeness, and prose everywhere else: prose states a rule one fact decides, sending its cases to at most two outcomes, the fact's and its otherwise, and a rule reading two or more facts, or one fact sending its cases to more than two outcomes, takes the construct this section's table chooses, however it reads, since routing written in an author's own words never looks like a rule to the one writing it; a claim that something holds of the system's facts sends no case anywhere and is a Constraint's (`§ Constructs § Constraint`), and a request turned away for a reason is one of the outcomes counted.
+
 Choose the simplest construct that meets the need, by the questions its table asks, in order: the first answered yes chooses, so prose is reached first, the State Machine after every other construct a rule or a process can take, since it is the most general of them, and the Record Form, which holds entries and no logic, last. Each question is answered from the shape of the case, what it is made of and what it waits for, never from what it is called, and the construct chosen is written as its section in `§ Constructs` has it, meaning what its standard says.
 
-**Construct:** Decision Table
+**Construct:** `§ Constructs § Decision Table`
 
 **Hit Policy:** First
 
@@ -988,7 +1290,7 @@ Choose the simplest construct that meets the need, by the questions its table as
 
 What each question asks, each decided from the case's shape, and what tells it from the question after it:
 
-- **Decided by one fact? —** the rule sends its cases to outcomes by one fact, to at most two of them, the fact's and its otherwise, as a claim paid on approval where its receipt is attached and held otherwise: prose, by the count `§ Purpose` sets, a list naming a set's values, each with what it means, being no rule and answering no.
+- **Decided by one fact? —** the rule sends its cases to outcomes by one fact, to at most two of them, the fact's and its otherwise, as a claim paid on approval where its receipt is attached and held otherwise: prose, by the count this section sets, a list naming a set's values, each with what it means, being no rule and answering no.
 - **Claimed of every reachable state? —** the rule is claimed true in every state the system can reach, whatever was done to reach it, whether or not the system keeps it, or of one operation as it begins or ends: a Constraint, `always`, `before` or `after` (`§ Constructs § Constraint`). A precondition is one, and a check the system makes of a request answers no, as `§ Constructs § Decision Table § A Request Turned Away` has them; a stored value claimed equal to what others give is one, a derivation; and a value derived on demand, stored nowhere, is no construct's but a Facts record's Derivation where its expression chooses no case, and a construct the questions after this one choose where it picks among cases.
 - **An outcome from conditions alone? —** the case's conditions alone pick its outcome among several, by no steps of its own, nothing keeping a status between one case and the next: a Decision Table (`§ Constructs § Decision Table`), what becomes of a request among them, as `§ Constructs § Decision Table § A Request Turned Away` has it. A condition that takes steps to find is an Algorithm's, whose result the table tests, and an outcome that must act, consume a counter or correct a value, is the step of the Algorithm running the table, the table deciding and the step doing.
 - **Tasks some of which run at once? —** distinct units of work, each named, with what each waits for, some free to run at once, every task considered on every run: a DAG, which `§ Constructs § DAG` tells from an Algorithm's loop `at once`, from tables chained by Reads, from a process configured as data and from a process that waits within a task.
@@ -998,7 +1300,7 @@ What each question asks, each decided from the case's shape, and what tells it f
 
 ### A Configured Instance
 
-Any declared construct but a DAG or a Record Form may be a configured instance: its rows, its states and transitions or its steps are data the system stores and its users change, held in the facts its `Held In` field names (`§ Constructs § Declaring a Construct`), the tables written being its default instance; a process whose tasks or their order are data is an Algorithm over that data, as `§ Constructs § DAG` has it. It is chosen by its shape as any other is, these questions asked of what the data does, never of the data's being stored: a value a rule reads, a setting, a threshold or a record's field, is an input and never structure; and records the system generates from its configuration are an Algorithm's Output, each then a run of the construct its shape chooses. Logic a deployment supplies as code, or chooses among by a setting, is written as its default, an Algorithm run where it is used, running a Decision Table where one decides, its contract a Constraint `before` and `after` the Algorithm (`§ Constructs § Constraint`) and its section's prose saying another may be supplied; a choice among built-in ones by a setting is a Decision Table over the setting, the setting an input. An instance is checked, as it is saved, as the written construct is, and one the checks would report is turned away; the section holding the construct says so, since a check made only of the written default is no check of the instances. An instance someone outside the system's authors owns, a clinic's own form or a tenant's own catalogue, is a specification its owner keeps, and the system's spec states what every instance obeys.
+An instance of a construct implementing `§ Constructs § Configured Construct` may be a configured instance: its rows, its states and transitions or its steps are data the system stores and its users change, held in the facts its `Held In` field names, the tables written being an example instance, which shows the data's shape and is checked as the data is, never one the system falls back to; a process whose tasks or their order are data is an Algorithm over that data, as `§ Constructs § DAG` has it. It is chosen by its shape as any other is, these questions asked of what the data does, never of the data's being stored: a value a rule reads, a setting, a threshold or a record's field, is an input and never structure; and records the system generates from its configuration are an Algorithm's Output, each then a run of the construct its shape chooses. Logic a deployment supplies as code, or chooses among by a setting, is written as its default, an Algorithm run where it is used, running a Decision Table where one decides, its contract a Constraint `before` and `after` the Algorithm (`§ Constructs § Constraint`) and its section's prose saying another may be supplied; a choice among built-in ones by a setting is a Decision Table over the setting, the setting an input. An instance is checked, as it is saved, as the written construct is, and one the checks would report is turned away; the section holding the construct says so, since a check made only of the written example is no check of the instances. An instance someone outside the system's authors owns, a clinic's own form or a tenant's own catalogue, is a specification its owner keeps, and the system's spec states what every instance obeys.
 
 ### Combining Constructs
 
@@ -1008,7 +1310,7 @@ Constructs are not mutually exclusive inside one spec: a part of one hands its w
 
 Where a part's handoff to another construct is written, decided by the part and the work:
 
-**Construct:** Decision Table
+**Construct:** `§ Constructs § Decision Table`
 
 **Conditions:** The part, Its work
 
@@ -1031,7 +1333,14 @@ A diagram is a materialized view of a fact, for a human reader, technical or not
 
 **Where it goes —** wherever it helps its reader most: beside the main section it renders, or above all the sections it renders, as an overview's diagram sits above its detail files. Where it goes is a judgment about the reader; its form is not.
 
-**Its form, wherever it goes —** a diagram has a heading of its own, directly followed by the diagram, then a `**Caption:**` field, then a `**Sources:**` field (`§ Fields`), each required. Nothing else is in its section, and its shape is the same wherever it appears, as a Decision Table's is. The caption says in prose what the diagram shows and carries no citation, so every citation it rests on has one place. The Sources field is `**Sources:**` on a line of its own followed by one bullet per citation, sorted in plain character order, so the order is mechanical and a script can check it; that order places same-file citations after cross-file ones. A diagram is authored as a Mermaid flowchart (`specs/methodology/external-references.md § External References [Name: Mermaid]`), checked in as source rather than as an image, so it renders in plain text and diffs like everything else here. It is a flowchart even where a state diagram or sequence notation would be the more formal rendering, since one grammar across every diagram in this repo, boxes and arrows, is worth more to the readers diagrams exist for than notational precision on any single one. Authoring, rendering or changing one follows `.ai/skills/author-mermaid-diagram/`.
+**Form, wherever it goes —** a diagram has a heading of its own, directly followed by the diagram, then its fields (`§ Fields`), in this table's order, a table of fields (`§ Constructs § Construct`):
+
+| Field | Required | Default Value | Values | Holds |
+|---|---|---|---|---|
+| Caption | yes | | text | what the diagram shows, in prose |
+| Sources | yes | | text | a list, a citation of the home of each fact the diagram draws |
+
+Nothing else is in its section, and its shape is the same wherever it appears, as a Decision Table's is. The caption carries no citation, so every citation the diagram rests on has one place. The Sources field's key stands on a line of its own, its bullets sorted in plain character order, so the order is mechanical and a script can check it; that order places same-file citations after cross-file ones. A diagram is authored as a Mermaid flowchart (`specs/methodology/external-references.md § External References [Name: Mermaid]`), checked in as source rather than as an image, so it renders in plain text and diffs like everything else here. It is a flowchart even where a state diagram or sequence notation would be the more formal rendering, since one grammar across every diagram in this repo, boxes and arrows, is worth more to the readers diagrams exist for than notational precision on any single one. Authoring, rendering or changing one follows `.ai/skills/author-mermaid-diagram/`.
 
 **What it may show —** only what its host file's own content, that file's prose or its own tables, already names. What stands behind a diagram is often far more granular, a State Machine's every state, an Algorithm's every step, and that granularity stays where it is. Check each label against the host file before adding or editing a diagram. A name, step, or distinction the host file never states is either collapsed out of the diagram or, if it genuinely belongs at that altitude, stated in the host file first and only then rendered. Choosing between them is a judgment about the host file's completeness, not about the picture. The bound falls on the diagram and not on a table beside it, because a table can carry a citation in every cell and stays checkable however specific it gets; a rendering that descended into detail its host never states would show a reader things the text around it never explains.
 

@@ -19,14 +19,14 @@ The two drawings also do not divide the building the same way. An architect orga
 
 **Different renderings, not two levels of detail —** a construct modeling one fact may render differently on each side:
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** Construct
 
 | Construct | Product spec | Technical spec |
 |---|---|---|
 | "DAG", "State Machine for a process" | a business-readable table of its steps, decision points and outcomes | the DAG or State Machine that carries it out |
-| Constraint | the plain guarantee | its enforcement, what its Enforced by names |
+| Constraint | the plain guarantee | its enforcement, what its Enforced By names |
 | "State Machine for an entity's or a system's status", "Decision Table" | the construct itself | the same construct |
 | Record Form of entries written repeatedly | the construct itself | the same construct |
 | Record Form of a closed set | the closed set, its type and its records | the data storing it, its database design and any enum naming its members, citing the set |
@@ -74,7 +74,7 @@ A directory's own mapping table, where it has one, is the exception that proves 
 
 An overview describes its directory, every directory beneath it, and what this table names for its directory (`§ Index, Architecture, Detail`), and is kept in step with all of it (`specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Materialized Views`):
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** Directory
 
@@ -93,7 +93,7 @@ An overview describes its directory, every directory beneath it, and what this t
 
 **When a subject earns its own file, and when a directory earns a subfolder —** a subject area here means a product capability domain on the product side and a service on the technical side; the test is the same for both:
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** Does the subject area decompose into sub-parts each substantial enough to carry its own promise and its own scenarios independently of the others?
 
@@ -128,7 +128,7 @@ Before writing or extending a product spec, ask what a product owner, or a sales
 
 Which file new product content goes in, decided by the capability domain it belongs to. Read the product specs' `architecture.md` first. It gives each domain a section of its own, describing what the domain covers and closing with the files that serve it, so its sections are the domains the specs recognize. Then the content's home:
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** Extends a listed domain?, Grows what one of its files holds?
 
@@ -227,7 +227,7 @@ The technical specs hold one environments file, `environments.md` at their root 
 
 Each environment's section opens with a required `**Kind:**` field (`specs/methodology/modeling-constructs.md § Fields`), its value one of a closed set, so what this section asks of an environment follows from its role, never from its name:
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** Kind
 
@@ -259,7 +259,7 @@ As it works, the agent writing code runs the targeted form of a test task on the
 
 An open question is recorded in the spec whose area it applies to, methodology, product or technical, and in the file whose scope covers everything the question impacts. That file must be able to cite every section the question's Impacts names (`specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`). A file's open questions sit in its record section of this type, a record type (`specs/methodology/modeling-constructs.md § Constructs § Record Form`), the file's last top-level section, so a reader finds them all in one place, after the settled content they qualify:
 
-**Construct:** Record Form
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`
 
 **Plural Name:** Open Questions
 
@@ -270,7 +270,7 @@ An open question is recorded in the spec whose area it applies to, methodology, 
 | Name | yes | yes | | text | a short name for what is undecided |
 | Open Question | no | yes | | text | what is undecided, asked as a question |
 | Provisional Answer | no | yes | | text | what the specs rely on until it is settled, stated as settled prose would state it |
-| Impacts | no | yes | | text | prose naming each thing that relies on the provisional answer, with a citation of the section holding it, or, where that section holds more, of the part of a construct that relies on it (`specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct`); a data field that relies on it is named by what it says beside its section's citation |
+| Impacts | no | yes | | text | prose naming each thing that relies on the provisional answer, with a citation of the section holding it, or, where that section holds more, of the part of a construct that relies on it (`specs/methodology/modeling-constructs.md § Constructs § Keyed Construct`); a data field that relies on it is named by what it says beside its section's citation |
 
 A sentence that relies on the provisional answer, and would otherwise read as settled, cites the record wherever `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` allows that citation, so a reader meets the question from the text that depends on it. A spec of a system that exists states the system as it is built, and where its author suspects a defect, what the system should do is an open question, its Provisional Answer the behavior as built, so the spec states as built nothing the system does not do.
 

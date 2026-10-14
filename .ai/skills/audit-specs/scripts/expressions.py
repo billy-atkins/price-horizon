@@ -8,7 +8,7 @@ kind where it can be told, and reports only what it can decide; it evaluates not
 import difflib
 import re
 
-# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct § Fact
+# @canon-spec specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact
 # a fact's name: words separated by single spaces, each opening with a letter and holding letters, digits and
 # apostrophes, a hyphen joining two runs of them; and a boolean fact's, a question, any words ending in a question mark;
 # the one copy, which constructs.py reads too
