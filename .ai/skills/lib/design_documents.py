@@ -91,7 +91,8 @@ def declared_type(home, plural, root=None):
         return [], [(path, "no file declares the %s type" % title)]
     text = (base / path).read_text(encoding="utf-8").replace("\r\n", "\n")
     lines = [l.strip() for l in (section(text, title) or "").split("\n")]
-    problems = [] if "**Construct:** Record Form" in lines else ["no Record Form declares the %s type" % title]
+    problems = [] if "**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`" in lines \
+        else ["no Record Form declares the %s type" % title]
     if "**Plural Name:** " + plural not in lines:
         problems.append("the %s type declares no Plural Name %s, the title a design's record section takes" % (title, plural))
     if "**Reference Key:** Name" not in lines:

@@ -25,7 +25,7 @@ A capability's own section is the only source for its scenarios: never another f
 
 The scenarios a capability's own section owes:
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** Write one scenario for
 
@@ -52,6 +52,6 @@ Editing a capability's stated promises or guardrails and editing that capability
 
 A Gherkin scenario is not one of the approved constructs (`specs/methodology/modeling-constructs.md`) and does not belong there.
 
-Each of those constructs is checked for what prose would leave out, as `specs/methodology/modeling-constructs.md § Purpose` lists, often across a space of branches, rows or states that is combinatorial or unbounded until the construct enumerates it. A scenario checks something narrower, a coverage checklist against one section's own already-finite, already-written list of promises and guardrails, not a proof that no branch of some larger space was missed.
+Each of those constructs is checked for what prose would leave out, as each construct's definition lists (`specs/methodology/modeling-constructs.md § Constructs`), often across a space of branches, rows or states that is combinatorial or unbounded until the construct enumerates it. A scenario checks something narrower, a coverage checklist against one section's own already-finite, already-written list of promises and guardrails, not a proof that no branch of some larger space was missed.
 
 A scenario is closer in spirit to a white-box harness that exercises one internal mechanism, but the two are parallel, independent checks rather than one ranked above the other. Such a harness checks that one internal mechanism fires correctly; a scenario checks that a capability delivers what it promises, regardless of which mechanism produced it. Neither cites the other, and keeping the two in agreement when a mechanism changes is the harness's own concern, since the harness is the product's code, which `specs/methodology/scope.md § What Spec of Record Governs` sets apart from the specs.

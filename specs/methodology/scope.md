@@ -2,7 +2,7 @@
 
 Spec of Record governs files by kind, each kind with what it holds and what names its files:
 
-| Kind | Holds | Named by |
+| Kind | Holds | Named By |
 |---|---|---|
 | Agent instructions | the method's entry point, and a project's own instructions to an agent, each an AGENTS.md file (`specs/methodology/external-references.md § External References [Name: AGENTS.md]`) | `specs/AGENTS.md`, and `AGENTS.md` at the project's root |
 | Specs | the specifications, the methodology among them | their place under `specs/`, `specs/AGENTS.md` aside |

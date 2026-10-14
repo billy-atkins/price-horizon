@@ -21,7 +21,7 @@ Each step applying a rule carries its point-of-use citation (`specs/methodology/
 
 ### Frame the change
 
-Frame it per `specs/AGENTS.md § Design, Refactor, Refine`, and record it in a design document in `.ai/plans/design-specs/`, copied from `.ai/skills/design-specs/references/design-document-template.md`, per `specs/methodology/working-files.md § A Design Document`, its Specs field settling the change's kind before any file is edited. Agree its design goals with the user first, then present its design frame, as `specs/AGENTS.md § Design, Refactor, Refine` has them come first, the goals recorded as `specs/methodology/working-files.md § Design Goal` has them, and draft The Design only once the user agrees the goals and agrees or adjusts the frame, recording each answer as a steer. Before the frame goes to the user, it puts each rule the change would otherwise state in a construct section's prose to the test `specs/methodology/modeling-constructs.md § Purpose` sets and says which way each went; a close call, either answer arguable, goes to the user as a choice with the builder's recommendation, the canon's default where it gives one, and the answer is recorded as a steer; and a design bringing specs to the canon's forms writes the prose it meets there that fails the test into a pass of the design that owns that construct's forms, or, where none exists, hands it to the user as `§ Workflow § Hand a change of its own to the user to spawn or log` has it. A design taken up with its goals or its frame not yet stated has them stated, and agreed or adjusted, before its drafting goes on. Set its Status as `specs/methodology/working-files.md § A Design Document § The States It Moves Through` moves it, here and at each step that moves it. Where the work wants a new branch, propose it, and create it only once the user approves it, per `specs/AGENTS.md § Design, Refactor, Refine`. A Refactor and Refine cycle (`specs/methodology/glossary.md`) also reads `.ai/skills/design-specs/references/refactor-and-refine-existing-specs.md` here, whose steps join this Workflow's from this one on.
+Frame it per `specs/AGENTS.md § Design, Refactor, Refine`, and record it in a design document in `.ai/plans/design-specs/`, copied from `.ai/skills/design-specs/references/design-document-template.md`, per `specs/methodology/working-files.md § A Design Document`, its Specs field settling the change's kind before any file is edited. Agree its design goals with the user first, then present its design frame, as `specs/AGENTS.md § Design, Refactor, Refine` has them come first, the goals recorded as `specs/methodology/working-files.md § Design Goal` has them, and draft The Design only once the user agrees the goals and agrees or adjusts the frame, recording each answer as a steer. Before the frame goes to the user, it puts each rule the change would otherwise state in a construct section's prose to the test `specs/methodology/modeling-constructs.md § Defining Constructs` sets and says which way each went; a close call, either answer arguable, goes to the user as a choice with the builder's recommendation, the canon's default where it gives one, and the answer is recorded as a steer; and a design bringing specs to the canon's forms writes the prose it meets there that fails the test into a pass of the design that owns that construct's forms, or, where none exists, hands it to the user as `§ Workflow § Hand a change of its own to the user to spawn or log` has it. A design taken up with its goals or its frame not yet stated has them stated, and agreed or adjusted, before its drafting goes on. Set its Status as `specs/methodology/working-files.md § A Design Document § The States It Moves Through` moves it, here and at each step that moves it. Where the work wants a new branch, propose it, and create it only once the user approves it, per `specs/AGENTS.md § Design, Refactor, Refine`. A Refactor and Refine cycle (`specs/methodology/glossary.md`) also reads `.ai/skills/design-specs/references/refactor-and-refine-existing-specs.md` here, whose steps join this Workflow's from this one on.
 
 ### Hand a change of its own to the user to spawn or log
 
@@ -53,7 +53,7 @@ Grep before drafting, per `specs/methodology/sourcing-and-citation.md § One Hom
 
 ### Check whether a construct applies before writing prose
 
-`specs/methodology/modeling-constructs.md § Purpose` decides whether a passage is a construct or prose, routing included however it reads, by the count that section sets; `specs/methodology/modeling-constructs.md § When to Use Which` which construct it is, and `specs/methodology/modeling-constructs.md § When to Use Which § A Configured Instance` the same where its rows, states or steps are the system's data; `specs/methodology/modeling-constructs.md § When to Use Which § Combining Constructs` how one hands its work to another; and `specs/methodology/modeling-constructs.md § Constructs` the form it is written in.
+`specs/methodology/modeling-constructs.md § When to Use Which` decides whether a passage is a construct or prose, routing included however it reads, by the count it sets, and which construct it is, and `specs/methodology/modeling-constructs.md § When to Use Which § A Configured Instance` the same where its rows, states or steps are the system's data; `specs/methodology/modeling-constructs.md § When to Use Which § Combining Constructs` how one hands its work to another; and `specs/methodology/modeling-constructs.md § Constructs` the form it is written in.
 
 ### Draft with the source file open
 
@@ -61,7 +61,7 @@ Anything compressed from another file is compared against it clause by clause, n
 
 ### Write the text in the form the rules give it
 
-A field, a bold lead-in, emphasis and literal text as `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Bold Lead-ins`, `specs/methodology/modeling-constructs.md § Emphasis` and `specs/methodology/modeling-constructs.md § Literal Text` give them, an entry of a repeated kind or a closed set's members as `specs/methodology/modeling-constructs.md § Constructs § Record Form` does, and a number only where `specs/methodology/spec-style.md § Ordinals and Counts` keeps one.
+A field, a bold lead-in, emphasis and literal text as `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/spec-style.md § Bold Lead-ins`, `specs/methodology/spec-style.md § Emphasis` and `specs/methodology/spec-style.md § Literal Text` give them, an entry of a repeated kind or a closed set's members as `specs/methodology/modeling-constructs.md § Constructs § Record Form` does, and a number only where `specs/methodology/spec-style.md § Ordinals and Counts` keeps one.
 
 ### Record what the specs rely on but have not decided
 
@@ -129,7 +129,7 @@ Before proposing any, name the existing home that would have to receive the cont
 
 The strongest disconfirming question is whether the thing is ordinary. A capability every comparable system has, that a reader assumes without being told, rarely deserves its own home; what deserves stating is the part that is *not* ordinary. A generic affordance plus one unusual property is usually one sentence about the unusual property, not a file about the affordance.
 
-A column, a field or a form added to a construct's own tables is decided by the test `specs/methodology/modeling-constructs.md § Purpose` sets, not by this rule alone: the section's prose is the existing structure, and it fails where that test says it does.
+A column, a field or a form added to a construct's own tables is decided by the test `specs/methodology/modeling-constructs.md § Defining Constructs` sets, not by this rule alone: the section's prose is the existing structure, and it fails where that test says it does.
 
 ## Recall picks the direction; the file supplies the words
 
@@ -199,7 +199,7 @@ When you consider a change and reject it, say so and why, in the proposal. When 
 
 How each of the record's checks (`specs/methodology/working-files.md § A Design Document`) is decided:
 
-| Check | Decided by |
+| Check | Decided By |
 |---|---|
 | Steers | `--check-design` for each record's fields, its Type's values and each Name used once; reading for the rest |
 | The goals | `--check-design` for the section, each record's fields, each Name a slug and used once, each goal its frame cites one it holds, and, once the design is approved, the goals stated; reading for the rest |

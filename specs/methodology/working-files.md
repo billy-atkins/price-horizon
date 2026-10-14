@@ -32,7 +32,7 @@ Each design document is a file of its own, one per change taken through `specs/A
 | Design Goals | a `## Design Goals` record section (`§ Design Goal`) | until the design is complete or abandoned | | the design's goals, or `Not yet stated.` until the user agrees them, which no design approved or further holds |
 | The Design Frame | a `## The Design Frame` section | yes | | the design frame (`specs/methodology/glossary.md`) the user agreed or adjusted (`specs/AGENTS.md § Design, Refactor, Refine`), under level-three headings in this order: Scope, holding the cases the change governs and what tells them apart, then how the sweep for affected content was done and what it found, what it left out included; Approach; and Outcomes. A part not yet stated reads `Not yet stated.`, which no design approved or further holds |
 | Steering Decisions | a `## Steering Decisions` record section | once the user has steered the design | | each steer the user gave, per `§ Steering Decision` |
-| The Design | a `## The Design` section | yes | | what the design does, then each edit, introduced by a bold lead-in naming the file it edits (`specs/methodology/modeling-constructs.md § Bold Lead-ins`), then `this text:` and the text it replaces, quoted exactly, then `becomes:` and its replacement; or `a new file:` and the file whole; so it can be verified and applied as written |
+| The Design | a `## The Design` section | yes | | what the design does, then each edit, introduced by a bold lead-in naming the file it edits (`specs/methodology/spec-style.md § Bold Lead-ins`), then `this text:` and the text it replaces, quoted exactly, then `becomes:` and its replacement; or `a new file:` and the file whole; so it can be verified and applied as written |
 | Impact on the Application Specs | a `## Impact on the Application Specs` section | in a canon design | | each application file and section the canon change leaves out of step, what it leaves out of step there and what the application work must do, or that none was found; and how the application specs were reviewed |
 | The Builder's Passes | a `## The Builder's Passes` section | yes | | what each pass and each review changed, each under a bold lead-in naming it, and each review but a validation review named with its report; the fixes the builder makes for a validation review, with the findings of it the user settled, quoting the user, one pass naming the kinds of findings and no report; and the builder's own check of what its edits change in a script or code, each ephemeral differential test (`specs/methodology/glossary.md`) of a changed script or each of the local environment's tasks it ran on code, and what each showed. An adversarial review's lead-in opens `Adversarial review`, and a post-apply audit's `Post-apply audit`. Each of those two names the model and reasoning effort it ran on, as `on {model} at {effort} effort`, the effort one of the levels `specs/AGENTS.md § Design, Refactor, Refine` names, or as `on {model} as the agent allows` where the agent could not apply the effort chosen, and records the flaws the user settled among its findings; an adversarial review's pass also records the decisions of the design its findings fell on, the cause named for each, the steers the causes pressed on and what the user decided of them, or none, the goals' or the frame's revision where they let findings in, the change, each finding fixed where it sits with its reason, and the worked cases proving the change |
 | Deliberately Left Alone | a `## Deliberately Left Alone` section | yes | | each change considered and declined, with the reason, and each piece of work deferred, named by the design document spawned for it or the follow-up logging it |
@@ -47,7 +47,7 @@ Each design document is a file of its own, one per change taken through `specs/A
 
 **The record's checks —** before the user is asked to approve a design, its record is checked against this section, `§ Design Goal` and `§ Steering Decision`, by the builder and then by the validation review, a cold agent other than the builder, through the design script for what it decides and by reading for what it cannot, as `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` has each check it:
 
-| Check | What the record holds | Why |
+| Check | What The Record Holds | Why |
 |---|---|---|
 | Steers | each decision the user gave the design since it was taken up, and each decision the follow-up or design it took up holds, recorded as a steering decision as `§ Steering Decision` has it, and nothing recorded as one that it calls no steer, a choice of the work's next step among it. The builder checks the record against every message of the user's it still holds, naming in the passes any stretch it could no longer read; the validation review checks it from the document, each Steer's words complete and in step with its Decision and with the options its Prompted By names, and, where its brief carries the user's messages, against them | the steers are how the user shaped the design, which the adversarial review reads fidelity against and the user approves by; one misstated, missing or never given misleads both |
 | The goals | a steering decision recording the user's agreement to the goals' latest version | the design, its reviews and the builder's adjustments are weighed against its goals; goals the user never agreed weigh them against the builder's intent |
@@ -72,7 +72,7 @@ It reports what it finds, each finding marked as this section's paragraph Good e
 
 What each kind bounds a change to:
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** Specs
 
@@ -89,7 +89,7 @@ Every file a design's Target names is of its declared kind or of `neither`, or i
 
 Once the user approves a design, every change it makes to the files is one the user approved and one the design describes. Each finding of its post-apply audit is presented to the user, and settles by what it is:
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Hit Policy:** First
 
@@ -107,9 +107,9 @@ Once the user approves a design, every change it makes to the files is one the u
 
 The states a design document's Status moves through, and what moves it from one to the next:
 
-**Construct:** State Machine
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
 
-| state | description | initial | terminal |
+| State | Description | Initial | Terminal |
 |---|---|---|---|
 | not-started | recorded, often by the design that spawned it, and not yet worked | Yes | No |
 | in-progress | its work under way, governed by `specs/methodology/design-workflow.md § The Order of a Design's Work § The Work of a Design` | No | No |
@@ -139,7 +139,7 @@ A design its Depends On names finishing is its entering complete or abandoned, a
 
 A design changing code starts from applied specs, or from the specs as a design its Depends On names leaves them, rather than from a problem in them, and designs the code and the tests that bring them to life. It takes the form `§ A Design Document` sets, and Design, Refactor, Refine, the adversarial review, the validation review and the stamp, as a design changing the specs does, and differs only where code does. Its parts differ so:
 
-| Part | In a design changing code |
+| Part | In A Design Changing Code |
 |---|---|
 | The Problem | names the product module it carries out, then the specs it carries into code, cited, and what the code lacks |
 | Specs | `code` |
@@ -157,7 +157,7 @@ A design's goals (`specs/methodology/glossary.md`) are agreed before its design 
 
 A design's goals sit in its record section of this type, a record type (`specs/methodology/modeling-constructs.md § Constructs § Record Form`):
 
-**Construct:** Record Form
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`
 
 **Plural Name:** Design Goals
 
@@ -180,7 +180,7 @@ A design's Steering Decisions record only the user's steers, the decisions a ste
 
 A design's steering decisions sit in its record section of this type, a record type (`specs/methodology/modeling-constructs.md § Constructs § Record Form`):
 
-**Construct:** Record Form
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`
 
 **Plural Name:** Steering Decisions
 
@@ -200,13 +200,13 @@ A design's steering decisions sit in its record section of this type, a record t
 
 How a steer, direction about the work and a decision about other work are each recorded, an answer carrying more than one taken a part at a time:
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** What the user decides
 
-**Annotations:** Sounds like
+**Annotations:** Sounds Like
 
-| What the user decides | Recorded | Tells a reviewer | Sounds like |
+| What the user decides | Recorded | Tells a reviewer | Sounds Like |
 |---|---|---|---|
 | A steer | in Steering Decisions, its Steer quoting every part of the user's words that decides the design, never only the last of them | how the design was formed | "split the canon and application work", "count each review phase apart", "yes, take in the new scope we found" |
 | Direction about the work | not as a steer; where the record needs it, in the passes, as the Builder's Passes row of `§ A Design Document` has them, or in the Status field | nothing about what the design is | "yes, fold in the tactical fixes", "rerun the validation review", "approved and apply", "create the branch", "medium effort", "G1 to G6 are flaws" |
@@ -216,7 +216,7 @@ How a steer, direction about the work and a decision about other work are each r
 
 A decision about other work is recorded where that work is held, so whoever takes the work up finds it in the files rather than in one agent's memory, and a decision about more than one design is recorded in each. What becomes of it, by where the work is held:
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** Where the work is held
 
@@ -252,9 +252,9 @@ A follow-up records work on the specs or the code that should be done and is not
 | Location | a `**Location:**` field | yes | | the file, section or files it concerns |
 | Body | prose | yes | | the work, the context needed to take it up, and, where known, what found it |
 
-**Construct:** State Machine
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
 
-| state | description | initial | terminal |
+| State | Description | Initial | Terminal |
 |---|---|---|---|
 | not-started | recorded, and not yet taken up | Yes | No |
 | in-progress | taken up, usually as a design document | No | No |
@@ -263,7 +263,7 @@ A follow-up records work on the specs or the code that should be done and is not
 | From | To | Trigger |
 |---|---|---|
 | not-started | in-progress | the work is taken up |
-| in-progress | not-started | `§ A Design Document § The States It Moves Through [State: abandoned]` of the design document taking it up is entered |
+| in-progress | not-started | `§ A Design Document § The States It Moves Through [States.State: abandoned]` of the design document taking it up is entered |
 | in-progress | done | the change that resolves it lands |
 | in-progress | done | the user decides nothing needs to change |
 | not-started | done | a change made for another reason resolves it |

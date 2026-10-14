@@ -22,6 +22,8 @@ A form, whether a construct or a record type, is defined once, at one home, and 
 
 **Choosing how related things are defined —** by whether a change to one must reach the other: where every change must, they are one definition, each use an instance of it; where only some must, a base definition holds what they share, and each is a sub-definition of it, holding everything its base holds and more, as a subclass extends its class, never less; and where none need, they keep separate definitions, however alike they look. A form is never typed by its looks, as duck typing types an object: a use that leaves some of a definition's parts unused, its optional parts among them, is an instance of it, never a definition of its own, a sub-definition being earned by what it adds. An application's technical specs choose the same way, between one service or class, a base and its specializations, and separate ones.
 
+**A citation as composition —** a point-of-use citation is composition by reference: the rule it cites applies where it is cited, as if written there, named at the place it applies and bringing no structure of its own, so two citations never bring rival versions of one fact (`§ One Home Per Fact`), as two mixins can. A definition implementing an interface does so by such a citation, its Implements field (`specs/methodology/modeling-constructs.md § Defining Constructs § Interfaces and Members`), one the audit checks.
+
 ## Which Citations Are Allowed
 
 The specifications are layered by what governs what:
@@ -40,7 +42,7 @@ A citation pointing down a layer sends the reader somewhere for a specific purpo
 
 What a citation may name, every row its source matches granting what that row lists:
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Order:** any
 
@@ -56,6 +58,7 @@ What a citation may name, every row its source matches granting what that row li
 | `specs/AGENTS.md` | any spec; a registered skill or a file of one |
 | `specs/architecture.md` | `specs/AGENTS.md`; any spec; a registered skill or a file of one |
 | "A product spec", "A technical spec", "A methodology spec" | the project's root `AGENTS.md` as a whole file, never a section of it |
+| A `**Construct:**` field, in any spec | the section defining the construct its instance is of, wherever it sits |
 | Code the application specs govern | a product spec, a technical spec, or a section of one, never a record, naming what it carries out or checks with an app-spec annotation (`§ Writing a Citation § Citing From Code`) |
 | A registered skill's script, or the code the skills share | `specs/AGENTS.md` or a methodology spec, or a section of one, naming where a copy it holds takes its values from with a canon-spec annotation (`§ Writing a Citation § Citing From Code`) |
 
@@ -63,7 +66,7 @@ Code is governed by the specs rather than a layer of them. The table is the whol
 
 A product spec citing a technical spec would make a promise depend on its own implementation; that direction is served instead by the `technical-specs` frontmatter key (`specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability`), deliberately file-level and coarse so it cannot carry a dependency at heading precision. A methodology spec citing an application spec would make a rule depend on the document it governs.
 
-An application spec cites no methodology spec, and neither `specs/AGENTS.md` nor `specs/architecture.md`. Direction is not the reason, since such a citation would point up; subject is. An application spec's subject is the product, and how a spec is authored is no part of it, so a reader of the product has no use for the authoring rule behind a sentence. An application spec may still name a construct, because a construct is what its own content is authored as; what it does not do is reach into the methodology, or into `specs/AGENTS.md`, which holds the method's own rules, or `specs/architecture.md`, which describes how the method lays the specifications out, for their own claims.
+An application spec cites no methodology spec, and neither `specs/AGENTS.md` nor `specs/architecture.md`. Direction is not the reason, since such a citation would point up; subject is. An application spec's subject is the product, and how a spec is authored is no part of it, so a reader of the product has no use for the authoring rule behind a sentence. An application spec may still name a construct, because a construct is what its own content is authored as, and its Construct field cites the construct's definition, the one citation of the methodology it makes, since the definition is what its instance is held to (`specs/methodology/modeling-constructs.md § Defining Constructs § References and Names`); what it does not do is reach into the methodology, or into `specs/AGENTS.md`, which holds the method's own rules, or `specs/architecture.md`, which describes how the method lays the specifications out, for their own claims.
 
 ## Titling a Heading
 
@@ -72,12 +75,12 @@ A heading's title is a stable slug for whatever the section covers, not prose to
 | Rule | Form |
 |---|---|
 | No `§` in the heading itself | `## Vision`, never `## § Vision` |
-| No `[` in the heading itself, which opens a record's identifying values, a part's identifier or a row's key, in a citation | `## Session Timeout`, never `## Session Timeout [draft]` |
+| No `[` in the heading itself, which opens a part's key, in a citation | `## Session Timeout`, never `## Session Timeout [draft]` |
 | Unique among headings sharing its parent, a top-level heading's parent being its file | two headings under different parents may share a title |
 
 A numbered heading, or one counting its children, is the heading case of `specs/methodology/spec-style.md § Ordinals and Counts`. A heading pays for it twice, since its title is also the text of every citation naming it: renumbering sections, or retitling one whose count went stale, changes those citations as well.
 
-**Bold lead-ins are not headings —** a bold lead-in (`specs/methodology/modeling-constructs.md § Bold Lead-ins`) has none of the guarantees a heading carries, starting with enforced uniqueness, and no citation form (`§ Writing a Citation`). So a paragraph that is, or needs to be, a citation's target is authored as a child heading instead, which gets every rule this section sets rather than needing a workaround. Do not promote a lead-in to a heading pre-emptively, on the chance it might be cited; promote it only once it is cited. Entries that exist to be cited are records instead (`specs/methodology/modeling-constructs.md § Constructs § Record Form`).
+**Bold lead-ins are not headings —** a bold lead-in (`specs/methodology/spec-style.md § Bold Lead-ins`) has none of the guarantees a heading carries, starting with enforced uniqueness, and no citation form (`§ Writing a Citation`). So a paragraph that is, or needs to be, a citation's target is authored as a child heading instead, which gets every rule this section sets rather than needing a workaround. Do not promote a lead-in to a heading pre-emptively, on the chance it might be cited; promote it only once it is cited. Entries that exist to be cited are records instead (`specs/methodology/modeling-constructs.md § Constructs § Record Form`).
 
 ## Writing a Citation
 
@@ -88,10 +91,8 @@ The token for referencing a section is `§`, followed by a space, and preceded b
 ```
 A section in the same file           § Title
 A nested section in the same file    § Parent § Child
-A record                             § Plural Name [Key: value]
-A record in another file             path/from/root.md § Plural Name [Key: value; Key: value]
-A part of a construct                path/from/root.md § Section [Key: value]
-A row of a Basic Table               path/from/root.md § Section [Key: value]
+A part of a keyed instance           § Section [Key: value]
+A part in another file               path/from/root.md § Section [Key: value; Key: value]
 A section in another file            path/from/root.md § Parent § Child
 A whole file                         path/from/root.md
 An index.md                          never a citation target
@@ -101,11 +102,9 @@ A cross-file citation gives the path from the project root, exactly as it would 
 
 A section is named by its full lineage of heading titles, one segment per level from the top of the file down to the target. A level-1 heading is the file's own title rather than a section, so a lineage starts below it; a top-level section is one segment on its own. A child heading is only guaranteed unique within its own parent's scope, so its citation carries every ancestor's title down to it.
 
-A record (`specs/methodology/modeling-constructs.md § Constructs § Record Form`) is named by the citation of the record section holding it, then a space and, in square brackets inside the same span, its identifying fields, like a query parameter selecting one record from the section. Each is written `Key: value`, in the order its type's Reference Key gives them, separated by a semicolon and a space: `[Name: Session Timeout]` after an `Open Questions` section's citation, or `[Country: Canada; Tax Year: 2025]` for a type identified by two fields. An identifying value holds no semicolon (`specs/methodology/modeling-constructs.md § Constructs § Record Form`), so the pairs are split at `; `. Each value is compared with the record's after trimming the space around it, and must match exactly, as a title does.
+A part of an instance of a construct implementing Keyed Construct (`specs/methodology/modeling-constructs.md § Constructs § Keyed Construct`), a record, a row of a Basic Table or a part of a construct, is named by the citation of the section holding its parts, a construct's section, a Basic Table's or a record section, then a space and, in square brackets inside the same span, its key's values, like a query parameter selecting one part from the section. Each is written `Key: value`, in the order its Reference Key gives them, separated by a semicolon and a space: `[Name: Session Timeout]` after an `Open Questions` section's citation, `[Country: Canada; Tax Year: 2025]` for a key of two fields, or `[States.State: open]` for a part of a construct keeping its keys in more than one place, by the path to its key, as `specs/methodology/modeling-constructs.md § Constructs § Keyed Construct` has a key written as a path. An identifying value holds no semicolon (`specs/methodology/modeling-constructs.md § Constructs § Keyed Construct`), so the pairs are split at `; `. Each value is compared with the part's after trimming the space around it, and must match exactly, as a title does.
 
-A part of a construct (`specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct`) is named the same way, by its construct's section and its identifier, and a row of a Basic Table by its section and the columns its Reference Key names (`specs/methodology/modeling-constructs.md § Constructs § Basic Table`).
-
-**What cannot be cited —** there is no form for citing a bold lead-in or any other non-heading content but a record, a part of a construct or a row of a Basic Table declaring a Reference Key; `§ Titling a Heading` says when such content becomes a heading. A directory's `index.md` carries no heading lineage of its own.
+**What cannot be cited —** there is no form for citing a bold lead-in or any other non-heading content but a part of a keyed instance; `§ Titling a Heading` says when such content becomes a heading. A directory's `index.md` carries no heading lineage of its own.
 
 **A title that names a kind of section rather than one particular section —** it resolves to no single heading anywhere, so it is not a citation and takes no `§`. A rule referring to `Test Scenarios` generally, where the level varies by context, names a kind; a rule referring to one file's own `## Glossary` names a section.
 
@@ -121,15 +120,15 @@ A direction holds only while nothing moves. Reorder steps, insert a section or m
 
 Whether a wording is a direction:
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Hit Policy:** First
 
 **Conditions:** Wording
 
-**Annotations:** Why, Such as
+**Annotations:** Why, Such As
 
-| Wording | A direction | Why | Such as |
+| Wording | A direction | Why | Such As |
 |---|---|---|---|
 | containment, naming what a section or file containing the text holds | no | text moved within what it names stays within it | "this section's lifecycle", "this Workflow's steps" |
 | a word whose subject is where something sits | no | it sends the reader to no text | a heading one level below another, a node drawn above the flow |
@@ -147,7 +146,7 @@ Code names a spec it relies on with a spec annotation: a plain comment line of i
 
 ```
 // @app-spec specs/application/technical/example-service/example.md § Parent § Child
-# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
+# @canon-spec specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct
 ```
 
 In a language with block comments only, each annotation is a block comment of its own on one line, its citation ending before the closer, and a heading holding that language's comment closer cannot be cited from it.
@@ -170,7 +169,7 @@ The canon adopts an outside standard where an agent or a software engineer alrea
 
 External Reference is a record type (`specs/methodology/modeling-constructs.md § Constructs § Record Form`), whose records give these fields, in this order:
 
-**Construct:** Record Form
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`
 
 **Plural Name:** External References
 

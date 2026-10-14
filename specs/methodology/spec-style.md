@@ -28,7 +28,7 @@ Choosing a star schema over a snowflake schema passes: the reasoning transfers t
 
 Clear prose is measured by the effort it costs its primary reader, not by its count of words. Each kind of file this section reaches is written for a primary reader, without failing its secondary one:
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** Files
 
@@ -45,7 +45,7 @@ A person designs the agent instructions and the skills, deciding what they say a
 
 **Keep what carries the reader —** a word that carries meaning, or carries the reader from one idea to the next, stays. Prose cut too far fails as surely as prose padded out. Minified code is shorter than its source and unreadable, because minifying removes what a reader uses and a machine does not need:
 
-| Minified code removes | Too-terse prose drops | Instead |
+| Minified Code Removes | Too-terse Prose Drops | Instead |
 |---|---|---|
 | meaningful names, leaving `a` and `b` | the term itself, a pronoun standing far from what it names | name the term again |
 | comments saying why | "because" and "so", the reason linking two facts | state the reason |
@@ -56,7 +56,7 @@ A person designs the agent instructions and the skills, deciding what they say a
 
 **An example in the canon —** an example maps what a reader does not yet know onto what it does. One from outside the house lands with any agent, from its training. One drawn from the application specs, their own files, domains or vocabulary, lands only with an agent that has already read them, which a cold agent loading only what its step needs often has not. So an example in the canon is never drawn from the application specs, unless it names the project the canon is checked in rather than illustrating a rule; the methodology may illustrate itself.
 
-**Words its reader already uses —** a rule is written in words its reader can apply without looking anything up, and gives an example of what passes and what fails wherever its words alone leave the reader unsure: a heading "names a thing, as `Payroll Run`, or asks the question its construct answers, never an activity, as `Running payroll`" (`specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct`), not a grammarian's term for either. A term the canon adopts from a standard it registers, or defines in its glossary, is the reader's own once cited; a term from a discipline the reader need not know is not.
+**Words its reader already uses —** a rule is written in words its reader can apply without looking anything up, and gives an example of what passes and what fails wherever its words alone leave the reader unsure: a heading "names a thing, as `Payroll Run`, or asks the question its construct answers, never an activity, as `Running payroll`" (`specs/methodology/modeling-constructs.md § Constructs § Declared Construct`), not a grammarian's term for either. A term the canon adopts from a standard it registers, or defines in its glossary, is the reader's own once cited; a term from a discipline the reader need not know is not.
 
 **The test —** the primary reader, arriving cold, understands the passage on the first read.
 
@@ -69,3 +69,19 @@ Avoid numbers that add nothing a reader cannot already see but create friction w
 - Nothing says how many things a list or the repo holds. Name them, describe them, or cite them.
 
 Numbers that carry value stay. Algorithm tables keep their numbered steps, and references to those steps, because that numbering is an industry standard a cold agent reads without further instruction, as a software engineer would (`specs/methodology/modeling-constructs.md`). A Gherkin scenario states its own test case in full, and its numbers are that case's data. A value is not a count: a two-week window, a floor of two options, exactly one home. Neither is naming a pair, "both", "either" or "the two". Where something sits on the page is no count, and no way to refer to it either: other text is cited (`specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text`).
+
+## Markdown
+
+Each Markdown file in scope is written in GitHub Flavored Markdown (`specs/methodology/external-references.md § External References [Name: GFM]`). A field's form is `specs/methodology/modeling-constructs.md § Fields`'; a bold lead-in's, emphasis's and literal text's are `§ Bold Lead-ins`', `§ Emphasis`' and `§ Literal Text`'.
+
+## Bold Lead-ins
+
+A bold lead-in is a bold phrase, not a field (`specs/methodology/modeling-constructs.md § Fields`), opening a paragraph or a list item to label it for a reader scanning the page. It ends in an em dash inside the bold, with a space before the dash: `**The test —**`. Its words are in sentence case: the first word opens with a capital, and every other word is lower case but a name keeping its own casing, a construct's or a field's, a term an outside standard names or a proper noun. Sentence case is a requirement of style; what closes the bold, never its casing, tells a lead-in from a field, whose key is a field label (`specs/methodology/glossary.md`). When it introduces the block beneath it, a list, a table or paragraphs, it stands on a line of its own; otherwise the text it introduces follows it on its line. The character closing the bold tells the two apart: a colon makes a field, a dash a lead-in, and a bold phrase opening a line closes on nothing else. Unlike a field, its words are the author's own, defined by no form, so nothing looks one up by name, and nothing cites one (`specs/methodology/sourcing-and-citation.md § Writing a Citation`).
+
+## Emphasis
+
+Emphasis is italic, `*word*`, on a word or a short phrase inside a sentence, where stress changes what the sentence means. Italic is the one emphasis. Bold marks only a field (`specs/methodology/modeling-constructs.md § Fields`) or a bold lead-in (`§ Bold Lead-ins`), both opening a line. A line never opens with italic, since a phrase opening a line to label it is a lead-in. A point that needs more than italic is given structure instead: its own sentence, a lead-in, or, for a rule that must hold, a Constraint (`specs/methodology/modeling-constructs.md § Constructs § Constraint`).
+
+## Literal Text
+
+Backticks mark literal text: something written exactly so elsewhere, a path, a citation, an identifier, a field's key, a heading's title, a value, or a command, so a reader can copy it and a script can match it. A span opens and closes with one backtick, so literal text holds no backtick. A name is not literal text: a product, a method, a company, or a role is written plain, capitalized as a proper noun. A record type's Plural Name is literal where it stands for a section's title, `Open Questions`; the idea it names is plain prose, an open question.

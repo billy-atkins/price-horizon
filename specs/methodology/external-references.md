@@ -51,6 +51,13 @@
   **Relation:** maps onto
   **Covers:** a currency's minor unit, the decimal places its amounts are held to, which a Facts record's Decimal Places names for a fact of money
 
+- **Name:** JSONPath
+  **Title:** JSONPath: Query Expressions for JSON, the Internet Engineering Task Force, RFC 9535
+  **Version:** February 2024, the RFC as published, an RFC's text never changing
+  **URL:** `https://www.rfc-editor.org/rfc/rfc9535`
+  **Relation:** maps onto
+  **Covers:** its dot notation naming a member, as a dotted key names a table and then its key
+
 - **Name:** Mermaid
   **Title:** Mermaid, the Mermaid project
   **Version:** 12.1.0

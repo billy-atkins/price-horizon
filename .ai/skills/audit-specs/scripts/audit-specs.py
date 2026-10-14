@@ -49,7 +49,7 @@ CODE_CHECKS = ".ai/skills/verify-spec-implementation/SKILL.md"  # names the chec
 COVERAGE_RULE = "scope.md § Rules and Skills"
 # The tables in the audit skill naming what reads or carries out each rule section:
 # (section heading, rule column header)
-COVERAGE_TABLES = (("The audits", "Enforces"), ("Operating rules carried out by a step", "Operating rule"))
+COVERAGE_TABLES = (("The audits", "Enforces"), ("Operating rules carried out by a step", "Operating Rule"))
 DIAGRAMS_RULE = "modeling-constructs.md § Diagrams"
 IMAGE = re.compile(r"!\[[^\]]*\][(\[]|<img\b", re.I)
 WORKING_FILES = "specs/methodology/working-files.md"
@@ -80,12 +80,12 @@ WORKING_FILES_HOME = "specs/methodology/working-files.md"
 # modeling-constructs.md § Constructs § Record Form: every record type is read from its declaration, by declared_types,
 # the canon's own among them; the script holds no copy of one. A type's own placement is this script's to carry out.
 RECORD_FORM = "modeling-constructs.md § Constructs § Record Form"
-# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct § Fact
+# @canon-spec specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact
 # @canon-spec specs/methodology/spec-placement.md § Open Question
 # the homes of the types a rule of this script reads by their declaration: the Fact type, whose Plural Name titles a
 # file's Facts sections, the types whose record section is its file's last top-level section, and the types whose
 # records' Impacts each carry a section citation
-FACT_HOME = "specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct § Fact"
+FACT_HOME = "specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact"
 LAST_TOP_LEVEL = ("specs/methodology/spec-placement.md § Open Question",)
 IMPACTS_CITED = ("specs/methodology/spec-placement.md § Open Question",)
 
@@ -121,16 +121,15 @@ TABLES = "modeling-constructs.md § Constructs § Basic Table"
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
 # @canon-spec specs/methodology/modeling-constructs.md § Diagrams
 # @canon-spec specs/methodology/spec-placement.md § Environments
-FIELD_KEYS = {"Caption": "diagram", "Sources": "diagram",
-              "Diagrams": "record section", "Records": "record section", "Kind": "environment",
-              **{f: "construct" for f, _, _, _ in constructs.FIELD_TABLE}}
+FIELD_KEYS = {"Kind": "environment",
+              **{f: {"Diagrams": "diagram", "Record Form #2": "record section"}.get(c, "construct") for f, c, _, _ in constructs.FIELD_TABLE}}
 # spec-placement.md § Environments: the environments file, and the closed set of kinds
 ENVIRONMENTS = "specs/application/technical/environments.md"
 # @canon-spec specs/methodology/spec-placement.md § Environments
 KINDS = ("local", "integration", "shared", "production")
 FIELD_LINE = constructs.FIELD  # the form written once, in constructs.py
 RECORD_SELECTOR = re.compile(r'^(.*?)\s+\[(.*)\]$')
-# modeling-constructs.md § Bold Lead-ins and § Emphasis: bold marks only a field or a dash
+# spec-style.md § Bold Lead-ins and § Emphasis: bold marks only a field or a dash
 # label, both opening a line, and italic, the one emphasis, never opens one.
 BOLD_SPAN = re.compile(r'\*\*(.+?)\*\*')
 # a line's opening skips indentation, a quote marker, and a list marker: -, *, + or a number
@@ -138,10 +137,12 @@ LIST_OR_QUOTE = r'\s*(?:>\s*)*(?:(?:[-*+]|\d+[.)])\s+)?'
 LINE_OPENING = re.compile(r'^' + LIST_OR_QUOTE + r'$')
 ITALIC_OPENING = re.compile(r'^' + LIST_OR_QUOTE + r'\*(?!\*)\S')
 ODD_EMPHASIS = re.compile(r'\*\*\*|__[^_\s][^_]*__')
-BOLD_LEAD_INS = "modeling-constructs.md § Bold Lead-ins"
-EMPHASIS = "modeling-constructs.md § Emphasis"
-LITERAL_TEXT = "modeling-constructs.md § Literal Text"
-KEY_VALUE = re.compile(r'^([A-Z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*(?: [A-Z0-9][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*)*): (.+)$')
+BOLD_LEAD_INS = "spec-style.md § Bold Lead-ins"
+EMPHASIS = "spec-style.md § Emphasis"
+LITERAL_TEXT = "spec-style.md § Literal Text"
+# a citation's `Key: value`, its key a field label, constructs.py's one copy of the form, or a table's name and its key's,
+# joined by a dot, where its construct has more than one keyed table (modeling-constructs.md § Constructs § Keyed Construct)
+KEY_VALUE = re.compile(rf'^({constructs.LABEL}(?: {constructs.LABEL})*(?:\.{constructs.LABEL}(?: {constructs.LABEL})*)*): (.+)$')
 # an identifying value's form: constructs.py's copy, so a record and a part are read alike
 UNPLAIN = constructs.UNPLAIN
 
@@ -366,7 +367,7 @@ def declared_types(text_of):
 
 
 def closed_set(body, cell):
-    """modeling-constructs.md § Constructs § Declaring a Construct § Fact: the identifying values of the records in the
+    """modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact: the identifying values of the records in the
     record section a Facts record's Values cites, of a type identifying its records by one field, or None where it
     cites no such section."""
     cites = CITATION.findall(cell)
@@ -619,15 +620,13 @@ def environment_findings(r, body, found):
         found.append((rule, r, 0, f"{local} environments are local, not exactly one"))
 
 
-# @canon-spec specs/methodology/modeling-constructs.md § Fields
-# a word of a header written as a field key's word is, opening with a capital and made of letters or digits, a hyphen
-# joining two parts of one word; and a proper noun's own casing, a capital after a lower-case letter within the word
-HEADER_WORD = re.compile(r"^[A-Z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*$")
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Basic Table
+# a word in a proper noun's own casing, a capital after a lower-case letter within the word, which a header keeps
 OWN_CASING = re.compile(r"^[A-Za-z0-9]*[a-z][A-Z][A-Za-z0-9]*$")
 
 
 def header_findings(r, body, found):
-    """modeling-constructs.md § Constructs § Basic Table: each Basic Table's header is written as a field key is (§ Fields), but a
+    """modeling-constructs.md § Constructs § Basic Table: each Basic Table's header is a field label, but a
     header in backticks and a word in a proper noun's own casing; a construct's table, in its block, follows its
     construct's definition and is no Basic Table."""
     live = strip_fences(body)
@@ -638,9 +637,9 @@ def header_findings(r, body, found):
                 or (i > 0 and lines[i - 1].startswith("|")) or i + 1 in in_construct:
             continue
         for h in constructs._cells(l):
-            if not h or h in ("...", "-") or h.startswith("`") or all(HEADER_WORD.match(w) or OWN_CASING.match(w) for w in h.split(" ")):
+            if not h or h in ("...", "-") or h.startswith("`") or all(constructs.LABEL_WORD.match(w) or OWN_CASING.match(w) for w in h.split(" ")):
                 continue
-            found.append((TABLES, r, i + 1, f"a header not written as a field key is: {h}"))
+            found.append((TABLES, r, i + 1, f"a header that is no field label: {h}"))
 
 
 def field_findings(r, body, found):
@@ -677,7 +676,7 @@ def field_findings(r, body, found):
         elif place == "environment":
             ok = r == ENVIRONMENTS and not indent and not dash
         elif place == "construct":
-            # modeling-constructs.md § Constructs § Declaring a Construct: a paragraph of its own
+            # modeling-constructs.md § Defining Constructs § Declaring a Construct: a paragraph of its own
             ok = not indent and not dash
         else:
             ok = spec is not None and key in spec["fields"] and bool(indent or dash)
@@ -689,7 +688,7 @@ def field_findings(r, body, found):
             found.append((RECORD_FORM, r, i + 1, f"the {key} field directly after a non-blank line"))
 
 
-# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Keyed Construct
 # a part of a construct is named by its construct's section and its key, the column its construct's definition
 # declares in a Reference Key field, read from the canon before any citation: {construct: {key, ...}}
 CONSTRUCT_KEYS = {}
@@ -698,10 +697,10 @@ NAME_CITED = set()
 
 
 def construct_keys(text_of):
-    """modeling-constructs.md § Constructs § Declaring a Construct: each construct's Reference Key, read from its
-    definition's section, one column or a list's items, one to a keyed table in the order its tables come, each the table, a
-    colon and its column -> CONSTRUCT_KEYS {construct: {column: its table's index, or None for every table}}; a definition
-    naming none reported."""
+    """modeling-constructs.md § Constructs § Keyed Construct: each construct's Reference Key, read from its definition's section, one
+    column or a list's items, one to a keyed table in the order its tables come, each the table and its column joined by a
+    dot, the place's name the path's own and the column one of that place's table ->
+    CONSTRUCT_KEYS {construct: {key: its table's index, or None for every table}}."""
     out, home = [], "specs/methodology/modeling-constructs.md"
     body = strip_fences(text_of.get(home, ""))
     for lineage, (h, end) in sections(body).items():
@@ -711,14 +710,13 @@ def construct_keys(text_of):
         lines = body.split("\n")[h + 1:end]
         i = next((k for k, l in enumerate(lines) if l.startswith("**Reference Key:**")), None)
         if i is None:
-            out.append((constructs.DECLARING, home, h + 1, f"a construct's definition declaring no Reference Key: {parts[1]}"))
             continue
         value = lines[i][len("**Reference Key:**"):].strip()
         if value:
             CONSTRUCT_KEYS[parts[1]] = {value: None}
             continue
-        # a list, read to its last item past any blank line before it: one item to each of the construct's tables, a table,
-        # a colon and its column
+        # a list, read to its last item past any blank line before it: one item to each of the construct's tables, a table
+        # and its column joined by a dot
         items = []
         for l in lines[i + 1:]:
             if not items and not l.strip():
@@ -726,10 +724,15 @@ def construct_keys(text_of):
             if not l.startswith("- "):
                 break
             items.append(l[2:])
-        if not items or len(items) != len(constructs.FORMS[parts[1]]) or any(not it.partition(":")[2].strip() for it in items):
-            out.append((constructs.DECLARING, home, h + 1 + i, f"a construct's definition whose Reference Key is empty, or a list not giving a table and its column for each of its tables: {parts[1]}"))
+        forms = constructs.FORMS[parts[1]]
+
+        def keyed(k, item):
+            levels = item.strip().split(".")
+            return len(levels) == 2 and levels[-1] in (forms[k] or []) + ["Name"]
+        if not items or len(items) != len(forms) or any(not KEY_VALUE.match(it.strip() + ": x") or not keyed(k, it) for k, it in enumerate(items)):
+            out.append((constructs.KEYED, home, h + 1 + i, f"a construct's definition whose Reference Key is empty, or a list not giving, for each of its tables, a path to one of its columns: {parts[1]}"))
             continue
-        CONSTRUCT_KEYS[parts[1]] = {it.partition(":")[2].strip(): k for k, it in enumerate(items)}
+        CONSTRUCT_KEYS[parts[1]] = {it.strip(): k for k, it in enumerate(items)}
     return out
 
 
@@ -748,17 +751,23 @@ def part_citation(sel, path, target, text_of, r, line, found):
         return
     _, construct, _, tables, _ = declared[0]
     m = KEY_VALUE.match(sel.strip())
-    if not m or m.group(1) not in CONSTRUCT_KEYS.get(construct, set()) or ";" in sel:
+    keys = CONSTRUCT_KEYS.get(construct, {})
+    key = m.group(1) if m else None
+    # a key its construct names by its table, written alone, is read so in the application specs alone until they are
+    # migrated (modeling-constructs.md § Constructs § Keyed Construct)
+    if m and key not in keys and r.startswith("specs/application/"):
+        key = next((k for k in keys if k.endswith("." + key)), key)
+    if not m or key not in keys or ";" in sel:
         found.append((rule, r, line, f"a part citation not written as one key a {construct} has: [{sel}]"))
         return
-    column, value = m.group(1), m.group(2).strip()
-    k = CONSTRUCT_KEYS[construct][column]
-    values = [row[constructs._keyed(t["header"]).index(column)] for t in (tables if k is None else tables[k:k + 1])
-              if column in constructs._keyed(t["header"])
+    column, value = key.split(".")[-1], m.group(2).strip()
+    k = keys[key]
+    values = [row[t["header"].index(column)] for t in (tables if k is None else tables[k:k + 1])
+              if column in t["header"]
               for _, row in t["rows"] if len(row) == len(t["header"])]
     if not [v for v in values if v == value]:
         found.append((rule, r, line, f"a part citation matches no part: § {target} [{sel}]"))
-    elif m.group(1) == "Name" and (path != r or not sections(body)[target][0] < line - 1 < sections(body)[target][1]):
+    elif column == "Name" and (path != r or not sections(body)[target][0] < line - 1 < sections(body)[target][1]):
         NAME_CITED.add((path, target))
 
 
@@ -967,9 +976,10 @@ def layer_of(rel):
 
 def direction(src_layer, path, rel, line, found, section=True):
     """A citation never points down a layer except from specs/AGENTS.md or specs/architecture.md; application and
-    methodology never cite each other in either direction; an application spec never
-    cites specs/AGENTS.md or specs/architecture.md; and no spec cites a section of the project's root AGENTS.md,
-    though a plain mention of it is no citation of its content. Shared by both forms."""
+    methodology never cite each other in either direction, but for a Construct field citing its construct's definition,
+    which the caller leaves out; an application spec never cites specs/AGENTS.md or specs/architecture.md; and no spec
+    cites a section of the project's root AGENTS.md, though a plain mention of it is no citation of its content. Shared
+    by both forms."""
     dst_layer = layer_of(path)
     if not (src_layer and dst_layer and src_layer != dst_layer):
         return
@@ -1012,7 +1022,7 @@ def check(root, warned=None):
         # illustration, not a dependency, and linting one produces a finding
         # nobody can act on.
         for i, line in enumerate(live.split("\n"), 1):
-            # modeling-constructs.md § Literal Text: a code span opens and closes with one backtick; a line indented
+            # spec-style.md § Literal Text: a code span opens and closes with one backtick; a line indented
             # four spaces or a tab is an indented code block, literal as a fenced one is
             if "``" in line and not line.startswith(("    ", "\t")):
                 found.append((LITERAL_TEXT, r, i, "a run of backticks, where literal text opens and closes with one"))
@@ -1067,8 +1077,9 @@ def check(root, warned=None):
                 elif sel is not None:
                     record_citation(sel, path, target, text_of, r, i, found)
 
-                # direction
-                direction(src_layer, path, r, i, found)
+                # direction, but a Construct field citing its construct's definition from any layer
+                if not (line.startswith("**Construct:** ") and path == constructs.HOME and target.startswith("Constructs § ")):
+                    direction(src_layer, path, r, i, found)
 
                 # index.md is never a target
                 if path.endswith("index.md"):
@@ -1651,13 +1662,17 @@ def glossary_candidates(root):
 
 
 def record_type_findings(root):
-    """modeling-constructs.md § Constructs § Declaring a Construct: constructs.py's copy of each table of the fields a
-    construct declares, by the section defining it, against its table where it is defined, row by row, so a change to
+    """modeling-constructs.md § Constructs § Construct: constructs.py's copy of each table of the fields a definition or a
+    construct declares, by the section defining it, and of each definition's Modifier, Extends and Implements, against its table where it is defined, row by row, so a change to
     either is a finding until the copy is brought into step; a record type has no copy, read from its declaration."""
     out = []
     path = "specs/methodology/modeling-constructs.md"
     text = (root / path).read_text(encoding="utf-8")
     for rule, line, msg in constructs.field_table_findings(text, sections(text)):
+        out.append((rule, path, line or 1, msg))
+    for rule, line, msg in constructs.column_table_findings(text, sections(text)):
+        out.append((rule, path, line or 1, msg))
+    for rule, line, msg in constructs.definition_findings(text, sections(text)):
         out.append((rule, path, line or 1, msg))
     # FEEL's built-in functions, the child script's copy held to the table in their home
     path = "specs/methodology/expressions.md"

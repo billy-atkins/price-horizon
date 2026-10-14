@@ -6,9 +6,9 @@ The order a design's work takes, and what moves it back, as two State Machines i
 
 A design enters its work by the reason its Status entered in-progress, and its change leads back to another adversarial review wherever needs review? or needs reframing? holds (`§ The Order of a Design's Work § Facts`). A design its Depends On names finishes, a class of occurrences, when its Status enters complete or enters abandoned (`specs/methodology/working-files.md § A Design Document`).
 
-**Construct:** State Machine
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
 
-| state | description | initial | terminal |
+| State | Description | Initial | Terminal |
 |---|---|---|---|
 | entered | the design has entered in-progress, by its Status's move | Yes | No |
 | framing | the builder agrees the design goals with the user and states the design frame, or revisits either, and brings them to the user, as `specs/AGENTS.md § Design, Refactor, Refine` has the goals, then the frame, come first, taking in each steer the user gives and each design its Depends On names that has finished (`specs/methodology/working-files.md § A Design Document`) | No | No |
@@ -46,21 +46,21 @@ A design enters its work by the reason its Status entered in-progress, and its c
 | waiting | changing | the user gives a steer | none |
 | waiting | changing | a design its Depends On names finishes | none |
 | validating | awaiting approval | none | none |
-| validating | waiting | `specs/methodology/working-files.md § A Design Document § The States It Moves Through [State: in-progress]` of a design its Depends On names is entered | none |
+| validating | waiting | `specs/methodology/working-files.md § A Design Document § The States It Moves Through [States.State: in-progress]` of a design its Depends On names is entered | none |
 | validating | changing | the user gives a steer | none |
 | validating | changing | a design its Depends On names finishes | none |
 | awaiting approval | approved by the user | the user approves it | depends on ready? |
 | awaiting approval | changing | the user does not approve it | none |
-| awaiting approval | waiting | `specs/methodology/working-files.md § A Design Document § The States It Moves Through [State: in-progress]` of a design its Depends On names is entered | none |
+| awaiting approval | waiting | `specs/methodology/working-files.md § A Design Document § The States It Moves Through [States.State: in-progress]` of a design its Depends On names is entered | none |
 | awaiting approval | changing | a design its Depends On names finishes | none |
 
 ### The Apply
 
 The order a design's apply takes, begun only as `specs/methodology/working-files.md § A Design Document § The States It Moves Through` lets a design enter applying, and ended applied or sent back:
 
-**Construct:** State Machine
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
 
-| state | description | initial | terminal |
+| State | Description | Initial | Terminal |
 |---|---|---|---|
 | writing | the builder writes the design's edits, checks the files against them, as its row of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` sets, and offers the user the audit's model and reasoning effort | Yes | No |
 | auditing | a cold agent runs the post-apply audit, as its row of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` sets | No | No |
@@ -134,7 +134,7 @@ The order a design's apply takes, begun only as `specs/methodology/working-files
 
 A review's reasoning effort, the level the user chose (`specs/AGENTS.md § Design, Refactor, Refine`), is applied by how the agent in use can apply it; the builder offers only a level it can apply, and where it can apply none, the review runs as the agent allows:
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** How the agent applies a level, definition set up?
 

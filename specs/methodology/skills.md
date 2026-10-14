@@ -2,7 +2,7 @@
 
 A skill is part of Spec of Record when it is registered here, and only then; a skill under `.ai/skills/` that is not registered is outside the method. A skill is registered when its subject is the method's rules or a craft they govern, not because it is useful while specs are written. Registering one is a deliberate decision, made here first, as extending the set of constructs is (`specs/methodology/modeling-constructs.md § Purpose`). What a skill does is stated in its `SKILL.md`, which this table never describes; the table names only the homes of the rules it serves.
 
-| Skill | The rules it serves |
+| Skill | The Rules It Serves |
 |---|---|
 | `audit-specs` | `specs/AGENTS.md`, `specs/methodology/` |
 | `author-mermaid-diagram` | `specs/methodology/modeling-constructs.md § Diagrams` |
@@ -50,7 +50,7 @@ A flag setting how an action runs, rather than choosing one, is named for what i
 
 **Scripts are Python 3 —** importing only the standard library, the skill's own helpers beside its entry script, and the code the skills share, wherever that is achievable. A script needing an install step is a script that will not run at the moment it is needed. Where a capability genuinely requires something external, degrade rather than fail: prefer a local tool when present, a documented remote or manual path when not, and report which one actually ran so a reader knows what they are trusting.
 
-**A script's copy of values the canon states points to the area they come from —** a script keeps its own copy of the values it checks against, so it decides without reading prose, but for a record type, which it reads from its declaration, every type's table being a declaration it can read (`specs/methodology/modeling-constructs.md § Constructs § Record Form`), and a construct's Reference Key, which it reads from the field its definition declares (`specs/methodology/modeling-constructs.md § Constructs § Declaring a Construct`), and each copy carries a canon-spec annotation above it (`specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code`), a pointer to the area of the canon its values come from, so a cold agent finds what the copy stands for and the audit confirms the area is still there.
+**A script's copy of values the canon states points to the area they come from —** a script keeps its own copy of the values it checks against, so it decides without reading prose, but for a record type, which it reads from its declaration, every type's table being a declaration it can read (`specs/methodology/modeling-constructs.md § Constructs § Record Form`), and a construct's Reference Key, which it reads from the field its definition declares (`specs/methodology/modeling-constructs.md § Constructs § Keyed Construct`), and each copy carries a canon-spec annotation above it (`specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code`), a pointer to the area of the canon its values come from, so a cold agent finds what the copy stands for and the audit confirms the area is still there.
 
 **Record what actually went wrong —** a skill earns its length by naming the failures that motivated it, the trap that only shows up at the wrong moment, the fix that is not obvious from the symptom. Anything derivable from reading the underlying tool's own documentation does not need to be here.
 
