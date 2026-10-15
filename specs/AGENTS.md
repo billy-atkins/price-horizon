@@ -28,7 +28,7 @@ Running the procedure, rather than recalling the rules, is what puts each rule i
 | Finding which files Spec of Record governs, and how to find your way through them | `specs/methodology/scope.md § What Spec of Record Governs`, `specs/methodology/scope.md § Progressive Disclosure` |
 | Meeting a term Spec of Record gives a meaning of its own | `specs/methodology/glossary.md` |
 | Deciding product spec versus technical spec | `specs/methodology/spec-placement.md § Product or Technical` |
-| Writing a spec, or reviewing a design changing one, as its persona | `specs/methodology/spec-placement.md § Personas` |
+| Writing a spec or the documentation, or reviewing a design changing either, as its persona | `specs/methodology/spec-placement.md § Personas` |
 | Deciding index, architecture, or detail file | `specs/methodology/spec-placement.md § Index, Architecture, Detail` |
 | Placing a new file, or deciding whether a domain earns a subfolder | `specs/methodology/spec-placement.md § Where a File Goes` |
 | Writing the technical stack or an environment | `specs/methodology/spec-placement.md § The Technical Stack`, `specs/methodology/spec-placement.md § Environments` |

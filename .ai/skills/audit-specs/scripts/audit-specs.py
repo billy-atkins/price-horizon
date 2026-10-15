@@ -24,13 +24,13 @@ import constructs  # noqa: E402
 
 # specs/methodology/scope.md § What Spec of Record Governs names where each kind is named:
 # specs by their place under specs/, the agent instructions by the root AGENTS.md and
-# specs/AGENTS.md, and skills by the registry, read at run time. The places and names this
-# block defines are the ones scope.md's table gives, and scope_findings checks the table still says so;
+# specs/AGENTS.md, the documentation by README.md and docs/, and skills by the registry, read at
+# run time. The places and names this block defines are the ones scope.md's table gives, and scope_findings checks the table still says so;
 # the working files are outside the script, read by the Working-file form audit instead, and code
 # is outside this skill, which audits every kind but code.
 SCOPE_HOME = "scope.md § What Spec of Record Governs"
 # @canon-spec specs/methodology/scope.md § What Spec of Record Governs
-SCOPE_KINDS = {"Agent instructions", "Specs", "Skills", "Working files", "Code"}
+SCOPE_KINDS = {"Agent instructions", "Specs", "Skills", "Documentation", "Working files", "Code"}
 REGISTRY = "specs/methodology/skills.md"
 REGISTRY_RULE = "skills.md § Registered Skills"
 AUTHORING = "specs/methodology/skills.md § Authoring a Skill"
@@ -211,8 +211,8 @@ def skill_dirs(root):
 
 
 def scope_paths(root):
-    """The files in scope: the root AGENTS.md, specs/, each registered skill, and the code they share."""
-    return ["AGENTS.md", "specs"] + [".ai/skills/" + n for n in skill_dirs(root)]
+    """The files in scope: the root AGENTS.md, the documentation, specs/, each registered skill, and the code they share."""
+    return ["AGENTS.md", "README.md", "docs", "specs"] + [".ai/skills/" + n for n in skill_dirs(root)]
 
 
 def md_files(root):
@@ -1669,7 +1669,7 @@ def abbreviation_findings(root):
     if not names:
         return []
     used = re.compile(r"(?<![A-Za-z0-9])(?:%s)s?(?![A-Za-z0-9])" % "|".join(re.escape(n) for n in sorted(set(names), key=len, reverse=True)), re.I)
-    files = [root / "AGENTS.md"] + sorted((root / "specs").rglob("*.md"))
+    files = [p for p in md_files(root) if not p.relative_to(root).as_posix().startswith(".ai/")]
     for name in skill_dirs(root):
         base = root / ".ai/skills" / name
         if base.is_dir():

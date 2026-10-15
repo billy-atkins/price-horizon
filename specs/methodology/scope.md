@@ -11,6 +11,7 @@ Spec of Record governs files by kind, each kind with what it holds and what name
 | Agent instructions | the method's entry point, and a project's own instructions to an agent, each an AGENTS.md file (`specs/methodology/external-references.md § External References [Name: AGENTS.md]`) | `specs/AGENTS.md`, and `AGENTS.md` at the project's root |
 | Specs | the specifications, the methodology among them | their place under `specs/`, `specs/AGENTS.md` aside |
 | Skills | the procedures that apply the method's rules, and the code their scripts share | `specs/methodology/skills.md` |
+| Documentation | the project's README and its guides | `README.md` at the project's root, and the files under `docs/` |
 | Working files | the working files | `specs/methodology/working-files.md § The Working Files` |
 | Code | the application's code, governed code and the wiring connecting it | the code roots the technical specs' stack names (`specs/methodology/spec-placement.md § The Technical Stack`) |
 
@@ -20,6 +21,8 @@ Whatever is not named so is outside the scope, and the method's rules do not rea
 
 ```
 AGENTS.md                      the project's own instructions, pointing to specs/AGENTS.md
+README.md                      the project's documentation, read first
+docs/                          its guides
 specs/
 ├── AGENTS.md                  the entry point to Spec of Record
 ├── index.md                   in every directory under specs/: what it holds
@@ -102,7 +105,7 @@ Whatever either writes is kept out of version control and outside the scope, and
 
 The methodology's files state rules. They do not sequence the work, record what goes wrong while following it, check whether a result conforms, or teach the craft a rule assumes; the skills `specs/methodology/skills.md` registers do, and a cold agent needs them to follow the method in practice. `specs/AGENTS.md` states rules too, and sequences the work through Design, Refactor, Refine. The methodology's files and `specs/AGENTS.md`, with the specifications' overview, make up the core canon (`specs/methodology/glossary.md`); the skills, with the code they share, are the rest of the canon. No skill is a rule's home: where a skill and a rule disagree, the rule governs and the skill is what needs correcting.
 
-A rule without a check is a suggestion, so every rule of Spec of Record is enforced, and a rule added or changed takes its check with it, in the same change.
+A rule without a check is a suggestion, so every rule of Spec of Record is enforced, and a rule added or changed takes its check with it, in the same change. `specs/methodology/spec-style.md § Clear Prose`, as it reaches the working files, stands without one: the user keeps it in reading them, since an audit of files that never last would cost more than it finds.
 
 **A specification rule —** is checked against the files it governs by one of the audit skill's reading audits, or, for a rule of `specs/methodology/code.md`, by a check of `.ai/skills/verify-spec-implementation/` reading the code. Either skill's script first decides whatever the files alone settle, and never a judgment, since a check that cannot decide gives a confident false clear. A script listing places for a reading audit to look decides nothing.
 
