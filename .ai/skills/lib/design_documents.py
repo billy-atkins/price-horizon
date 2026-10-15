@@ -833,7 +833,7 @@ def quoted(text):
 
 # @canon-spec specs/methodology/working-files.md § A Design Document
 # a form the method is still adding: the checks run in a copy of the repository holding the edits of each design named
-COPIED = ("specs", ".ai/skills", ".ai/plans")
+COPIED = ("specs", "docs", ".ai/skills", ".ai/plans")
 
 
 def with_applied(withs, argv):

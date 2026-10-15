@@ -36,14 +36,20 @@ Clear prose is measured by the effort it costs its primary reader, not by its co
 
 **Conditions:** Files
 
-| Files | Primary reader | Secondary reader |
-|---|---|---|
-| The specs | a person, the designer who must read and steer them | an agent |
-| "The agent instructions", "The skills" | a cold agent | a person |
+| Files | Primary reader | Secondary reader | Can Assume |
+|---|---|---|---|
+| The product specs | a product owner | an agent | the domain and the product's own terms, and no implementation vocabulary |
+| The technical specs | a software engineer | an agent | common engineering terms, and the product specs it cites |
+| "The methodology", "`specs/architecture.md`", "`specs/index.md`", "`specs/application/index.md`" | a practitioner, a software engineer designing a project's specs | an agent | software engineering and the standards the canon registers, and no term of the method's own until it is defined |
+| "The agent instructions", "The skills" | a cold agent | a software engineer | only what the step cites |
+| The documentation | a person evaluating the project's work, an engineering leader among them | a software engineer deciding whether to adopt it | software engineering, and nothing of the project's own until it is introduced |
+| The working files | the user steering the work | a cold agent reviewing it | the work in hand and its own record |
 
-The methodology is among the specs. The working files are outside this section, since each serves the work in progress rather than a reader of the specs, and none is committed (`specs/methodology/working-files.md § The Working Files`).
+The working files are written to this section like any other file, but no audit reads them for it, as `specs/methodology/scope.md § Rules and Skills` records: each serves the work in progress, and none is committed (`specs/methodology/working-files.md § The Working Files`).
 
-A person designs the agent instructions and the skills, deciding what they say and approving them, and an agent writes them for a cold agent. They are judged, in the end, by how an agent behaves under them.
+A software engineer designs the agent instructions and the skills, deciding what they say and approving them, and an agent writes them for a cold agent. They are judged, in the end, by how an agent behaves under them.
+
+**Documentation's voice —** documentation is written for its reader. A guide walking the reader through a task speaks to them as "you", and an explanation of how something works is written in a neutral voice. The author writes "I" only where the author is the subject: an introduction of the author, or a signed account of the work's origins, kept apart from the rest of the documentation. Documentation may draw its examples from the application specs, the worked example a newcomer learns the method from.
 
 **Cut what carries nothing —** every word read costs the reader, and costs an agent tokens too. So filler, a point made twice, and commentary on the writing itself are cut; `§ What a Finished Spec Reads Like` covers the commentary.
 
