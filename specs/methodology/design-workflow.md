@@ -14,11 +14,11 @@ A design enters its work by the reason its Status entered in-progress, and its c
 |---|---|---|---|
 | entered | the design has entered in-progress, by its Status's move | Yes | No |
 | framing | the builder agrees the design goals with the user and states the design frame, or revisits either, and brings them to the user, as `specs/AGENTS.md § Design, Refactor, Refine` has the goals, then the frame, come first, taking in each steer the user gives and each design its Depends On names that has finished (`specs/methodology/working-files.md § A Design Document`) | No | No |
-| drafting | the builder takes the design through Design, Refactor, Refine (`specs/AGENTS.md § Design, Refactor, Refine`), recording each steer as it is given (`specs/methodology/working-files.md § Steering Decision`) and taking in each design its Depends On names that has finished (`specs/methodology/working-files.md § A Design Document`), checks its whole work, as its row of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` sets, and offers the user the review's model and reasoning effort | No | No |
+| drafting | the builder takes the design through Design, Refactor, Refine (`specs/AGENTS.md § Design, Refactor, Refine`), recording each steer as it is given (`specs/methodology/working-files.md § Steering Decision`) and taking in each design its Depends On names that has finished (`specs/methodology/working-files.md § A Design Document`), checks its whole work, as its row of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` sets, and, before the design's first adversarial review, offers the user the review's model and reasoning effort | No | No |
 | reviewing | a cold agent runs the adversarial review, as `specs/AGENTS.md § Design, Refactor, Refine` has it | No | No |
-| settling | the builder groups the round's findings, weighs them against the design's goals and weighs the steers they press on and brings the user the causes and the change it proposes, as `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round` has it, taking in each steer the user gives and each design its Depends On names that has finished, one finishing while the design was reviewed among them | No | No |
+| settling | the builder groups the round's findings, weighs them against the design's goals and weighs the steers they press on and states the causes and the change it proposes, the round settled by the user or the builder, as `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round` has it, taking in each steer the user gives and each design its Depends On names that has finished, one finishing while the design was reviewed among them | No | No |
 | reassessing | the builder and the user step back and reassess, as `specs/AGENTS.md § Design, Refactor, Refine` has a phase not converging, taking in each design its Depends On names that has finished | No | No |
-| changing | the builder revises the design, as the user decided, taking in each steer the user gives and each design its Depends On names that has finished (`specs/methodology/working-files.md § A Design Document`), and proves the change, as `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round` has it | No | No |
+| changing | the builder revises the design, as the round was settled, taking in each steer the user gives and each design its Depends On names that has finished (`specs/methodology/working-files.md § A Design Document`), and proves the change, as `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round` has it | No | No |
 | waiting | the design waits for each design its Depends On names to be approved or applying, as `specs/methodology/working-files.md § A Design Document` has a design validated and approved only then | No | No |
 | validating | the builder checks its whole work, as its row of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` sets, and a cold agent runs the validation review, run again once the builder has corrected the record, until it stamps the design (`specs/methodology/working-files.md § A Design Document`) | No | No |
 | awaiting approval | the user is asked to approve the design | No | No |
@@ -35,11 +35,11 @@ A design enters its work by the reason its Status entered in-progress, and its c
 | entered | waiting | none | entry reason = "a dependency moved back" |
 | framing | drafting | the user agrees the goals and agrees or adjusts the frame | none |
 | drafting | framing | the user gives a steer | needs reframing? |
-| drafting | reviewing | the user chooses the review's model and effort | none |
+| drafting | reviewing | none | none |
 | reviewing | settling | none | none |
 | reviewing | changing | the user gives a steer | none |
-| settling | reassessing | the user decides the round's settlement | consecutive flawed rounds >= 3 |
-| settling | changing | the user decides the round's settlement | consecutive flawed rounds < 3 |
+| settling | reassessing | none | consecutive flawed rounds >= 3 |
+| settling | changing | none | consecutive flawed rounds < 3 |
 | reassessing | framing | the user decides the reassessment | reassessment != "go on" |
 | reassessing | changing | the user decides the reassessment | reassessment = "go on" |
 | changing | framing | none | needs reframing? |
@@ -68,7 +68,7 @@ The order a design's apply takes, begun only as `specs/methodology/working-files
 
 | State | Description | Initial | Terminal |
 |---|---|---|---|
-| writing | the builder writes the design's edits, checks the files against them, as its row of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` sets, and offers the user the audit's model and reasoning effort | Yes | No |
+| writing | the builder writes the design's edits, checks the files against them, as its row of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` sets, and starts the audit on the model and reasoning effort the user chose for the design | Yes | No |
 | auditing | a cold agent runs the post-apply audit, as its row of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` sets | No | No |
 | settling the audit | each finding of the audit is settled with the user, as `specs/methodology/working-files.md § A Design Document § Changes After Approval` has it | No | No |
 | reassessing the apply | the builder and the user step back and reassess, as `specs/AGENTS.md § Design, Refactor, Refine` has a phase not converging | No | No |
@@ -82,7 +82,7 @@ The order a design's apply takes, begun only as `specs/methodology/working-files
 
 | From | To | Trigger | Guard |
 |---|---|---|---|
-| writing | auditing | the user chooses the review's model and effort | none |
+| writing | auditing | none | none |
 | writing | reverting | the builder finds a change the design does not hold | none |
 | auditing | settling the audit | none | none |
 | settling the audit | reassessing the apply | none | audit sends back? and consecutive flawed audits >= 3 |
