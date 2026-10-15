@@ -57,7 +57,7 @@ Grep before drafting, per `specs/methodology/sourcing-and-citation.md § One Hom
 
 ### Draft with the source file open
 
-Anything compressed from another file is compared against it clause by clause, not re-read in isolation. Before putting an edit in the design, read what surrounds the text it changes as well as that text, per `specs/AGENTS.md § Design, Refactor, Refine`.
+Anything compressed from another file is compared against it clause by clause, not re-read in isolation. Before putting an edit in the design, zoom out and write the rule's reach whole, as `specs/AGENTS.md § Design, Refactor, Refine`'s Measure twice, cut once has it.
 
 ### Write the text in the form the rules give it
 

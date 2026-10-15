@@ -37,7 +37,7 @@ The technical specs' `architecture.md` describes the code carrying out the appli
 
 ### Report, and settle as an audit
 
-Write the report to `.ai/tmp/verify-spec-implementation/`, one file per run, clearing an earlier report of the same scope, per `specs/methodology/working-files.md § The Working Files`. Name each finding with its file, its line, what it fails and the rule or spec it fails. Run as a design changing code's post-apply audit, its findings are settled with the user by `specs/methodology/working-files.md § A Design Document § Changes After Approval`.
+Write the report to `.ai/tmp/verify-spec-implementation/`, one file per run, clearing an earlier report of the same scope, per `specs/methodology/working-files.md § The Working Files`. Name each finding with its file, its line, what it fails and the rule or spec it fails, and, run as a post-apply audit, mark it a design flaw, an implementation flaw or a nit (`specs/methodology/glossary.md`), as `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` has it. Run as a design changing code's post-apply audit, its findings are settled with the user by `specs/methodology/working-files.md § A Design Document § Changes After Approval`.
 
 ## The checks
 
