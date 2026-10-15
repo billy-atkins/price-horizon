@@ -105,6 +105,14 @@ FIELD_TABLES = {
         ("Plural Name", "yes", "", "text"),
         ("Reference Key", "where it extends no type", "", "text"),
     ),
+    # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Tabular Construct
+    "Constructs § Tabular Construct": (
+        ("Table Name", "where its definition names its tables", "", "text"),
+    ),
+    # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Basic Table
+    "Constructs § Basic Table": (
+        ("Required", "no", "none", "text"),
+    ),
     "Constructs § Keyed Construct": (
         ("Reference Key", "no", "none", "text"),
         ("Locator", "yes", "", "text"),
@@ -212,10 +220,6 @@ NAMEABLE = {"State Machine": {1}, "Decision Table": {0}, "Constraint": {0}}
 # a field: a line opening with its key in bold, the colon inside the bold, then a space and its value or nothing;
 # a list marker and indentation before the key are no part of it; the one copy, which audit-specs.py reads too
 FIELD = re.compile(r'^(?P<indent>\s*)(?P<marker>-\s+)?\*\*(?P<key>[^*`]+?):\*\*(?: (?P<value>.*)|$)')
-# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Keyed Construct
-# § Constructs § Keyed Construct: an identifying value holds no Markdown, backtick, `§`, `;` or `]`; an
-# underscore within a word, as in a state's name, is no markup
-UNPLAIN = re.compile(r'[*`§;\[\]]|(?:^|\W)_|_(?:\W|$)')
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
 # a jump as the form writes it, and the parser reading every jump: the phrase in any letters and the step number
 # after it, ending at a space, a punctuation mark or the text's end
@@ -626,6 +630,11 @@ def construct_named(value):
     return m.group("name").strip(), m.group("path")
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Basic Table
+# the fields opening a table, in their order: its name, its key and its required columns
+TABLE_OPENERS = ("Table Name", "Reference Key", "Required")
+
+
 def declarations(body, sections):
     """-> [(line, construct, fields, tables, lineage)] for each **Construct:** field in live text,
     and the findings of the declaration's own form."""
@@ -639,13 +648,17 @@ def declarations(body, sections):
         name = construct_named(m["value"] or "")[0]
         owner = [lin for lin, (h, end) in secs if h < i < end]
         lineage = owner[-1] if owner else ""
-        fields, tables, table, j = [], [], None, i + 1
+        fields, tables, table, j, named = [], [], None, i + 1, None
         while j < len(lines):
             l = lines[j]
             f = _margin_field(l)
-            if l.startswith("|"):
+            if f and f["key"] == "Table Name":
+                # § Constructs § Tabular Construct: a table's name opens it, before its first table or between its tables
+                named = (f["value"] or "").strip()
+            elif l.startswith("|"):
                 if table is None:
-                    table = {"header": _keyed(_cells(l), name), "written": _cells(l), "rows": [], "line": j + 1}
+                    table = {"header": _keyed(_cells(l), name), "written": _cells(l), "rows": [], "line": j + 1, "name": named}
+                    named = None
                     tables.append(table)
                 elif not _rule_row(l):
                     table["rows"].append((j + 1, _cells(l)))
@@ -681,8 +694,13 @@ def construct_findings(r, body, found, sections):
     lines = body.split(chr(10))
     for line, name, fields, tables, lineage in decls:
         _paragraphs(r, lines, line, fields, found)
+        # § Constructs § State Machine: each of its tables opens with the Table Name its definition gives it
+        if name == "State Machine" and [t.get("name") for t in tables[:2]] != ["States", "Transitions"]:
+            found.append(("modeling-constructs.md § Constructs § State Machine", r, line,
+                          f"a State Machine's tables named {[t.get('name') for t in tables[:2]]}, not their Table Names, States and Transitions"))
     # a field a construct sets, outside the block a Construct field opens; but a Reference Key a construct's definition
-    # declares, or one opening a Basic Table directly after it (modeling-constructs.md § Constructs § Basic Table)
+    # declares, or a Table Name, a Reference Key or a Required opening a Basic Table, the others between it and the table
+    # (modeling-constructs.md § Constructs § Basic Table)
     owned = {ln for _, _, fields, _, _ in decls for ln, _, _ in fields}
     own_keys = {k for keys in OWN_FIELDS.values() for k in keys}
     definitions = [(h, end) for lin, (h, end) in sections.items() if r == "specs/methodology/modeling-constructs.md"
@@ -695,9 +713,11 @@ def construct_findings(r, body, found, sections):
             continue
         if f and f["key"] in ("Extends",) + DEFINITION_FIELDS and in_definition:
             continue
-        if f and f["key"] == "Reference Key":
-            after = next((n for n in lines[i:] if n.strip()), "")
-            if after.startswith("|") or in_definition:
+        if f and f["key"] in TABLE_OPENERS:
+            after = [n for n in lines[i:] if n.strip()]
+            while after and _margin_field(after[0]) and _margin_field(after[0])["key"] in TABLE_OPENERS:
+                after = after[1:]
+            if (after and after[0].startswith("|")) or (in_definition and f["key"] == "Reference Key"):
                 continue
         if f and f["key"] in own_keys and i not in owned:
             found.append((DECLARING, r, i, f"a {f['key']} field outside a construct's block"))
@@ -753,8 +773,8 @@ def construct_findings(r, body, found, sections):
             for ln, row in table["rows"]:
                 ident = [row[0]] if named or (name == "State Machine" and k == 0) or name == "DAG" else []
                 for v in ident:
-                    if UNPLAIN.search(v):
-                        found.append((KEYED, r, ln, f"a part's identifier that is not plain text: {v}"))
+                    if re.search(r'[§;\]]', v):
+                        found.append((KEYED, r, ln, f"a part's identifier holding a section sign, a semicolon or a bracket: {v}"))
             if named:
                 names = [row[1][0] for row in table["rows"]]
                 if any(not n for n in names) or len(set(names)) != len(names):
@@ -1393,17 +1413,17 @@ def recorded_in_findings(text_of, found, sections, strip_fences, citation, resol
             for ln, row in tables[0]["rows"]:
                 if row and row[0] not in listed:
                     found.append((rule, r, ln, f"a state not among the Values of the fact its machine is recorded in: {row[0]}"))
-            # a state drawn from a closed set opens its description with the citation of its member's record
+            # a state drawn from a closed set opens its description with the citation of its member, its record or its row
             source = cited.get((path, section, mm.group(1).strip()))
             if source:
                 home = resolve(citation.findall(source)[0], path)
                 for ln, row in tables[0]["rows"]:
                     if len(row) < 2 or row[0] not in listed:
                         continue
-                    opening = re.match(r'`([^`]+)`', row[1])
+                    opening = CITATION.match(row[1])
                     named = re.search(r'\[[^:\]]+: ([^\]]+)\]$', opening.group(1)) if opening else None
                     if not named or resolve(opening.group(1), r) != home or named.group(1).strip() != row[0]:
-                        found.append((rule, r, ln, f"a state drawn from a closed set whose description opens with no citation of its member's record: {row[0]}"))
+                        found.append((rule, r, ln, f"a state drawn from a closed set whose description opens with no citation of its member, its record or its row: {row[0]}"))
 
 
 # ---------------------------------------------------------------- Decision Table
@@ -1472,9 +1492,9 @@ def _shown(x, kinds):
 
 
 # @canon-spec specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact
-# a Facts record's Values written as one citation, of the record section holding a closed set; and the resolver
+# a Facts record's Values written as one citation, of the section holding a closed set, its record section or its keyed Basic Table; and the resolver
 # audit-specs.py sets, (the file's text, the cell) -> the identifying values of the records it cites, or None
-CITED_SET = re.compile(r'`[^`]*§[^`]+`')
+CITED_SET = re.compile(r'(?P<d>`+)(?!`)(?:(?!(?P=d)(?!`)).)*§(?:(?!(?P=d)(?!`)).)+(?P=d)(?!`)')
 CLOSED_SET = None
 # the title of a file's Facts sections, the Fact type's Plural Name, which audit-specs.py reads from its declaration
 FACTS_SECTION = None
@@ -1548,8 +1568,8 @@ def fact_record_findings(records):
             out.append((line, f"a fact's name opening with a word FEEL keeps: {name}"))
 
         if CITED_SET.fullmatch(d.get("Values", "")):
-            # a citation fact_records left as written names no record section of a closed set
-            out.append((line, f"a Facts record's Values citing no record section of a type identifying its records by one field: {name}"))
+            # a citation fact_records left as written names no section holding a closed set
+            out.append((line, f"a Facts record's Values citing no record section of a type identifying its records by one field, nor a Basic Table keyed by one column: {name}"))
         else:
             out += [(line, m) for m in _value_list_problems(d.get("Values", "none"), f"the Facts record {name}'s Values")]
         if d.get("cited") and d.get("Type") != "string":
@@ -2798,7 +2818,50 @@ def algorithm_findings(text_of, found, sections, strip_fences, citation, resolve
 # a citation: a section token and a title in one backtick span, after a file's path where it cites another file,
 # never the token alone; the one copy of the form, which audit-specs.py reads as its own and an Enforced By names
 # what enforces its rule by
-CITATION = re.compile(r'`((?:[\w./-]+\.md\s*)?§\s+[^`]+)`')
+class _Citations:
+    """sourcing-and-citation.md § Writing a Citation: a citation in its code span, opened by one backtick, or by one more
+    than the longest run in a key value it carries verbatim, and closed by as many; read as a pattern is, its text group 1."""
+    _RX = re.compile(r'(?<!`)(`+)(?!`)((?:[\w./-]+\.md\s*)?§\s+(?:[^`]|(?!\1(?!`))`+)+?)(?<!`)\1(?!`)')
+
+    class _Match:
+        def __init__(self, m):
+            self._m = m
+
+        def group(self, n=0):
+            return self._m.group(0) if n == 0 else self._m.group(2)
+
+        def start(self, n=0):
+            return self._m.start(0 if n == 0 else 2)
+
+        def end(self, n=0):
+            return self._m.end(0 if n == 0 else 2)
+
+        def span(self, n=0):
+            return (self.start(n), self.end(n))
+
+    def finditer(self, text):
+        return (self._Match(m) for m in self._RX.finditer(text))
+
+    def findall(self, text):
+        return [m.group(2) for m in self._RX.finditer(text)]
+
+    def search(self, text):
+        m = self._RX.search(text)
+        return self._Match(m) if m else None
+
+    def fullmatch(self, text):
+        m = self._RX.fullmatch(text)
+        return self._Match(m) if m else None
+
+    def sub(self, repl, text):
+        return self._RX.sub((lambda m: repl(self._Match(m))) if callable(repl) else repl, text)
+
+    def match(self, text):
+        m = self._RX.match(text)
+        return self._Match(m) if m else None
+
+
+CITATION = _Citations()
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Constraint
 # an Enforced By whose value is that nothing keeps the rule, `nothing:` and words; the one copy of the form
 NOTHING_ENFORCES = re.compile(r'nothing: \S')

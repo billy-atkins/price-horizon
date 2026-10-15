@@ -4,6 +4,10 @@ A finished spec describes a destination, not the conversation that produced it. 
 
 Content that only makes sense to someone present for the discussion that produced it does not belong in a spec, however useful it was to sort out at the time.
 
+**Reference Key:** Pattern
+
+**Required:** Example, Instead
+
 | Pattern | Example | Instead |
 |---|---|---|
 | Meta-commentary about the act of writing | "worth stating plainly," "worth being explicit about," "a principle worth stating rather than leaving implicit" | state the principle; do not narrate the decision to state it |
@@ -45,6 +49,10 @@ A person designs the agent instructions and the skills, deciding what they say a
 
 **Keep what carries the reader —** a word that carries meaning, or carries the reader from one idea to the next, stays. Prose cut too far fails as surely as prose padded out. Minified code is shorter than its source and unreadable, because minifying removes what a reader uses and a machine does not need:
 
+**Reference Key:** Minified Code Removes
+
+**Required:** Too-terse Prose Drops, Instead
+
 | Minified Code Removes | Too-terse Prose Drops | Instead |
 |---|---|---|
 | meaningful names, leaving `a` and `b` | the term itself, a pronoun standing far from what it names | name the term again |
@@ -84,4 +92,4 @@ Emphasis is italic, `*word*`, on a word or a short phrase inside a sentence, whe
 
 ## Literal Text
 
-Backticks mark literal text: something written exactly so elsewhere, a path, a citation, an identifier, a field's key, a heading's title, a value, or a command, so a reader can copy it and a script can match it. A span opens and closes with one backtick, so literal text holds no backtick. A name is not literal text: a product, a method, a company, or a role is written plain, capitalized as a proper noun. A record type's Plural Name is literal where it stands for a section's title, `Open Questions`; the idea it names is plain prose, an open question.
+Backticks mark literal text: something written exactly so elsewhere, a path, a citation, an identifier, a field's key, a heading's title, a value, or a command, so a reader can copy it and a script can match it. A span opens and closes with one backtick, so literal text holds no backtick, but for a citation carrying a key value that holds one, whose span `specs/methodology/sourcing-and-citation.md § Writing a Citation` widens. A name is not literal text: a product, a method, a company, or a role is written plain, capitalized as a proper noun. A record type's Plural Name is literal where it stands for a section's title, `Open Questions`; the idea it names is plain prose, an open question.

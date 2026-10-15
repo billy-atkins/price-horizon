@@ -19,6 +19,10 @@ Before doing by hand a kind of work a registered skill covers, read its `SKILL.m
 
 Running the procedure, rather than recalling the rules, is what puts each rule in mind at the step it governs (`specs/methodology/sourcing-and-citation.md § One Home Per Fact`). This section's index finds a rule mid-step, whatever the work; it routes, and stands in for no step of a procedure.
 
+**Reference Key:** Doing This
+
+**Required:** The Rule Is Here
+
 | Doing This | The Rule Is Here |
 |---|---|
 | Finding which files Spec of Record governs, and how to find your way through them | `specs/methodology/scope.md § What Spec of Record Governs`, `specs/methodology/scope.md § Progressive Disclosure` |
@@ -36,7 +40,7 @@ Running the procedure, rather than recalling the rules, is what puts each rule i
 | Describing a rule, a process, or an entity's behavior | `specs/methodology/modeling-constructs.md` |
 | Writing an expression a construct computes or tests | `specs/methodology/expressions.md` |
 | Recording a decision the specs rely on but have not made | `specs/methodology/spec-placement.md § Open Question` |
-| Writing a field, a bold lead-in, emphasis, literal text, a table of items of one kind, or an entry of a repeated kind or a closed set's members | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Constructs § Basic Table`, `specs/methodology/spec-style.md § Bold Lead-ins`, `specs/methodology/spec-style.md § Emphasis`, `specs/methodology/spec-style.md § Literal Text`, `specs/methodology/modeling-constructs.md § Constructs § Record Form` |
+| Writing a field, a bold lead-in, emphasis, literal text, a table of items of one kind, or an entry of a repeated kind or a closed set's members | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § When to Use Which § A Table's Construct`, `specs/methodology/modeling-constructs.md § Constructs § Basic Table`, `specs/methodology/spec-style.md § Bold Lead-ins`, `specs/methodology/spec-style.md § Emphasis`, `specs/methodology/spec-style.md § Literal Text`, `specs/methodology/modeling-constructs.md § Constructs § Record Form` |
 | Writing or updating acceptance scenarios | `specs/methodology/acceptance-scenarios.md` |
 | Removing drafting residue and hedged framing, or explaining a trade-off | `specs/methodology/spec-style.md § What a Finished Spec Reads Like`, `specs/methodology/spec-style.md § Trade-offs Are Not Journey Language` |
 | Writing prose its primary reader understands on the first read | `specs/methodology/spec-style.md § Clear Prose` |

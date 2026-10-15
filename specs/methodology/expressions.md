@@ -2,6 +2,10 @@
 
 How an expression is written wherever a construct computes or tests a value, so an author and a reader need neither memory of the language nor a network to write or read one. Each construct writing expressions writes them in FEEL:
 
+**Reference Key:** Construct
+
+**Required:** Writes
+
 | Construct | Writes |
 |---|---|
 | Decision Table | a condition's cells, its Input Values, a computed header, an outcome's value, a computed outcome, its Output Values and its Default Output |
@@ -20,6 +24,10 @@ The Friendly Enough Expression Language, DMN's expression language (DMN 10.1), a
 #### Its Values
 
 Each value is of one type, and the types never overlap (DMN 10.3.2.1, 10.3.2.3):
+
+**Reference Key:** Type
+
+**Required:** Written, What It Holds
 
 | Type | Written | What It Holds |
 |---|---|---|
@@ -48,6 +56,10 @@ A name is in scope where the construct declares it, a fact, a Facts record or a 
 
 From the loosest to the tightest, an expression is one of these, so `a + b * c` multiplies first and `a = b + c` adds first (DMN 10.3.1.2, grammar rules 2, 4 and 44 to 52, and the precedence stated beneath them):
 
+**Reference Key:** Form
+
+**Required:** Written, Gives
+
 | Form | Written | Gives |
 |---|---|---|
 | a loop | `for x in list return e`, several `x in list` separated by commas, a list written `1..10` or `@"2024-01-01"..@"2024-12-31"` counting by one or by a day, down where its start is the greater | a list of `e` for each `x`, in order, the last list varying fastest (DMN 10.3.2.14) |
@@ -67,7 +79,7 @@ A comment is `//` to the line's end or `/*` to `*/` (DMN 10.3.1.2).
 
 #### Unary Tests
 
-A unary test is what a Decision Table's condition cell, an Input Values item and a Facts record's Values hold where they cite no closed set's record section (`specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact`): a test of one value, which that value meets or not, written without the value (DMN 10.3.1.2, grammar rules 7, 8, 13 to 16; Table 55):
+A unary test is what a Decision Table's condition cell, an Input Values item and a Facts record's Values hold where they cite no closed set (`specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact`): a test of one value, which that value meets or not, written without the value (DMN 10.3.1.2, grammar rules 7, 8, 13 to 16; Table 55):
 
 - `-`, met by any value;
 - a comparison and an end, `< 10`, `>= date("2024-01-01")`, `= base rate`, `!= "Gold"`;
@@ -79,6 +91,10 @@ A unary test is what a Decision Table's condition cell, an Input Values item and
 #### Null and Three-Valued Logic
 
 `and`, `or` and `not` take `true`, `false` and anything else, giving `null` only where the answer turns on what is not a boolean, the table read in either order (DMN 10.3.2.4, Tables 50 and 51):
+
+**Reference Key:** `a`, `b`
+
+**Required:** `a and b`, `a or b`
 
 | `a` | `b` | `a and b` | `a or b` |
 |---|---|---|---|
@@ -101,6 +117,10 @@ Numbers add, subtract, multiply and divide exactly to 34 significant digits, a d
 - **Decimal places —** a value written to a fact whose Facts record states its decimal places (`specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact`) is rounded to them by the writing construct's rounding mode, half even where it states none, a Decision Table's outcome among the values written; DMN's item definitions round nothing, so this too departs from DMN. A part of a fact holds no decimal places of its own, so money a step computes by multiplying or dividing is written to a fact holding them before a part takes it; a sum or difference of money already held to them, or money a function gives, needs none.
 - **The modes —** each named for the function DMN gives it (DMN Table 76), the value rounded as that function rounds it:
 
+**Reference Key:** Mode
+
+**Required:** Rounds As, A Tie Or Any Value Between Neighbours
+
 | Mode | Rounds As | A Tie Or Any Value Between Neighbours |
 |---|---|---|
 | half even | `decimal` | to the nearest, a tie to the even neighbour |
@@ -112,6 +132,10 @@ Numbers add, subtract, multiply and divide exactly to 34 significant digits, a d
 | floor | `floor` | downward |
 
 Dates, times and durations combine as this table has it, every other pairing giving `null` (DMN Tables 57 and 59):
+
+**Reference Key:** `a`, `b`
+
+**Required:** Gives
 
 | `a` | `b` | Gives |
 |---|---|---|
@@ -134,7 +158,11 @@ A type in `instance of` or a function's parameter is a type's name from `§ Expr
 
 #### Its Functions
 
-Every function FEEL builds in, each called by its name and its arguments in parentheses, by place or by its parameters' names as this table gives them; a parameter marked `?` given or left out, one marked `…` given any number of times; a number giving a place, as `position`, a whole number counting from `1` at the start or `-1` at the end; and a function whose signatures differ in their parameters' names given a row for each (DMN 10.3.4):
+Every function FEEL builds in, each called by its name and its arguments in parentheses, by place or by its parameters' names as this table gives them; a parameter marked `?` given or left out, one marked `…` given any number of times; a function taking none written `()`, its empty parameter list; a number giving a place, as `position`, a whole number counting from `1` at the start or `-1` at the end; and a function whose signatures differ in their parameters' names given a row for each (DMN 10.3.4):
+
+**Reference Key:** Function, Takes
+
+**Required:** Gives, Does
 
 | Function | Takes | Gives | Does |
 |---|---|---|---|
@@ -240,7 +268,7 @@ Every function FEEL builds in, each called by its name and its arguments in pare
 | context put | context, key, value | context | the context with that entry set (DMN Table 81) |
 | context put | context, keys, value | context | the context with the entry a list of keys names set, nested within (DMN Table 81) |
 | context merge | contexts | context | the contexts' entries in one, a later one winning (DMN Table 81) |
-| now | | date and time | the instant it is read (DMN Table 82) |
-| today | | date | the day it is read (DMN Table 82) |
+| now | `()` | date and time | the instant it is read (DMN Table 82) |
+| today | `()` | date | the day it is read (DMN Table 82) |
 
 `now()` and `today()` read the wall clock, so a construct reading time reads them as `specs/methodology/modeling-constructs.md § Time` has a construct read the wall clock, and a construct whose clock is another names that clock's fact instead.
