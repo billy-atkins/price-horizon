@@ -168,15 +168,15 @@ FUNCTION_TABLE = (
     ('context put', 'context, key, value', 'context'),
     ('context put', 'context, keys, value', 'context'),
     ('context merge', 'contexts', 'context'),
-    ('now', '', 'date and time'),
-    ('today', '', 'date'),
+    ('now', '`()`', 'date and time'),
+    ('today', '`()`', 'date'),
 )
 ITEMS_AS_ARGUMENTS = {"min", "max", "sum", "mean", "all", "any", "product", "median", "stddev", "mode"}
 
 
 def _arities(takes):
-    """What a function takes -> (fewest arguments, most, None for any number)."""
-    params = [p.strip() for p in takes.split(",") if p.strip()]
+    """What a function takes -> (fewest arguments, most, None for any number); `()`, an empty parameter list, taking none."""
+    params = [] if takes == "`()`" else [p.strip() for p in takes.split(",") if p.strip()]
     least = sum(1 for p in params if not p.endswith("?") and not p.endswith("…"))
     return least, None if any(p.endswith("…") for p in params) else len(params)
 

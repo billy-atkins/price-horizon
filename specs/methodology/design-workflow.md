@@ -8,6 +8,8 @@ A design enters its work by the reason its Status entered in-progress, and its c
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
 
+**Table Name:** States
+
 | State | Description | Initial | Terminal |
 |---|---|---|---|
 | entered | the design has entered in-progress, by its Status's move | Yes | No |
@@ -21,6 +23,8 @@ A design enters its work by the reason its Status entered in-progress, and its c
 | validating | the builder checks its whole work, as its row of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` sets, and a cold agent runs the validation review, run again once the builder has corrected the record, until it stamps the design (`specs/methodology/working-files.md § A Design Document`) | No | No |
 | awaiting approval | the user is asked to approve the design | No | No |
 | approved by the user | the user approved the design | No | Yes |
+
+**Table Name:** Transitions
 
 | From | To | Trigger | Guard |
 |---|---|---|---|
@@ -60,6 +64,8 @@ The order a design's apply takes, begun only as `specs/methodology/working-files
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
 
+**Table Name:** States
+
 | State | Description | Initial | Terminal |
 |---|---|---|---|
 | writing | the builder writes the design's edits, checks the files against them, as its row of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` sets, and offers the user the audit's model and reasoning effort | Yes | No |
@@ -71,6 +77,8 @@ The order a design's apply takes, begun only as `specs/methodology/working-files
 | reverting | the builder reverts the changes the design wrote, through version control where the project has it, as `specs/methodology/working-files.md § A Design Document § Changes After Approval` has a design sent back | No | No |
 | applied | the design's edits are written, its audit settled, and its changes committed where the project has version control | No | Yes |
 | sent back | the design goes back to in-progress, its changes reverted, a finding of its audit sending it back or its builder finding, as it writes, a change the design does not hold | No | Yes |
+
+**Table Name:** Transitions
 
 | From | To | Trigger | Guard |
 |---|---|---|---|

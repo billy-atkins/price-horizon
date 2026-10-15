@@ -1,5 +1,9 @@
 ## Product or Technical
 
+**Reference Key:** Spec
+
+**Required:** Covers
+
 | Spec | Covers |
 |---|---|
 | Product | What a user or an integrating caller can experience, rely on, or build against: what a user sees and does, the guarantees the system makes, the roles and access model a buyer would evaluate, the shape of any contract an integrating caller depends on. Stated as a capability or a guarantee, never as an implementation choice. |
@@ -29,7 +33,7 @@ The two drawings also do not divide the building the same way. An architect orga
 | Constraint | the plain guarantee | its enforcement, what its Enforced By names |
 | "State Machine for an entity's or a system's status", "Decision Table" | the construct itself | the same construct |
 | Record Form of entries written repeatedly | the construct itself | the same construct |
-| Record Form of a closed set | the closed set, its type and its records | the data storing it, its database design and any enum naming its members, citing the set |
+| "Record Form of a closed set", "Basic Table of a closed set" | the closed set: its type and its records, or its Basic Table | the data storing it, its database design and any enum naming its members, citing the set |
 | Algorithm | no rendering, since a business reader has no use for step-by-step computation | the Algorithm |
 
 **A promise that cannot be built —** writing the technical spec tests a product promise against what is actually possible. A promise no mechanism can make true is amended in the product spec, as the user decides (`§ Personas`), rather than left standing.
@@ -51,6 +55,10 @@ The agent instructions and the skills have no persona, since their primary reade
 ## Index, Architecture, Detail
 
 Every directory under `specs/` organizes its files by altitude. New content belongs at the altitude matching what it actually is.
+
+**Reference Key:** Altitude
+
+**Required:** File, Holds
 
 | Altitude | File | Holds |
 |---|---|---|
@@ -161,6 +169,10 @@ technical-specs:
 A list of file paths from the project root, exactly as they appear anywhere else, sorted in plain character order, so the order is never a judgment call and never signals importance. `technical-specs` is kebab-case, as every frontmatter key here is.
 
 This is a label, not a citation. It names files, never headings, and is never wrapped in the backtick-and-`§` form a citation uses.
+
+**Reference Key:** State
+
+**Required:** Meaning
 
 | State | Meaning |
 |---|---|

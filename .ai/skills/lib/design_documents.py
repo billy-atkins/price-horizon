@@ -518,8 +518,9 @@ def check_stack(folder):
     return lines, problems
 
 # `path/to/file.md § Parent § Child`. A span carrying no path is a same-file
-# citation and is not checked here; see SKILL.md, Verifying a proposal.
-CITATION = re.compile(r'`([\w./-]+\.md)\s+§\s+([^`]+)`')
+# citation and is not checked here; see SKILL.md, Verifying a proposal. Its span opens with one backtick or more and closes
+# on a run of as many, a run of another length inside it literal, as GitHub Flavored Markdown has a code span.
+CITATION = re.compile(r'(?<!`)(?P<d>`+)(?!`)(?P<path>[\w./-]+\.md)\s+§\s+(?P<target>(?:[^`]|(?!(?P=d)(?!`))`+)+?)(?<!`)(?P=d)(?!`)')
 
 
 def lineages(text):
@@ -578,7 +579,7 @@ def check_citations(proposal, root):
     text = Path(proposal).read_text(encoding="utf-8")
     seen, results = set(), []
     for m in CITATION.finditer(text):
-        path, target = m.group(1), " ".join(m.group(2).split())
+        path, target = m.group("path"), " ".join(m.group("target").split())
         # a record citation's [...] selector names a record; only its section resolves here
         target = re.sub(r'\s+\[[^\]]*\]$', '', target)
         if (path, target) in seen:

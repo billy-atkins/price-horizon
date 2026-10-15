@@ -143,8 +143,6 @@ LITERAL_TEXT = "spec-style.md § Literal Text"
 # a citation's `Key: value`, its key a field label, constructs.py's one copy of the form, or a table's name and its key's,
 # joined by a dot, where its construct has more than one keyed table (modeling-constructs.md § Constructs § Keyed Construct)
 KEY_VALUE = re.compile(rf'^({constructs.LABEL}(?: {constructs.LABEL})*(?:\.{constructs.LABEL}(?: {constructs.LABEL})*)*): (.+)$')
-# an identifying value's form: constructs.py's copy, so a record and a part are read alike
-UNPLAIN = constructs.UNPLAIN
 
 # The candidates are likely places, not decisions: a reading audit judges each one.
 _NUM = (r"(?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|"
@@ -367,9 +365,9 @@ def declared_types(text_of):
 
 
 def closed_set(body, cell):
-    """modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact: the identifying values of the records in the
-    record section a Facts record's Values cites, of a type identifying its records by one field, or None where it
-    cites no such section."""
+    """modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact: the identifying values of the members of the
+    closed set a Facts record's Values cites, the records of its record section, of a type identifying them by one field,
+    or the rows of its Basic Table keyed by one column, or None where it cites no such section."""
     cites = CITATION.findall(cell)
     if len(cites) != 1 or "[" in cites[0]:
         return None
@@ -378,6 +376,12 @@ def closed_set(body, cell):
     # a section of another file read as the type reaching that file; one of the citing file read by its title's type,
     # record_findings reporting it where that type's records may not sit
     spec = type_of(target.split(" § ")[-1], path) if path else TYPES.get(target.split(" § ")[-1])
+    if text is not None and target in sections(text) and not spec:
+        # a closed set kept as a Basic Table keyed by one column, its members that column's values
+        keyed = [t for t in basic_tables(text).get(target, []) if len(t["key"]) == 1 and t["key"][0] in t["header"]]
+        if len(keyed) == 1:
+            i = keyed[0]["header"].index(keyed[0]["key"][0])
+            return [row[i] for _, row in keyed[0]["rows"] if i < len(row)]
     if text is None or target not in sections(text) or not spec or len(spec["identifying"]) != 1:
         return None
     records, _ = parse_records(text, target, spec["section_fields"])
@@ -573,8 +577,8 @@ def record_findings(r, body, found):
                 if members is not None and value not in members:
                     found.append((home, r, at, f"the {key} field holds a value its closed set does not: {value}"))
             for key in spec["identifying"]:
-                if not values[key] or UNPLAIN.search(values[key]):
-                    found.append((RECORD_FORM, r, at, f"an identifying value is not plain text: {key}: {values[key]}"))
+                if not values[key]:
+                    found.append((RECORD_FORM, r, at, f"an identifying value left blank: {key}"))
             ident = tuple(values[key] for key in spec["identifying"])
             if ident in names:
                 found.append((RECORD_FORM, r, at, f"two records share their identifying values: {ident}"))
@@ -742,14 +746,23 @@ def part_citation(sel, path, target, text_of, r, line, found):
     rule = "sourcing-and-citation.md § Writing a Citation"
     body = text_of[path]
     declared = [d for d in constructs.declarations(strip_fences(body), sections(body)) if d[4] == target]
-    if not declared:
-        table = basic_tables(body).get(target)
-        if table is None:
-            found.append((rule, r, line, f"a bracket on a section that is no record section, declares no construct and holds no Basic Table declaring a Reference Key: § {target}"))
+    keyed = [t for t in basic_tables(body).get(target, []) if t["key"]]
+    cols = [(KEY_VALUE.match(p.strip()) or re.match(r'()', '')).group(1) for p in sel.split("; ")]
+    named = cols[0].split(".")[0] if "." in cols[0] else None
+    # the Basic Table the citation's path or its key's columns name, where it names no construct's key
+    own = {k.split(".")[-1] for k in CONSTRUCT_KEYS.get(declared[0][1], {})} if declared else set()
+    picked = [t for t in keyed if (t["name"] == named if named else t["key"] == cols and not t["name"])]
+    if keyed and (not declared or picked or cols[0].split(".")[-1] not in own):
+        if len(picked) != 1:
+            found.append((rule, r, line, f"a row citation naming no one table its section holds by its path or its key's columns: § {target} [{sel}]"))
         else:
-            row_citation(sel, target, table, r, line, found)
+            row_citation(sel, target, picked[0], r, line, found)
+        return
+    if not declared:
+        found.append((rule, r, line, f"a bracket on a section that is no record section, declares no construct and holds no Basic Table declaring a Reference Key: § {target}"))
         return
     _, construct, _, tables, _ = declared[0]
+    cited_value_findings(sel, r, line, found)
     m = KEY_VALUE.match(sel.strip())
     keys = CONSTRUCT_KEYS.get(construct, {})
     key = m.group(1) if m else None
@@ -772,8 +785,9 @@ def part_citation(sel, path, target, text_of, r, line, found):
 
 
 def basic_tables(body):
-    """modeling-constructs.md § Constructs § Basic Table: each section's Basic Table that a Reference Key field directly before it
-    declares, in live text -> {lineage: {"key": [column], "header": [cell], "rows": [(line, [cell])], "line": n}}."""
+    """modeling-constructs.md § Constructs § Basic Table: each section's Basic Tables that a Reference Key field, a Required
+    field or both before it open, in live text -> {lineage: [{"key": [column], "required": [column], "header": [cell],
+    "rows": [(line, [cell])], "line": n, "field": n}]}, a table declaring no Reference Key keyed by no column."""
     live = strip_fences(body)
     lines, secs = live.split("\n"), sorted(sections(body).items(), key=lambda x: x[1][0])
     decls = constructs.declarations(live, sections(body))
@@ -783,24 +797,40 @@ def basic_tables(body):
     for i, l in enumerate(lines):
         if not l.startswith("|") or (i and lines[i - 1].startswith("|")) or i + 1 in in_construct:
             continue
-        k = i - 1
-        while k >= 0 and not lines[k].strip():
+        given, k = {}, i - 1
+        while k >= 0:
+            while k >= 0 and not lines[k].strip():
+                k -= 1
+            name = next((f for f in constructs.TABLE_OPENERS if k >= 0 and lines[k].startswith(f"**{f}:**")), None)
+            if name is None or name in given:
+                break
+            given[name] = (k + 1, [c.strip() for c in lines[k][len(name) + 5:].split(",") if c.strip()])
             k -= 1
-        if k < 0 or not lines[k].startswith("**Reference Key:**"):
+        if not given:
             continue
         owner = [lin for lin, (h, end) in secs if h < i < end]
         rows, j = [], i + 2
         while j < len(lines) and lines[j].startswith("|"):
             rows.append((j + 1, constructs._cells(lines[j])))
             j += 1
-        key = [c.strip() for c in lines[k][len("**Reference Key:**"):].split(",") if c.strip()]
         lineage = owner[-1] if owner else ""
-        if lineage in out:
-            out[lineage]["more"].append(k + 1)
-            continue
-        out[lineage] = {"key": key, "header": constructs._cells(l), "rows": rows, "line": i + 1, "field": k + 1, "more": [],
-                        "beside": lineage in declared}
+        out.setdefault(lineage, []).append({
+            "key": given.get("Reference Key", (0, []))[1], "required": given.get("Required", (0, []))[1],
+            "name": ", ".join(given.get("Table Name", (0, []))[1]) or None,
+            "order": [f for f in constructs.TABLE_OPENERS if f in given] == sorted(given, key=lambda g: given[g][0]),
+            "header": constructs._cells(l), "rows": rows, "line": i + 1,
+            "field": min(n for n, _ in given.values())})
     return out
+
+
+def cited_value_findings(sel, r, line, found):
+    """modeling-constructs.md § Constructs § Keyed Construct: a key value a citation names holds no section sign, semicolon or
+    bracket, whatever it names, a row, a record or a construct's part."""
+    for p in sel.split("; "):
+        m = KEY_VALUE.match(p.strip())
+        if m and re.search(r'[§;\]]', m.group(2)):
+            found.append(("modeling-constructs.md § Constructs § Keyed Construct", r, line,
+                          f"a cited key value holding a section sign, a semicolon or a bracket: [{sel}]"))
 
 
 def row_citation(sel, target, table, r, line, found):
@@ -808,44 +838,85 @@ def row_citation(sel, target, table, r, line, found):
     names, in their order, and matches exactly one row."""
     rule = "sourcing-and-citation.md § Writing a Citation"
     pairs = [KEY_VALUE.match(p.strip()) for p in sel.split("; ")]
-    if not all(pairs) or [p.group(1) for p in pairs] != table["key"]:
-        found.append((rule, r, line, f"a row citation naming {[p.group(1) for p in pairs if p] or sel}, not its table's Reference Key {table['key']}: § {target}"))
+    # a named table's key written as the path its name and its column make
+    prefix = f"{table['name']}." if table.get("name") else ""
+    if not all(pairs) or [p.group(1) for p in pairs] != [prefix + k for k in table["key"]]:
+        found.append((rule, r, line, f"a row citation naming {[p.group(1) for p in pairs if p] or sel}, not its table's Reference Key {[prefix + k for k in table['key']]}: § {target}"))
         return
     idx = [table["header"].index(k) for k in table["key"] if k in table["header"]]
     wanted = [p.group(2).strip() for p in pairs]
-    hits = [row for _, row in table["rows"] if len(idx) == len(wanted) and [row[i] if i < len(row) else "" for i in idx] == wanted]
+    cited_value_findings(sel, r, line, found)
+    hits = [row for _, row in table["rows"] if len(idx) == len(wanted) and [row[i].strip() if i < len(row) else "" for i in idx] == wanted]
     if len(hits) != 1:
         found.append((rule, r, line, f"a row citation matches {len(hits)} rows: § {target} [{sel}]"))
 
 
 def basic_findings(r, body, found):
     """modeling-constructs.md § Constructs § Basic Table: a Basic Table's Reference Key names columns its header holds, each row's
-    values under them are identifying values, unique alone or together, and a section holds one such table and none where it
-    declares another construct."""
-    for lineage, t in basic_tables(body).items():
-        if t["beside"]:
-            found.append((TABLES, r, t["field"], f"a table declaring a Reference Key in a section declaring a construct: § {lineage}"))
-        for ln in t["more"]:
-            found.append((TABLES, r, ln, f"a second table declaring a Reference Key in one section: § {lineage}"))
+    values under them are identifying values, unique alone or together; its Required names columns its header holds beside
+    its key; and a row leaves no cell blank under either."""
+    for lineage, t in ((lin, t) for lin, ts in basic_tables(body).items() for t in ts):
+        missing = [k for k in t["required"] if k not in t["header"]]
+        if missing:
+            found.append((TABLES, r, t["field"], f"a Required naming no column its table holds: {', '.join(missing)}"))
+        both = [k for k in t["required"] if k in t["key"]]
+        if both:
+            found.append((TABLES, r, t["field"], f"a Required naming a column its Reference Key names: {', '.join(both)}"))
+        for ln, row in t["rows"]:
+            for c in t["required"]:
+                if c in t["header"] and not (row[t["header"].index(c)] if t["header"].index(c) < len(row) else ""):
+                    found.append((TABLES, r, ln, f"a blank cell in a column its Required names: {c}"))
+        if not t["order"]:
+            found.append((TABLES, r, t["field"], "a table's opening fields out of their order, Table Name, Reference Key, Required"))
+        if not t["key"]:
+            continue
         missing = [k for k in t["key"] if k not in t["header"]]
-        if not t["key"] or missing:
-            found.append((TABLES, r, t["field"], f"a Reference Key naming no column its table holds: {', '.join(missing) or 'none'}"))
+        if missing:
+            found.append((TABLES, r, t["field"], f"a Reference Key naming no column its table holds: {', '.join(missing)}"))
             continue
         idx = [t["header"].index(k) for k in t["key"]]
         seen = set()
         for ln, row in t["rows"]:
-            values = tuple(row[i] if i < len(row) else "" for i in idx)
-            if any(not v or UNPLAIN.search(v) for v in values):
-                found.append((TABLES, r, ln, f"a key value that is not plain text: {values}"))
+            values = tuple(row[i].strip() if i < len(row) else "" for i in idx)
+            if any(not v for v in values):
+                found.append((TABLES, r, ln, f"a key value left blank: {values}"))
             if values in seen:
                 found.append((TABLES, r, ln, f"two rows sharing their key: {values}"))
             seen.add(values)
+    # modeling-constructs.md § Constructs § Keyed Construct: of tables in one section keyed by the same declared columns, all but
+    # one declare a distinct Table Name, a construct's keyed tables among them
+    live = strip_fences(body)
+    keyed = {}
+    for lineage, ts in basic_tables(body).items():
+        keyed.setdefault(lineage, []).extend((tuple(t["key"]), t["name"], t["field"]) for t in ts if t["key"])
+    for _, construct, _, tables, lineage in constructs.declarations(live, sections(body)):
+        for key, k in CONSTRUCT_KEYS.get(construct, {}).items():
+            column = key.split(".")[-1]
+            for t in (tables if k is None else tables[k:k + 1]):
+                if column in t["header"]:
+                    keyed.setdefault(lineage, []).append(((column,), t.get("name"), t["line"]))
+    names = {}
+    for lineage, ts in basic_tables(body).items():
+        names.setdefault(lineage, []).extend((t["name"], t["field"]) for t in ts if t["name"])
+    for _, _, _, tables, lineage in constructs.declarations(live, sections(body)):
+        names.setdefault(lineage, []).extend((t["name"], t["line"]) for t in tables if t.get("name"))
+    for lineage, ns in names.items():
+        for n, (name, ln) in enumerate(ns):
+            if not all(constructs.LABEL_WORD.match(w) for w in name.split(" ")):
+                found.append(("modeling-constructs.md § Constructs § Tabular Construct", r, ln, f"a Table Name that is no field label: {name}"))
+            if any(name == n2 for n2, _ in ns[:n]):
+                found.append(("modeling-constructs.md § Constructs § Tabular Construct", r, ln, f"a Table Name another table of its section declares: {name}"))
+    for lineage, ks in keyed.items():
+        for n, (key, name, ln) in enumerate(ks):
+            if any(key == k2 and name == n2 for k2, n2, _ in ks[:n]):
+                found.append((TABLES, r, ln, f"two tables in one section keyed by {list(key)}, sharing a Table Name or both unnamed: § {lineage}"))
 
 
 def record_citation(sel, path, target, text_of, r, line, found):
     """sourcing-and-citation.md § Writing a Citation: a record citation names every
     identifying field of its type, in order, and matches exactly one record."""
     rule = "sourcing-and-citation.md § Writing a Citation"
+    cited_value_findings(sel, r, line, found)
     title = target.split(" § ")[-1]
     spec = type_of(title, path)
     if not spec:
@@ -1024,7 +1095,7 @@ def check(root, warned=None):
         for i, line in enumerate(live.split("\n"), 1):
             # spec-style.md § Literal Text: a code span opens and closes with one backtick; a line indented
             # four spaces or a tab is an indented code block, literal as a fenced one is
-            if "``" in line and not line.startswith(("    ", "\t")):
+            if "``" in constructs.CITATION.sub(lambda m: "" if _span_fits(m) else m.group(0), line) and not line.startswith(("    ", "\t")):
                 found.append((LITERAL_TEXT, r, i, "a run of backticks, where literal text opens and closes with one"))
             # a code span is literal text, so markup inside one is never bold or italic
             prose = constructs.CODE_SPAN.sub(lambda m: "x" * len(m.group(0)), line)
@@ -1094,7 +1165,7 @@ def check(root, warned=None):
         # bare § outside a backtick span. Every inline span is stripped, not only the
         # ones that parse as citations, since the rule is about the span and not the form.
         for i, line in enumerate(live.split("\n"), 1):
-            stripped = constructs.CODE_SPAN.sub("", line)
+            stripped = constructs.CODE_SPAN.sub("", constructs.CITATION.sub("", line))
             if LOOSE_SECTION.search(stripped):
                 found.append(("sourcing-and-citation.md § Writing a Citation", r, i,
                               "a § outside a backtick span"))
@@ -1558,11 +1629,9 @@ def glossary_findings(root):
             found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: a row holds a term, its abbreviation or none, and a definition, nothing else"))
         if abbreviation and not BARE_TERM.match(abbreviation):
             found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: not a bare abbreviation: {abbreviation}"))
-        if not definition:
-            found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: no definition"))
         if not BARE_TERM.match(term):
             found.append((GLOSSARY_RULE, GLOSSARY, n, f"not a bare term: {term}"))
-        if folded.count(term.casefold()) > 1:
+        if folded.count(term.casefold()) > 1 and [t for _, t, *_ in rows].count(term) == 1:
             found.append((GLOSSARY_RULE, GLOSSARY, n, f"the term is listed twice: {term}"))
         if re.search(r'\bAbbreviated\b', definition):
             found.append((GLOSSARY_RULE, GLOSSARY, n, f"{term}: an abbreviation goes in its Abbreviation column"))
@@ -1895,6 +1964,13 @@ def direction_candidates(root):
                         s, e = max(0, m.start() - 60), min(len(line), m.end() + 40)
                         out.append((f.relative_to(root).as_posix(), n, "pointed at by direction", line[s:e].strip()))
     return out
+
+
+def _span_fits(m):
+    """spec-style.md § Literal Text: a citation's span of one backtick, or of one more than the longest run its text holds."""
+    delim, text = len(m.group(0)) - len(m.group(0).lstrip("`")), m.group(1)
+    runs = [len(r) for r in re.findall(r"`+", text)]
+    return delim == 1 if not runs else delim == max(runs) + 1
 
 
 def skill_candidates(root):

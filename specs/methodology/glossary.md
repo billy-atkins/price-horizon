@@ -2,6 +2,10 @@
 
 The terms Spec of Record gives a meaning of its own, each defined here once and nowhere else: a file using a term states its rules about it, never a second definition. This file also states what earns a term its entry, how an entry is written, and where an abbreviation may be used.
 
+**Reference Key:** Term
+
+**Required:** Definition
+
 | Term | Abbreviation | Definition |
 |---|---|---|
 | Adversarial review |  | A Design, Refactor, Refine run by a cold agent over a builder's design. |
@@ -13,7 +17,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Canon-spec annotation |  | A spec annotation in a registered skill's script, or the code the skills share, naming the area of the method's own specifications that a copy the script holds takes its values from. |
 | Capability domain |  | A standing part of what a product does or governs for as long as the product exists, defined by its product owner: a boundary meant to outlive any single change. Not an epic or a sprint, which describe work with an end date. |
 | Citation |  | A pointer from one place in the Spec of Record scope to another, written in a fixed form a reader and a script can both follow. Not a bibliographic reference. |
-| Closed set |  | A set whose every member the specs list, so a member is added or removed only by changing the specs: the cases a Decision Table defines one by one, or the instances of one entity type a product spec defines as a record type. Not a set that changes while the product runs. |
+| Closed set |  | A set whose every member the specs list, so a member is added or removed only by changing the specs: the cases a Decision Table defines one by one, or the members of one kind a spec defines, a record type's records or a Basic Table's rows. Not a set that changes while the product runs. |
 | Cold agent |  | An agent arriving with no context but what it reads, and so with no attachment to the decisions of whoever did the work before it. |
 | Construct |  | A structured form, one of a bounded set the method approves, in which a rule, a process, an entity's behavior, a repeated entry, a closed set or items of one kind laid out as a table is written rather than in free prose. Not the programming sense. |
 | Core canon |  | The part of the canon apart from the skills and the code they share: the specifications' entry point and the methodology, which state the method's rules, and the specifications' overview, which describes them. The skills carry the method out. Not the canon as a whole. |
@@ -29,7 +33,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Home |  | The one place where a fact or a rule is stated. |
 | Inside the house |  | A term, abbreviation or example coined or introduced by Spec of Record or the application specs: known to those working within them, and taught by the specs to every agent and engineer who arrives, as a household's own words make sense only to those living in it. Not one known outside them. |
 | Interface |  | A construct's definition that is a contract other definitions implement, rather than a base they extend. Not a user interface, nor the surface a service exposes. |
-| Key |  | A name or a value that selects one thing among many: a field's key, the name it is written with, selects the field; a Reference Key, the field or column, or fields or columns, whose values a citation names, selects one part of an instance of a keyed construct, as a database's key selects a row. Not a key in a file's frontmatter. |
+| Key |  | A name or a value that selects one thing among many: a field's key, the name it is written with, selects the field; a Reference Key, the field or column, or fields or columns, naming each part as its readers know it, selects one part of an instance of a keyed construct, as a database's key selects a row, a citation naming a part by it. Not a key in a file's frontmatter. |
 | Layer |  | A level in the order of what governs what among the specifications, each governed by those above it. Not a layer the product's specifications describe. |
 | Materialized view |  | A restatement of facts whose homes are elsewhere, made for its reader and never their source, nor a second home: what a directory's overview restates, a diagram, a summary. Not a database's materialized view, a stored query result, whose sense it borrows. |
 | Methodology owner |  | The persona the methodology and the specifications' overview are written as, and a design changing either reviewed as. |
@@ -44,7 +48,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Product module |  | A capability domain as the product architecture names it, a folder or a single file, bounding the scope of a change to the code that carries it out. Not a Python module, and not a module of the code. |
 | Progressive disclosure |  | A way of reading in which what a step needs is loaded at the step that needs it, rather than everything at once. |
 | Reasoning effort |  | A setting of the model an agent runs on: how far it reasons before it answers. Not how far a review reaches, nor how many reviewers run it. |
-| Record |  | An entry of a record type, written in the Record Form: an entry written repeatedly, or a member of a closed set a product spec defines. Not data the product stores and changes while it runs. |
+| Record |  | An entry of a record type, written in the Record Form: an entry written repeatedly, or a member of a closed set a spec defines. Not data the product stores and changes while it runs. |
 | Record section |  | A section holding the records of one record type. |
 | Refactor and Refine cycle | RR cycle | The Refactor and Refine of Design, Refactor, Refine, run over specifications that have landed, their state at a baseline commit standing as the design: a change to their structure and wording that leaves what they state. Not the Refactor and Refine within a design still in flight. |
 | Rube Goldberg machine |  | A mechanism far more elaborate than the task it performs, as the cartoonist's contraptions chain many steps to do something simple: a mechanism, role or safeguard whose complexity no stated need justifies, where a light switch would do. |

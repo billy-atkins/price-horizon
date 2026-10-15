@@ -53,7 +53,7 @@ Grep before drafting, per `specs/methodology/sourcing-and-citation.md § One Hom
 
 ### Check whether a construct applies before writing prose
 
-`specs/methodology/modeling-constructs.md § When to Use Which` decides whether a passage is a construct or prose, routing included however it reads, by the count it sets, and which construct it is, and `specs/methodology/modeling-constructs.md § When to Use Which § A Configured Instance` the same where its rows, states or steps are the system's data; `specs/methodology/modeling-constructs.md § When to Use Which § Combining Constructs` how one hands its work to another; and `specs/methodology/modeling-constructs.md § Constructs` the form it is written in.
+`specs/methodology/modeling-constructs.md § When to Use Which` decides whether a passage is a construct or prose, routing included however it reads, by the count it sets, and which construct it is, `specs/methodology/modeling-constructs.md § When to Use Which § A Table's Construct` which of a Decision Table, records and a Basic Table a table is, and `specs/methodology/modeling-constructs.md § When to Use Which § A Configured Instance` the same where its rows, states or steps are the system's data; `specs/methodology/modeling-constructs.md § When to Use Which § Combining Constructs` how one hands its work to another; and `specs/methodology/modeling-constructs.md § Constructs` the form it is written in.
 
 ### Draft with the source file open
 
@@ -61,7 +61,7 @@ Anything compressed from another file is compared against it clause by clause, n
 
 ### Write the text in the form the rules give it
 
-A field, a bold lead-in, emphasis and literal text as `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/spec-style.md § Bold Lead-ins`, `specs/methodology/spec-style.md § Emphasis` and `specs/methodology/spec-style.md § Literal Text` give them, an entry of a repeated kind or a closed set's members as `specs/methodology/modeling-constructs.md § Constructs § Record Form` does, and a number only where `specs/methodology/spec-style.md § Ordinals and Counts` keeps one.
+A field, a bold lead-in, emphasis and literal text as `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/spec-style.md § Bold Lead-ins`, `specs/methodology/spec-style.md § Emphasis` and `specs/methodology/spec-style.md § Literal Text` give them, an entry of a repeated kind or a closed set's members as `specs/methodology/modeling-constructs.md § When to Use Which § A Table's Construct` chooses, a record type's records or a Basic Table's rows, and a number only where `specs/methodology/spec-style.md § Ordinals and Counts` keeps one.
 
 ### Record what the specs rely on but have not decided
 
@@ -198,6 +198,10 @@ When you consider a change and reject it, say so and why, in the proposal. When 
 `--with-edits-of` runs the other actions asked for in a copy of the repository's root files, specs, skills and plans holding a design's quoted edits, an edit already applied taken as applied, a stamp written there copied back, as `specs/methodology/working-files.md § A Design Document` has a form the method is still adding.
 
 How each of the record's checks (`specs/methodology/working-files.md § A Design Document`) is decided:
+
+**Reference Key:** Check
+
+**Required:** Decided By
 
 | Check | Decided By |
 |---|---|

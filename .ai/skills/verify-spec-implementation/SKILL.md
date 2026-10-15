@@ -43,6 +43,10 @@ Write the report to `.ai/tmp/verify-spec-implementation/`, one file per run, cle
 
 Each check names the rule it enforces (`specs/methodology/scope.md § Rules and Skills`).
 
+**Reference Key:** Check
+
+**Required:** How, Enforces
+
 | Check | How | Enforces |
 |---|---|---|
 | Annotations | `--check-annotations`, then reading | `specs/methodology/code.md § Citing the Specs From Code` |

@@ -39,6 +39,10 @@ Look for the failures the source cannot show you: whether the reading order matc
 
 Every one of these is invisible in the source and obvious on render.
 
+**Reference Key:** Symptom
+
+**Required:** Cause, Fix
+
 | Symptom | Cause | Fix |
 |---|---|---|
 | A node floats to the top, reading as the diagram's root | It has only outgoing edges, and `flowchart TD` puts sources at the top | Give it an incoming edge, if one is accurate. For something that applies *at* other nodes rather than flowing into them, undirected links (`A -.- B`) place it beside the spine instead of above it, and avoid asserting a direction the prose never claims |

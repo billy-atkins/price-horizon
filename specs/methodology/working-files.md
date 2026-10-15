@@ -2,6 +2,10 @@
 
 A working file is never committed, since no reader of the specs needs it. Which specs may name one is set in `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`. What a working file settles reaches a reader only through the spec it changes.
 
+**Reference Key:** File
+
+**Required:** Holds
+
 | File | Holds |
 |---|---|
 | `.ai/plans/` | the plans the skills write, a design document among them (`§ A Design Document`) |
@@ -17,6 +21,10 @@ An open question about what is specified is not a working file's to hold; it is 
 ## A Design Document
 
 Each design document is a file of its own, one per change taken through `specs/AGENTS.md § Design, Refactor, Refine`. `.ai/skills/design-specs/` writes each design changing the specs under `.ai/plans/design-specs/`, and `.ai/skills/implement-specs/` each design changing code under `.ai/plans/implement-specs/`. Both take this form; a design changing code differs only where `§ A Design Document § A Design Changing Code` sets. Each skill's steps and its script hold a design to this form, the script reaching the design document tooling the two skills share, and no audit reads a design. A design opens with a level-one heading, `Design Document`, whose section holds its fields (`specs/methodology/modeling-constructs.md § Fields`), and its sections follow as level-two headings. It holds its parts, in this order:
+
+**Reference Key:** Part
+
+**Required:** Form, Required, Holds
 
 | Part | Form | Required | Default Value | Holds |
 |---|---|---|---|---|
@@ -46,6 +54,10 @@ Each design document is a file of its own, one per change taken through `specs/A
 **Unwinding —** a finished design is deleted once no design names it in Depends On, so what it settled or why it was dropped stays readable until the designs that waited on it have taken it in. When a design is abandoned, each open design it spawned goes on as a design of its own, or is abandoned with it, as the user decides. A Spawned By naming a design since deleted stays, as the spawned design's history.
 
 **The record's checks —** before the user is asked to approve a design, its record is checked against this section, `§ Design Goal` and `§ Steering Decision`, by the builder and then by the validation review, a cold agent other than the builder, through the design script for what it decides and by reading for what it cannot, as `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` has each check it:
+
+**Reference Key:** Check
+
+**Required:** What The Record Holds, Why
 
 | Check | What The Record Holds | Why |
 |---|---|---|
@@ -109,6 +121,8 @@ The states a design document's Status moves through, and what moves it from one 
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
 
+**Table Name:** States
+
 | State | Description | Initial | Terminal |
 |---|---|---|---|
 | not-started | recorded, often by the design that spawned it, and not yet worked | Yes | No |
@@ -117,6 +131,8 @@ The states a design document's Status moves through, and what moves it from one 
 | applying | its apply under way, governed by `specs/methodology/design-workflow.md § The Order of a Design's Work § The Apply` | No | No |
 | complete | applied, its audit settled; what it decided lives on in the specs it changed | No | Yes |
 | abandoned | withdrawn by the user | No | Yes |
+
+**Table Name:** Transitions
 
 | From | To | Trigger | Guard |
 |---|---|---|---|
@@ -138,6 +154,10 @@ A design its Depends On names finishing is its entering complete or abandoned, a
 ### A Design Changing Code
 
 A design changing code starts from applied specs, or from the specs as a design its Depends On names leaves them, rather than from a problem in them, and designs the code and the tests that bring them to life. It takes the form `§ A Design Document` sets, and Design, Refactor, Refine, the adversarial review, the validation review and the stamp, as a design changing the specs does, and differs only where code does. Its parts differ so:
+
+**Reference Key:** Part
+
+**Required:** In A Design Changing Code
 
 | Part | In A Design Changing Code |
 |---|---|
@@ -244,6 +264,10 @@ The form a stamp is used in names the field holding it and the fields it leaves 
 
 A follow-up records work on the specs or the code that should be done and is not yet, with enough context for someone arriving cold to take it up. It is kept until the work is done, however many changes pass in between, so nothing that should be worked is lost. `.ai/follow-ups.md` opens with a short header naming what the file holds and citing this file, and its follow-ups follow that header. Each sits under a priority heading: `## High`, the work to take up next; `## Medium`, which waits until High is settled; or `## Low`, worth doing once nothing more pressing is open. Each holds its parts, in this order:
 
+**Reference Key:** Part
+
+**Required:** Form, Required, Holds
+
 | Part | Form | Required | Default Value | Holds |
 |---|---|---|---|---|
 | Name | a `###` heading, a kebab-case slug | yes | | the name the follow-up is referred to by |
@@ -254,11 +278,15 @@ A follow-up records work on the specs or the code that should be done and is not
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
 
+**Table Name:** States
+
 | State | Description | Initial | Terminal |
 |---|---|---|---|
 | not-started | recorded, and not yet taken up | Yes | No |
 | in-progress | taken up, usually as a design document | No | No |
 | done | resolved, and removed from the file | No | Yes |
+
+**Table Name:** Transitions
 
 | From | To | Trigger |
 |---|---|---|
