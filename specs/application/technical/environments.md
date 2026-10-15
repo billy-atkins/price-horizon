@@ -14,6 +14,10 @@ Where PriceHorizon is built, tested and run, each environment stating only what 
 
 **What data it holds —** synthetic data only, never a customer's.
 
+**Reference Key:** Tool
+
+**Required:** Version, Purpose, Windows, macOS, Linux
+
 | Tool | Version | Purpose | Windows | macOS | Linux |
 |---|---|---|---|---|---|
 | .NET SDK | the stack's | Builds, runs and tests the backend and the acceptance tests | `winget install Microsoft.DotNet.SDK.10` | `curl -sSL https://dot.net/v1/dotnet-install.sh \| bash -s -- --channel 10.0` | `curl -sSL https://dot.net/v1/dotnet-install.sh \| bash -s -- --channel 10.0` |
@@ -22,6 +26,10 @@ Where PriceHorizon is built, tested and run, each environment stating only what 
 | Docker | latest | Runs every dependency as a container | `winget install Docker.DockerDesktop` | `brew install --cask docker` | Docker Engine, as `https://docs.docker.com/engine/install` gives for the distribution |
 | PowerShell | 7 | Runs Playwright's browser installer | `winget install Microsoft.PowerShell` | `brew install --cask powershell` | PowerShell 7, as `https://aka.ms/powershell` gives for the distribution |
 | Helm | the stack's | Checks the deployment chart | `winget install Helm.Helm` | `brew install helm` | the Helm 4 release from `https://get.helm.sh` |
+
+**Reference Key:** Task
+
+**Required:** Command, Does
 
 | Task | Command | Does |
 |---|---|---|
@@ -50,6 +58,10 @@ Where PriceHorizon is built, tested and run, each environment stating only what 
 **What differs from the stack —** GitHub Actions runs it; on its Linux runner, the only one running Linux containers, Docker runs every dependency, Keycloak stands in for the customer's identity provider, and Ollama serves a small language model on the runner's CPU, within its memory, since hosted runners have no GPU.
 
 **What data it holds —** synthetic data only, as the local environment does.
+
+**Reference Key:** Task
+
+**Required:** Command, Does, Runs On
 
 | Task | Command | Does | Runs On |
 |---|---|---|---|

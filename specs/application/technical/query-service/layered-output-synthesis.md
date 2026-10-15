@@ -18,7 +18,7 @@ Takes the Predict output (the competitor's forecasted move, its direction, confi
 
 Canonical positioning strategies, spanning the response spectrum from full commitment to the current price to full divergence from the competitor, each defined by the exact rule that sets Brand A's resulting effective price at the horizon, not just a qualitative description:
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** Archetype
 
@@ -38,16 +38,16 @@ Each candidate's price gap and relative price index (`§ Layered Output Synthesi
 
 Which archetypes are generated as candidates, decided before any simulation runs, by the decision type the Question Intent carries (`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Question Intent`):
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** Decision type
 
-**Annotations:** The decision it is
+**Annotations:** The Decision It Is
 
 **Input Values:**
 - Decision type: "Strategic", "Tactical"
 
-| Decision type | Seeded candidates | The decision it is |
+| Decision type | Seeded candidates | The Decision It Is |
 |---|---|---|
 | Strategic | Hold, Match, Close the Gap, Diverge | a brand pricing decision on list price or price position |
 | Tactical | Hold, Match, Close the Gap | a retailer or promotional decision |
@@ -58,7 +58,7 @@ Diverge is withheld from a tactical decision because it moves the brand's price 
 
 An Algorithm, applied after the simulation engine (`§ Layered Output Synthesis (producing the answer) § Simulation engine`) has produced an outcome for every seeded candidate.
 
-**Construct:** Algorithm
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 
 **Inputs:** the seeded candidates' Positioning Candidates and Simulated Outcomes, and the business unit's materiality thresholds
 
@@ -82,9 +82,9 @@ A business unit's own materiality thresholds are set as `specs/application/produ
 
 A Constraint on the consolidation Algorithm's output:
 
-**Construct:** Constraint
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Constraint`
 
-| Constraint | Applies to | Enforced by |
+| Constraint | Applies To | Enforced By |
 |---|---|---|
 | Consolidation can thin the set, but never below two options, so it never reduces Position to a single recommendation | the options Position displays | `§ Layered Output Synthesis (producing the answer) § Option Consolidation [Step: 6]`'s floor, and the API and UI contract, which never exposes a single-option response |
 
@@ -102,7 +102,7 @@ The Rationale Record (`specs/application/technical/data-model.md § Core Data Mo
 
 Every Simulated Outcome for a given query instead carries its own Rationale Record, since the share-response, volume, and margin models it calls are a genuinely different source of uncertainty, one the Model registry (`specs/application/technical/model-registry.md § Model registry`) already documents with a confidence interval and a last-validated date of its own. That record is computed once per query, not once per candidate: the same model versions are called for every seeded candidate, so nothing in this section's Algorithm varies across the candidates in one answer, only across queries, or over time as models are revalidated. A Query user opens these reasons from the outcome itself (`specs/application/product/answer-engine/simulate.md § Simulate — what follows for the business`). Computed by an Algorithm.
 
-**Construct:** Algorithm
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 
 **Inputs:** the share-response, volume and margin models' registry entries, the simulate confidence weighting rubric, and the parent Positioning Candidate's rationale.confidence_score
 
@@ -128,9 +128,9 @@ This Rationale Record carries none of the Predict computation's own fields (`spe
 
 A Constraint on the Algorithm's output:
 
-**Construct:** Constraint
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Constraint`
 
-| Constraint | Applies to | Enforced by |
+| Constraint | Applies To | Enforced By |
 |---|---|---|
 | A Simulated Outcome's confidence_score is never higher than its parent Positioning Candidate's | confidence_score | `§ Layered Output Synthesis (producing the answer) § Confidence and rationale packaging, extended [Step: 8]` |
 

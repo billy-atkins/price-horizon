@@ -2,6 +2,10 @@
 
 What PriceHorizon is built with, what it relies on in every environment, and where its code lives, the one home of each technology the technical specs use and its version: each part of the system, then what the parts rely on.
 
+**Reference Key:** Part
+
+**Required:** Language, Framework, Build Tool, Test Framework, Code Roots
+
 | Part | Language | Framework | Build Tool | Test Framework | Code Roots | Excluded |
 |---|---|---|---|---|---|---|
 | Web UI | TypeScript, on Node.js 24 LTS | React | Vite, npm, ESLint, Prettier | Vitest | `web` | `web/dist`, `web/node_modules` |
@@ -11,6 +15,10 @@ What PriceHorizon is built with, what it relies on in every environment, and whe
 | Deployment | YAML | Helm 4 | Helm, an OCI container image built for each other part | Helm's lint and template checks | `deploy` | |
 
 The backend holds the query, materialization and control plane services and the libraries they share, the model-call layer and the vault adapter among them; model serving holds the quantitative models the model registry versions; and deployment holds the chart an installation is installed and upgraded from.
+
+**Reference Key:** Technology
+
+**Required:** Kind, Purpose
 
 | Technology | Kind | Purpose |
 |---|---|---|

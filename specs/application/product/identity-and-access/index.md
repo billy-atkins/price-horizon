@@ -1,5 +1,9 @@
 # Identity & Access
 
+**Reference Key:** File
+
+**Required:** Description
+
 | File | Description |
 |---|---|
 | `using-and-administering-kept-apart.md` | How using and administering are kept apart: the path that answers questions never holds the credentials to change configuration |

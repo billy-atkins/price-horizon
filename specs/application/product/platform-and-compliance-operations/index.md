@@ -1,5 +1,9 @@
 # Platform & Compliance Operations
 
+**Reference Key:** File
+
+**Required:** Description
+
 | File | Description |
 |---|---|
 | `deployment-topology.md` | Self-hosted deployment, data residency, Acme AI's own governed access, the isolated credential vault, business-unit-scoped configuration, and the client's choice of frontier models |

@@ -1,5 +1,9 @@
 # Tenant Administration
 
+**Reference Key:** File
+
+**Required:** Description
+
 | File | Description |
 |---|---|
 | `reference-data-management.md` | Self-service business unit and competitor reference data, rebrands, and the business unit's own wording for governed terms |

@@ -1,5 +1,9 @@
 # PriceHorizon — Product Specifications
 
+**Reference Key:** File
+
+**Required:** Description
+
 | File | Description |
 |---|---|
 | `vision.md` | The RGM vision: the narrative destination this product delivers |

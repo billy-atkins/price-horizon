@@ -63,7 +63,7 @@ Scenario: Price gap stays in the geography's own local currency; relative price 
 
 Which kind of decision an answer serves is the Query user's session choice, or the question's own words where they say, per `specs/application/product/answer-engine/decision-context.md § Decision Context`. How far out the forecast looks never changes which options appear.
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** Kind of decision
 
@@ -106,14 +106,11 @@ Scenario: How far out the forecast looks does not change which options appear.
 
 Each option follows one of the defined strategies:
 
-**Construct:** Decision Table
+**Reference Key:** Option
 
-**Conditions:** Option
+**Required:** Brand A Price Move
 
-**Input Values:**
-- Option: "Hold", "Match", "Close the Gap", "Diverge"
-
-| Option | What it means for Brand A's price |
+| Option | Brand A Price Move |
 |---|---|
 | Hold | Stay at today's price, regardless of what the competitor does |
 | Match | Move by the same percentage the competitor is expected to move, so the relative price index holds steady at today's level |

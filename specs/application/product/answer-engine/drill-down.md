@@ -15,16 +15,16 @@ Independent axes, and a user can move along either one without leaving the analy
 
 What a granularity drill-down shows depends on whether it stays within the range the competitor's data is reported at:
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** Granularity
 
-**Annotations:** Such as
+**Annotations:** Such As
 
 **Input Values:**
 - Granularity: "Within the reported range", "Below the reported range"
 
-| Granularity | Figure shown | Decomposition graph | Such as |
+| Granularity | Figure shown | Decomposition graph | Such As |
 |---|---|---|---|
 | Within the reported range | The same analysis re-run at a narrower filter, guaranteed consistent with the broader figure it was drilled from | Available | country, state or province, major metro |
 | Below the reported range | An allocation of the major metro number, or the state's where no metro is reported, labeled as an estimate, not shown with the confidence of a directly sourced forecast, and opening to the forecast it was allocated from and the weighting used, population or retail footprint | Not available, an allocated figure has no causal story of its own to tell | county, store |

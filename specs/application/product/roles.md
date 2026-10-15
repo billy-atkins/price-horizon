@@ -9,6 +9,10 @@ technical-specs:
 
 PriceHorizon's roles distinguish everyday use from administration:
 
+**Reference Key:** Role
+
+**Required:** Description
+
 | Role | Description |
 |---|---|
 | Query user | Everyday use, asking questions and exploring the answer experience, scoped to whichever business units the person's identity grants |

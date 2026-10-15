@@ -6,7 +6,7 @@ One report, not one per scope, since a Control plane admin's own business unit, 
 
 The report is open to the two roles this Decision Table names, each seeing the business units its claim allows:
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** Role
 
@@ -20,7 +20,7 @@ The report is open to the two roles this Decision Table names, each seeing the b
 
 ### Building the report
 
-**Construct:** Algorithm
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 
 **Inputs:** the requesting role and its business units in scope (`§ Bulk Evidence and Accuracy Report § Who sees which business units`), and each one's Effective Price Forecasts, Rationale Records and Realized Outcomes
 

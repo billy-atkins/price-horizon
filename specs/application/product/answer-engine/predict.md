@@ -19,7 +19,11 @@ Most of that evidence exists before anyone asks. As documents arrive, the facts 
 
 The confidence band is a range around the forecast itself, built from how much uncertainty the underlying list-price and promotional-depth models each carry. The confidence score is a separate read of the evidence behind the forecast: how credible its weakest source is, since one poorly sourced fact is never averaged away by better ones; how current its data is; and whether the evidence agrees with itself. The two can diverge, a forecast can sit inside a narrow band while still carrying a lower confidence score, if the models are precise but a driver rests on a weakly sourced or stale fact, and that is not a contradiction: each answers a different question about the same forecast, and the answer shows both without flagging either as an error. The confidence score opens to each of those reasons, as `specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes` requires, and the evidence each reason opens to here is the weakest source itself, how old the data is and when each fact took effect, and any disagreement big enough to count as a price move. When the evidence does not agree, a document pointing to a change big enough to count as a price move on its own, in a direction the baseline does not show, it names both sides and shows that the disagreement is holding the score down.
 
-| Layer | What it shows |
+**Reference Key:** Layer
+
+**Required:** What It Shows
+
+| Layer | What It Shows |
 |---|---|
 | Scorecard / heatmap | Competitor Brand's probabilistic price forecast, with a confidence band around it and a confidence score alongside, Brand A's current price shown alongside as a reference point, not yet a computed comparison |
 | Plain-language narrative | The expected impact and KPI implications, explained in business language, with the rationale behind the forecast stated alongside it, not just a score |

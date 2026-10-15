@@ -8,13 +8,13 @@ The mechanism that turns retrieved evidence into a forecasted effective price, d
 
 Each Driver Signal feeds exactly one downstream consumer, decided by its event type, never both, so no signal's effect on the forecast is counted twice. Each consumer reads a signal's magnitude signed by its direction, and a bracket at its midpoint. Who may change the routing rule is `specs/application/technical/control-plane-service/control-plane.md § Control Plane`'s. The rule that decides `routes_to` for every event type is a Decision Table, and there is no other case. Its question is whether the event type states a fact about the exact thing being forecast, the competitor's own list price or promotional depth, or requires inference about how it translates into a price effect:
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** States a fact about what is forecast?
 
-**Annotations:** Its event types
+**Annotations:** Its Event Types
 
-| States a fact about what is forecast? | routes_to | Its event types |
+| States a fact about what is forecast? | routes_to | Its Event Types |
 |---|---|---|
 | Yes | Baseline, the effective price forecasting Algorithm (`§ Predict Computation § Effective price forecasting`) | competitor plans' announced price change and promotional calendar change |
 | No | Driver Attribution | every other event type, across every driver category: competitor plans' own product launch and capacity change, every tax event type, and every input cost and discretionary spending event type |
@@ -25,7 +25,7 @@ Event types are a bounded, governed set, the same discipline as the driver categ
 
 The baseline, computed by forecast materialization in `specs/application/technical/materialization-service/forecast-materialization.md § Forecast materialization` across its configured grid, or here live when a query falls outside it, is an Algorithm whose steps 2 and 3 each call a registered forecasting model, the trend-and-seasonality baseline and the promotional depth cadence model respectively, each documented in `specs/application/technical/model-registry.md § Model registry` the same way every other model is, with its own declared confidence interval and last-validated date.
 
-**Construct:** Algorithm
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 
 **Inputs:** the competitor's historical effective price series and current effective price, the signals routed here, and the business unit's dead-zone threshold
 
@@ -51,7 +51,7 @@ The Driver Signal records (`specs/application/technical/data-model.md § Core Da
 
 This step computes the correction, and sizes each signal triangulation found, drawing on every Driver Signal (`specs/application/technical/data-model.md § Core Data Model § Vector Database Schema § Driver Signal`) routed here rather than to the baseline, by an Algorithm.
 
-**Construct:** Algorithm
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 
 **Inputs:** the Driver Signals routed here, the baseline (`§ Predict Computation § Effective price forecasting`), the driver attribution weighting rubric, the named models, and the signals triangulation found (`§ Predict Computation § Triangulation and conflict checks`)
 
@@ -82,7 +82,7 @@ Elasticity's magnitude always comes from the named model alone, no document ever
 
 Rationale here means a Rationale Record (`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Rationale Record`), the structured fields it defines rather than prose, so the answer can show how the number was built and why its confidence sits where it does. Nothing reaches the output layer unaccompanied by this record. confidence_score is a declared, versioned formula rather than a learned model, the same reasoning as the driver attribution weighting rubric: there is no labeled history of real outcomes yet to train a calibrated model against (`specs/application/technical/materialization-service/forecast-materialization.md § Open Questions [Name: Recalibration]`), and a declared formula is explainable to a customer questioning a number in a way a trained model is not. It is computed by an Algorithm.
 
-**Construct:** Algorithm
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 
 **Inputs:** the Driver Signals used in this answer, the data-as-of snapshot's age, the Rationale Record's conflicts, and the confidence scoring weighting rubric
 
@@ -104,9 +104,9 @@ For a query inside the materialized grid, the whole record is retrieved as mater
 
 A Constraint on the packaging Algorithm's output:
 
-**Construct:** Constraint
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Constraint`
 
-| Constraint | Applies to | Enforced by |
+| Constraint | Applies To | Enforced By |
 |---|---|---|
 | A forecast with a flagged conflict is never assigned a confidence_score above the rubric's flagged-conflict ceiling, however strong source credibility or data freshness are on their own | confidence_score | `§ Predict Computation § Confidence and rationale packaging [Step: 6]` |
 

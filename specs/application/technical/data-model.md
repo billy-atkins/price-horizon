@@ -28,6 +28,10 @@ The one entity actually stored in the vector database, embedding and structured 
 
 Produced by extraction in `specs/application/technical/materialization-service/driver-signal-extraction.md § Vector and semantic mapping, with structured extraction`, zero or more per ingested qualitative document, the durable record behind the qualitative guarantee (`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`).
 
+**Reference Key:** Field
+
+**Required:** Description
+
 | Field | Description |
 |---|---|
 | source_type | One of the bounded types, regulatory filing, licensed third-party commentary, or internal analyst note, set by which ingestion path the document arrived through |
@@ -54,6 +58,10 @@ Reference tables and crosswalks, edited through the control plane's self-service
 
 A reference table, not a per-instance record, one row per business unit the installation hosts.
 
+**Reference Key:** Field
+
+**Required:** Description
+
 | Field | Description |
 |---|---|
 | id | Sequential integer primary key, used for foreign keys from other structured-database tables |
@@ -65,6 +73,10 @@ Which IdP claims map to this business unit, and with what role, lives in `§ Cor
 #### Geography
 
 A reference table, one row per geography the harmonized foundation or the materialized grid references. Every price, price gap, and revenue figure computed at a geography is denominated in that geography's own resolved currency, any input reported in another converted once by `specs/application/technical/materialization-service/reconciliation.md § Product and Geography Reconciliation § Currency normalization`; the system never blends a figure from one geography with a figure from another that uses a different currency at query, aggregation, or reporting time, so a business unit spanning more than one country, or one country with more than one currency of its own, always sees each geography's own figures in that geography's own currency downstream, never a converted or summed total.
+
+**Reference Key:** Field
+
+**Required:** Description
 
 | Field | Description |
 |---|---|
@@ -78,6 +90,10 @@ A reference table, one row per geography the harmonized foundation or the materi
 
 A reference table, one row per competitor in scope for any business unit.
 
+**Reference Key:** Field
+
+**Required:** Description
+
 | Field | Description |
 |---|---|
 | id | Sequential integer primary key |
@@ -87,6 +103,10 @@ A reference table, one row per competitor in scope for any business unit.
 #### Entity Alias
 
 A many-to-one crosswalk, several aliases can resolve to one Competitor or Business Unit, the same reconciliation pattern as Product and Geography Match, applied to names instead of catalog identifiers.
+
+**Reference Key:** Field
+
+**Required:** Description
 
 | Field | Description |
 |---|---|
@@ -101,6 +121,10 @@ A rebrand, or a data vendor's own naming convention, is a new row here, not a ch
 
 Declared as a governed table (`specs/application/technical/glossary-and-grounding.md § Guaranteed grounding`), the same discipline `§ Core Data Model § Pipeline and Answer Artifacts § Signal Routing Rule` already applies to a different bounded set, its own bounded name the natural key rather than a surrogate id, the same shape, not per-business-unit data, one entry per term the governed glossary defines.
 
+**Reference Key:** Field
+
+**Required:** Description
+
 | Field | Description |
 |---|---|
 | term | The bounded name, effective price, price gap, relative price index, category growth, and the rest of the governed vocabulary |
@@ -112,6 +136,10 @@ Adding a term here is a change to the governed vocabulary itself, an application
 
 A many-to-one crosswalk, several aliases can resolve to one Glossary Term, the same reconciliation pattern as Entity Alias, applied to business vocabulary instead of entity names.
 
+**Reference Key:** Field
+
+**Required:** Description
+
 | Field | Description |
 |---|---|
 | alias_text | The phrasing as it actually appears in a business unit's own usage, not yet resolved |
@@ -122,6 +150,10 @@ A many-to-one crosswalk, several aliases can resolve to one Glossary Term, the s
 
 A dimension, one row per data snapshot the pipeline has ever computed against, referenced by `§ Core Data Model § Pipeline and Answer Artifacts § Effective Price Forecast`, `§ Core Data Model § Pipeline and Answer Artifacts § Realized Outcome`, and `§ Core Data Model § Pipeline and Answer Artifacts § Answer Provenance`.
 
+**Reference Key:** Field
+
+**Required:** Description
+
 | Field | Description |
 |---|---|
 | id | Sequential integer primary key |
@@ -131,6 +163,10 @@ A dimension, one row per data snapshot the pipeline has ever computed against, r
 #### IdP Claim Mapping
 
 A crosswalk, not a per-instance record, one row per claim value the customer's IdP asserts.
+
+**Reference Key:** Field
+
+**Required:** Description
 
 | Field | Description |
 |---|---|
@@ -150,6 +186,10 @@ Structures produced by the query and materialization services as they compute an
 
 Declared as a governed table (`specs/application/technical/predict-computation.md § Predict Computation § Signal routing`), not per-instance data, one entry per bounded event type.
 
+**Reference Key:** Field
+
+**Required:** Description
+
 | Field | Description |
 |---|---|
 | event_type | The bounded name, announced price change, rate change, product launch, and so on |
@@ -159,6 +199,10 @@ Declared as a governed table (`specs/application/technical/predict-computation.m
 #### Rationale Record
 
 Produced by confidence and rationale packaging (`specs/application/technical/predict-computation.md § Predict Computation § Confidence and rationale packaging`) for the Predict output. Composition varies from there, as `specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Confidence and rationale packaging, extended` sets out: a Positioning Candidate's own record is that same one, and a Simulated Outcome's is its own, which never carries a driver_contribution_breakdown, driver_evidence, baseline, baseline_evidence or conflicts, all fields specific to the Predict computation with no equivalent for a model-based simulation output; its own confidence_components are model confidence and model freshness, not the source-credibility, data-freshness, and triangulation-agreement set the Predict output and Positioning Candidate share.
+
+**Reference Key:** Field
+
+**Required:** Description
 
 | Field | Description |
 |---|---|
@@ -177,10 +221,14 @@ Produced by confidence and rationale packaging (`specs/application/technical/pre
 
 Produced by intent parsing and decoupling (`specs/application/technical/query-service/intent-and-retrieval.md § Dynamic Retrieval and Weighting (when the question is asked) § Intent parsing and decoupling`).
 
+**Reference Key:** Field
+
+**Required:** Description
+
 | Field | Description |
 |---|---|
 | metric | The quantity the question is actually about, price by default |
-| business_unit | Resolved by the Decision Tree in `specs/application/technical/query-service/intent-and-retrieval.md § Dynamic Retrieval and Weighting (when the question is asked) § Intent parsing and decoupling § Business unit` |
+| business_unit | Resolved by the Decision Table in `specs/application/technical/query-service/intent-and-retrieval.md § Dynamic Retrieval and Weighting (when the question is asked) § Intent parsing and decoupling § Business unit` |
 | entities | The competitor and brand the question concerns, resolved against the glossary, by code once resolved |
 | geography | The location scope of the question, by code once resolved |
 | horizon | The time window the forecast is asked for |
@@ -193,6 +241,10 @@ Produced by intent parsing and decoupling (`specs/application/technical/query-se
 
 Produced by the positioning engine (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Positioning engine`), one per seeded archetype, each held by one of the options `specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Option Consolidation` leaves.
 
+**Reference Key:** Field
+
+**Required:** Description
+
 | Field | Description |
 |---|---|
 | archetype | Hold, Match, Close the Gap, or Diverge |
@@ -200,13 +252,17 @@ Produced by the positioning engine (`specs/application/technical/query-service/l
 | price_gap | The absolute difference between resulting_effective_price and the competitor's forecasted price, both already in the same geography's resolved currency |
 | relative_price_index | The same comparison as a ratio, times 100 |
 | rationale | The same Rationale Record produced for the Predict output (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Confidence and rationale packaging, extended`), attached here as its own copy so this candidate's confidence and driver breakdown are visible without navigating back to Predict |
-| simulated_outcome | A Simulated Outcome specific to this candidate; null when simulation did not complete for this answer, its outcome `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: simulate_failed]`, the forecast and this candidate still stand on their own in that case |
+| simulated_outcome | A Simulated Outcome specific to this candidate; null when simulation did not complete for this answer, its outcome `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: simulate_failed]`, the forecast and this candidate still stand on their own in that case |
 
 `specs/application/technical/architecture.md § Architecture Overview § Diagrams § The Answer` renders this.
 
 #### Simulated Outcome
 
 Produced by the simulation engine (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Simulation engine`), once per positioning candidate, in parallel across candidates.
+
+**Reference Key:** Field
+
+**Required:** Description
 
 | Field | Description |
 |---|---|
@@ -223,7 +279,11 @@ Produced by the simulation engine (`specs/application/technical/query-service/la
 
 Produced by reconciliation (`specs/application/technical/materialization-service/reconciliation.md § Product and Geography Reconciliation`), related but distinct structures.
 
-**Product Match —**
+**Table Name:** Product Match
+
+**Reference Key:** Field
+
+**Required:** Description
 
 | Field | Description |
 |---|---|
@@ -232,7 +292,11 @@ Produced by reconciliation (`specs/application/technical/materialization-service
 | match_confidence | How confident the match is, low-confidence matches are flagged for review rather than forced through |
 | match_method | Structured attribute matching or semantic matching, whichever produced the match |
 
-**Geography Crosswalk —**
+**Table Name:** Geography Crosswalk
+
+**Reference Key:** Field
+
+**Required:** Description
 
 | Field | Description |
 |---|---|
@@ -244,6 +308,10 @@ Produced by reconciliation (`specs/application/technical/materialization-service
 #### Effective Price Forecast
 
 Produced by forecast materialization (`specs/application/technical/materialization-service/forecast-materialization.md § Forecast materialization`), or live by `specs/application/technical/predict-computation.md § Predict Computation § Confidence and rationale packaging` for a query the grid does not yet cover, one row per computation regardless of which path produced it. A live-path computation is checked against this key before it runs, not after: competitor, business unit, geography, horizon, data_vintage_id, application_version, model_versions, and business_unit_configuration_version. If a row already matches every one of these, it is retrieved rather than recomputed, the repeatable-answer guarantee (`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`) covering unchanged data, application version, model versions, and business unit configuration together, so data_vintage_id alone is never enough to call two computations identical, only a match on all of these together is; this makes a repeated off-grid query behave exactly like an in-grid one once it has been asked and answered once, a lookup, not a live computation. If nothing matches, the computation runs and its output is persisted as a new row.
+
+**Reference Key:** Field
+
+**Required:** Description
 
 | Field | Description |
 |---|---|
@@ -265,13 +333,17 @@ Produced by forecast materialization (`specs/application/technical/materializati
 
 #### Delivered Answer
 
-Produced by the query service as the final step of assembling any answer that reaches at least Predict, whether Predict itself was a grid lookup or a live computation, and whether or not Position and Simulate also complete (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer)`), one row per question actually answered, in full or in degraded form; every question_asked reaching Predict gets one, not only the off-grid case. Exists only when a forecast was actually produced: created for a question_asked outcome of `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: answer_produced]`, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: position_failed]`, or `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: simulate_failed]`, never for `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: query_denied]`, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: clarification_needed]`, or `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: predict_failed]`, where there is nothing yet to have lineage over.
+Produced by the query service as the final step of assembling any answer that reaches at least Predict, whether Predict itself was a grid lookup or a live computation, and whether or not Position and Simulate also complete (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer)`), one row per question actually answered, in full or in degraded form; every question_asked reaching Predict gets one, not only the off-grid case. Exists only when a forecast was actually produced: created for a question_asked outcome of `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: answer_produced]`, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: position_failed]`, or `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: simulate_failed]`, never for `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: query_denied]`, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: clarification_needed]`, or `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: predict_failed]`, where there is nothing yet to have lineage over.
+
+**Reference Key:** Field
+
+**Required:** Description
 
 | Field | Description |
 |---|---|
 | id | Sequential integer primary key |
 | effective_price_forecast_id | Foreign key to the Effective Price Forecast (`§ Core Data Model § Pipeline and Answer Artifacts § Effective Price Forecast`) this answer was built on; always populated, since a Delivered Answer only exists once Predict has completed |
-| positioning_candidates | The set of Positioning Candidates (`§ Core Data Model § Pipeline and Answer Artifacts § Positioning Candidate`) actually generated, each already carrying its own Rationale Record per their existing definition; a candidate's own `simulated_outcome` field is null when the outcome was `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: simulate_failed]`; this whole field is empty when the outcome was `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: position_failed]` |
+| positioning_candidates | The set of Positioning Candidates (`§ Core Data Model § Pipeline and Answer Artifacts § Positioning Candidate`) actually generated, each already carrying its own Rationale Record per their existing definition; a candidate's own `simulated_outcome` field is null when the outcome was `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: simulate_failed]`; this whole field is empty when the outcome was `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: position_failed]` |
 | decision_type | The kind of decision this answer was given for, the session's or the question's own, shown with the answer and the one its candidates were seeded by |
 | rendered_narrative | The complete natural-language text actually delivered, across whichever stages were reached (`specs/application/product/trust-and-explainability/degraded-answer-behavior.md § Degraded Answer Behavior` covers a partial answer's own labeling text as part of this); captured directly because the repeatability guarantee (`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`) explicitly allows this wording to vary between runs, unlike everything else on this row |
 | application_version | This specific delivery's own Answer Provenance (`§ Core Data Model § Pipeline and Answer Artifacts § Answer Provenance`), captured directly at the moment this row is produced |
@@ -289,6 +361,10 @@ A Delivered Answer's Answer Provenance fields can each differ from the reference
 
 Produced by realized outcome tracking (`specs/application/technical/materialization-service/forecast-materialization.md § Realized outcome tracking`), at most one per Effective Price Forecast, once its horizon has actually passed and real data exists to check it against. The forecast it evaluates is never edited to match, an Effective Price Forecast stays exactly what was forecast at the time, this is a separate, later-arriving record of what actually happened.
 
+**Reference Key:** Field
+
+**Required:** Description
+
 | Field | Description |
 |---|---|
 | effective_price_forecast_id | Foreign key to the Effective Price Forecast this outcome evaluates |
@@ -302,6 +378,10 @@ Produced by realized outcome tracking (`specs/application/technical/materializat
 
 Attached to every answer, per the repeatability guarantee in `specs/application/technical/guarantees-mechanics.md § How the Guarantees Are Achieved Mechanically`. Assembled fresh, from whatever application, model, and configuration state is current, for a live-path answer. For a query served from the materialized grid, the forecast's own values are the ones `§ Core Data Model § Pipeline and Answer Artifacts § Effective Price Forecast` captured when that row was produced; the Delivered Answer built on it captures its own, at delivery, since Position applies the configuration current when the question is asked.
 
+**Reference Key:** Field
+
+**Required:** Description
+
 | Field | Description |
 |---|---|
 | application_version | The orchestration and logic version that produced this answer |
@@ -314,14 +394,18 @@ Attached to every answer, per the repeatability guarantee in `specs/application/
 
 The status of a single flagged item, a low-confidence product match (`§ Core Data Model § Pipeline and Answer Artifacts § Product and Geography Match`) or an ambiguous or incomplete document extraction (`specs/application/technical/materialization-service/driver-signal-extraction.md § Vector and semantic mapping, with structured extraction`), the cases `specs/application/product/tenant-administration/review-queues.md` commits to the client reviewing. Each is a durable record: resolving one produces a corrected record that every future query benefits from. A low-confidence answer is not another such case here, it is the output of one query at one moment, not a record with anything to correct, and it is handled by the confidence guarantee itself (`specs/application/technical/guarantees-mechanics.md § How the Guarantees Are Achieved Mechanically`), surfaced to the user directly, not queued for review.
 
-**Construct:** Lifecycle
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
 
-| state | description | initial | terminal |
+**Table Name:** States
+
+| State | Description | Initial | Terminal |
 |---|---|---|---|
 | flagged | Flagged at the point of computation, by a confidence threshold or an incomplete extraction; not yet seen by a reviewer | Yes | No |
 | under_review | A Control plane admin has opened the item | No | No |
 | resolved | A reviewer has confirmed the underlying record needed no change, corrected it, or supplied the figure it was missing, and it is used | No | Yes |
 | dismissed | A reviewer has found the underlying record cannot be made usable, such as an incomplete extraction whose missing fact no source states, so it stays unused | No | Yes |
+
+**Table Name:** Transitions
 
 | From | To | Trigger |
 |---|---|---|
@@ -339,17 +423,21 @@ The status of a single flagged item, a low-confidence product match (`§ Core Da
 
 Produced by every action the populations this entry covers take: Acme AI's Platform admin access against an installation, whether through a federated claim or break-glass credentials; a Query user's own question, the system's own core activity, not an afterthought sharing a mechanism built for someone else; a Control plane admin's or an Identity admin's change to what they govern; and an installation's own record of a change to the kinds of model call it lets reach a frontier model provider (`specs/application/technical/model-registry.md § Model registry`). All are governed the same way, per `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Security and governance`. Break-glass retrieval specifically also has its own vault-native audit trail (`specs/application/technical/secrets-management.md § Secrets management`); this entry covers the broader case, every other Platform admin action, including accessing the application logs and traces `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Security and governance` separately describes, alongside every Query user question and every Control plane admin's and Identity admin's change.
 
+**Reference Key:** Field
+
+**Required:** Description
+
 | Field | Description |
 |---|---|
 | id | Sequential integer primary key |
 | actor | The identity that performed the action, a Platform admin's, by whatever access path, federated claim or break-glass, actually asserts it, a Query user's, Control plane admin's or Identity admin's own IdP-asserted claim, or, for a retention_purge or frontier_models_changed entry only, a fixed system identity, since no claim initiates either: a retention_purge run is automated, and a frontier_models_changed entry records a change the client's own infrastructure team made in the installation's configuration |
 | actor_role | query_user, control_plane_admin, identity_admin, platform_admin or client_infrastructure, the role whose claim authorized this action, or for an entry no claim initiated the party responsible for it, so entries from every population, sharing one table, are never confused with each other; a retention_purge entry is platform_admin, the same automated-mechanism-belongs-to-Acme-AI reasoning already applied to every other installation-wide governed action; a frontier_models_changed entry is client_infrastructure, the change being the client's own and never Acme AI's |
-| action_type | A closed, governed set, not an extensible category: onboarding, upgrade, diagnostic support session, diagnostic log access, pinned_versions_viewed, question_asked, configuration_changed, retention_purge, frontier_models_changed, nothing else. pinned_versions_viewed is a Platform admin's read of the installation's pinned versions (`specs/application/technical/control-plane-service/control-plane.md § Control Plane`). frontier_models_changed is an installation's own record, made as it starts, of a change to the kinds of model call its configuration lets reach a frontier model provider (`specs/application/technical/model-registry.md § Model registry`), so an installation that never names one never records it. Every actual capability any of these roles has is already enumerated elsewhere in this system, `specs/application/technical/control-plane-service/control-plane.md § Control Plane`'s own Constraint table for every self-service and governed configuration surface, `specs/application/product/roles.md § Roles` for what each role can do, so there is no scenario in which an action outside this set would ever need auditing; adding one is a real change to this schema, decided deliberately, never a runtime category left open for a future action to fall into on its own |
+| action_type | A closed, governed set, not an extensible category: onboarding, upgrade, diagnostic support session, diagnostic log access, pinned_versions_viewed, question_asked, configuration_changed, retention_purge, frontier_models_changed, nothing else. pinned_versions_viewed is a Platform admin's read of the installation's pinned versions (`specs/application/technical/control-plane-service/control-plane.md § Control Plane`). frontier_models_changed is an installation's own record, made as it starts, of a change to the kinds of model call its configuration lets reach a frontier model provider (`specs/application/technical/model-registry.md § Model registry`), so an installation that never names one never records it. Every actual capability any of these roles has is already enumerated elsewhere in this system, `specs/application/technical/control-plane-service/control-plane.md § Control Plane`'s own Decision Table for every self-service and governed configuration surface, `specs/application/product/roles.md § Roles` for what each role can do, so there is no scenario in which an action outside this set would ever need auditing; adding one is a real change to this schema, decided deliberately, never a runtime category left open for a future action to fall into on its own |
 | business_unit_id | Foreign key to Business Unit, where the action was scoped to one, and null wherever none was: an installation-wide Platform admin action such as an upgrade, a governed configuration_changed edit such as the retention period itself, a retention_purge or frontier_models_changed entry, or a question_asked entry that ended before any business unit was resolved. A configuration_changed entry against a business-unit-scoped setting carries that business unit, and one against an IdP claim mapping carries the business unit its mapping row names, before or after the change, with one entry for each business unit a change touches, and a single entry with business_unit_id null where the row names no business unit, as for a Platform admin or Identity admin mapping |
 | occurred_at | When the action took place |
-| outcome | Whether the action succeeded, success or failure for every action_type except question_asked; for a question_asked entry specifically, the Orchestration State Machine's own terminal state, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: answer_produced]`, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: query_denied]`, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: clarification_needed]`, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: predict_failed]`, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: position_failed]`, or `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: simulate_failed]` |
-| delivered_answer_id | For a question_asked entry whose outcome was `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: answer_produced]`, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: position_failed]`, or `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: simulate_failed]`, a foreign key to the Delivered Answer (`§ Core Data Model § Pipeline and Answer Artifacts § Delivered Answer`) that answer produced, the complete record of what was actually shown and what produced it; null for `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: query_denied]`, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: clarification_needed]`, and `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [State: predict_failed]`, where no forecast was ever produced, and null for every action_type other than question_asked |
-| changed_field | For a configuration_changed entry only, which configuration surface was edited, self-service or governed alike (`specs/application/technical/control-plane-service/control-plane.md § Control Plane`'s own Constraint table names the bounded set, including the installation-wide audit log retention period itself); null otherwise |
+| outcome | Whether the action succeeded, success or failure for every action_type except question_asked; for a question_asked entry specifically, the Orchestration State Machine's own terminal state, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: answer_produced]`, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: query_denied]`, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: clarification_needed]`, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: predict_failed]`, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: position_failed]`, or `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: simulate_failed]` |
+| delivered_answer_id | For a question_asked entry whose outcome was `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: answer_produced]`, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: position_failed]`, or `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: simulate_failed]`, a foreign key to the Delivered Answer (`§ Core Data Model § Pipeline and Answer Artifacts § Delivered Answer`) that answer produced, the complete record of what was actually shown and what produced it; null for `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: query_denied]`, `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: clarification_needed]`, and `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: predict_failed]`, where no forecast was ever produced, and null for every action_type other than question_asked |
+| changed_field | For a configuration_changed entry only, which configuration surface was edited, self-service or governed alike (`specs/application/technical/control-plane-service/control-plane.md § Control Plane`'s own Decision Table names the bounded set, including the installation-wide audit log retention period itself); null otherwise |
 | previous_value / new_value | For a configuration_changed or frontier_models_changed entry only, the setting's value before and after the change, for the latter the kinds of model call named, each with its pinned version, sorted, as a plain comparable string regardless of the underlying field's own type; both null for a change to a data source's own credentials, the fact of the rotation is logged, never the credential material, the same standing rule `specs/application/technical/secrets-management.md § Secrets management` applies everywhere else; null for every other action_type; for an IdP claim mapping entry, only its own business unit's side of the change, the mapping as it stood there before and after, never the business unit on the other side of a move |
 
 Only `previous_value` / `new_value`, for a configuration_changed or frontier_models_changed entry, carries content directly, and it is legitimately audit content, a record of what a human changed, not a record of what produced an answer. Every other field on Audit Log Entry, including `delivered_answer_id`, only ever records that an access occurred or references the one row elsewhere that actually holds the substance. A retention_purge entry carries no count of what was removed, deliberately: what a defensible record needs to prove is that the process ran, on schedule, and that nothing eligible was skipped, not exactly how many rows happened to qualify that day, a number with no lasting significance of its own.

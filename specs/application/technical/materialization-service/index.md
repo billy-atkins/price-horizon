@@ -1,5 +1,9 @@
 # Materialization Service
 
+**Reference Key:** File
+
+**Required:** Description
+
 | File | Description |
 |---|---|
 | `forecast-materialization.md` | Forecast materialization, its triggers, realized outcome tracking, and its open questions |

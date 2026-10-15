@@ -1,5 +1,9 @@
 # Answer Engine
 
+**Reference Key:** File
+
+**Required:** Description
+
 | File | Description |
 |---|---|
 | `predict.md` | What will the competitor do: how the forecast is built, its layers, and the evidence behind each driver and behind the confidence score |
