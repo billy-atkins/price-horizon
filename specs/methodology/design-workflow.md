@@ -16,7 +16,7 @@ A design enters its work by the reason its Status entered in-progress, and its c
 | framing | the builder agrees the design goals with the user and states the design frame, or revisits either, and brings them to the user, as `specs/AGENTS.md § Design, Refactor, Refine` has the goals, then the frame, come first, taking in each steer the user gives and each design its Depends On names that has finished (`specs/methodology/working-files.md § A Design Document`) | No | No |
 | drafting | the builder takes the design through Design, Refactor, Refine (`specs/AGENTS.md § Design, Refactor, Refine`), recording each steer as it is given (`specs/methodology/working-files.md § Steering Decision`) and taking in each design its Depends On names that has finished (`specs/methodology/working-files.md § A Design Document`), checks its whole work, as its row of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` sets, and, before the design's first adversarial review, offers the user the review's model and reasoning effort | No | No |
 | reviewing | a cold agent runs the adversarial review, as `specs/AGENTS.md § Design, Refactor, Refine` has it | No | No |
-| settling | the builder groups the round's findings, weighs them against the design's goals and weighs the steers they press on and states the causes and the change it proposes, the round settled by the user or the builder, as `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round` has it, taking in each steer the user gives and each design its Depends On names that has finished, one finishing while the design was reviewed among them | No | No |
+| settling | the builder groups the round's findings, weighs them against the design's goals and weighs the steers they press on and states the causes and the change it proposes, the user triaging its design flaws and answering its other calls, the builder settling the rest, as `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round` has it, taking in each steer the user gives and each design its Depends On names that has finished, one finishing while the design was reviewed among them | No | No |
 | reassessing | the builder and the user step back and reassess, as `specs/AGENTS.md § Design, Refactor, Refine` has a phase not converging, taking in each design its Depends On names that has finished | No | No |
 | changing | the builder revises the design, as the round was settled, taking in each steer the user gives and each design its Depends On names that has finished (`specs/methodology/working-files.md § A Design Document`), and proves the change, as `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round` has it | No | No |
 | waiting | the design waits for each design its Depends On names to be approved or applying, as `specs/methodology/working-files.md § A Design Document` has a design validated and approved only then | No | No |
@@ -38,8 +38,8 @@ A design enters its work by the reason its Status entered in-progress, and its c
 | drafting | reviewing | none | none |
 | reviewing | settling | none | none |
 | reviewing | changing | the user gives a steer | none |
-| settling | reassessing | none | consecutive flawed rounds >= 3 |
-| settling | changing | none | consecutive flawed rounds < 3 |
+| settling | reassessing | none | consecutive design flaw rounds >= 3 or consecutive implementation flaw rounds >= 10 |
+| settling | changing | none | consecutive design flaw rounds < 3 and consecutive implementation flaw rounds < 10 |
 | reassessing | framing | the user decides the reassessment | reassessment != "go on" |
 | reassessing | changing | the user decides the reassessment | reassessment = "go on" |
 | changing | framing | none | needs reframing? |
@@ -85,8 +85,8 @@ The order a design's apply takes, begun only as `specs/methodology/working-files
 | writing | auditing | none | none |
 | writing | reverting | the builder finds a change the design does not hold | none |
 | auditing | settling the audit | none | none |
-| settling the audit | reassessing the apply | none | audit sends back? and consecutive flawed audits >= 3 |
-| settling the audit | reverting | none | audit sends back? and consecutive flawed audits < 3 |
+| settling the audit | reassessing the apply | none | audit sends back? and consecutive send-back audits >= 3 |
+| settling the audit | reverting | none | audit sends back? and consecutive send-back audits < 3 |
 | settling the audit | awaiting the commit | none | not(audit sends back?) and version control? |
 | settling the audit | applied | none | not(audit sends back?) and not(version control?) |
 | reassessing the apply | reverting | the user decides the reassessment | none |
@@ -103,15 +103,20 @@ The order a design's apply takes, begun only as `specs/methodology/working-files
   **Values:** "taken up", "reopened", "a dependency moved back", "a dependency finished", "sent back"
   **Means:** why the design last entered in-progress, the move its Status took: taken up, reopened by the user, a design its Depends On names moving back to in-progress, one finishing, or its apply sending it back
 
-- **Name:** consecutive flawed rounds
+- **Name:** consecutive design flaw rounds
   **Type:** number
   **Initial Value:** 0
-  **Means:** the adversarial rounds in a row of the design's phase, this one among them, each finding a flaw the user settled as one, counted as `specs/AGENTS.md § Design, Refactor, Refine` has a phase converge; set back to zero by a round finding none and by the design's starting afresh at its frame, a reassessment's or a send-back's
+  **Means:** the adversarial rounds in a row of the design's phase, this one among them, each finding a design flaw the user triaged as one, counted as `specs/AGENTS.md § Design, Refactor, Refine` has a phase converge; set back to zero by a round finding none and by the design's starting afresh at its frame, a reassessment's or a send-back's
 
-- **Name:** consecutive flawed audits
+- **Name:** consecutive implementation flaw rounds
   **Type:** number
   **Initial Value:** 0
-  **Means:** the post-apply audits in a row of the design, this one among them, each finding a flaw the user settled as one, counted as `specs/AGENTS.md § Design, Refactor, Refine` has a phase converge; set back to zero only by an audit finding none, a send-back leaving it as it stands
+  **Means:** the adversarial rounds in a row of the design's phase, this one among them, each finding an implementation flaw, counted as `specs/AGENTS.md § Design, Refactor, Refine` has a phase converge; set back to zero by a round finding none and by the design's starting afresh at its frame, a reassessment's or a send-back's
+
+- **Name:** consecutive send-back audits
+  **Type:** number
+  **Initial Value:** 0
+  **Means:** the post-apply audits in a row of the design, this one among them, each sending the design back, for a design flaw or an implementation flaw, as `specs/methodology/working-files.md § A Design Document § Changes After Approval` has it, counted as `specs/AGENTS.md § Design, Refactor, Refine` has a phase converge; set back to zero only by an audit sending none back, a send-back leaving it as it stands
 
 - **Name:** reassessment
   **Type:** string
