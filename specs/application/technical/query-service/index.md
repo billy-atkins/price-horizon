@@ -1,5 +1,9 @@
 # Query Service
 
+**Reference Key:** File
+
+**Required:** Description
+
 | File | Description |
 |---|---|
 | `intent-and-retrieval.md` | Intent parsing, the session context each question carries, and parallel evidence retrieval, the query-service-only part of the live path |

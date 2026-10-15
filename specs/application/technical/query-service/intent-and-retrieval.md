@@ -14,25 +14,27 @@ The business units the user's IdP-asserted access contains also bound every retr
 
 #### Business unit
 
-Business unit is resolved from the access the user's IdP asserts (`specs/application/technical/identity-and-access.md § Business unit access, federated`), by a Decision Tree:
+Business unit is resolved from the access the user's IdP asserts (`specs/application/technical/identity-and-access.md § Business unit access, federated`), by a Decision Table asking its questions in turn. `Business units granted` is how many business units the user's IdP-asserted access contains. `Resolves against one glossary?` reads true where a brand or competitor in the question resolves uniquely against one business unit's glossary, and false where it resolves against more than one or against none. `Session business unit granted?` reads true where the request carries a session business unit (`§ Dynamic Retrieval and Weighting (when the question is asked) § Session context`) that the IdP-asserted access includes. Its outcome is the query's business unit; or `denied`, no claim mapping granting this identity access to any business unit, and the query is denied; or `unsettled`, and the pipeline stops and asks for clarification.
 
-**Construct:** Decision Tree
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
-| Step | Question | Answer | Result |
-|---|---|---|---|
-| 1.1 | How many business units does the user's IdP-asserted access contain? | None | Deny the query; no claim mapping grants this identity access to any business unit |
-| 1.2 | | Exactly one | Use it as the query's business unit |
-| 1.3 | | More than one | Go to step 2 |
-| 2.1 | Does a brand or competitor in the question resolve uniquely against one business unit's glossary? | Yes | Use that business unit |
-| 2.2 | | No, it resolves against more than one or against none | Go to step 3 |
-| 3.1 | Does the request carry a session business unit (`§ Dynamic Retrieval and Weighting (when the question is asked) § Session context`) that the IdP-asserted access includes? | Yes | Use the session's business unit |
-| 3.2 | | No | Stop the pipeline and ask for clarification |
+**Hit Policy:** First
+
+**Conditions:** Business units granted, Resolves against one glossary?, Session business unit granted?
+
+| Name | Business units granted | Resolves against one glossary? | Session business unit granted? | Business unit |
+|---|---|---|---|---|
+| No Business Unit | 0 | - | - | denied |
+| One Business Unit | 1 | - | - | the one business unit granted |
+| Glossary | - | true | - | the business unit whose glossary the brand or competitor resolves against |
+| Session | - | - | true | the session's business unit |
+| Unsettled | - | - | - | unsettled |
 
 #### Decision type
 
 Decision type is settled once the plan is validated, as `specs/application/product/answer-engine/decision-context.md § Decision Context` promises, since the positioning engine seeds its candidates by it (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Positioning engine § Seeding`). `A kind of decision for this question alone?` reads Yes where the request carries one, the answer to an earlier clarification about it. A cue is one of a fixed set of decision words, held here and never extended by a business unit: "promotion", "promo", "retailer" and "retail account" for tactical; "list price", "price position", "brand-wide" and "national price" for strategic. A cue counts in any grammatical form, "promotional" or "promotions" as well as "promotion", and only where it describes Brand A's own decision, never the competitor's price, which intent parsing tells apart by what the word refers to in the question. Neither a retailer's name nor a time the question gives for its forecast, its horizon, is ever a cue, and a decision word is never itself an unresolved term needing clarification. `A tactical cue?` reads Yes where any tactical cue counts, and `A strategic cue?` where any strategic cue does.
 
-**Construct:** Decision Table
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
 **Conditions:** A kind of decision for this question alone?, A tactical cue?, A strategic cue?, A session kind of decision?
 

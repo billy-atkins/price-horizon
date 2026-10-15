@@ -10,7 +10,7 @@ A Control plane admin's on-demand run is the one `specs/application/product/tena
 
 A forecast is only worth trusting if something eventually checks it against what actually happened, and the data to do that is not missing, it is the same syndicated competitor data that keeps arriving on the cadence in `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations`, it just has not been looked back at yet. This runs on the same cadence as forecast materialization, checking every Effective Price Forecast regardless of its computed_via, a live-triggered row is checked exactly the same way a materialized one is, the mechanism behind `specs/application/product/accuracy-governance.md § Tracking Forecast Accuracy`'s own promise that a Control plane admin sees whether a live-triggered forecast turned out to be right, not only a materialized one. Realized outcome tracking is an Algorithm.
 
-**Construct:** Algorithm
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 
 **Inputs:** each Effective Price Forecast whose horizon has elapsed and that has no Realized Outcome, and the harmonized foundation's actual competitor data
 

@@ -1,5 +1,9 @@
 # PriceHorizon — Technical Specifications
 
+**Reference Key:** File
+
+**Required:** Description
+
 | File | Description |
 |---|---|
 | `architecture.md` | A self-contained overview of the self-hosted deployment topology, the shared foundation, the layers, and the services, what else those services run beyond producing an answer, the diagrams of how they compose and the trust boundaries around them, where an answer's evidence comes from and is stored, the records an answer is made of, and how a question moves through them, and the Layer-to-Architecture Mapping, the seam to the product spec |

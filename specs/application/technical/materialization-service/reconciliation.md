@@ -2,7 +2,7 @@
 
 The harmonized foundation (`specs/application/technical/data-model.md § Core Data Model § Harmonized quantitative foundation`) lands two independently-sourced views of the market, the competitor's syndicated data and Brand A's own internal data, and neither the forecast, the price gap, nor the simulated outcomes mean anything until the two are reconciled to a common product and geography reference. Product matching is an Algorithm.
 
-**Construct:** Algorithm
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 
 **Inputs:** the competitor's product, and Brand A's catalog
 

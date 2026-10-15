@@ -257,7 +257,11 @@ flowchart TD
 
 The seam between this file and the product's own Answer Engine domain (`specs/application/product/answer-engine/predict.md § Predict — what will the competitor do`, `specs/application/product/answer-engine/position.md § Position — where Brand A should sit`, `specs/application/product/answer-engine/simulate.md § Simulate — what follows for the business`, `specs/application/product/answer-engine/drill-down.md § Drill-down — cross-cutting, available at every stage`, `specs/application/product/answer-engine/decision-context.md § Decision Context`). Every product-facing layer traces to one mechanism here; nothing in the answer experience exists without a corresponding piece of this architecture. Predict's layers are typically served from the `specs/application/technical/materialization-service/forecast-materialization.md § Forecast materialization` materialized grid; the live `specs/application/technical/predict-computation.md § Predict Computation` mechanism is the fallback when a query falls outside it.
 
-| Product layer | Stage | Technical mechanism |
+**Reference Key:** Product Layer
+
+**Required:** Stage, Technical Mechanism
+
+| Product Layer | Stage | Technical Mechanism |
 |---|---|---|
 | Scorecard / heatmap | Predict | Forecast materialization (`specs/application/technical/materialization-service/forecast-materialization.md § Forecast materialization`), or, outside the grid, the same Predict computation run live (`specs/application/technical/predict-computation.md § Predict Computation`); Brand A's current price is retrieved (`specs/application/technical/query-service/intent-and-retrieval.md § Dynamic Retrieval and Weighting (when the question is asked) § Parallel evidence retrieval`), not modeled |
 | Plain-language narrative | Predict | Narrative rendering (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Narrative rendering`), generated live from the rationale record, constrained to its fields, not precomputed or stored |

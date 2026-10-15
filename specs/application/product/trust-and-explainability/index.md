@@ -1,5 +1,9 @@
 # Trust & Explainability
 
+**Reference Key:** File
+
+**Required:** Description
+
 | File | Description |
 |---|---|
 | `guarantees.md` | The guarantees this answer engine makes on every answer, what has to be unchanged for one to hold, and the certainty ceiling across every stage |
