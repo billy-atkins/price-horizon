@@ -1299,6 +1299,7 @@ def check(root, warned=None):
     found += record_type_findings(root)
     found += canon_spec_findings(root)
     found += scope_findings(root)
+    found += voice_table_findings(root)
     found += glossary_findings(root)
     found += abbreviation_findings(root)
     found += coverage_findings(root)
@@ -1485,7 +1486,7 @@ def style_phrases(root):
 # A sentence long enough, and chained enough, that it may need a second read: a candidate for
 # the reading of specs/methodology/spec-style.md § Clear Prose, never a finding.
 LONG_SENTENCE_WORDS, LONG_SENTENCE_MARKS = 40, 6
-SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+(?=[A-Z*`(])")
+SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+(?=[A-Z*`(\"])")
 
 
 # A path into the application specs, which in the canon may be an example drawn from inside the
@@ -1513,24 +1514,196 @@ def application_paths(text):
                 yield n, path
 
 
-def long_sentences(text):
-    """-> (line, sentence) for each sentence of prose over LONG_SENTENCE_WORDS words holding
-    LONG_SENTENCE_MARKS or more commas, semicolons and colons; headings, tables and fenced
-    blocks aside; a word holds a letter or a digit, so a dash or a list marker is none, and
-    inline code counts as one word whose marks are not counted."""
+def prose_sentences(text):
+    """-> (line, sentence as written, sentence masked) for each sentence of prose; headings, tables and
+    fenced blocks aside. Inline code is masked at its own length, so a sentence is cut from the line
+    as written; the masked sentence also hides quoted text, which a rule quoting a pattern holds."""
     for n, line in enumerate(strip_fences(text).split("\n"), 1):
         if not line.strip() or line.lstrip().startswith(("#", "|", "---")):
             continue
-        # inline code masked at its own length, so a sentence is cut from the line as written
         masked = constructs.CODE_SPAN.sub(lambda m: "X" * len(m.group(0)), line)
+        hidden = QUOTED.sub(lambda q: "Q" * len(q.group(0)), masked)
         start = 0
         for m in list(SENTENCE_BREAK.finditer(masked)) + [None]:
             end = m.start() if m else len(masked)
-            s = masked[start:end]
-            words = [w for w in s.split() if re.search(r"[A-Za-z0-9]", w)]
-            if len(words) > LONG_SENTENCE_WORDS and len(re.findall(r"[,;:]", s)) >= LONG_SENTENCE_MARKS:
-                yield n, line[start:end]
+            yield n, line[start:end], hidden[start:end]
             start = m.end() if m else end
+
+
+def words_of(sentence):
+    """-> the words of a sentence: a word holds a letter or a digit, so a dash or a list marker is none."""
+    return [w for w in sentence.split() if re.search(r"[A-Za-z0-9]", w)]
+
+
+def long_sentences(text):
+    """-> (line, sentence) for each sentence of prose over LONG_SENTENCE_WORDS words holding
+    LONG_SENTENCE_MARKS or more commas, semicolons and colons; inline code counts as one word whose
+    marks are not counted."""
+    for n, s, _ in prose_sentences(text):
+        code = code_masked(s)
+        if len(words_of(code)) > LONG_SENTENCE_WORDS and len(re.findall(r"[,;:]", code)) >= LONG_SENTENCE_MARKS:
+            yield n, s
+
+
+# The words and the constructions specs/methodology/spec-style.md § Clear Prose has a reader test:
+# candidates for its reading, never findings, since a word or a construction stays wherever it is
+# natural and adds real value to its sentence. The words are an editorial list, read from the
+# section's tables at run time, as specs/methodology/skills.md § Authoring a Skill has such a list read.
+QUOTED = re.compile(r'"[^"\n]*"')
+# The tables' names are a copy, since a table renamed would leave its words unread; --check-scope
+# reports a name the section no longer holds.
+# @canon-spec specs/methodology/spec-style.md § Clear Prose
+VOICE_TABLES = ("Emphasis Words", "Generic Terms")
+# The script's own search terms for the constructions § Clear Prose names, no copy of a list the canon
+# holds: a construction they miss is the reading audit's to find.
+SENTENCE_PATTERNS = (
+    ("a comma that may splice two statements", re.compile(r",\s+(?:it is|there is|this is)\b", re.I)),
+    ("a contrast that may say what a thing is not", re.compile(r",\s+not\b|\brather than\b|\bnot just\b", re.I)),
+    ("a clause that may trail a finished sentence", re.compile(r",\s+(?:meaning|ensuring|making|allowing|leaving|giving|save|unlike)\b[^,;:]*[.!?]?\s*$", re.I)),
+    ("a reason that may want a sentence of its own", re.compile(r",\s+(?:so|since|because)\b[^,;:]*[.!?]?\s*$", re.I)),
+    ("a chain of its", re.compile(r"(?:\bits\b.*){3}|(?:\b(?:its own|itself)\b.*){2}", re.I)),
+    ("never and always in one sentence", re.compile(r"^(?=.*\bnever\b)(?=.*\balways\b)", re.I)),
+    ("a contraction", re.compile(r"\b\w+(?:n't|'re|'ve|'ll|'m|'d)\b|\b(?:it|that|there|what|here|who|let)'s\b", re.I)),
+    ("a curly quotation mark", re.compile("[“”‘’]")),
+)
+# A sentence's long constructions are read only where the sentence is long.
+LONG_ONLY = {"a reason that may want a sentence of its own"}
+# A span holding a section token or a path to a file: the script's own reading of a citation, for the
+# candidate of where a citation sits.
+CITATION_SPAN = re.compile(r"`[^`]*(?:§|/[^`\s]*\.md)[^`]*`")
+# A paragraph of long sentences with no short one between: the script's own measure, which the pilot tunes.
+RHYTHM_SENTENCES, RHYTHM_MEAN, RHYTHM_SHORT = 3, 30, 15
+
+
+def clear_prose(root):
+    """-> the text of spec-style.md § Clear Prose, or "" where it is missing."""
+    f = root / STYLE_RULE_FILE
+    return (level2_section(f.read_text(encoding="utf-8"), "Clear Prose") or "") if f.exists() else ""
+
+
+def voice_table_findings(root):
+    """-> a finding for each table VOICE_TABLES names that spec-style.md § Clear Prose does not hold."""
+    held = set(re.findall(r"^\*\*Table Name:\*\* (.+?)\s*$", clear_prose(root), re.M))
+    return [("spec-style.md § Clear Prose", STYLE_RULE_FILE, 0,
+             f"no table named {t}, which the script reads its words from") for t in VOICE_TABLES if t not in held]
+
+
+def voice_terms(root):
+    """-> a pattern of the terms the tables VOICE_TABLES name in spec-style.md § Clear Prose, a term
+    matched with a plain ending, or None."""
+    body = clear_prose(root)
+    terms, table = [], None
+    for line in body.split("\n"):
+        m = re.match(r"^\*\*Table Name:\*\* (.+)$", line)
+        if m:
+            table = m.group(1).strip()
+        elif table in VOICE_TABLES and line.startswith("|") and not TABLE_RULE.match(line):
+            cell = line.strip().strip("|").split("|")[0].strip()
+            if cell != "Term":
+                terms.append(cell)
+        elif line.strip() and not line.startswith(("|", "**Reference Key:**", "**Required:**")):
+            table = None
+    terms = sorted(set(terms), key=len, reverse=True)
+    return re.compile(r"\b(" + "|".join(term_forms(t) for t in terms) + r")\b", re.I) if terms else None
+
+
+def term_forms(term):
+    """-> a pattern of a term's plain forms: its first word with an ending, a final "e" dropped
+    before "-ing" and "-ed", and a final "s" of a verb phrase's first word dropped first, as
+    "serves as" reads "serving as"; the rest of a phrase as written."""
+    first, _, rest = term.partition(" ")
+    stem = first[:-1] if rest and first.endswith("s") else first
+    forms = [re.escape(stem) + r"(?:s|es|ly|d|ed|ing)?"]
+    if stem.endswith("e"):
+        forms.append(re.escape(stem[:-1]) + r"(?:ing|ed)")
+    head = "(?:" + "|".join(forms) + ")"
+    return head + ((r"\s+" + re.escape(rest)) if rest else "")
+
+
+def voice_files(root):
+    """-> the files the Finished style audit reads for Clear Prose: the specs, the documentation and
+    both AGENTS.md files; the skills are Skill form's to read for it."""
+    return [f for f in md_files(root) if not f.relative_to(root).as_posix().startswith(".ai/")]
+
+
+def citation_candidates(root):
+    """-> (path, line, kind, context) for each sentence carrying more than one citation, and each
+    citation inside its clause, in every Markdown file in scope, the skills among them, where
+    `§ Writing a Citation` reaches."""
+    out = []
+    for f in md_files(root):
+        rel = f.relative_to(root).as_posix()
+        for n, s, _ in prose_sentences(f.read_text(encoding="utf-8")):
+            if len(CITATION_SPAN.findall(s)) > 1:
+                out.append((rel, n, "more than one citation in a sentence", s.strip()))
+            if any(inside_clause(s[:m.start()], s[m.end():]) for m in CITATION_SPAN.finditer(s)):
+                out.append((rel, n, "a citation inside its clause", s.strip()))
+    return out
+
+
+def inside_clause(before, after):
+    """-> whether a citation sits inside its clause: it neither closes the clause, nor stands in
+    parentheses or a quotation, nor opens its sentence, a lead-in or a list marker before it, nor
+    follows "as" or "per", as in "as `X` has it", nor takes a possessive; each of those is a name or a gloss.
+    The reader decides whether any other is a name."""
+    closes = re.match(r"\s*\)?\s*(?:[.;:,!?]|$)", after)
+    enclosed = before.count("(") > before.count(")") or before.count('"') % 2
+    opens = re.fullmatch(r"\s*(?:[-*]\s+|\d+\.\s+)?(?:\*\*[^*]*\*\*\s*)?", before)
+    named = re.search(r"\b(?:as|per)\s+(?:[\w-]+\s+){0,3}$", before) or after.startswith("'")
+    return not (closes or enclosed or opens or named)
+
+
+def code_masked(s):
+    """-> a sentence with its inline code masked, so code counts as one word."""
+    return constructs.CODE_SPAN.sub(lambda m: "X" * len(m.group(0)), s)
+
+
+def voice_candidates(root):
+    """-> list of (path, line, kind, context) for each word and construction Clear Prose has a
+    reader test in a sentence of prose, tables and headings aside, each paragraph whose rhythm or
+    semicolons a reader tests, each sentence carrying more than one citation, and each citation inside
+    its clause. Places to read, never findings."""
+    out, terms = [], voice_terms(root)
+    for f in voice_files(root):
+        rel, text = f.relative_to(root).as_posix(), f.read_text(encoding="utf-8")
+        for n, s, masked in prose_sentences(text):
+            long = len(words_of(code_masked(s))) > LONG_SENTENCE_WORDS
+            for m in terms.finditer(masked) if terms else ():
+                out.append((rel, n, f"a word kept only for its value: {m.group(1).lower()}", s.strip()))
+            for kind, pattern in SENTENCE_PATTERNS:
+                if (long or kind not in LONG_ONLY) and pattern.search(masked):
+                    out.append((rel, n, kind, s.strip()))
+        for n, lengths, semicolons in paragraphs(text):
+            if len(lengths) >= RHYTHM_SENTENCES:
+                shape = f"{len(lengths)} sentences, {round(sum(lengths) / len(lengths))} words on average, the shortest {min(lengths)}"
+                if sum(lengths) / len(lengths) > RHYTHM_MEAN:
+                    out.append((rel, n, "a paragraph whose sentences average long", shape))
+                elif min(lengths) >= RHYTHM_SHORT:
+                    out.append((rel, n, "a paragraph with no short sentence", shape))
+            if semicolons > 1:
+                out.append((rel, n, "more than one semicolon in a paragraph", f"{semicolons} semicolons"))
+    return out + citation_candidates(root)
+
+
+def paragraphs(text):
+    """-> (first line, [words in each sentence], semicolons) for each paragraph of prose: lines
+    between blank lines, a list item, a heading, a table, a field and a fenced block each ending one;
+    inline code and quoted text hold no semicolon counted."""
+    lines = strip_fences(text).split("\n")
+    cur, first = [], 0
+    for n, line in enumerate(lines + [""], 1):
+        stripped = line.lstrip()
+        prose = stripped and not stripped.startswith(("#", "|", "---", "- ", "* ", "> ")) and not re.match(r"^\d+\. ", stripped) \
+            and not re.match(r"^\*\*[^*]+:\*\*", stripped)
+        if prose:
+            first = first or n
+            cur.append(line)
+            continue
+        if cur:
+            sentences = list(prose_sentences("\n".join(cur)))
+            lengths = [len(words_of(code_masked(s))) for _, s, _ in sentences if words_of(code_masked(s))]
+            yield first, lengths, sum(masked.count(";") for _, _, masked in sentences)
+        cur, first = [], 0
 
 
 VENDOR_NAMES = re.compile(r"\b(Claude|Anthropic|OpenAI|Codex|GPT|Copilot|Cursor|Gemini)\b|CLAUDE\.md|\.claude/|\.cursor/")
@@ -2056,6 +2229,9 @@ def main(argv):
     parser.add_argument("--list-candidates", action="store_true",
                         help="list places for the reading audits to look, printed apart from any finding, "
                              "and never itself a finding")
+    parser.add_argument("--detail", action="store_true",
+                        help="with --list-candidates, list every word and construction Clear Prose has a reader test, "
+                             "rather than their count for each file")
     parser.add_argument("--root", metavar="DIR", default=".",
                         help="the project root the scope is read from; the current directory unless given")
     args = parser.parse_args(argv[1:])
@@ -2100,6 +2276,20 @@ def main(argv):
         print("\nCandidates for the Finished style and Agent agnostic audits: places to read, not findings")
         for path, line, name, context in style_and_agent_candidates(root):
             print(f"  {path}:{line}  [{name}]\n    {context}")
+        print("\nCandidates for the Finished style audit's reading of Clear Prose and of where a citation sits: places to read, "
+              "not findings" + ("" if args.detail else "; counts for each file, --detail listing each"))
+        voice = voice_candidates(root)
+        if args.detail:
+            for path, line, name, context in voice:
+                print(f"  {path}:{line}  [{name}]\n    {context}")
+        else:
+            counts = {}
+            for path, _, name, _ in voice:
+                kind = name.split(":")[0]
+                counts.setdefault(path, {}).setdefault(kind, 0)
+                counts[path][kind] += 1
+            for path in sorted(counts):
+                print(f"  {path}: {sum(counts[path].values())}  " + "; ".join(f"{k} {v}" for k, v in sorted(counts[path].items())))
         print("\nCandidates for the Skill form audit: places to read, not findings")
         for path, line, name, context in skill_candidates(root):
             print(f"  {path}:{line}  [{name}]\n    {context}")
