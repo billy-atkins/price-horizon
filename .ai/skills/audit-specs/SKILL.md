@@ -14,6 +14,7 @@ The audits are the substance. The script is a pre-pass.
     python .ai/skills/audit-specs/scripts/audit-specs.py --check-scope                 # from the repo root
     python .ai/skills/audit-specs/scripts/audit-specs.py --check-scope --root <path>   # an explicit root
     python .ai/skills/audit-specs/scripts/audit-specs.py --list-candidates             # places for the reading audits that use them
+    python .ai/skills/audit-specs/scripts/audit-specs.py --list-candidates --detail    # every Clear Prose candidate, not only their count for each file
 
 Run it first, because it is fast and because its findings would otherwise be noise in a reading pass.
 
@@ -53,7 +54,7 @@ Where an audit compares one passage against what it restates, the ways a compres
 | Glossary terms | canon, application | `specs/methodology/glossary.md § Glossary`, `specs/methodology/glossary.md § Writing an Entry`, `specs/methodology/glossary.md § Using an Abbreviation` |
 | Construct choice and form | canon, application | `specs/methodology/modeling-constructs.md § Purpose`, `specs/methodology/modeling-constructs.md § Defining Constructs`, `specs/methodology/modeling-constructs.md § Constructs`, `specs/methodology/modeling-constructs.md § Time`, `specs/methodology/modeling-constructs.md § When to Use Which`, `specs/methodology/expressions.md § Expressions`, `specs/methodology/expressions.md § Expressions § FEEL`, `specs/methodology/acceptance-scenarios.md § Why a Scenario Is Not a Modeling Construct` |
 | Placement | canon, application | `specs/methodology/spec-placement.md § Where a File Goes`, `specs/methodology/spec-placement.md § Naming a Capability Domain`, `specs/methodology/spec-placement.md § The Technical Stack`, `specs/methodology/spec-placement.md § Environments`, `specs/methodology/spec-placement.md § Open Question` |
-| Finished style | canon, application | `specs/methodology/spec-style.md § What a Finished Spec Reads Like`, `specs/methodology/spec-style.md § Trade-offs Are Not Journey Language`, `specs/methodology/spec-style.md § Clear Prose` |
+| Finished style | canon, application | `specs/methodology/spec-style.md § What a Finished Spec Reads Like`, `specs/methodology/spec-style.md § Trade-offs Are Not Journey Language`, `specs/methodology/spec-style.md § Clear Prose`, `specs/methodology/sourcing-and-citation.md § Writing a Citation` |
 | Agent agnostic | canon | `specs/methodology/scope.md § Agent Agnostic` |
 | Skill form | canon | `specs/methodology/skills.md § Authoring a Skill`, `specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code`, `specs/methodology/scope.md § Rules and Skills`, `specs/methodology/skills.md § Registered Skills`, `specs/methodology/working-files.md § The Working Files` |
 | Working-file form | canon, application | `specs/methodology/working-files.md § The Working Files`, `specs/methodology/working-files.md § A Follow-up` |
@@ -87,7 +88,7 @@ Where a duplicate is real, choose the home by `specs/methodology/sourcing-and-ci
 
 ### Whether the home holds the fact
 
-What nothing else checks is that a cited home still states the fact attributed to it, as `specs/methodology/sourcing-and-citation.md § Writing a Citation` requires. A citer says "X is governed there"; the audit asks whether *X* is actually there. Of that section, `specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text` is Ordinals and counts' to read; this audit reads the rest.
+What nothing else checks is that a cited home still states the fact attributed to it, as `specs/methodology/sourcing-and-citation.md § Writing a Citation` requires. A citer says "X is governed there"; the audit asks whether *X* is actually there. Of that section, `specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text` is Ordinals and counts' to read, and its paragraph on where a citation sits is Finished style's; this audit reads the rest.
 
 This is the audit that catches the most and is the easiest to leave out, because every symptom of it looks fine. The heading resolves, so the script clears it. The citer reads as correct, because it says what it means. The target reads as correct, because a section is not obviously missing a sentence. The defect exists only in the gap between two files that are each individually clean, and the citation being valid is precisely what hides it.
 
@@ -172,7 +173,21 @@ What is easy to miss: one particular file named by a bare filename another direc
 
 ### Finished style
 
-Run the script with `--list-candidates`, which lists each line holding a phrase the Example column of `specs/methodology/spec-style.md § What a Finished Spec Reads Like`'s table quotes, and each long sentence of chained clauses in the specs and the agent instructions, and each path into the application specs in the methodology, `specs/AGENTS.md` or `specs/architecture.md`, and use the list as a guide rather than as the boundary. A trade-off that passes its section's test is declined with the reason. For `specs/methodology/spec-style.md § Clear Prose`, read each passage in the unit once, as its primary reader. A passage that takes a second read is a finding, and its fix rewords it without changing what it states. An example in the canon drawn from the application specs is a finding, read for by meaning, the listed paths being where to start. The skills are Skill form's to read for it, through `specs/methodology/skills.md § Authoring a Skill`.
+Of `specs/methodology/sourcing-and-citation.md § Writing a Citation`, this audit reads only its paragraph on where a citation sits. Run the script with `--list-candidates`. It lists each line holding a phrase the Example column of `specs/methodology/spec-style.md § What a Finished Spec Reads Like`'s table quotes, each long sentence of chained clauses, and each path into the application specs in the methodology, `specs/AGENTS.md` or `specs/architecture.md`. It also counts, for each file, the places `specs/methodology/spec-style.md § Clear Prose` has a reader test in a sentence of prose:
+
+- a term of its tables of words;
+- a contraction;
+- a curly quotation mark;
+- a comma that may splice two statements;
+- a contrast;
+- a trailing clause;
+- a reason ending a long sentence;
+- a chain of "its";
+- "never" with "always";
+- a paragraph whose sentences average long or hold no short one;
+- a paragraph holding more than one semicolon.
+
+In the skills too, it counts each sentence carrying more than one citation, and each citation inside its clause: one that neither closes its clause, nor stands in parentheses, nor opens its sentence, nor follows "as". `--detail` lists each one. The script lists nothing in a table or a heading, so read those whole. Use the list as a guide rather than as the boundary. A listed word is a finding only where it adds nothing to its sentence, an emphasis word whose deletion leaves the meaning as it was among them. A listed construction is a finding where it breaks the rule naming it, as a chain of "its" leaving its noun unclear or a semicolon that does not lean. Read too for what no script lists: an actor left unnamed where a sentence describes what a system or a person does, a term varied for variety, a pattern of machine-written prose, and an analogy removed by a rewrite or wedged into a rule's clause. A trade-off that passes its section's test is declined with the reason. For `specs/methodology/spec-style.md § Clear Prose`, read each passage in the unit once, as its primary reader. A passage that takes a second read is a finding, and its fix rewords it without changing what it states. An example in the canon drawn from the application specs is a finding, read for by meaning, the listed paths being where to start. The skills are Skill form's to read for it, through `specs/methodology/skills.md § Authoring a Skill`.
 
 ### Working-file form
 
@@ -229,7 +244,7 @@ The unit each audit reads at a time:
 | Glossary terms | the glossary and the files a change touched, or everything in the script's scope for a full run |
 | Construct choice and form | the specs a change touched, or every spec for a full run |
 | Placement | per directory, its `index.md` and every file in it, with the product `architecture.md` for the product side |
-| Finished style | the specs and the documentation a change touched, or all of them for a full run, and, for `specs/methodology/spec-style.md § Clear Prose`, each `AGENTS.md` file a change touched, or both for a full run |
+| Finished style | the specs and the documentation a change touched, or all of them for a full run, and, for `specs/methodology/spec-style.md § Clear Prose`, each `AGENTS.md` file a change touched, or both for a full run, and, for where a citation sits, the skills a change touched, or every skill for a full run |
 | Agent agnostic | both `AGENTS.md` files, each registered skill, the project's `.gitignore`, and the helpers the root `AGENTS.md` names |
 | Skill form | `specs/methodology/skills.md`, each registered skill, the code the skills share, and each unregistered skill `--list-candidates` lists |
 | Working-file form | `.ai/follow-ups.md` |
