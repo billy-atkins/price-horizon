@@ -1,6 +1,6 @@
 # Auditing the canon
 
-The audits only the canon owes, read from the fork in `.ai/skills/audit-specs/SKILL.md`, whose audits table and scoping table name what each enforces and reads.
+The audits only the canon owes, read from the fork in `.ai/skills/audit-specs/SKILL.md`, whose audits table and scoping table name what each enforces and reads. Agent agnostic is also owed by an `other` change.
 
 ## The audits
 

@@ -36,13 +36,13 @@ from pathlib import Path
 
 REGISTRY = "specs/methodology/skills.md"
 # @canon-spec specs/methodology/working-files.md § A Design Document § The Kinds of Change
-KINDS = ("canon", "application", "code", "neither")
+KINDS = ("canon-specs", "application-specs", "code", "documentation", "other")
 # working-files.md § A Design Document and § Steering Decision
 PLANS = ".ai/plans/design-specs"  # set by the entry script calling main
 # @canon-spec specs/methodology/working-files.md § A Design Document
 CODE_PLANS = "implement-specs"  # the plans folder of the designs changing code, whose kind is code
 # @canon-spec specs/methodology/working-files.md § A Design Document
-FIELDS = ("Name", "Status", "Source", "Specs", "Target", "Spawned By", "Depends On", "Validated")
+FIELDS = ("Name", "Status", "Source", "Kind", "Target", "Spawned By", "Depends On", "Validated")
 # working-files.md § A Stamp: a UTC timestamp and a content hash; a design document's
 # Validated stamp leaves out the Validated and Status fields.
 STAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z sha256:[0-9a-f]{16}$")
@@ -307,8 +307,8 @@ def check_form(design):
         if not values.get("Name"):
             problems.append((name, "Name is empty"))
         # working-files.md § A Design Document § A Design Changing Code: the folder sets the kind
-        if values.get("Specs") and (values["Specs"] == "code") != (design.parent.name == CODE_PLANS):
-            problems.append((name, "Specs is code for a design under .ai/plans/%s/ and for no other: %s" % (CODE_PLANS, values["Specs"])))
+        if values.get("Kind") and (values["Kind"] == "code") != (design.parent.name == CODE_PLANS):
+            problems.append((name, "Kind is code for a design under .ai/plans/%s/ and for no other: %s" % (CODE_PLANS, values["Kind"])))
         target = values.get("Target", "")
         unknown = values.get("Status") == "not-started" and target.lower() == "none"
         if not unknown and not all(re.fullmatch(r"`[^`]+`", p.strip()) for p in (target.split(";") if target else [""])):
@@ -322,15 +322,12 @@ def check_form(design):
             problems.append((name, "approved, but edited since its validation review stamped it"))
         elif values.get("Status") in ("applying", "complete") and not STAMP.match(validated):
             problems.append((name, values["Status"] + ", but no validation review stamped it"))
-        if values.get("Status") in ("approved", "applying", "complete"):
-            if not re.search(r"^\*\*Adversarial review\b", section(text, "The Builder's Passes") or "", re.M):
-                problems.append((name, values["Status"] + ", but its passes name no adversarial review"))
         for p in re.split(r"(?m)^(?=\*\*\S)", section(text, "The Builder's Passes") or ""):
             if REVIEW.match(p) and not REVIEW_FORM.match(p):
                 problems.append((name, "a review's lead-in is not written as the form sets it, Adversarial review or Post-apply audit: " + p[:40].strip()))
             if REVIEW.match(p) and not RAN_ON.search(p):
                 problems.append((name, "a review's pass names no model and reasoning effort, as on {model} at {effort} effort or on {model} as the agent allows: " + p[:60].strip()))
-        want = [s for s in SECTIONS if (s in sections or (s not in OPTIONAL and (s not in UNTIL_FINISHED or values.get("Status") not in FINISHED))) and (s != IMPACT or values.get("Specs") == "canon")]
+        want = [s for s in SECTIONS if (s in sections or (s not in OPTIONAL and (s not in UNTIL_FINISHED or values.get("Status") not in FINISHED))) and (s != IMPACT or values.get("Kind") == "canon-specs")]
         if sections != want:
             problems.append((name, "its sections are %s, not %s" % (", ".join(sections), ", ".join(want))))
         frame = frame_parts(text)
@@ -360,18 +357,18 @@ def check_form(design):
 
 # @canon-spec specs/methodology/working-files.md § A Design Document § The Kinds of Change
 def kind_of(path, skills):
-    """canon, application, or None for a file of neither kind."""
+    """canon-specs, application-specs, or None for any other file."""
     if path in ("specs/AGENTS.md", "specs/architecture.md") or path.startswith("specs/methodology/"):
-        return "canon"
+        return "canon-specs"
     if any(path.startswith(".ai/skills/" + n + "/") for n in skills + ["lib"]):
-        return "canon"
+        return "canon-specs"
     if path.startswith("specs/application/"):
-        return "application"
+        return "application-specs"
     return None
 
 
-def check_specs(design, root):
-    """-> (1, [(file name, problem)]) where one design document's Target strays from its Specs."""
+def check_kind(design, root):
+    """-> (1, [(file name, problem)]) where one design document's Target strays from its Kind."""
     reg = root / REGISTRY
     skills = re.findall(r"^\| `([a-z0-9-]+)` \|", reg.read_text(encoding="utf-8"), re.M) if reg.exists() else []
     if not skills:
@@ -379,15 +376,15 @@ def check_specs(design, root):
     problems, designs = [], [read_design(design)]
     for title, fields, _, _ in designs:
         fields = dict(fields)
-        value, target = fields.get("Specs"), fields.get("Target")
+        value, target = fields.get("Kind"), fields.get("Target")
         if not value:
-            problems.append((title, "no Specs field"))
+            problems.append((title, "no Kind field"))
             continue
         if not target:
             problems.append((title, "no Target field"))
             continue
         if value not in KINDS:
-            problems.append((title, "Specs is not canon, application, code or neither: " + value))
+            problems.append((title, "Kind is not canon-specs, application-specs, code, documentation or other: " + value))
             continue
         if fields.get("Status") == "not-started" and target.lower() == "none":
             continue
@@ -521,6 +518,7 @@ def check_stack(folder):
 # citation and is not checked here; see SKILL.md, Verifying a proposal. Its span opens with one backtick or more and closes
 # on a run of as many, a run of another length inside it literal, as GitHub Flavored Markdown has a code span.
 CITATION = re.compile(r'(?<!`)(?P<d>`+)(?!`)(?P<path>[\w./-]+\.md)\s+§\s+(?P<target>(?:[^`]|(?!(?P=d)(?!`))`+)+?)(?<!`)(?P=d)(?!`)')
+SAME_FILE_CITATION = re.compile(r'(?<!`)`§\s+(?P<target>[^`]+)`(?!`)')
 
 
 def lineages(text):
@@ -682,11 +680,100 @@ def design_file(value):
 
 
 def design_problems(design):
-    """Every check on one design: its form, its Target's kind, and what the workstack
-    finds wrong with it. Any problem the form and kind checks report counts, whatever it
+    """Every check on one design: its form, its Target's kind, its quoted edits applying and its citations resolving
+    while its edits are live, and what the workstack finds wrong with it. Any problem the form and kind checks report counts, whatever it
     is filed under, so a skills registry that cannot be read stops a stamp."""
-    found = check_form(design)[1] + check_specs(design, Path.cwd())[1] + steer_table_problems(None)
+    found = check_form(design)[1] + check_kind(design, Path.cwd())[1] + steer_table_problems(None)
+    found += [(design.stem, p) for p in edit_apply_problems(design)] + [(design.stem, p) for p in citation_problems(design)]
     return found + [(t, p) for t, p in check_stack(design.parent)[1] if t == design.stem]
+
+
+# @canon-spec specs/methodology/working-files.md § A Design Document
+# the record's checks The edits and References, while the design's edits are yet to be written; once they are, the
+# files are the record, and a direct edit after the apply is settled by Changes After Approval
+EDITS_LIVE = ("in-progress", "approved")
+
+
+def edit_apply_problems(design):
+    """-> a problem for each quoted edit that neither applies to its file exactly once nor is already applied there,
+    as --with-edits-of takes an edit already applied; an edit whose file lies under a folder the files at hand do not
+    hold, as code in the copy --with-edits-of builds, is left to the run that holds it."""
+    text = design.read_text(encoding="utf-8").replace("\r\n", "\n")
+    if dict(read_design(design)[1]).get("Status") not in EDITS_LIVE:
+        return []
+    out = []
+    for line, f, old, new in quoted(text):
+        if old is None:
+            continue
+        target = Path.cwd() / f
+        top = Path.cwd() / Path(f).parts[0]
+        if not target.is_file() and len(Path(f).parts) > 1 and not top.exists():
+            continue
+        now = target.read_text(encoding="utf-8").replace("\r\n", "\n") if target.is_file() else ""
+        if now.count(old) != 1 and not (new in now and (old in new or old not in now)):
+            out.append("the edit at line %d does not apply to %s exactly once, nor is it already applied" % (line, f))
+    return out
+
+
+def edited(design_text, path):
+    """-> the texts of the file at path as the design's own quoted edits leave it and as it stood before them, the
+    files at hand holding either, as a run with --with-edits-of holds the edits applied."""
+    target = Path.cwd() / path
+    now = target.read_text(encoding="utf-8").replace("\r\n", "\n") if target.is_file() else None
+    after, before = now, now
+    for _, f, old, new in quoted(design_text):
+        if f != path:
+            continue
+        if old is None:
+            after = new
+        else:
+            if after is not None and after.count(old) == 1:
+                after = after.replace(old, new)
+            if before is not None and before.count(new) == 1:
+                before = before.replace(new, old)
+    return [t for t in (after, before) if t is not None]
+
+
+def citation_problems(design):
+    """-> a problem for each citation the design document holds, its steers and its passes aside, which tell history,
+    that resolves neither in the files as they stand nor in its file as the design's own edits leave it, while its
+    edits are live."""
+    if dict(read_design(design)[1]).get("Status") not in EDITS_LIVE:
+        return []
+    text = design.read_text(encoding="utf-8").replace("\r\n", "\n")
+    kept = text
+    for title in ("Steering Decisions", "The Builder's Passes"):
+        body = section(kept, title)
+        if body:
+            kept = kept.replace(body, "")
+    with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False, encoding="utf-8") as tmp:
+        tmp.write(kept)
+    try:
+        results = check_citations(tmp.name, Path.cwd())
+    except OSError:
+        return []
+    finally:
+        Path(tmp.name).unlink()
+    out = []
+    for ok, path, target, _ in results:
+        if ok:
+            continue
+        found, _ = resolve(path, Path.cwd())
+        rel = found.relative_to(Path.cwd()).as_posix() if found else path
+        if any(target in lineages(t) for t in edited(text, rel)):
+            continue
+        out.append("a citation does not resolve: %s § %s" % (path, target))
+    # a citation within one file names no path, so it resolves in the file the edit quoting it changes; a fenced
+    # example's citations name the example's own file, so they are left alone
+    for _, f, _, new in quoted(text):
+        if not f.endswith(".md"):
+            continue
+        found = set().union(*map(lineages, edited(text, f)))
+        for m in SAME_FILE_CITATION.finditer(re.sub(r"^```.*?^```[^\n]*$", "", new, flags=re.M | re.S)):
+            target = re.sub(r'\s+\[[^\]]*\]$', '', " ".join(m.group("target").split()))
+            if target not in found:
+                out.append("a citation does not resolve: %s § %s" % (f, target))
+    return out
 
 
 def check_quoted_text(source):
@@ -749,7 +836,7 @@ def check_design_form(value):
 
 def check_target_kind(value):
     design = design_file(value)
-    return 2 if design is None else report("check-target-kind " + design.stem, check_specs(design, Path.cwd())[1])
+    return 2 if design is None else report("check-target-kind " + design.stem, check_kind(design, Path.cwd())[1])
 
 
 def check_design(value):
@@ -1063,9 +1150,9 @@ FLAGS = (
     ("--check-design-form", "DESIGN", check_design_form,
      "confirm a design document holds the form working-files.md sets"),
     ("--check-target-kind", "DESIGN", check_target_kind,
-     "confirm every file a design document's Target names is of the kind its Specs declares"),
+     "confirm every file a design document's Target names is of the kind its Kind field declares"),
     ("--check-design", "DESIGN", check_design,
-     "run every check on one design document: its form, its Target's kind, and its place in the workstack"),
+     "run every check on one design document: its form, its Target's kind, its quoted edits applying, its citations resolving, and its place in the workstack"),
     ("--check-workstack", "PLANS_DIR", check_workstack,
      "report what is out of step in the workstack: a Status out of step with what a design depends on, a Depends On naming no design, and a loop; reads the skill's plans folder, and those beside it, unless given a directory"),
     ("--show-workstack", "PLANS_DIR", show_workstack,
@@ -1073,7 +1160,7 @@ FLAGS = (
     ("--show-validation", "DESIGN", show_validation,
      "print a design document's stamped hash, its hash now, and whether it is validated, stale or never stamped"),
     ("--stamp-validation", "DESIGN", stamp_validation,
-     "run every check on one design document and, if it passes, write its validation stamp; the validation review alone runs it"),
+     "run every check on one design document and, if it passes, write its validation stamp; the builder runs it at validating"),
     ("--show-edits", "DESIGN", show_edits,
      "list every edit a design document quotes in the forms working-files.md § A Design Document gives, untruncated: its line, the file it edits, and the words it removes and adds; decides nothing"),
     ("--show-refactor-and-refine-of-existing-specs", "BASELINE", show_refactor_and_refine_of_existing_specs,

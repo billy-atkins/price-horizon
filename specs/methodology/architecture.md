@@ -12,7 +12,7 @@
 - how an expression a construct computes or tests is written, in FEEL, adopted whole, and where a system's own arithmetic, its precision, rounding and decimal places, departs from it;
 - when a capability owes acceptance scenarios;
 - what a finished spec reads like and the trade-off that belongs in one, the clear prose it is written in, where an example is drawn from, how a number is used, and how Markdown, a bold lead-in, emphasis and literal text are written;
-- the order a design's work takes, and how a review's reasoning effort is applied;
+- the order a design's work takes, how a design's kind sizes its reviews, and how a review's reasoning effort is applied;
 - the working files, the kinds of file a design is bounded to, and how a steer the user gives a design is recorded, typed and revisited;
 - the rules that reach the code the application specs govern.
 
@@ -48,9 +48,9 @@ It also sets the form of a field, wherever it is written, `specs/methodology/mod
 
 **Style applies last, and to every spec —** `spec-style.md` governs what any finished spec reads like, whatever it says and wherever it sits, and its clear prose and its rule on numbers reach the agent instructions, the skills and the documentation too, and its clear prose reaches the working files too, each file written for its primary reader.
 
-**The order of a design's work —** `design-workflow.md` orders a design's work, from its goals and frame to its approval and from its apply to its commit, as the two State Machines its Status runs, each state that does work citing the rule or the section doing it; and it says how a review's reasoning effort is applied.
+**The order of a design's work —** `design-workflow.md` orders a design's work, from its goals and frame to its approval and from its apply to its commit, as the two State Machines its Status runs, each state that does work citing the rule or the section doing it; and it says how a design's kind sizes its reviews and how a review's reasoning effort is applied.
 
-**Working files govern no spec —** `working-files.md` sets the form of the working files: a design document carrying one change through review, with the goals the user agreed for it and the steers that shaped it, each a selection among the options the builder offered or a perspective the user brought, either revised only by the user, its passes recording how each review round was settled, and the designs it waits on, and how a design changing code differs, and how one whose record uses a form another design adds is checked with that design's edits applied; a stamp recording when a check passed; and a follow-up holding work not yet done. Before a design is approved, the builder and a validation review check its record, each finding marked as withholding the stamp or a nit and settled. No spec but `working-files.md` names one (`specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`).
+**Working files govern no spec —** `working-files.md` sets the form of the working files: a design document carrying one change through review, with the goals the user agreed for it and the steers that shaped it, each a selection among the options the builder offered or a perspective the user brought, either revised only by the user, its passes recording how each review round was settled, and the designs it waits on, and how a design changing code differs, and how one whose record uses a form another design adds is checked with that design's edits applied; a stamp recording when a check passed; and a follow-up holding work not yet done. Before a design is approved, the validation review, the design script, checks that the design document is valid, and stamps it. No spec but `working-files.md` names one (`specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`).
 
 ## How the Rules Are Applied
 

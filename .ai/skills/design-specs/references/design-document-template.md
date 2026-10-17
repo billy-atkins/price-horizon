@@ -3,7 +3,7 @@
 **Name:** {a few words}
 **Status:** {not-started, or in-progress once it is worked}
 **Source:** {the user's words, quoted, or the finding}
-**Specs:** {canon, application or neither}
+**Kind:** {canon-specs, application-specs, documentation or other}
 **Target:** {`path`; `path`}
 **Spawned By:** {a design document's file name, without .md, as `implement-specs/{file name}` for one in that skill's plans folder, or none}
 **Depends On:** {design documents' file names, in the same form, separated by semicolons, or none}
@@ -72,7 +72,7 @@ becomes:
 
 ## The Builder's Passes
 
-{each pass and each review under a bold lead-in naming it, an adversarial review's opening Adversarial review and a post-apply audit's Post-apply audit, each of those two naming the model and reasoning effort it ran on, and what it changed, and the design flaws and implementation flaws among its findings, with the user's triage of each design flaw, an adversarial review's also the decisions its findings fell on, their causes, the steers they pressed on and what the user decided of them, any revision of the goals or the frame, the change, the findings fixed where they sit with their reasons and the worked cases; the fixes made for a validation review, with the findings of it the user settled, quoting the user, one pass naming the kinds of findings and no report; what the user may overrule of what the builder settled itself, as `specs/AGENTS.md § Design, Refactor, Refine`'s Who decides has it, a round it settled, the nits it left and each judgment it handed off, its brief quoted and how its findings were settled; and each ephemeral differential test of a script the design changes, and what it showed}
+{each pass and each review under a bold lead-in naming it, each review but the validation review named with its report, an adversarial review's opening Adversarial review and a post-apply audit's Post-apply audit, each of those two naming the model and reasoning effort it ran on, and recording the design flaws among its findings with the user's triage of each; an adversarial review's pass also recording how its implementation flaws were settled, the causes the round's change addressed, a mechanism it rewrote whole where its findings clustered, and the worked case proving it, or the user's approval of the text where it ended the review, with the round it ended; a post-apply audit's pass how each finding settled; the nits a round left and each judgment handed off; the trace, before a review, of each mechanism with states or routes the design changes; and each ephemeral differential test of a script the design changes, and what it showed}
 
 ## Deliberately Left Alone
 
