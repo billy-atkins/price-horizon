@@ -1,14 +1,25 @@
 # Auditing the canon
 
-The audits only the canon owes, read from the fork in `.ai/skills/audit-specs/SKILL.md`, whose audits table and scoping table name what each enforces and reads. Agent agnostic is also owed by an `other` change.
+This file holds the audits only the canon owes. It is read from the fork in `.ai/skills/audit-specs/SKILL.md`, whose audits table and scoping table name what each audit enforces and reads. An `other` change also owes Agent agnostic.
 
 ## The audits
 
 ### Agent agnostic
 
-Run the script with `--list-candidates`, which lists each line naming a vendor, a model or a tool-specific path. The root `AGENTS.md` naming its opt-in helpers, and with them the tools they serve, is what `specs/methodology/scope.md § Agent Agnostic`'s exception allows, and the usual candidate to decline.
+Run the script with `--list-candidates`. It lists each line naming a vendor, a model or a tool-specific path. The usual candidate to decline is the root `AGENTS.md` naming its opt-in helpers, and with them the tools they serve. That is what `specs/methodology/scope.md § Agent Agnostic`'s exception allows.
 
 ### Skill form
 
-The script decides a registered skill's front matter, its script names and its `## Workflow` heading, finds a step citing each operating rule, and resolves each canon-spec annotation in the skills' scripts and the code they share, its form, its target and its order; the rest is read here, with each unregistered skill `--list-candidates` lists read against `specs/methodology/skills.md § Registered Skills`' test and the import candidates guiding the standard-library rule, and the long-sentence candidates and the paths into the application specs guiding its reading of each skill for `specs/methodology/spec-style.md § Clear Prose`, as a cold agent reading it once. What is easy to miss: a spelling or a usage American English replaces, in a skill's text or its scripts' comments and messages, which no script lists, though one in a quotation, a title or a name from outside the specs is no finding; a skill restating a rule it should cite, a step applying a rule with no point-of-use citation, an operating rule cited under a Workflow only by steps that do not carry it out, which the script takes for the rule's steps, a row of `.ai/skills/audit-specs/SKILL.md § What the script checks` no longer describing what the script checks, a script's copy of values the canon states carrying no canon-spec annotation, and one pointing to an area its values do not come from, per `specs/methodology/skills.md § Authoring a Skill`. Of `specs/methodology/working-files.md § The Working Files`, this audit reads its paragraphs on a skill's scratch space and on its plans, against what the skill's own text says of where its output and its plans go; Working-file form reads the rest.
+The script decides a registered skill's front matter, its script names and its `## Workflow` heading. It finds a step citing each operating rule. It resolves each canon-spec annotation in the skills' scripts and the code they share: the annotation's form, its target and its order. The rest is read here. Read each unregistered skill `--list-candidates` lists against `specs/methodology/skills.md § Registered Skills`' test. Let the import candidates guide the reading for the standard-library rule. Read each skill as a cold agent reading it once, for `specs/methodology/spec-style.md § Clear Prose`. The long-sentence candidates and the paths into the application specs guide that reading.
+
+What is easy to miss, as `specs/methodology/skills.md § Authoring a Skill` has it:
+
+- a spelling or a usage American English replaces, in a skill's text or in its scripts' comments and messages, which no script lists, though one in a quotation, a title or a name from outside the specs is no finding;
+- a skill restating a rule it should cite;
+- a step applying a rule with no point-of-use citation;
+- an operating rule cited under a Workflow only by steps that do not carry it out, which the script takes for the rule's steps;
+- a row of `.ai/skills/audit-specs/SKILL.md § What the script checks` no longer describing what the script checks;
+- a script's copy of values the canon states carrying no canon-spec annotation, and one pointing to an area its values do not come from.
+
+Of `specs/methodology/working-files.md § The Working Files`, this audit reads the paragraphs on a skill's scratch space and on its plans. It reads them against what the skill's text says of where the skill's output and plans go. Working-file form reads the rest.
 
