@@ -6,13 +6,13 @@ Where PriceHorizon is built, tested and run, each environment stating only what 
 
 **Kind:** local
 
-**What it is for —** a developer, or an agent writing code, builds, runs and tests the whole system on their own machine.
+**What it is for.** A developer, or an agent writing code, builds, runs and tests the whole system on their own machine.
 
-**Where it runs —** a developer's own machine, running Windows, macOS or Linux, every dependency in a container.
+**Where it runs.** A developer's own machine, running Windows, macOS or Linux, every dependency in a container.
 
-**What differs from the stack —** Ollama serves Acme AI's language models in place of vLLM; Keycloak stands in for the customer's own identity provider, over OIDC; Docker runs every dependency as a container, Aspire's host starting them; and no kind of model call reaches a frontier model provider unless the developer's own configuration names one.
+**What differs from the stack.** Ollama serves Acme AI's language models in place of vLLM; Keycloak stands in for the customer's own identity provider, over OIDC; Docker runs every dependency as a container, Aspire's host starting them; and no kind of model call reaches a frontier model provider unless the developer's own configuration names one.
 
-**What data it holds —** synthetic data only, never a customer's.
+**What data it holds.** Synthetic data only, never a customer's.
 
 **Reference Key:** Tool
 
@@ -51,13 +51,13 @@ Where PriceHorizon is built, tested and run, each environment stating only what 
 
 **Kind:** integration
 
-**What it is for —** every change is built, linted and tested before it merges.
+**What it is for.** Every change is built, linted and tested before it merges.
 
-**Where it runs —** GitHub Actions' hosted runners: Windows, macOS and Linux.
+**Where it runs.** GitHub Actions' hosted runners: Windows, macOS and Linux.
 
-**What differs from the stack —** GitHub Actions runs it; on its Linux runner, the only one running Linux containers, Docker runs every dependency, Keycloak stands in for the customer's identity provider, and Ollama serves a small language model on the runner's CPU, within its memory, since hosted runners have no GPU.
+**What differs from the stack.** GitHub Actions runs it; on its Linux runner, the only one running Linux containers, Docker runs every dependency, Keycloak stands in for the customer's identity provider, and Ollama serves a small language model on the runner's CPU, within its memory, since hosted runners have no GPU.
 
-**What data it holds —** synthetic data only, as the local environment does.
+**What data it holds.** Synthetic data only, as the local environment does.
 
 **Reference Key:** Task
 
@@ -74,10 +74,10 @@ Where PriceHorizon is built, tested and run, each environment stating only what 
 
 **Kind:** production
 
-**What it is for —** the customer's own people ask questions and administer PriceHorizon, in the installation `specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology` describes.
+**What it is for.** The customer's own people ask questions and administer PriceHorizon, in the installation `specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology` describes.
 
-**Where it runs —** the customer's own Kubernetes cluster, inside their own environment, installed and upgraded from the deployment chart.
+**Where it runs.** The customer's own Kubernetes cluster, inside their own environment, installed and upgraded from the deployment chart.
 
-**What differs from the stack —** Kubernetes runs it; the customer's own identity provider signs people in; the vault the customer already runs, HashiCorp Vault or AWS Secrets Manager, holds its credentials through the vault adapter (`specs/application/technical/secrets-management.md § Secrets management`), the stack's otherwise; and the Anthropic API or the OpenAI API serves only the kinds of model call the installation's configuration names (`specs/application/technical/model-registry.md § Model registry`).
+**What differs from the stack.** Kubernetes runs it; the customer's own identity provider signs people in; the vault the customer already runs, HashiCorp Vault or AWS Secrets Manager, holds its credentials through the vault adapter (`specs/application/technical/secrets-management.md § Secrets management`), the stack's otherwise; and the Anthropic API or the OpenAI API serves only the kinds of model call the installation's configuration names (`specs/application/technical/model-registry.md § Model registry`).
 
-**What data it holds —** the customer's own data, which stays inside their environment, save what the client chooses to let a frontier model provider see (`specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology § Frontier Models`).
+**What data it holds.** The customer's own data, which stays inside their environment, save what the client chooses to let a frontier model provider see (`specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology § Frontier Models`).

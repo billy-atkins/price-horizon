@@ -1,4 +1,4 @@
-# PriceHorizon — Specifications
+# PriceHorizon: Specifications
 
 | Path | Description |
 |---|---|

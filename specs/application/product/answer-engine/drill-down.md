@@ -6,12 +6,12 @@ technical-specs:
   - specs/application/technical/query-service/layered-output-synthesis.md
 ---
 
-## Drill-down — cross-cutting, available at every stage
+## Drill-down: cross-cutting, available at every stage
 
 Independent axes, and a user can move along either one without leaving the analysis:
 
-- **Granularity —** country to state or province to major metro, matching how the competitor's own pricing data is actually reported.
-- **Metric —** price is the default lens, but a user can pivot the same drill-down to volume, margin, or share without re-asking the question.
+- **Granularity.** Country to state or province to major metro, matching how the competitor's own pricing data is actually reported.
+- **Metric.** Price is the default lens, but a user can pivot the same drill-down to volume, margin, or share without re-asking the question.
 
 What a granularity drill-down shows depends on whether it stays within the range the competitor's data is reported at:
 
@@ -31,7 +31,7 @@ What a granularity drill-down shows depends on whether it stays within the range
 
 That boundary reflects which competitor data is currently licensed and ingested, not a permanent limit, a more granular data source would move it.
 
-The narrative layer's job throughout every stage (`specs/application/product/answer-engine/predict.md § Predict — what will the competitor do`, `specs/application/product/answer-engine/position.md § Position — where Brand A should sit`, `specs/application/product/answer-engine/simulate.md § Simulate — what follows for the business`) is fluent explanation of numbers that already exist, not generation of new ones. That distinction is what keeps the answer defensible in front of a retailer or a CFO.
+The narrative layer's job throughout every stage (`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`, `specs/application/product/answer-engine/position.md § Position: where Brand A should sit`, `specs/application/product/answer-engine/simulate.md § Simulate: what follows for the business`) is fluent explanation of numbers that already exist, not generation of new ones. That distinction is what keeps the answer defensible in front of a retailer or a CFO.
 
 `specs/application/product/architecture.md § Diagrams § The Answer` renders this.
 

@@ -1,4 +1,4 @@
-# Spec of Record — Methodology Specifications
+# Spec of Record: Methodology Specifications
 
 **Reference Key:** File
 

@@ -129,7 +129,7 @@ ENVIRONMENTS = "specs/application/technical/environments.md"
 KINDS = ("local", "integration", "shared", "production")
 FIELD_LINE = constructs.FIELD  # the form written once, in constructs.py
 RECORD_SELECTOR = re.compile(r'^(.*?)\s+\[(.*)\]$')
-# spec-style.md § Bold Lead-ins and § Emphasis: bold marks only a field or a dash
+# spec-style.md § Bold Lead-ins and § Emphasis: bold marks only a field or a lead-in
 # label, both opening a line, and italic, the one emphasis, never opens one.
 BOLD_SPAN = re.compile(r'\*\*(.+?)\*\*')
 # a line's opening skips indentation, a quote marker, and a list marker: -, *, + or a number
@@ -138,6 +138,7 @@ LINE_OPENING = re.compile(r'^' + LIST_OR_QUOTE + r'$')
 ITALIC_OPENING = re.compile(r'^' + LIST_OR_QUOTE + r'\*(?!\*)\S')
 ODD_EMPHASIS = re.compile(r'\*\*\*|__[^_\s][^_]*__')
 BOLD_LEAD_INS = "spec-style.md § Bold Lead-ins"
+CLEAR_PROSE = "spec-style.md § Clear Prose"
 EMPHASIS = "spec-style.md § Emphasis"
 LITERAL_TEXT = "spec-style.md § Literal Text"
 # a citation's `Key: value`, its key a field label, constructs.py's one copy of the form, or a table's name and its key's,
@@ -1021,7 +1022,7 @@ def lineages(text):
 
     A level-1 heading is the file's own title, not a section, so a lineage starts at
     level 2. This is why `§ Citation Format` resolves in a file whose first line is
-    `# PriceHorizon — Agent Instructions`.
+    `# PriceHorizon: Agent Instructions`.
     """
     out, stack = set(), []
     for lvl, title in headings(text):
@@ -1104,8 +1105,11 @@ def check(root, warned=None):
                     found.append((EMPHASIS, r, i, f"bold outside a line's opening: {line[m.start():m.end()][:60]}"))
                 elif m.group(1).endswith(":") and not FIELD_LINE.match(line):
                     found.append((FIELDS, r, i, f"a field not in its form, its key in bold, then a space, any list marker a hyphen: {line[m.start():m.end() + 10][:60]}"))
-                elif not (m.group(1).endswith(":") or m.group(1).endswith(" —")):
-                    found.append((BOLD_LEAD_INS, r, i, f"bold opening a line closes on neither a colon nor a dash: {line[m.start():m.end()][:60]}"))
+                elif not m.group(1).endswith((":", ".", "?")):
+                    found.append((BOLD_LEAD_INS, r, i, f"bold opening a line closes on neither a colon nor a period: {line[m.start():m.end()][:60]}"))
+            # spec-style.md § Clear Prose: no dash serves as punctuation, outside code
+            if "\u2014" in prose or "\u2013" in prose:
+                found.append((CLEAR_PROSE, r, i, "an em dash or an en dash, where a sentence takes a period, a comma, a colon or parentheses"))
             if ITALIC_OPENING.match(prose):
                 found.append((EMPHASIS, r, i, "a line opens with italic"))
             if ODD_EMPHASIS.search(prose):
@@ -1649,7 +1653,7 @@ def inside_clause(before, after):
     closes = re.match(r"\s*\)?\s*(?:[.;:,!?]|$)", after)
     enclosed = before.count("(") > before.count(")") or before.count('"') % 2
     opens = re.fullmatch(r"\s*(?:[-*]\s+|\d+\.\s+)?(?:\*\*[^*]*\*\*\s*)?", before)
-    named = re.search(r"\b(?:as|per)\s+(?:[\w-]+\s+){0,3}$", before) or after.startswith("'")
+    named = re.search(r"\b(?:as|per)\s+(?:[\w-]+\s+){0,3}$", before, re.I) or after.startswith("'")
     return not (closes or enclosed or opens or named)
 
 
@@ -1888,7 +1892,7 @@ def glossary_candidates(root):
     # in apposition, "Spec of Record, the method"; "is written" or "is missing" states a rule
     # about the term instead, and a term after an article or a comma is an item in a list.
     defining = re.compile(
-        rf"(?:(?:^|[.!?:]\s+|\|\s*|—\s*)|\b(?:a|an|the)\s+){name}\b(?:\s*\([^)]*\)|\s*{constructs.CODE_SPAN.pattern})?"
+        rf"(?:(?:^|[.!?:]\s+|\|\s*)|\b(?:a|an|the)\s+){name}\b(?:\s*\([^)]*\)|\s*{constructs.CODE_SPAN.pattern})?"
         rf"\s+(?:(?:is|are)\s+(?:a|an|the|one|what|where|how)\b|means\b|names\s+\w)"
         rf"|(?<!\ba\s)(?<!\ban\s)(?<!\bthe\s)(?<!,\s)\b{name},\s+(?:a|an|the)\b", re.I)
     for f in md_files(root):

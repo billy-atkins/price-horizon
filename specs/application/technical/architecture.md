@@ -44,14 +44,14 @@ config:
 flowchart TD
     FOUND["Shared foundation<br/>structured database · vector database<br/>model registry · secrets vault<br/>governed glossary · federated identity"]
 
-    subgraph Materialization["Materialization service — batch path"]
+    subgraph Materialization["Materialization service: batch path"]
         KE["Knowledge embedding"]
         PCN["Predict computation"]
         GRID[("Materialized grid")]
         KE --> PCN --> GRID
     end
 
-    subgraph QueryService["Query service — live path"]
+    subgraph QueryService["Query service: live path"]
         RET["Evidence retrieval"]
         PCL["Predict computation"]
         LOS["Layered output synthesis<br/>Position, Simulate, narrative rendering"]
@@ -62,7 +62,7 @@ flowchart TD
         CFG["Reference data and configuration"]
     end
 
-    DRILL["Drill-down — cross-cutting"]
+    DRILL["Drill-down: cross-cutting"]
 
     FOUND --> Materialization
     FOUND --> QueryService
@@ -255,7 +255,7 @@ flowchart TD
 
 ### Layer-to-Architecture Mapping
 
-The seam between this file and the product's own Answer Engine domain (`specs/application/product/answer-engine/predict.md § Predict — what will the competitor do`, `specs/application/product/answer-engine/position.md § Position — where Brand A should sit`, `specs/application/product/answer-engine/simulate.md § Simulate — what follows for the business`, `specs/application/product/answer-engine/drill-down.md § Drill-down — cross-cutting, available at every stage`, `specs/application/product/answer-engine/decision-context.md § Decision Context`). Every product-facing layer traces to one mechanism here; nothing in the answer experience exists without a corresponding piece of this architecture. Predict's layers are typically served from the `specs/application/technical/materialization-service/forecast-materialization.md § Forecast materialization` materialized grid; the live `specs/application/technical/predict-computation.md § Predict Computation` mechanism is the fallback when a query falls outside it.
+The seam between this file and the product's own Answer Engine domain (`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`, `specs/application/product/answer-engine/position.md § Position: where Brand A should sit`, `specs/application/product/answer-engine/simulate.md § Simulate: what follows for the business`, `specs/application/product/answer-engine/drill-down.md § Drill-down: cross-cutting, available at every stage`, `specs/application/product/answer-engine/decision-context.md § Decision Context`). Every product-facing layer traces to one mechanism here; nothing in the answer experience exists without a corresponding piece of this architecture. Predict's layers are typically served from the `specs/application/technical/materialization-service/forecast-materialization.md § Forecast materialization` materialized grid; the live `specs/application/technical/predict-computation.md § Predict Computation` mechanism is the fallback when a query falls outside it.
 
 **Reference Key:** Product Layer
 
@@ -271,7 +271,7 @@ The seam between this file and the product's own Answer Engine domain (`specs/ap
 | Confidence, per reason | Predict, Position, Simulate | `confidence_components` and `conflicts` in the Rationale Record (`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Rationale Record`), written by `specs/application/technical/predict-computation.md § Predict Computation § Confidence and rationale packaging` for Predict and Position, and by `specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Confidence and rationale packaging, extended` for a Simulated Outcome, whose record carries no `conflicts` |
 | Options frame | Position | Positioning engine (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Positioning engine`): fixed archetype rules applied to the Predict output and seeded by decision type (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Positioning engine § Seeding`), not an optimizer, the engine also taking Brand A's current price, margin targets and elasticity model, its candidates consolidated after simulation (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Option Consolidation`) |
 | Outcome comparison | Simulate | Simulation engine (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Simulation engine`): share, volume, and margin models run once per candidate; category growth aggregated from those outputs, revenue calculated directly as price times volume |
-| Drill-down — granularity, within the grid | All | Question Intent re-executed at narrower geographic scope inside the materialized grid, same model versions and weights (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Drill-down mechanics`) |
-| Drill-down — granularity, below the grid | All | Allocation of the same figure at the nearest grounded geography above it, by population or retail-footprint weighting, distinct confidence tier; decomposition graph unavailable, not inherited or recomputed (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Drill-down mechanics`) |
-| Drill-down — metric pivot | All | Existing output re-projected onto a different metric field; new model call only if that metric was not already computed (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Drill-down mechanics`) |
+| Drill-down, granularity within the grid | All | Question Intent re-executed at narrower geographic scope inside the materialized grid, same model versions and weights (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Drill-down mechanics`) |
+| Drill-down, granularity below the grid | All | Allocation of the same figure at the nearest grounded geography above it, by population or retail-footprint weighting, distinct confidence tier; decomposition graph unavailable, not inherited or recomputed (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Drill-down mechanics`) |
+| Drill-down, metric pivot | All | Existing output re-projected onto a different metric field; new model call only if that metric was not already computed (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Drill-down mechanics`) |
 | Decision context shown with every answer | All | Session context (`specs/application/technical/query-service/intent-and-retrieval.md § Dynamic Retrieval and Weighting (when the question is asked) § Session context`), carried on each question request; intent parsing settles the business unit and kind of decision each question is given for, its own words over the session's (`specs/application/technical/query-service/intent-and-retrieval.md § Dynamic Retrieval and Weighting (when the question is asked) § Intent parsing and decoupling § Business unit`, `specs/application/technical/query-service/intent-and-retrieval.md § Dynamic Retrieval and Weighting (when the question is asked) § Intent parsing and decoupling § Decision type`); every answer returns both, and the kind of decision seeds the positioning engine (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Positioning engine § Seeding`) |

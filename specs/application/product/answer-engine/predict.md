@@ -9,7 +9,7 @@ technical-specs:
   - specs/application/technical/query-service/intent-and-retrieval.md
 ---
 
-## Predict — what will the competitor do
+## Predict: what will the competitor do
 
 Effective price is the net price actually realized per unit over the period asked about: list price minus trade promotions and rebates, plus any surcharges. It is neither the list price nor the shelf price. A competitor's effective price can therefore move significantly from one month to the next while its sticker price stays the same, because a bigger promotion moved it. Predict forecasts this number.
 
@@ -34,7 +34,7 @@ The two can diverge. A forecast can sit inside a narrow band and still carry a l
 | Geographic visualization | A map from country to state or province to major metro, matching how the competitor's own pricing data is reported, showing how the top-line figure breaks down by region |
 | Decomposition graph | The baseline and a chart of the underlying drivers (the competitor's own demand sensitivity, input cost, competitor strategy, consumer spending trends, and tax), with how much each contributes to the forecast |
 
-Every price shown here, current or forecast, is in the local currency of the geography being discussed. `specs/application/product/answer-engine/position.md § Position — where Brand A should sit` states the rule in full.
+Every price shown here, current or forecast, is in the local currency of the geography being discussed. `specs/application/product/answer-engine/position.md § Position: where Brand A should sit` states the rule in full.
 
 A Query user can open each driver in the decomposition graph, and each qualitative fact the narrative names, to see the evidence behind it without leaving the analysis. Most show the qualitative document behind them: its source type, what it states, how credible that kind of source is, and when it took effect. Demand sensitivity has no document behind it, because it is estimated, not reported. Opening it shows the model that produced the estimate and when that model was last validated. Competitor strategy shows both the document and the model that turned it into a magnitude, since this forecast never uses one without the other. A driver that contributed nothing to a forecast still shows why: no signal reached it for this query. It never shows an empty or broken view. Here the sourcing guarantee (`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`) becomes visible to a Query user instead of only being asserted. The answer's own lineage (`specs/application/product/logging-and-traceability.md § Logging and Traceability § Answer Lineage`) refers to this same evidence view.
 
