@@ -13,7 +13,7 @@ A design enters its work by the reason its Status entered in-progress, and its c
 | State | Description | Initial | Terminal |
 |---|---|---|---|
 | entered | the design has entered in-progress, by its Status's move | Yes | No |
-| framing | the builder agrees the design goals with the user and states the design frame, or revisits either, and brings them to the user, as `specs/AGENTS.md § Design, Refactor, Refine` has the goals, then the frame, come first, taking in each steer the user gives and each design its Depends On names that has finished (`specs/methodology/working-files.md § A Design Document`) | No | No |
+| framing | the builder agrees on the design goals with the user and states the design frame, or revisits either, and brings them to the user, as `specs/AGENTS.md § Design, Refactor, Refine` has the goals, then the frame, come first, taking in each steer the user gives and each design its Depends On names that has finished (`specs/methodology/working-files.md § A Design Document`) | No | No |
 | drafting | the builder takes the design through Design, Refactor, Refine (`specs/AGENTS.md § Design, Refactor, Refine`), recording each steer as it is given (`specs/methodology/working-files.md § Steering Decision`) and taking in each design its Depends On names that has finished (`specs/methodology/working-files.md § A Design Document`), checks its whole work, as its row of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` sets, and, before the design's first adversarial review, or before its post-apply audit where the user's approval ends the review before any round, offers the user the review's model and reasoning effort | No | No |
 | reviewing | a cold agent runs the adversarial review, as `specs/AGENTS.md § Design, Refactor, Refine` has it | No | No |
 | settling | the builder groups the round's findings, weighs them against the design's goals and weighs the steers they press on and states the causes and the change it proposes, the user triaging its design flaws and answering its other calls, the builder settling the rest, as `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round` has it, taking in each steer the user gives and each design its Depends On names that has finished, one finishing while the design was reviewed among them; where the user's approval has ended the review, it settles nothing, the round's findings left as they are | No | No |
@@ -33,7 +33,7 @@ A design enters its work by the reason its Status entered in-progress, and its c
 | entered | changing | none | entry reason = "reopened" |
 | entered | changing | none | entry reason = "a dependency finished" |
 | entered | waiting | none | entry reason = "a dependency moved back" |
-| framing | drafting | the user agrees the goals and agrees or adjusts the frame | none |
+| framing | drafting | the user agrees on the goals and agrees to or adjusts the frame | none |
 | drafting | framing | the user gives a steer | needs reframing? |
 | drafting | reviewing | none | not(review ended by approval?) |
 | drafting | validating | none | review ended by approval? and depends on ready? |

@@ -1906,7 +1906,7 @@ def glossary_candidates(root):
 def record_type_findings(root):
     """modeling-constructs.md § Constructs § Construct: constructs.py's copy of each table of the fields a definition or a
     construct declares, by the section defining it, and of each definition's Modifier, Extends and Implements, against its table where it is defined, row by row, so a change to
-    either is a finding until the copy is brought into step; a record type has no copy, read from its declaration."""
+    either is a finding until the copy is brought into sync; a record type has no copy, read from its declaration."""
     out = []
     path = "specs/methodology/modeling-constructs.md"
     text = (root / path).read_text(encoding="utf-8")

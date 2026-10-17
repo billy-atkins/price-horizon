@@ -30,7 +30,7 @@ The confidence band is a range around the forecast itself, built from how much u
 | Geographic visualization | A map, country to state or province to major metro, matching how the competitor's own pricing data is reported, showing how the top-line figure breaks down regionally |
 | Decomposition graph | The baseline and a chart of the underlying drivers (the competitor's own demand sensitivity, input cost, competitor strategy, consumer spending trends, and tax), with how much each contributes to the forecast |
 
-Every price shown here, current or forecasted, is in the local currency of the geography being discussed, the same rule `specs/application/product/answer-engine/position.md § Position — where Brand A should sit` states in full.
+Every price shown here, current or forecast, is in the local currency of the geography being discussed, the same rule `specs/application/product/answer-engine/position.md § Position — where Brand A should sit` states in full.
 
 Each driver in the decomposition graph, and each qualitative fact named in the plain-language narrative, can be opened, without leaving the analysis, to see the specific evidence behind it. Most show the qualitative document behind them: its source type, what it actually states, how credible that kind of source is, and when it took effect. Demand sensitivity has no document behind it at all, since it is estimated rather than reported; opening it shows which model produced the estimate and when that model was last validated instead. Competitor strategy shows both together, the document and the model that translated it into a magnitude, since one never appears in this forecast without the other. A driver that contributed nothing to a particular forecast still shows why, that no signal reached it for this query, not an empty or broken view. This is where the sourcing guarantee (`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`) is made visible to a Query user, not just asserted, and it is this same evidence view that the answer's own lineage (`specs/application/product/logging-and-traceability.md § Logging and Traceability § Answer Lineage`) refers to.
 
@@ -42,7 +42,7 @@ Each driver in the decomposition graph, and each qualitative fact named in the p
 Scenario: A resolvable question returns a confidence-scored forecast.
   Given a Query user asks where Competitor Brand's effective price will be in Texas in 6 months
   When the question is answered
-  Then the answer includes a forecasted direction and magnitude for Competitor Brand's effective price, a confidence score, and a plain-language rationale stating what is driving the forecast
+  Then the answer includes a forecast direction and magnitude for Competitor Brand's effective price, a confidence score, and a plain-language rationale stating what is driving the forecast
   And the answer includes a confidence band around the forecast
   And the answer includes a geographic breakdown of that forecast, down to the granularity the competitor's own pricing data supports
   And the answer includes a decomposition of the named drivers behind the forecast
@@ -82,7 +82,7 @@ Scenario: The forecast is exactly its baseline plus each driver's correction.
   Given a Query user has a Predict answer for Competitor Brand's effective price in Texas in 6 months
   When the answer is shown
   Then the decomposition graph shows the baseline and each driver's correction
-  And the baseline plus those corrections equals the forecasted move
+  And the baseline plus those corrections equals the forecast move
 
 Scenario: The baseline opens to what it was built from.
   Given Competitor Brand has announced a list price increase in Texas taking effect within 6 months

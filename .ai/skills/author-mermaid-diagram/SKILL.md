@@ -63,7 +63,7 @@ Put `classDef` before the `class` statements that reference it. Either order par
 
 **Subgraph placement order —** there is no mechanism for it. `A ~~~ B`, the invisible link, constrains node rank and does not move clusters; tested directly against subgraphs and the placement did not change at all. Flipping `TD` to `LR` only moves the problem to the other axis. So a diagram whose meaning depends on one cluster reading before another is a diagram the layout engine may silently invert, and the only reliable fixes are structural: merge the clusters, put the ordering in the labels where a reader cannot miss it, or accept that this subject does not want to be two clusters. If a diagram fights this more than twice, that is evidence about the diagram, not about the tool.
 
-**`direction` inside a subgraph, reliably —** the documented rule is that if any node in a subgraph is linked from outside it, the subgraph's own `direction` is ignored and it inherits the parent graph's. In practice it may be honoured anyway depending on which layout engine is running, which is worse than it simply not working: the diagram looks right, and is one renderer change away from silently reflowing. Check the render rather than trusting the directive, and do not build a diagram whose readability rests on it.
+**`direction` inside a subgraph, reliably —** the documented rule is that if any node in a subgraph is linked from outside it, the subgraph's own `direction` is ignored and it inherits the parent graph's. In practice it may be honored anyway depending on which layout engine is running, which is worse than it simply not working: the diagram looks right, and is one renderer change away from silently reflowing. Check the render rather than trusting the directive, and do not build a diagram whose readability rests on it.
 
 **Which renderer the reader gets, unless you pin it —** pin the layout engine in front matter on every checked-in diagram:
 
@@ -79,7 +79,7 @@ Left unpinned, a preview extension, a hosted renderer and a local CLI can each p
 
 The trap table covers what has already bitten this project. For anything else, the upstream documentation is the place to look: the flowchart syntax, and a diagram's front matter configuration, at the version `specs/methodology/external-references.md § External References [Name: Mermaid]` pins, and the pages it links to.
 
-Treat what you find there as a candidate, not an answer. Documented behaviour and observed behaviour diverge often enough to matter: the `direction` keyword inside a subgraph is documented as being ignored when any of that subgraph's nodes link outside it, and one engine honours it anyway while another does not, so a diagram can look correct and be one renderer away from reflowing. Invisible links are documented as altering node positioning, and testing showed they do nothing at all to subgraph placement. Both of those cost less to test than to argue about. Render it and look.
+Treat what you find there as a candidate, not an answer. Documented behavior and observed behavior diverge often enough to matter: the `direction` keyword inside a subgraph is documented as being ignored when any of that subgraph's nodes link outside it, and one engine honors it anyway while another does not, so a diagram can look correct and be one renderer away from reflowing. Invisible links are documented as altering node positioning, and testing showed they do nothing at all to subgraph placement. Both of those cost less to test than to argue about. Render it and look.
 
 ## Embedding hazard
 
@@ -91,7 +91,7 @@ That renders a phantom node containing the literal backticks and quote, both in 
 
 ## Draw structure, not lists
 
-A diagram's job is showing relationships. A group of nodes with no edges between them has no relationships to show, so it is a list, and drawing a list as separate boxes spends heavy visual weight on something carrying no structural information, crowding out the parts that do. Collapse it into one node whose label names the members, and the diagram gets smaller, reads faster, and stops depending on layout behaviour you cannot control, since unconnected nodes are exactly what a layout engine stacks wherever it likes.
+A diagram's job is showing relationships. A group of nodes with no edges between them has no relationships to show, so it is a list, and drawing a list as separate boxes spends heavy visual weight on something carrying no structural information, crowding out the parts that do. Collapse it into one node whose label names the members, and the diagram gets smaller, reads faster, and stops depending on layout behavior you cannot control, since unconnected nodes are exactly what a layout engine stacks wherever it likes.
 
 The check: if you deleted the edges between a set of nodes and lost nothing, they were never a structure.
 
@@ -100,7 +100,7 @@ The check: if you deleted the edges between a set of nodes and lost nothing, the
 Once a document set has more than one diagram, they are read as a family, and a convention that shifts between them misleads a reader who has just learned it. Check a new diagram against every existing one for:
 
 - **A concept drawn two ways —** the same cross-cutting thing was drawn with directed arrows in one diagram and undirected in another, which told a reader it flowed *into* the pipeline in one place and *out of* it in another. Pick the grammar that matches what the prose actually claims, then fix the other diagram in the same pass rather than leaving the pair inconsistent.
-- **A colour that means two things —** green established as "finished successfully" in one diagram, then reused for an intermediate output in another, teaches the reader something false the second time.
+- **A color that means two things —** green established as "finished successfully" in one diagram, then reused for an intermediate output in another, teaches the reader something false the second time.
 - **One thing under several names —** a start node called "Question asked", "A question", and "An executive question" across diagrams is as many concepts to a reader who does not already know they are one.
 - **Shape drift —** if terminals are stadiums in one diagram, they are stadiums everywhere.
 

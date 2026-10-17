@@ -18,7 +18,7 @@ Before adding a paragraph that states a general rule, check whether that rule al
 
 A form, whether a construct or a record type, is defined once, at one home, and each use of it is an instance setting only the values its definition allows, as an object sets the properties its class defines: nothing is defined at the point of use. It is `§ One Home Per Fact` applied to forms, and DRY as Andrew Hunt and David Thomas first wrote it, in "The Pragmatic Programmer": every piece of knowledge has one authoritative representation.
 
-**Knowledge, not shape —** what one definition holds is one piece of knowledge, whatever shape each use takes. A shape is one chosen view of the knowledge and decides nothing: the same knowledge in several shapes keeps one home, the other shapes kept in step with it, as `§ Keeping Specs in Step` keeps them; and different knowledge sharing a shape keeps separate definitions, so each changes on its own. Sharing a definition between two things that only look alike couples them, and the first change to one breaks the other; duplication is far cheaper than the wrong abstraction, as Sandi Metz has it.
+**Knowledge, not shape —** what one definition holds is one piece of knowledge, whatever shape each use takes. A shape is one chosen view of the knowledge and decides nothing: the same knowledge in several shapes keeps one home, the other shapes kept in sync with it, as `§ Keeping Specs in Sync` keeps them; and different knowledge sharing a shape keeps separate definitions, so each changes on its own. Sharing a definition between two things that only look alike couples them, and the first change to one breaks the other; duplication is far cheaper than the wrong abstraction, as Sandi Metz has it.
 
 **Choosing how related things are defined —** by whether a change to one must reach the other: where every change must, they are one definition, each use an instance of it; where only some must, a base definition holds what they share, and each is a sub-definition of it, holding everything its base holds and more, as a subclass extends its class, never less; and where none need, they keep separate definitions, however alike they look. A form is never typed by its looks, as duck typing types an object: a use that leaves some of a definition's parts unused, its optional parts among them, is an instance of it, never a definition of its own, a sub-definition being earned by what it adds. An application's technical specs choose the same way, between one service or class, a base and its specializations, and separate ones.
 
@@ -84,7 +84,7 @@ A heading's title is a stable slug for whatever the section covers, not prose to
 
 A numbered heading, or one counting its children, is the heading case of `specs/methodology/spec-style.md § Ordinals and Counts`. A heading pays for it twice, since its title is also the text of every citation naming it: renumbering sections, or retitling one whose count went stale, changes those citations as well.
 
-**Bold lead-ins are not headings —** a bold lead-in (`specs/methodology/spec-style.md § Bold Lead-ins`) has none of the guarantees a heading carries, starting with enforced uniqueness, and no citation form (`§ Writing a Citation`). So a paragraph that is, or needs to be, a citation's target is authored as a child heading instead, which gets every rule this section sets rather than needing a workaround. Do not promote a lead-in to a heading pre-emptively, on the chance it might be cited; promote it only once it is cited. Entries that exist to be cited are records instead (`specs/methodology/modeling-constructs.md § Constructs § Record Form`).
+**Bold lead-ins are not headings —** a bold lead-in (`specs/methodology/spec-style.md § Bold Lead-ins`) has none of the guarantees a heading carries, starting with enforced uniqueness, and no citation form (`§ Writing a Citation`). So a paragraph that is, or needs to be, a citation's target is authored as a child heading instead, which gets every rule this section sets rather than needing a workaround. Do not promote a lead-in to a heading preemptively, on the chance it might be cited; promote it only once it is cited. Entries that exist to be cited are records instead (`specs/methodology/modeling-constructs.md § Constructs § Record Form`).
 
 ## Writing a Citation
 
@@ -190,15 +190,15 @@ External Reference is a record type (`specs/methodology/modeling-constructs.md �
 | Relation | no | yes | | "adopts", "maps onto" | how the canon relies on it: `adopts`, the canon's forms being the standard's own; or `maps onto`, the canon's forms being its own, each mapping onto one of the standard's, and the canon's rules holding wherever they differ |
 | Covers | no | yes | | text | the part of the standard the canon relies on |
 
-## Keeping Specs in Step
+## Keeping Specs in Sync
 
-A change reaches more than the facts it edits: each materialized view restating them, and the counterpart drawing their subject from the other perspective. None of these keeps itself current, so each place a change reaches is checked for a matching update, this section's children saying what each kind is kept in step with.
+A change reaches more than the facts it edits: each materialized view restating them, and the counterpart drawing their subject from the other perspective. None of these keeps itself current, so each place a change reaches is checked for a matching update, this section's children saying what each kind is kept in sync with.
 
 ### Materialized Views
 
-A materialized view (`specs/methodology/glossary.md`), never a second home, is kept in step with its sources, the homes of what it restates:
+A materialized view (`specs/methodology/glossary.md`), never a second home, is kept in sync with its sources, the homes of what it restates:
 
-**A directory's own `architecture.md` —** its sources are the files in its directory and in every directory beneath it, and what `specs/methodology/spec-placement.md § What an Overview Describes` names beyond it (`specs/methodology/spec-placement.md § Index, Architecture, Detail`); everything it restates of them, in its prose, its citations and its mapping tables, and everything it connects among them, is kept in step with them.
+**A directory's own `architecture.md` —** its sources are the files in its directory and in every directory beneath it, and what `specs/methodology/spec-placement.md § What an Overview Describes` names beyond it (`specs/methodology/spec-placement.md § Index, Architecture, Detail`); everything it restates of them, in its prose, its citations and its mapping tables, and everything it connects among them, is kept in sync with them.
 
 **A diagram, wherever it sits —** its sources are explicit, the sections and records its Sources list names, each of which names it back (`specs/methodology/modeling-constructs.md § Diagrams`).
 

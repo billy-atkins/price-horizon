@@ -15,7 +15,7 @@
 
 ## Design Goals
 
-{`Not yet stated.` until the user agrees the goals; then:}
+{`Not yet stated.` until the user agrees on the goals; then:}
 
 **Records:**
 
@@ -68,7 +68,7 @@ becomes:
 
 {this section only in a canon design}
 
-{each application file and section left out of step, and what the application work must do there, or none found; and how the review was done}
+{each application file and section left out of sync, and what the application work must do there, or none found; and how the review was done}
 
 ## The Builder's Passes
 

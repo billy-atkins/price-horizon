@@ -78,7 +78,7 @@ A definition leaving a member to its instances may narrow it by a row of its own
 
 **The block —** the `**Construct:**` field (`§ Fields`) opens a paragraph of its own before the construct's first table. The fields a construct sets for itself, a Decision Table's `**Hit Policy:**` or an Algorithm's `**Inputs:**` and `**Output:**`, follow it in the order the tables of the interfaces it implements give the members its instances declare, in its Implements' order, and then its own section's table, a member its own table narrows taking its place there, each opening a paragraph of its own, and its tables follow them. The declaration, its fields and its tables make one block, ending with the last table its form gives, nothing else sitting among them but a `**Table Name:**` opening one of its tables, directly before that table (`§ Constructs § Tabular Construct`, `specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text`).
 
-**One construct to a section —** a section holds at most one declared construct of its own, not counting its subsections', so a citation of the section names the construct. Whatever prose the section needs sits between its heading and the `**Construct:**` field, or after the construct's last table, never inside its block, and another construct, a Constraint on an Algorithm's output say, takes a section of its own. A construct's multiple tables, a State Machine's States and Transitions, are one construct, and a Basic Table, such as a definition, an index or a catalogue, may sit beside it, a citation of a part naming the one table its key's columns or its path reach (`§ Constructs § Keyed Construct`).
+**One construct to a section —** a section holds at most one declared construct of its own, not counting its subsections', so a citation of the section names the construct. Whatever prose the section needs sits between its heading and the `**Construct:**` field, or after the construct's last table, never inside its block, and another construct, a Constraint on an Algorithm's output say, takes a section of its own. A construct's multiple tables, a State Machine's States and Transitions, are one construct, and a Basic Table, such as a definition, an index or a catalog, may sit beside it, a citation of a part naming the one table its key's columns or its path reach (`§ Constructs § Keyed Construct`).
 
 #### Fact
 
@@ -194,7 +194,7 @@ What a construct whose instances' parts are cited shares: a part of an instance 
 
 **Checks —** a part's key value left blank, two parts of one table or record section sharing their key's values, a value a citation names holding `§`, `;` or `]`, two or more tables in one section whose keys are declared by the same columns, unless all but one declare a distinct Table Name, a definition's Reference Key giving no path to a column of each place where its instances keep their keys in more than one, and a citation written as no key its construct has, or matching no part, are reported.
 
-**Key or a path to it —** a construct whose instances keep their keys in one place is cited by its key alone, `[Name: Session Timeout]`; one keeping them in more than one place, multiple keyed tables or nested constructs, by a path to the key, its levels joined by dots, `one.two.three.key`, in its Reference Key, an item to each place its keys are kept, in the order they come, and in every citation of one of its parts, `[Table.Key: value]`. It is JSONPath's dot notation for a member's name (`specs/methodology/external-references.md § External References [Name: JSONPath]`), naming the path to the key and nothing more, as a column qualified by its table is written. Each level is a field label, the name its definition or its `**Table Name:**` gives the place, or the key, so the dots always part the levels. A citation names one table in its section: a declared construct keeping its keys in one place by its key alone, a Table Name it declares only labelling its table for a reader, a Basic Table declaring no Table Name by its key's columns, and a Basic Table declaring one, or a table a definition names, by the path its name and its key make, `[Terms.Term: …]`, as a State Machine's states are cited; of two or more tables in one section whose keys are declared by the same columns, by a Reference Key or by a definition naming its tables, all but one declare a distinct Table Name (`§ Constructs § Tabular Construct`), or stand in sections of their own; a table keyed by its form, a table of fields or a `Column | Holds` table (`§ Constructs § Construct`, `§ Constructs § Tabular Construct`), has no row cited and takes no part in it.
+**Key or a path to it —** a construct whose instances keep their keys in one place is cited by its key alone, `[Name: Session Timeout]`; one keeping them in more than one place, multiple keyed tables or nested constructs, by a path to the key, its levels joined by dots, `one.two.three.key`, in its Reference Key, an item to each place its keys are kept, in the order they come, and in every citation of one of its parts, `[Table.Key: value]`. It is JSONPath's dot notation for a member's name (`specs/methodology/external-references.md § External References [Name: JSONPath]`), naming the path to the key and nothing more, as a column qualified by its table is written. Each level is a field label, the name its definition or its `**Table Name:**` gives the place, or the key, so the dots always part the levels. A citation names one table in its section: a declared construct keeping its keys in one place by its key alone, a Table Name it declares only labeling its table for a reader, a Basic Table declaring no Table Name by its key's columns, and a Basic Table declaring one, or a table a definition names, by the path its name and its key make, `[Terms.Term: …]`, as a State Machine's states are cited; of two or more tables in one section whose keys are declared by the same columns, by a Reference Key or by a definition naming its tables, all but one declare a distinct Table Name (`§ Constructs § Tabular Construct`), or stand in sections of their own; a table keyed by its form, a table of fields or a `Column | Holds` table (`§ Constructs § Construct`, `§ Constructs § Tabular Construct`), has no row cited and takes no part in it.
 
 #### Part Identifier
 
@@ -871,12 +871,12 @@ Authored as a numbered table of steps, its columns each headed by a field label:
 
 **Order —** a result that could depend on an order states it, as the Order field has it (`§ Constructs § Ordered Construct`), a loop's order with its ties broken, and a remainder's share given by the order that takes it.
 
-**A worked example —** a schedule's instalments, each period given its share of the rate by a Decision Table, in a system holding 19 significant digits and rounding money half up, written whole as a file would hold it:
+**A worked example —** a schedule's installments, each period given its share of the rate by a Decision Table, in a system holding 19 significant digits and rounding money half up, written whole as a file would hold it:
 
 ```markdown
-### Instalments
+### Installments
 
-A schedule's instalments, each period's share of the rate applied to its balance, and the total still due.
+A schedule's installments, each period's share of the rate applied to its balance, and the total still due.
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 
@@ -900,9 +900,9 @@ A schedule's instalments, each period's share of the rate applied to its balance
 |---|---|
 | 1 | For each period of periods, by period.number ascending, gathering period into periods: steps 2 to 4 |
 | 2 | Run `§ Period Share` with Days as (period.due date - period.from date).days, with Annual rate as rate, giving Share as share |
-| 3 | Set instalment to balance(period) * share |
-| 4 | Set period.instalment to instalment |
-| 5 | Set total due to sum(for p in periods[not(settled(item))] return p.instalment) |
+| 3 | Set installment to balance(period) * share |
+| 4 | Set period.installment to installment |
+| 5 | Set total due to sum(for p in periods[not(settled(item))] return p.installment) |
 | 6 | End |
 
 #### Facts
@@ -910,13 +910,13 @@ A schedule's instalments, each period's share of the rate applied to its balance
 **Records:**
 
 - **Name:** periods
-  **Type:** list<context<number: number, from date: date, due date: date, instalment: number>>
+  **Type:** list<context<number: number, from date: date, due date: date, installment: number>>
   **Means:** the schedule's periods, in order
 
-- **Name:** instalment
+- **Name:** installment
   **Type:** number
   **Decimal Places:** 2
-  **Means:** a period's instalment, held to cents
+  **Means:** a period's installment, held to cents
 
 - **Name:** balance
   **Type:** function<context> -> number
@@ -925,7 +925,7 @@ A schedule's instalments, each period's share of the rate applied to its balance
 
 - **Name:** settled
   **Type:** function<context> -> boolean
-  **Derivation:** function(period) period.instalment = 0
+  **Derivation:** function(period) period.installment = 0
   **Means:** whether a period has nothing left to pay
 ```
 
@@ -1010,54 +1010,54 @@ Authored as a table, its columns each headed by a field label:
 
 **An approximation —** a rule bounding an approximation states the bound as the rule, `abs({computed} - {intended}) <= {tolerance}`, Enforced By the step that approximates.
 
-**A worked example —** a schedule's instalments, a payment settling one, written whole as a file would hold it: an invariant over every instalment, a postcondition of the settlement reading its Output and a before-value, and a stored total the system derives and keeps only by a nightly job, a warning:
+**A worked example —** a schedule's installments, a payment settling one, written whole as a file would hold it: an invariant over every installment, a postcondition of the settlement reading its Output and a before-value, and a stored total the system derives and keeps only by a nightly job, a warning:
 
 ```markdown
-## Instalment Settlement
+## Installment Settlement
 
-A payment received, settled against its instalment up to what is due.
+A payment received, settled against its installment up to what is due.
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 
 **Inputs:**
 
-- instalment
+- installment
 - payment
 
 **Output:**
 
-- instalment
+- installment
 
 **Runs When:** a payment is received
 
 | Step | Action |
 |---|---|
-| 1 | Set instalment.paid to min(instalment.paid + payment, instalment.due) |
+| 1 | Set installment.paid to min(installment.paid + payment, installment.due) |
 | 2 | End |
 
 ## Settlement Rules
 
-What holds of a schedule's instalments as payments settle them.
+What holds of a schedule's installments as payments settle them.
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Constraint`
 
 | Constraint | Applies To | Enforced By |
 |---|---|---|
-| every i in instalments satisfies i.paid <= i.due | always | `§ Instalment Settlement [Step: 1]` |
-| instalment.paid >= paid before | after `§ Instalment Settlement` | `§ Instalment Settlement [Step: 1]` |
-| schedule.total paid = sum(for i in instalments return i.paid) | always | nothing: the total is written by a nightly job and lags the instalments between its runs |
+| every i in installments satisfies i.paid <= i.due | always | `§ Installment Settlement [Step: 1]` |
+| installment.paid >= paid before | after `§ Installment Settlement` | `§ Installment Settlement [Step: 1]` |
+| schedule.total paid = sum(for i in installments return i.paid) | always | nothing: the total is written by a nightly job and lags the installments between its runs |
 
 ## Facts
 
 **Records:**
 
-- **Name:** instalments
+- **Name:** installments
   **Type:** list<context<due: number, paid: number>>
-  **Means:** the schedule's instalments, each with what it is due and what has been paid of it
+  **Means:** the schedule's installments, each with what it is due and what has been paid of it
 
-- **Name:** instalment
+- **Name:** installment
   **Type:** context<due: number, paid: number>
-  **Means:** the instalment a payment settles
+  **Means:** the installment a payment settles
 
 - **Name:** payment
   **Type:** number
@@ -1065,7 +1065,7 @@ What holds of a schedule's instalments as payments settle them.
 
 - **Name:** paid before
   **Type:** number
-  **Means:** what the instalment had paid as the settlement began
+  **Means:** what the installment had paid as the settlement began
 
 - **Name:** schedule
   **Type:** context<total paid: number>
@@ -1211,7 +1211,7 @@ A status a work order can hold, the set the product owner settles before, and ap
   **Description:** carried out and signed off
   **Code:** WO-DONE
 
-- **Name:** Cancelled
+- **Name:** Canceled
   **Description:** withdrawn before it was carried out
   **Code:** WO-CANC
 
@@ -1239,16 +1239,16 @@ The workflow of a work order raised through the portal.
 | Open | `§ Work Order Statuses [Name: Open]`, waiting in the portal's queue for a dispatcher | Yes | No |
 | Assigned | `§ Work Order Statuses [Name: Assigned]`, its technician notified by the portal | No | No |
 | Completed | `§ Work Order Statuses [Name: Completed]` | No | Yes |
-| Cancelled | `§ Work Order Statuses [Name: Cancelled]` | No | Yes |
+| Canceled | `§ Work Order Statuses [Name: Canceled]` | No | Yes |
 
 **Table Name:** Transitions
 
 | From | To | Trigger |
 |---|---|---|
 | Open | Assigned | a dispatcher assigns it |
-| Open | Cancelled | the requester cancels it |
+| Open | Canceled | the requester cancels it |
 | Assigned | Completed | the technician signs it off |
-| Assigned | Cancelled | the requester cancels it |
+| Assigned | Canceled | the requester cancels it |
 ```
 
 The statuses are records, not a Basic Table's rows, since Is Active takes a default and is held to its Values, and Code is unique on its own (`§ When to Use Which § A Table's Construct`). The defining section, titled with the type's name, declares it, its Plural Name titling the record section and its Reference Key, Name, what a citation of a status names; Code is unique on its own, never cited. On Hold writes Is Active, where it differs from its default. The fact's Values cite the record section, so its values are the statuses' Names, and the State Machine recorded in it uses all but the retired On Hold, each state's description opening with its status's record and then saying what goes on in it in this workflow.
@@ -1345,7 +1345,7 @@ What each question asks its author:
 
 ### A Configured Instance
 
-An instance of a construct implementing `§ Constructs § Configured Construct` may be a configured instance: its rows, its states and transitions or its steps are data the system stores and its users change, held in the facts its `Held In` field names, the tables written being an example instance, which shows the data's shape and is checked as the data is, never one the system falls back to; a process whose tasks or their order are data is an Algorithm over that data, as `§ Constructs § DAG` has it. It is chosen by its shape as any other is, these questions asked of what the data does, never of the data's being stored: a value a rule reads, a setting, a threshold or a record's field, is an input and never structure; and records the system generates from its configuration are an Algorithm's Output, each then a run of the construct its shape chooses. Logic a deployment supplies as code, or chooses among by a setting, is written as its default, an Algorithm run where it is used, running a Decision Table where one decides, its contract a Constraint `before` and `after` the Algorithm (`§ Constructs § Constraint`) and its section's prose saying another may be supplied; a choice among built-in ones by a setting is a Decision Table over the setting, the setting an input. An instance is checked, as it is saved, as the written construct is, and one the checks would report is turned away; the section holding the construct says so, since a check made only of the written example is no check of the instances. An instance someone outside the system's authors owns, a clinic's own form or a tenant's own catalogue, is a specification its owner keeps, and the system's spec states what every instance obeys.
+An instance of a construct implementing `§ Constructs § Configured Construct` may be a configured instance: its rows, its states and transitions or its steps are data the system stores and its users change, held in the facts its `Held In` field names, the tables written being an example instance, which shows the data's shape and is checked as the data is, never one the system falls back to; a process whose tasks or their order are data is an Algorithm over that data, as `§ Constructs § DAG` has it. It is chosen by its shape as any other is, these questions asked of what the data does, never of the data's being stored: a value a rule reads, a setting, a threshold or a record's field, is an input and never structure; and records the system generates from its configuration are an Algorithm's Output, each then a run of the construct its shape chooses. Logic a deployment supplies as code, or chooses among by a setting, is written as its default, an Algorithm run where it is used, running a Decision Table where one decides, its contract a Constraint `before` and `after` the Algorithm (`§ Constructs § Constraint`) and its section's prose saying another may be supplied; a choice among built-in ones by a setting is a Decision Table over the setting, the setting an input. An instance is checked, as it is saved, as the written construct is, and one the checks would report is turned away; the section holding the construct says so, since a check made only of the written example is no check of the instances. An instance someone outside the system's authors owns, a clinic's own form or a tenant's own catalog, is a specification its owner keeps, and the system's spec states what every instance obeys.
 
 ### Combining Constructs
 
@@ -1392,7 +1392,7 @@ Nothing else is in its section, and its shape is the same wherever it appears, a
 **A diagram and its sources cite each other —**
 
 - **The diagram lists its sources —** the Sources field cites the home of everything the diagram draws, a box, an arrow, or a label on either, in the same file or another. Each is cited at that fact's single home (`specs/methodology/sourcing-and-citation.md § One Home Per Fact`), at the most specific section or record whose own text states it: a child section rather than its parent where the child states it, and never a test scenario. A box naming a grouping draws the grouping, not its members, unless the diagram names them too. A summary restating a fact, an overview's included, is a materialized view of that home just as the diagram is, so it is not a source. A section stating something found nowhere else, as an overview's connecting prose can, is that fact's home, and is one. Together the citations are as specific as they can be without leaving out anything the diagram uses. This is so a reader can go deeper: nothing on the picture can carry a citation of its own, so the list is the way from it to the checkable detail, and the more specific each citation, the less a reader wades through to find what a box stands for. It is also so the diagram can be checked: an agent confirming that the picture represents its sources correctly reads exactly what it draws on, and nothing it does not.
-- **Each source cites the diagram back —** every listed section cites the diagram's heading in its own text, not in a section nested inside it, in a sentence such as "`<the diagram's heading>` renders this." A record section, or a record, listed among a diagram's Sources cites it in the record section's `**Diagrams:**` field instead (`§ Constructs § Record Form`). This is so the diagram is kept in step: whoever edits a source is the reader who must re-check the diagram, and the citation in the source is what names the diagram to them.
+- **Each source cites the diagram back —** every listed section cites the diagram's heading in its own text, not in a section nested inside it, in a sentence such as "`<the diagram's heading>` renders this." A record section, or a record, listed among a diagram's Sources cites it in the record section's `**Diagrams:**` field instead (`§ Constructs § Record Form`). This is so the diagram is kept in sync: whoever edits a source is the reader who must re-check the diagram, and the citation in the source is what names the diagram to them.
 
 A section may be listed only where it may cite the diagram's file and be cited by it, per `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`, so a diagram draws a fact only from a section able to name it back: a technical diagram draws a product fact from the technical section stating how it is made true, never from the product file.
 

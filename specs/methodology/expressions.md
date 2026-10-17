@@ -31,7 +31,7 @@ Each value is of one type, and the types never overlap (DMN 10.3.2.1, 10.3.2.3):
 
 | Type | Written | What It Holds |
 |---|---|---|
-| number | `12`, `-0.5`, `1.2e3` | a decimal of up to 34 significant digits, rounded to the nearest, a tie to the even neighbour; no infinity and no not-a-number, `null` standing for either; `1` and `1.00` equal (DMN 10.3.2.3.1) |
+| number | `12`, `-0.5`, `1.2e3` | a decimal of up to 34 significant digits, rounded to the nearest, a tie to the even neighbor; no infinity and no not-a-number, `null` standing for either; `1` and `1.00` equal (DMN 10.3.2.3.1) |
 | string | `"Gold"`, a backslash before a quote, an apostrophe, a backslash, `n`, `r`, `t`, or a `u` and a code point | a sequence of characters (DMN 10.3.2.3.2) |
 | boolean | `true`, `false` | a yes or a no (DMN 10.3.2.3.3) |
 | date | `date("2024-07-01")`, `@"2024-07-01"`, `date(2024, 7, 1)` | a year, a month and a day of the Gregorian calendar (DMN 10.3.2.3.5, Table 79) |
@@ -111,7 +111,7 @@ A unary test is what a Decision Table's condition cell, an Input Values item and
 
 Numbers add, subtract, multiply and divide exactly to 34 significant digits, a division by zero or a result too large or too small to hold giving `null`; `decimal` and the rounding functions of `§ Expressions § FEEL § Its Functions` give a number the decimal places they are asked for (DMN Tables 57, 59, 60 and 76). Two strings added are joined, the first then the second (DMN Table 57).
 
-**A system's own arithmetic —** FEEL's numbers hold 34 significant digits, rounded to the nearest, a tie to the even neighbour, as `§ Expressions § FEEL § Its Values` states: IEEE 754's decimal128 (DMN 10.3.2.3.1; `specs/methodology/external-references.md § External References [Name: IEEE 754]`). A system computing otherwise is specified by what follows, a departure, DMN fixing FEEL's context where this lets a construct state another:
+**A system's own arithmetic —** FEEL's numbers hold 34 significant digits, rounded to the nearest, a tie to the even neighbor, as `§ Expressions § FEEL § Its Values` states: IEEE 754's decimal128 (DMN 10.3.2.3.1; `specs/methodology/external-references.md § External References [Name: IEEE 754]`). A system computing otherwise is specified by what follows, a departure, DMN fixing FEEL's context where this lets a construct state another:
 
 - **A precision and a rounding mode —** a construct whose section gives the fields states the significant digits its system holds each operation's result to, and the mode it rounds by; each operation's result is then rounded to the decimal places that many significant digits leave, by the mode's function. An operation is each arithmetic operator applied, and each step a function aggregating numbers takes, as `sum` adds and `product` multiplies its items one by one in their order, each result rounded.
 - **Decimal places —** a value written to a fact whose Facts record states its decimal places (`specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact`) is rounded to them by the writing construct's rounding mode, half even where it states none, a Decision Table's outcome among the values written; DMN's item definitions round nothing, so this too departs from DMN. A part of a fact holds no decimal places of its own, so money a step computes by multiplying or dividing is written to a fact holding them before a part takes it; a sum or difference of money already held to them, or money a function gives, needs none.
@@ -119,11 +119,11 @@ Numbers add, subtract, multiply and divide exactly to 34 significant digits, a d
 
 **Reference Key:** Mode
 
-**Required:** Rounds As, A Tie Or Any Value Between Neighbours
+**Required:** Rounds As, A Tie Or Any Value Between Neighbors
 
-| Mode | Rounds As | A Tie Or Any Value Between Neighbours |
+| Mode | Rounds As | A Tie Or Any Value Between Neighbors |
 |---|---|---|
-| half even | `decimal` | to the nearest, a tie to the even neighbour |
+| half even | `decimal` | to the nearest, a tie to the even neighbor |
 | half up | `round half up` | to the nearest, a tie away from zero |
 | half down | `round half down` | to the nearest, a tie toward zero |
 | up | `round up` | away from zero |
@@ -215,7 +215,7 @@ Every function FEEL builds in, each called by its name and its arguments in pare
 | median | list | number | the middle number once sorted, or the mean of the two middle ones; also given its items as arguments (DMN Table 75) |
 | stddev | list | number | the sample standard deviation, `null` for fewer than two; also given its items as arguments (DMN Table 75) |
 | mode | list | list | the numbers occurring most, ascending; also given its items as arguments (DMN Table 75) |
-| decimal | n, scale | number | it to that many decimal places, a tie to the even neighbour (DMN Table 76) |
+| decimal | n, scale | number | it to that many decimal places, a tie to the even neighbor (DMN Table 76) |
 | floor | n, scale? | number | it rounded down, to that many decimal places where given (DMN Table 76) |
 | ceiling | n, scale? | number | it rounded up, to that many decimal places where given (DMN Table 76) |
 | round up | n, scale | number | it rounded away from zero to that many decimal places (DMN Table 76) |

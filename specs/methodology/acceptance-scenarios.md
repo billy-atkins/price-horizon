@@ -48,7 +48,7 @@ A guarantee stated only in a cross-cutting file, rather than in one capability's
 
 **A cross-cutting capability —** one available within other capabilities, along dimensions of its own, needs no different scenario shape, only more scenarios: each dimension's own stated promise and its own stated boundary gets the same treatment as any other capability's. Where such a capability acts on a result that already exists rather than producing a first one, its `Given` states that prior result as a precondition before the `When` acts on it.
 
-## Keeping a Scenario and Its Prose in Step
+## Keeping a Scenario and Its Prose in Sync
 
 Editing a capability's stated promises or guardrails and editing that capability's scenarios happen in the same pass. A promise that changes without its scenario changing, or a scenario left behind after the promise it tested was removed, is exactly the drift this convention prevents.
 

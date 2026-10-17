@@ -1,6 +1,6 @@
 ## Predict Computation
 
-The mechanism that turns retrieved evidence into a forecasted effective price, driver-by-driver correction, and confidence score. Both the materialization service (`specs/application/technical/materialization-service/forecast-materialization.md § Forecast materialization`, in batch, across the configured grid) and the query service (`specs/application/technical/query-service/intent-and-retrieval.md § Dynamic Retrieval and Weighting (when the question is asked)`, live, for a query falling outside that grid) invoke this same computation, the live path on the terms `specs/application/technical/materialization-service/forecast-materialization.md § Forecast materialization` sets for falling back to it.
+The mechanism that turns retrieved evidence into a forecast effective price, driver-by-driver correction, and confidence score. Both the materialization service (`specs/application/technical/materialization-service/forecast-materialization.md § Forecast materialization`, in batch, across the configured grid) and the query service (`specs/application/technical/query-service/intent-and-retrieval.md § Dynamic Retrieval and Weighting (when the question is asked)`, live, for a query falling outside that grid) invoke this same computation, the live path on the terms `specs/application/technical/materialization-service/forecast-materialization.md § Forecast materialization` sets for falling back to it.
 
 `specs/application/technical/architecture.md § Architecture Overview § Diagrams § Layer Composition`, `specs/application/technical/architecture.md § Architecture Overview § Diagrams § From Evidence to Answer` and `specs/application/technical/architecture.md § Architecture Overview § Diagrams § The Answer` render this.
 
@@ -29,15 +29,15 @@ The baseline, computed by forecast materialization in `specs/application/technic
 
 **Inputs:** the competitor's historical effective price series and current effective price, the signals routed here, and the business unit's dead-zone threshold
 
-**Output:** the baseline: its forecasted effective price, its move and direction, and its lower- and upper-bound offsets
+**Output:** the baseline: its forecast effective price, its move and direction, and its lower- and upper-bound offsets
 
 | Step | Action |
 |---|---|
 | 1 | Decompose the competitor's historical effective price series into its list price and promotional depth components |
 | 2 | Forecast list price on a trend-and-seasonality baseline, adjusted for any signal routed here with event type announced price change |
 | 3 | Forecast promotional depth on a cadence model calibrated to the competitor's own historical promotional calendar, adjusted for any signal routed here with event type promotional calendar change |
-| 4 | Recombine both forecasts into a forecasted effective price at the horizon, the baseline's, whose move and direction steps 5 and 6 set |
-| 5 | Compute the baseline move as step 4's forecasted effective price minus current effective price |
+| 4 | Recombine both forecasts into a forecast effective price at the horizon, the baseline's, whose move and direction steps 5 and 6 set |
+| 5 | Compute the baseline move as step 4's forecast effective price minus current effective price |
 | 6 | If the size of the baseline move, as a share of current effective price, falls under the dead-zone threshold, roughly half a percent, set the baseline's direction to stable; otherwise, set it to the sign of the baseline move |
 | 7 | Combine both models' own declared confidence intervals into the baseline's lower- and upper-bound offsets: sum both models' own lower-bound offsets from their respective point estimates to get the baseline's lower-bound offset, and separately sum their own upper-bound offsets to get the upper-bound offset, computed independently on each side so an asymmetric model interval, a wider upside than downside, carries through correctly rather than being averaged into a symmetric one. Both offsets are already in the same resolved currency step 1 decomposed them from, list price and promotional depth are components of one currency-denominated effective price series, so no conversion is needed before combining them. Summing offsets directly, rather than a statistical convolution, makes no assumption about either model's own underlying distribution, something neither model's registry entry declares; it is a defensible, if conservative, upper bound on the combined uncertainty, not a precise calculation neither declared interval alone actually supports. End |
 

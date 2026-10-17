@@ -401,7 +401,7 @@ def check_kind(design, root):
 
 def check_stack(folder):
     """-> (report lines, [(file name, problem)]): the workstack each design document's
-    Spawned By and Depends On draw, and where its Status is out of step with what it
+    Spawned By and Depends On draw, and where its Status is out of sync with what it
     depends on, per working-files.md § A Design Document."""
     read = read_designs(folder)
     designs = {name: dict(fields) for name, fields, _, _ in read}
@@ -734,6 +734,11 @@ def edited(design_text, path):
     return [t for t in (after, before) if t is not None]
 
 
+def fenced(text, at):
+    """-> whether a position in text lies inside a fenced code block, by the fences opened before its line."""
+    return sum(1 for l in text[:at].split("\n")[:-1] if l.startswith("```")) % 2 == 1
+
+
 def citation_problems(design):
     """-> a problem for each citation the design document holds, its steers and its passes aside, which tell history,
     that resolves neither in the files as they stand nor in its file as the design's own edits leave it, while its
@@ -764,12 +769,19 @@ def citation_problems(design):
             continue
         out.append("a citation does not resolve: %s § %s" % (path, target))
     # a citation within one file names no path, so it resolves in the file the edit quoting it changes; a fenced
-    # example's citations name the example's own file, so they are left alone
+    # example's citations name the example's own file, so they are left alone, the fence read from the file as the
+    # edit leaves it, since a quote may open inside one
     for _, f, _, new in quoted(text):
         if not f.endswith(".md"):
             continue
-        found = set().union(*map(lineages, edited(text, f)))
-        for m in SAME_FILE_CITATION.finditer(re.sub(r"^```.*?^```[^\n]*$", "", new, flags=re.M | re.S)):
+        texts = edited(text, f)
+        found = set().union(*map(lineages, texts))
+        after = texts[0] if texts else new
+        at = after.find(new) if after.count(new) == 1 else -1
+        for m in SAME_FILE_CITATION.finditer(new):
+            inside = fenced(after, at + m.start()) if at >= 0 else fenced(new, m.start())
+            if inside:
+                continue
             target = re.sub(r'\s+\[[^\]]*\]$', '', " ".join(m.group("target").split()))
             if target not in found:
                 out.append("a citation does not resolve: %s § %s" % (f, target))
@@ -1154,7 +1166,7 @@ FLAGS = (
     ("--check-design", "DESIGN", check_design,
      "run every check on one design document: its form, its Target's kind, its quoted edits applying, its citations resolving, and its place in the workstack"),
     ("--check-workstack", "PLANS_DIR", check_workstack,
-     "report what is out of step in the workstack: a Status out of step with what a design depends on, a Depends On naming no design, and a loop; reads the skill's plans folder, and those beside it, unless given a directory"),
+     "report what is out of sync in the workstack: a Status out of sync with what a design depends on, a Depends On naming no design, and a loop; reads the skill's plans folder, and those beside it, unless given a directory"),
     ("--show-workstack", "PLANS_DIR", show_workstack,
      "draw the workstack and list what to work next, what is blocked and what may be deleted; reads the skill's plans folder, and those beside it, unless given a directory"),
     ("--show-validation", "DESIGN", show_validation,
