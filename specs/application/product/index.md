@@ -15,4 +15,4 @@
 | `tenant-administration/` | The client's own self-service configuration, review, and record-visibility surface. See `tenant-administration/index.md`. |
 | `identity-and-access/` | How using and administering are kept apart, how access federates to the customer's own identity provider, and how an Identity admin grants it. See `identity-and-access/index.md`. |
 | `platform-and-compliance-operations/` | Deployment, versioning, and onboarding verification. See `platform-and-compliance-operations/index.md`. |
-| `logging-and-traceability.md` | The different records PriceHorizon keeps about itself, audit log, application log, and answer lineage, what each answers and for whom, and why they are kept apart |
+| `logging-and-traceability.md` | The different records PriceHorizon keeps about itself (audit log, application log, and answer lineage), what each answers and for whom, and why they are kept apart |

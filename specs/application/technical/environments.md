@@ -1,6 +1,6 @@
 ## Environments
 
-Where PriceHorizon is built, tested and run, each environment stating only what differs from the technical stack ([`specs/application/technical/stack.md § Technical Stack`](/specs/application/technical/stack.md#technical-stack)).
+These are the environments where PriceHorizon is built, tested and run. Each environment states only what differs from the technical stack ([`specs/application/technical/stack.md § Technical Stack`](/specs/application/technical/stack.md#technical-stack)).
 
 ### Local
 
@@ -8,9 +8,9 @@ Where PriceHorizon is built, tested and run, each environment stating only what 
 
 **What it is for.** A developer, or an agent writing code, builds, runs and tests the whole system on their own machine.
 
-**Where it runs.** A developer's own machine, running Windows, macOS or Linux, every dependency in a container.
+**Where it runs.** A developer's own machine, running Windows, macOS or Linux, with every dependency in a container.
 
-**What differs from the stack.** Ollama serves Acme AI's language models in place of vLLM; Keycloak stands in for the customer's own identity provider, over OIDC; Docker runs every dependency as a container, Aspire's host starting them; and no kind of model call reaches a frontier model provider unless the developer's own configuration names one.
+**What differs from the stack.** Ollama serves Acme AI's language models in place of vLLM. Keycloak stands in for the customer's own identity provider, over OIDC. Docker runs every dependency as a container, and Aspire's host starts them. No kind of model call reaches a frontier model provider unless the developer's own configuration names one.
 
 **What data it holds.** Synthetic data only, never a customer's.
 
@@ -55,7 +55,7 @@ Where PriceHorizon is built, tested and run, each environment stating only what 
 
 **Where it runs.** GitHub Actions' hosted runners: Windows, macOS and Linux.
 
-**What differs from the stack.** GitHub Actions runs it; on its Linux runner, the only one running Linux containers, Docker runs every dependency, Keycloak stands in for the customer's identity provider, and Ollama serves a small language model on the runner's CPU, within its memory, since hosted runners have no GPU.
+**What differs from the stack.** GitHub Actions runs it. The Linux runner is the only runner that runs Linux containers. On that runner, Docker runs every dependency and Keycloak stands in for the customer's identity provider. Ollama serves a small language model on that runner's CPU, within the runner's memory, because hosted runners have no GPU.
 
 **What data it holds.** Synthetic data only, as the local environment does.
 
@@ -78,6 +78,6 @@ Where PriceHorizon is built, tested and run, each environment stating only what 
 
 **Where it runs.** The customer's own Kubernetes cluster, inside their own environment, installed and upgraded from the deployment chart.
 
-**What differs from the stack.** Kubernetes runs it; the customer's own identity provider signs people in; the vault the customer already runs, HashiCorp Vault or AWS Secrets Manager, holds its credentials through the vault adapter ([`specs/application/technical/secrets-management.md § Secrets management`](/specs/application/technical/secrets-management.md#secrets-management)), the stack's otherwise; and the Anthropic API or the OpenAI API serves only the kinds of model call the installation's configuration names ([`specs/application/technical/model-registry.md § Model registry`](/specs/application/technical/model-registry.md#model-registry)).
+**What differs from the stack.** Kubernetes runs it. The customer's own identity provider signs people in. Where the customer already runs HashiCorp Vault or AWS Secrets Manager, that vault holds PriceHorizon's credentials through the vault adapter ([`specs/application/technical/secrets-management.md § Secrets management`](/specs/application/technical/secrets-management.md#secrets-management)). Otherwise the stack's vault holds them. The Anthropic API or the OpenAI API serves only the kinds of model call the installation's configuration names ([`specs/application/technical/model-registry.md § Model registry`](/specs/application/technical/model-registry.md#model-registry)).
 
-**What data it holds.** The customer's own data, which stays inside their environment, save what the client chooses to let a frontier model provider see ([`specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology § Frontier Models`](/specs/application/product/platform-and-compliance-operations/deployment-topology.md#frontier-models)).
+**What data it holds.** The customer's own data. It stays inside the customer's environment, except what the client chooses to let a frontier model provider see ([`specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology § Frontier Models`](/specs/application/product/platform-and-compliance-operations/deployment-topology.md#frontier-models)).

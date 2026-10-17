@@ -6,7 +6,7 @@ technical-specs:
 
 ## Data Source Connections
 
-The Control plane admin role ([`specs/application/product/roles.md § Roles`](/specs/application/product/roles.md#roles)) can self-service enable and provide credentials for any data source Acme AI has already built a connector for, without Acme AI needing to be paged for a routine integration; support for a genuinely new data source type is the one exception, that is connector engineering, not day-to-day configuration. Whatever credentials the client provides get the same vault-isolation guarantee stated for Acme AI's own credentials ([`specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology`](/specs/application/product/platform-and-compliance-operations/deployment-topology.md#deployment-topology)).
+The Control plane admin role ([`specs/application/product/roles.md § Roles`](/specs/application/product/roles.md#roles)) can enable any data source Acme AI has already built a connector for, and provide the credentials for it, as a self-service action. Acme AI does not need to be paged for a routine integration. The one exception is support for a new data source type, which is connector engineering, not day-to-day configuration. Whatever credentials the client provides get the same vault-isolation guarantee stated for Acme AI's own credentials ([`specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology`](/specs/application/product/platform-and-compliance-operations/deployment-topology.md#deployment-topology)).
 
 ### Test Scenarios
 
