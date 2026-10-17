@@ -65,11 +65,14 @@ FRAME = ("Scope", "Approach", "Outcomes")
 NOT_YET_STATED = "Not yet stated."
 # @canon-spec specs/methodology/working-files.md § A Design Document
 # an edit's bold lead-in, naming the file it edits: the text it replaces then its replacement, or a new file
-EDIT_LEAD = re.compile(r"^\*\*`([^`]+)` —\*\* (this text|a new file):\s*$")
+EDIT_LEAD = re.compile(r"^\*\*`([^`]+)`\.\*\* (This text|A new file):\s*$")
 # @canon-spec specs/methodology/working-files.md § A Design Document
 # a lead-in naming a file in backticks, however many, and one naming an edit's form however it ends
 FILE_LEAD = re.compile(r"^\*\*`*([^`]*)")
-LEAD_WORDS = re.compile(r"^\*\*`[^`]+` —\*\* (this text|a new file)\b")
+LEAD_WORDS = re.compile(r"^\*\*`[^`]+`\.\*\* (This text|A new file)\b")
+# @canon-spec specs/methodology/spec-style.md § Bold Lead-ins
+# a bold phrase opening a line and closing on a period or a question mark
+LEAD_IN = re.compile(r"^\*\*[^*]+[.?]\*\* ")
 # @canon-spec specs/methodology/working-files.md § Steering Decision
 # where the Steering Decision type is declared: its fields and its Type's values are read from that declaration,
 # this tooling holding no copy of them
@@ -909,12 +912,12 @@ def quoted(text):
     for i in range(start + 1, end):
         lead = EDIT_LEAD.match(lines[i])
         if lead:
-            out.append([lead.group(1), lead.group(2) == "a new file", [], [], "old", i + 1])
+            out.append([lead.group(1), lead.group(2) == "A new file", [], [], "old", i + 1])
         elif out and lines[i].rstrip() == "becomes:" and not out[-1][1]:
             out[-1][4] = "new"
         elif out and lines[i].startswith(">"):
             out[-1][3 if out[-1][1] or out[-1][4] == "new" else 2].append(re.sub(r"^>\s?", "", lines[i]))
-        elif out and lines[i].startswith("**") and " —** " in lines[i]:
+        elif out and LEAD_IN.match(lines[i]):
             out.append([None, False, [], [], "old", i + 1])
 
     def body(quote, code):
@@ -1028,7 +1031,7 @@ def show_edits(value):
 
 def edit_form_problems(text):
     """working-files.md § A Design Document: each edit of The Design in a form that section gives,
-    `this text:` then `becomes:`, or `a new file:`; an edit in another form is reported, as is a `this text:`
+    `This text:` then `becomes:`, or `A new file:`; an edit in another form is reported, as is a `This text:`
     with no `becomes:`, since the listing reads only those forms."""
     lines = (section(text, "The Design") or "").split("\n")
     out, fenced = [], False
@@ -1040,12 +1043,12 @@ def edit_form_problems(text):
             continue
         lead = EDIT_LEAD.match(line)
         rest = lines[i + 1:]
-        if lead and lead.group(2) == "this text":
-            end = next((j for j, l in enumerate(rest) if l.startswith("**") and " —** " in l), len(rest))
+        if lead and lead.group(2) == "This text":
+            end = next((j for j, l in enumerate(rest) if LEAD_IN.match(l)), len(rest))
             if "becomes:" not in (l.rstrip() for l in rest[:end]):
                 out.append("an edit quoting the text it replaces with no becomes: " + FILE_LEAD.match(line).group(1))
         elif not lead and (LEAD_WORDS.match(line) or line.rstrip().endswith(":") and next((l for l in rest if l.strip()), "").startswith((">", "```"))):
-            out.append("an edit in neither form, this text: then becomes:, or a new file: " + FILE_LEAD.match(line).group(1))
+            out.append("an edit in neither form, This text: then becomes:, or A new file: " + FILE_LEAD.match(line).group(1))
     return out
 
 

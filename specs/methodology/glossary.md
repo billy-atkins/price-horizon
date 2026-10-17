@@ -67,23 +67,23 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 
 ## Writing an Entry
 
-**What earns an entry —** a meaning in Spec of Record that training knowledge alone would not give: a term coined by the method, overloaded with another meaning nearby, used across areas in a narrow sense, or adopted as shorthand for a principle.
+**What earns an entry.** A meaning in Spec of Record that training knowledge alone would not give: a term coined by the method, overloaded with another meaning nearby, used across areas in a narrow sense, or adopted as shorthand for a principle.
 
-**The term —** the bare term, without markup or any of its other names, listed once, the table sorted by term.
+**The term.** The bare term, without markup or any of its other names, listed once, the table sorted by term.
 
-**The definition —** it opens with its genus, the broader kind the term belongs to, a term of this glossary wherever one fits, so a term builds on the terms it rests on rather than restating them. It then states what sets the term apart, and a use it must not be mistaken for opens with `Not`.
+**The definition.** It opens with its genus, the broader kind the term belongs to, a term of this glossary wherever one fits, so a term builds on the terms it rests on rather than restating them. It then states what sets the term apart, and a use it must not be mistaken for opens with `Not`.
 
-**A borrowed term —** a term defined in one author's or one body's published work, rather than common to many, ends its definition, before its other names, with that work, as `After {whose account}, in {work}.`: named in prose, never cited.
+**A borrowed term.** A term defined in one author's or one body's published work, rather than common to many, ends its definition, before its other names, with that work, as `After {whose account}, in {work}.`: named in prose, never cited.
 
-**Other names —** a term's one abbreviation goes in its Abbreviation column, left empty where it has none. A definition ends with the term's other full names, as `Also called X.`, several separated by commas. Each name belongs to that term alone, never to another term.
+**Other names.** A term's one abbreviation goes in its Abbreviation column, left empty where it has none. A definition ends with the term's other full names, as `Also called X.`, several separated by commas. Each name belongs to that term alone, never to another term.
 
-**Nothing cited —** the glossary cites nothing, so it reads as a dictionary: a definition stands on its own and on the terms beside it.
+**Nothing cited.** The glossary cites nothing, so it reads as a dictionary: a definition stands on its own and on the terms beside it.
 
 ## Using an Abbreviation
 
 An abbreviation outside the house may be used in any specification or instruction, its meaning already known to the agents and engineers reading it. One inside the house is used in none of them; they spell its term out instead, since an agent reads every word of a rule as the rule's, and may misread a short form only the house knows. The short form is for people talking to an agent, since the agent can ask them what one means.
 
-**Where one is recorded —** each inside-the-house abbreviation is recorded once, beside its term's definition, which is how it is known to be one:
+**Where one is recorded.** Each inside-the-house abbreviation is recorded once, beside its term's definition, which is how it is known to be one:
 
 - the method's, in its glossary entry's Abbreviation column;
 - the application's, where the application specs define its term, at that term's altitude, written `(abbreviated X)` directly after the term.

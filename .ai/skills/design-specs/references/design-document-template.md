@@ -52,7 +52,7 @@
 
 {what the design does, then each edit}
 
-**`{path}` —** this text:
+**`{path}`.** This text:
 
 > {the text replaced}
 
@@ -60,7 +60,7 @@ becomes:
 
 > {its replacement}
 
-**`{path}` —** a new file:
+**`{path}`.** A new file:
 
 > {the file, whole}
 

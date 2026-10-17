@@ -1,4 +1,4 @@
-# PriceHorizon — Product Specifications
+# PriceHorizon: Product Specifications
 
 **Reference Key:** File
 

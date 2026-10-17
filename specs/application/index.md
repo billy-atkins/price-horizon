@@ -1,4 +1,4 @@
-# PriceHorizon — Application Specifications
+# PriceHorizon: Application Specifications
 
 **Reference Key:** Path
 

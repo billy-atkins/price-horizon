@@ -92,9 +92,9 @@ The rules on acceptance scenarios and on `technical-specs` frontmatter scope the
 
 The instructions in Spec of Record's scope, both `AGENTS.md` files and each registered skill, stay agnostic of which agent reads them: no vendor-specific instruction filename, no tool-specific directory, no assumption about which model, CLI, or editor is running.
 
-**The test —** would anything new still make sense to an agent from a different vendor, or to a person reading it directly?
+**The test.** Would anything new still make sense to an agent from a different vendor, or to a person reading it directly?
 
-**The one exception —** anything written for one tool, and only because it carries no content:
+**The one exception.** Anything written for one tool, and only because it carries no content:
 
 - an opt-in helper outside the method's scope, named for the tool it serves, may wire that tool up to the agnostic content;
 - an agent setting itself up may write what it needs to carry out a choice the method leaves to it (`specs/methodology/skills.md § Setting Up an Agent`).
@@ -107,10 +107,10 @@ The methodology's files state rules. They do not sequence the work, record what 
 
 A rule without a check is a suggestion, so every rule of Spec of Record is enforced, and a rule added or changed takes its check with it, in the same change. `specs/methodology/spec-style.md § Clear Prose`, as it reaches the working files, stands without one: the user keeps it in reading them, since an audit of files that never last would cost more than it finds.
 
-**A specification rule —** is checked against the files it governs by one of the audit skill's reading audits, or, for a rule of `specs/methodology/code.md`, by a check of `.ai/skills/verify-spec-implementation/` reading the code. Either skill's script first decides whatever the files alone settle, and never a judgment, since a check that cannot decide gives a confident false clear. A script listing places for a reading audit to look decides nothing.
+**A specification rule.** Is checked against the files it governs by one of the audit skill's reading audits, or, for a rule of `specs/methodology/code.md`, by a check of `.ai/skills/verify-spec-implementation/` reading the code. Either skill's script first decides whatever the files alone settle, and never a judgment, since a check that cannot decide gives a confident false clear. A script listing places for a reading audit to look decides nothing.
 
-**An operating rule —** is checked where it leaves a trace in the files the audits read: the scope's tree, the skills registry, a skill's form, a follow-up. A plan's form leaves its trace outside them, and is checked by the skill writing the plan, through its script and its steps. Where a rule leaves no trace, as reading fresh leaves none, it is carried out as a named step of `specs/AGENTS.md` or of a registered skill, and a skipped step is found by what it leaves wrong in the files.
+**An operating rule.** Is checked where it leaves a trace in the files the audits read: the scope's tree, the skills registry, a skill's form, a follow-up. A plan's form leaves its trace outside them, and is checked by the skill writing the plan, through its script and its steps. Where a rule leaves no trace, as reading fresh leaves none, it is carried out as a named step of `specs/AGENTS.md` or of a registered skill, and a skipped step is found by what it leaves wrong in the files.
 
-**Which check enforces each section —** for every section of `specs/AGENTS.md` and of the methodology's files but its `architecture.md` and `index.md`, which hold no rule of their own, `.ai/skills/audit-specs/` names the reading audit enforcing it, or names it an operating rule, whose check is a step under a registered skill's `## Workflow` that applies it and gives it a point-of-use citation. For a section of `specs/methodology/code.md`, `.ai/skills/verify-spec-implementation/` names the check enforcing it instead, or `.ai/skills/audit-specs/` names it an operating rule.
+**Which check enforces each section.** For every section of `specs/AGENTS.md` and of the methodology's files but its `architecture.md` and `index.md`, which hold no rule of their own, `.ai/skills/audit-specs/` names the reading audit enforcing it, or names it an operating rule, whose check is a step under a registered skill's `## Workflow` that applies it and gives it a point-of-use citation. For a section of `specs/methodology/code.md`, `.ai/skills/verify-spec-implementation/` names the check enforcing it instead, or `.ai/skills/audit-specs/` names it an operating rule.
 
-**A section read in parts —** an audit reading only part of a section it names says which part, and the audits naming one section read all of it between them, each part once. Where a step names a section too, the step carries what leaves no trace in the files, and the audits read the rest.
+**A section read in parts.** An audit reading only part of a section it names says which part, and the audits naming one section read all of it between them, each part once. Where a step names a section too, the step carries what leaves no trace in the files, and the audits read the rest.

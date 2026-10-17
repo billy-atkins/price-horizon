@@ -1,4 +1,4 @@
-# PriceHorizon — Agent Instructions
+# PriceHorizon: Agent Instructions
 
 ## What this project is
 
