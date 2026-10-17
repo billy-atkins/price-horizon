@@ -7,7 +7,11 @@ technical-specs:
 
 ## Review Queues
 
-The Control plane admin role ([`specs/application/product/roles.md § Roles`](/specs/application/product/roles.md#roles)) reviews the handful of cases where the system flags something it is not confident about, an uncertain product match, an ambiguous document, a fact missing what it needs to be sized, since the client's own analysts know their catalog and their market better than anyone outside the business unit. A figure a reviewer supplies or corrects cites a document that states it, or, from the admin's own market knowledge, is recorded as an internal analyst note, so a Query user always sees where it came from, and it is weighed at that source's credibility. A document with no bearing on price is not flagged at all, and nothing it contains reaches a forecast. This sits alongside the same role's other self-service work ([`specs/application/product/tenant-administration/reference-data-management.md`](/specs/application/product/tenant-administration/reference-data-management.md)), a different kind of review, not a routine configuration change.
+The Control plane admin role ([`specs/application/product/roles.md § Roles`](/specs/application/product/roles.md#roles)) reviews the handful of cases where the system flags something it is not confident about: an uncertain product match, an ambiguous document, or a fact missing what it needs to be sized. The review falls to this role because the client's own analysts know their catalog and their market better than anyone outside the business unit.
+
+A figure a reviewer supplies or corrects either cites a document that states it or, when the figure comes from the admin's own market knowledge, is recorded as an internal analyst note. So a Query user always sees where the figure came from, and the figure is weighed at that source's credibility. A document with no bearing on price is not flagged at all, and nothing it contains reaches a forecast.
+
+The review queues sit alongside the same role's other self-service work ([`specs/application/product/tenant-administration/reference-data-management.md`](/specs/application/product/tenant-administration/reference-data-management.md)). Resolving a flagged case is a different kind of review, not a routine configuration change.
 
 ### Test Scenarios
 

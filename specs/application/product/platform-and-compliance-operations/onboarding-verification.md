@@ -7,7 +7,7 @@ technical-specs:
 
 ## Onboarding Verification
 
-The same bulk view a Platform admin uses to tune the platform over time ([`specs/application/product/accuracy-governance.md § Tracking Forecast Accuracy`](/specs/application/product/accuracy-governance.md#tracking-forecast-accuracy)) also does the first real check right after onboarding. In the days right after onboarding, before even the shortest, one-month horizon has had a chance to elapse, there is nothing yet to check for accuracy, but a Platform admin can still confirm the integrations are actually producing driver signals and forecasts, with real evidence and confidence behind them, for the real questions being asked, before treating onboarding as done just because the integrations are connected.
+A Platform admin tunes the platform over time from a bulk view ([`specs/application/product/accuracy-governance.md § Tracking Forecast Accuracy`](/specs/application/product/accuracy-governance.md#tracking-forecast-accuracy)). The same view also does the first real check right after onboarding. In those first days, even the shortest horizon, one month, has not yet elapsed, so there is no accuracy to check. A Platform admin can still confirm that the integrations are producing driver signals and forecasts for the real questions being asked, with real evidence and confidence behind them, before treating onboarding as done. Connected integrations alone do not show that it is.
 
 ### Test Scenarios
 

@@ -5,7 +5,7 @@ technical-specs:
 
 ## Identity Administration
 
-The Identity admin role manages the mapping between the customer's own identity system and PriceHorizon's business units and roles. Adding or correcting a mapping is what grants a person the access it names; before a mapping exists, the claim exists on the customer's side but grants nothing on PriceHorizon's.
+The Identity admin role manages the mapping between the customer's own identity system and PriceHorizon's business units and roles. Adding or correcting a mapping is what grants a person the access the mapping names. Before a mapping exists, the claim exists on the customer's side but grants nothing on PriceHorizon's.
 
 [`specs/application/product/architecture.md § Diagrams § Using and Administering`](/specs/application/product/architecture.md#using-and-administering) renders this.
 

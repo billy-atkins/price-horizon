@@ -1,6 +1,6 @@
 ## Technical Stack
 
-What PriceHorizon is built with, what it relies on in every environment, and where its code lives, the one home of each technology the technical specs use and its version: each part of the system, then what the parts rely on.
+This section sets what PriceHorizon is built with, what it relies on in every environment, and where its code lives. It is the one home of each technology the technical specs use, and of that technology's version. It gives each part of the system, then what the parts rely on.
 
 **Reference Key:** Part
 
@@ -14,7 +14,7 @@ What PriceHorizon is built with, what it relies on in every environment, and whe
 | Model serving | Python 3.13 | FastAPI | uv 0.9 or later, Ruff | pytest | `model-serving` | `model-serving/.venv` |
 | Deployment | YAML | Helm 4 | Helm, an OCI container image built for each other part | Helm's lint and template checks | `deploy` | |
 
-The backend holds the query, materialization and control plane services and the libraries they share, the model-call layer and the vault adapter among them; model serving holds the quantitative models the model registry versions; and deployment holds the chart an installation is installed and upgraded from.
+The backend holds the query, materialization and control plane services and the libraries they share, the model-call layer and the vault adapter among them. Model serving holds the quantitative models the model registry versions. Deployment holds the chart an installation is installed and upgraded from.
 
 **Reference Key:** Technology
 

@@ -9,13 +9,15 @@ technical-specs:
 
 ## Position: where Brand A should sit
 
-Not a single recommendation. A small, named set of positioning options, each stated as a price gap and relative price index against the predicted competitor outcome, evaluated at the granularity the decision actually requires.
+Position offers a small, named set of positioning options, not a single recommendation. Each option is stated as a price gap and a relative price index against the predicted competitor outcome. Each is evaluated at the granularity the decision requires.
 
-Price gap is the plain currency difference between Brand A's price and the competitor's forecast price. Relative price index is the same comparison as a ratio, Brand A's price divided by the competitor's, times 100, so a value above 100 means Brand A sits at a premium and a value below 100 means a discount. Both compare effective price ([`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`](/specs/application/product/answer-engine/predict.md#predict-what-will-the-competitor-do)), not sticker price, so a promotion running on either side is already accounted for before the comparison is made. Price gap is shown in the local currency of the geography being discussed, never the Query user's own, and a business unit spanning more than one country never blends it into one converted total, each country's own figures stay in that country's own currency; the answer is about a specific market, and a number someone in that market could actually act on has to be priced the way that market is. Relative price index carries no currency at all, a ratio, not an amount, so it needs none.
+Price gap is the plain currency difference between Brand A's price and the competitor's forecast price. Relative price index is the same comparison as a ratio: Brand A's price divided by the competitor's, times 100. A value above 100 means Brand A sits at a premium, and a value below 100 means a discount. Both compare effective price ([`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`](/specs/application/product/answer-engine/predict.md#predict-what-will-the-competitor-do)), not sticker price, so a promotion running on either side is already accounted for before the comparison is made.
 
-Every option carries the forecast's own confidence and its own rationale unchanged, rather than computing a score of its own: applying a positioning strategy to a forecast introduces no uncertainty the forecast did not already carry, so an option built on a low-confidence forecast is flagged exactly as low-confidence, with the same explanation behind it. Opening an option's confidence shows the forecast's own reasons, since it is the same score. [`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes) is where that sits alongside the other stages.
+Price gap is shown in the local currency of the geography being discussed, never the Query user's own. A business unit spanning more than one country never blends price gap into one converted total. Each country's figures stay in that country's currency. The answer is about a specific market, and a number someone in that market could act on has to be priced the way that market is. Relative price index is a ratio, not an amount, so it carries no currency at all.
 
-If two options would produce essentially the same outcome, they are shown as one rather than manufacturing a choice that is not really there, though the set never shrinks to a single option, since avoiding exactly that is what this stage is built for. Options are framed for judgment: the answer surfaces the choice, it does not make it. Each option carries its own brief explanation of the trade-off it represents, not just the numbers, the same discipline as the Predict narrative.
+Every option carries the forecast's confidence and rationale unchanged. Position computes no score of its own. Applying a positioning strategy to a forecast introduces no uncertainty the forecast did not already carry. An option built on a low-confidence forecast is therefore flagged low-confidence, as the forecast is, with the same explanation behind it. Opening an option's confidence shows the forecast's reasons, since it is the same score. [`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes) is where that sits alongside the other stages.
+
+If two options would produce essentially the same outcome, they are shown as one, rather than manufacturing a choice that is not there. The set never shrinks to a single option, since avoiding one is what this stage is built for. Options are framed for judgment: the answer surfaces the choice and does not make it. Each option carries a brief explanation of the trade-off it represents, alongside its numbers. This is the same discipline as the Predict narrative.
 
 [`specs/application/product/architecture.md § Diagrams § The Answer`](/specs/application/product/architecture.md#the-answer) and [`specs/application/product/architecture.md § Diagrams § From Evidence to Answer`](/specs/application/product/architecture.md#from-evidence-to-answer) render this.
 
@@ -31,7 +33,7 @@ Scenario: A price gap and relative price index compare net price, not sticker pr
 Scenario: Position inherits Predict's confidence rather than computing its own.
   Given a Query user has a Predict forecast for Competitor Brand's effective price in Texas in 6 months, flagged as low-confidence
   When the positioning options are generated
-  Then every option carries that same low-confidence flag, the identical rationale, not a freshly computed score of its own
+  Then every option carries that same low-confidence flag and the identical rationale, not a freshly computed score of its own
   And opening an option's confidence shows the same reasons the forecast's does
 
 Scenario: Each option carries its own trade-off explanation.
@@ -61,7 +63,7 @@ Scenario: Price gap stays in the geography's own local currency; relative price 
 
 ### Options by Kind of Decision
 
-Which kind of decision an answer serves is the Query user's session choice, or the question's own words where they say, per [`specs/application/product/answer-engine/decision-context.md § Decision Context`](/specs/application/product/answer-engine/decision-context.md#decision-context). How far out the forecast looks never changes which options appear.
+The kind of decision an answer serves is the one the Query user chose for the session, or the one the question's own words name where they name one, per [`specs/application/product/answer-engine/decision-context.md § Decision Context`](/specs/application/product/answer-engine/decision-context.md#decision-context). How far out the forecast looks never changes which options appear.
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
@@ -114,8 +116,8 @@ Each option follows one of the defined strategies:
 |---|---|
 | Hold | Stay at today's price, regardless of what the competitor does |
 | Match | Move by the same percentage the competitor is expected to move, so the relative price index holds steady at today's level |
-| Close the Gap | Split the difference, half the percentage change between Hold and Match |
-| Diverge | Lean further into whatever position Brand A already holds against the competitor, more premium if already at a premium, a deeper discount if already discounting, sized to the competitor's expected move |
+| Close the Gap | Split the difference: half the percentage change between Hold and Match |
+| Diverge | Lean further into whatever position Brand A already holds against the competitor (more premium if already at a premium, a deeper discount if already discounting), sized to the competitor's expected move |
 
 A business unit may show its own labels for these options, each still standing for the same strategy ([`specs/application/product/tenant-administration/business-unit-settings.md § Business Unit Settings`](/specs/application/product/tenant-administration/business-unit-settings.md#business-unit-settings)).
 
