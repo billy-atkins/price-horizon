@@ -1,6 +1,6 @@
 ## Glossary
 
-The terms Spec of Record gives a meaning of its own, each defined here once and nowhere else: a file using a term states its rules about it, never a second definition. This file also states what earns a term its entry, how an entry is written, and where an abbreviation may be used.
+This file holds the terms Spec of Record gives a meaning of its own. Each is defined here once and nowhere else: a file using a term states its rules about the term, never a second definition. This file also states what earns a term its entry, how an entry is written, and where an abbreviation may be used.
 
 **Reference Key:** Term
 
@@ -12,19 +12,19 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Altitude |  | The level of a file, or of its content, within its directory, from the navigation that names what the directory holds down to the detail that states it. |
 | App-spec annotation |  | A spec annotation in governed code, naming a spec, or a section of one, that the code carries out or, as a test, checks. |
 | Basic Table |  | The construct a table is where no `**Construct:**` field declares one: items of one kind in rows, each column one of their fields. Not a table in a construct's block, which that construct's definition governs. |
-| Builder |  | The person or agent who does a piece of work and takes it through Design, Refactor, Refine. |
-| Canon |  | The part of the Spec of Record scope that states and applies the method's rules: the specifications' entry point and their overview, the methodology, and the skills the methodology registers, each skill the specification of a procedure, with the code their scripts share. Not a product's specifications, and not a canonical form or version. |
-| Canon-spec annotation |  | A spec annotation in a registered skill's script, or the code the skills share, naming the area of the method's own specifications that a copy the script holds takes its values from. |
+| Builder |  | The person or agent who does a piece of work and takes it through the Design, Refactor, Refine process. |
+| Canon |  | The part of the Spec of Record scope that states and applies the methodology's rules: the specifications' entry point and their overview, the methodology, and the skills the methodology registers, each skill the specification of a procedure, with the code their scripts share. Not a product's specifications, and not a canonical form or version. |
+| Canon-spec annotation |  | A spec annotation in a registered skill's script, or the code the skills share, naming the area of the methodology's own specifications that a copy the script holds takes its values from. |
 | Capability domain |  | A standing part of what a product does or governs for as long as the product exists, defined by its product owner: a boundary meant to outlive any single change. Not an epic or a sprint, which describe work with an end date. |
 | Citation |  | A pointer from one place in the Spec of Record scope to another, written in a fixed form a reader and a script can both follow. Not a bibliographic reference. |
 | Closed set |  | A set whose every member the specs list, so a member is added or removed only by changing the specs: the cases a Decision Table defines one by one, or the members of one kind a spec defines, a record type's records or a Basic Table's rows. Not a set that changes while the product runs. |
 | Cold agent |  | An agent arriving with no context but what it reads, and so with no attachment to the decisions of whoever did the work before it. |
-| Construct |  | A structured form, one of a bounded set the method approves, in which a rule, a process, an entity's behavior, a repeated entry, a closed set or items of one kind laid out as a table is written rather than in free prose. Not the programming sense. |
-| Core canon |  | The part of the canon apart from the skills and the code they share: the specifications' entry point and the methodology, which state the method's rules, and the specifications' overview, which describes them. The skills carry the method out. Not the canon as a whole. |
-| Design document |  | A plan describing one change, to the specifications, code, documentation or other files, taken through Design, Refactor, Refine, from the problem it solves to the edits that make it. Not a design the product's architecture describes. |
+| Construct |  | A structured form, one of a bounded set the methodology approves, in which a rule, a process, an entity's behavior, a repeated entry, a closed set or items of one kind laid out as a table is written rather than in free prose. Not the programming sense. |
+| Core canon |  | The part of the canon apart from the skills and the code they share: the specifications' entry point and the methodology, which state the methodology's rules, and the specifications' overview, which describes them. The skills carry the methodology out. Not the canon as a whole. |
+| Design document |  | A plan describing one change, to the specifications, code, documentation or other files, taken through the Design, Refactor, Refine process, from the problem it solves to the edits that make it. Not a design the product's architecture describes. |
 | Design flaw |  | A fault in a design's goals or its frame. Not a fault in the edits carrying them out, an implementation flaw. |
 | Design frame |  | A statement of a change, made by its builder: its scope, the cases the change governs and what tells them apart; its approach, the principle the solution applies; and its outcomes, what a successful solution achieves and how that is judged. Not a frame of a user interface, nor a frame of reference. After Kees Dorst's account of framing in design reasoning, in "Frame Innovation" (2015) and "The core of 'design thinking' and its application", in "Design Studies" (2011). |
-| Design goal |  | A part of the intent of a change, which its user owns: what the change must achieve, and so how much of it is enough; its design frame, its reviews' findings and its builder's adjustments are weighed against its goals. Not one of the frame's outcomes, which say what its edits achieve. |
+| Design goal |  | A part of the intent of a change, which its user owns: what the change must achieve, and so how much of it is enough. The change's design frame, its reviews' findings and its builder's adjustments are weighed against its goals. Not one of the frame's outcomes, which say what its edits achieve. |
 | Design, Refactor, Refine | DRR | A process by which work is brought to elegance: a draft that solves the problem, then structural change until the structure settles, then its wording. |
 | Elegance |  | A quality of a solution, the opposite of a Rube Goldberg machine, in which its objective is satisfied by the fewest rules, as a minimal proof reaches its theorem in the fewest steps. So a skilled reader sees in it simple, recurring patterns, a rhythm and a beauty, where an unskilled reader sees only complexity. The complexity is reduced, never hidden: everything the objective truly requires is still there, in its simplest form. |
 | Ephemeral differential test |  | A differential test the builder runs once on a change, the old and the changed version given the same inputs and their results compared. Not a test the specs govern, kept and rerun. |
@@ -35,7 +35,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Implementation flaw |  | A fault in the edits that carry a design's goals and frame out, however serious. Not a fault in the goals or the frame, a design flaw. |
 | Inside the house |  | A term, abbreviation or example coined or introduced by Spec of Record or the application specs: known to those working within them, and taught by the specs to every agent and engineer who arrives, as a household's own words make sense only to those living in it. Not one known outside them. |
 | Interface |  | A construct's definition that is a contract other definitions implement, rather than a base they extend. Not a user interface, nor the surface a service exposes. |
-| Key |  | A name or a value that selects one thing among many: a field's key, the name it is written with, selects the field; a Reference Key, the field or column, or fields or columns, naming each part as its readers know it, selects one part of an instance of a keyed construct, as a database's key selects a row, a citation naming a part by it. Not a key in a file's frontmatter. |
+| Key |  | A name or a value that selects one thing among many. A field's key, the name the field is written with, selects the field. A Reference Key, the field or column, or fields or columns, naming each part as its readers know it, selects one part of an instance of a keyed construct, and a citation names a part by it. A database's key selects a row in the same way. Not a key in a file's frontmatter. |
 | Layer |  | A level in the order of what governs what among the specifications, each governed by those above it. Not a layer the product's specifications describe. |
 | Materialized view |  | A restatement of facts whose homes are elsewhere, made for its reader and never their source, nor a second home: what a directory's overview restates, a diagram, a summary. Not a database's materialized view, a stored query result, whose sense it borrows. |
 | Methodology owner |  | The persona the methodology, the specifications' overview and the documentation are written as, and a design changing any of them reviewed as. |
@@ -43,7 +43,7 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Open question |  | A decision the specs rely on but have not made, recorded with the answer in use until it is settled. Not a question merely unanswered in conversation. |
 | Operating rule |  | A rule about operating Spec of Record: how work on the specifications and the code they govern is done, reviewed, recorded and tooled, rather than what they hold. Not a rule about how the product operates. |
 | Outside the house |  | A term, abbreviation or example common to many across the industry or the domain, a norm agents know from their training and engineers from experience. |
-| Persona |  | A character a specification, the documentation, or the code a specification governs, is written as, described by how they see the work, what they care about and how they go about it, never by steps to follow, so an agent taking one up brings what it knows of such a person. Not a user persona of product design, an archetype of the people a product serves. |
+| Persona |  | A character in whose voice a spec, the documentation, or the code the specs govern is written, described by how they see the work, what they care about and how they go about it, never by steps to follow, so an agent taking one up brings what it knows of such a person. Not a user persona of product design, an archetype of the people a product serves. |
 | Plan |  | A working file in which a skill describes a change before making it. Not a schedule, a project plan, or a plan the product's specifications describe. |
 | Point-of-use citation |  | A citation placed where the rule, definition or principle it names is applied, in the step or passage doing the work. |
 | Potemkin village |  | A front built to look complete with nothing behind it, as the painted village facades of the legend: a guarantee, rule or enforcement mechanism relied on as real that is stated but not specified or not checked. |
@@ -60,30 +60,30 @@ The terms Spec of Record gives a meaning of its own, each defined here once and 
 | Specification rule |  | A rule governing what the specifications and the code they govern hold, and how they are written. Not a rule a specification states about the product. |
 | Stamp |  | A field's value recording when a check passed and a hash of the content it passed on. Not a version number or a signature. |
 | Steering decision |  | A record of a decision the user made about what a design is: what it solves, decides, includes or leaves out, quoting the user's words, and kept in the design it decides. Not the request that opened the design, nor the user's direction about how the work proceeds, nor a tactical adjustment. |
-| Validation review |  | A check by the design script of whether a plan is a valid document, its form, its records, its edits and what it references, run before a design is approved. Not a review of what the plan says, which the adversarial review reads. |
+| Validation review |  | A check by the design script of whether a plan is a valid document, in its form, its records, its edits and what it references, run before a design is approved. Not a review of what the plan says, which the adversarial review reads. |
 | Wiring code |  | Code that connects governed code into a working application, service or system, carrying out no spec of its own. |
 | Working file |  | A file that the work on the specs or their code leaves behind, serving whoever does that work. |
 | Workstack |  | The tree of design documents their Spawned By draws from one design that was not spawned, together with the blocking their Depends On records. Not a call stack or a task queue. |
 
 ## Writing an Entry
 
-**What earns an entry.** A meaning in Spec of Record that training knowledge alone would not give: a term coined by the method, overloaded with another meaning nearby, used across areas in a narrow sense, or adopted as shorthand for a principle.
+**What earns an entry.** A term earns an entry when it has a meaning in Spec of Record that training knowledge alone would not give: a term coined by the methodology, overloaded with another meaning nearby, used across areas in a narrow sense, or adopted as shorthand for a principle.
 
-**The term.** The bare term, without markup or any of its other names, listed once, the table sorted by term.
+**The term.** An entry gives the bare term, without markup or any of its other names. Each term is listed once, and the table is sorted by term.
 
-**The definition.** It opens with its genus, the broader kind the term belongs to, a term of this glossary wherever one fits, so a term builds on the terms it rests on rather than restating them. It then states what sets the term apart, and a use it must not be mistaken for opens with `Not`.
+**The definition.** A definition opens with its genus, the broader kind the term belongs to. The genus is a term of this glossary wherever one fits, so a term builds on the terms it rests on rather than restating them. The definition then states what sets the term apart. A use the term must not be mistaken for opens with `Not`.
 
-**A borrowed term.** A term defined in one author's or one body's published work, rather than common to many, ends its definition, before its other names, with that work, as `After {whose account}, in {work}.`: named in prose, never cited.
+**A borrowed term.** A term defined in one author's or one body's published work, rather than common to many, ends its definition with that work, before its other names, naming it in prose and never citing it: `After {whose account}, in {work}.`
 
-**Other names.** A term's one abbreviation goes in its Abbreviation column, left empty where it has none. A definition ends with the term's other full names, as `Also called X.`, several separated by commas. Each name belongs to that term alone, never to another term.
+**Other names.** A term's one abbreviation goes in its Abbreviation column, left empty where it has none. A definition ends with the term's other full names, as `Also called X.`, with several separated by commas. Each name belongs to that term alone.
 
 **Nothing cited.** The glossary cites nothing, so it reads as a dictionary: a definition stands on its own and on the terms beside it.
 
 ## Using an Abbreviation
 
-An abbreviation outside the house may be used in any specification or instruction, its meaning already known to the agents and engineers reading it. One inside the house is used in none of them; they spell its term out instead, since an agent reads every word of a rule as the rule's, and may misread a short form only the house knows. The short form is for people talking to an agent, since the agent can ask them what one means.
+An abbreviation outside the house may be used in any specification or instruction, since the agents and engineers reading it already know its meaning. An abbreviation inside the house is used in none of them. They spell its term out instead, because an agent reads every word of a rule as part of the rule, and may misread a short form only the house knows. The short form is for people talking to an agent, since the agent can ask them what one means.
 
 **Where one is recorded.** Each inside-the-house abbreviation is recorded once, beside its term's definition, which is how it is known to be one:
 
-- the method's, in its glossary entry's Abbreviation column;
+- the methodology's, in its glossary entry's Abbreviation column;
 - the application's, where the application specs define its term, at that term's altitude, written `(abbreviated X)` directly after the term.
