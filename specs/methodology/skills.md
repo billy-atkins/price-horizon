@@ -13,7 +13,7 @@ A skill is part of Spec of Record when it is registered here, and only then; a s
 | `configure-spec-of-record` | `§ Setting Up an Agent`, `specs/methodology/design-workflow.md § A Review's Effort` |
 | `design-specs` | `specs/AGENTS.md`, `specs/methodology/` |
 | `implement-specs` | `specs/methodology/code.md`, `specs/methodology/spec-placement.md § Personas`, `specs/methodology/spec-placement.md § A Product Module`, `specs/methodology/spec-placement.md § Environments`, `specs/methodology/working-files.md § A Design Document`, `specs/methodology/design-workflow.md` |
-| `verify-spec-implementation` | `specs/methodology/code.md`, `specs/methodology/spec-placement.md § The Technical Stack`, `specs/methodology/spec-placement.md § What an Overview Describes`, `specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Materialized Views` |
+| `verify-spec-implementation` | `specs/methodology/code.md`, `specs/methodology/spec-placement.md § The Technical Stack`, `specs/methodology/spec-placement.md § What an Overview Describes`, `specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync § Materialized Views` |
 
 ## Authoring a Skill
 

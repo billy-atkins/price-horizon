@@ -15,7 +15,7 @@
 
 ## Design Goals
 
-{`Not yet stated.` until the user agrees the goals; then:}
+{`Not yet stated.` until the user agrees on the goals; then:}
 
 **Records:**
 

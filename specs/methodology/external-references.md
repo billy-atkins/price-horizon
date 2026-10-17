@@ -65,6 +65,13 @@
   **Relation:** adopts
   **Covers:** the flowchart, and a diagram's front matter configuration, its layout among them
 
+- **Name:** Merriam-Webster
+  **Title:** Merriam-Webster's Collegiate Dictionary, Merriam-Webster
+  **Version:** the Eleventh Edition, 2003
+  **URL:** `https://archive.org/details/merriamwebstersc00merr_6`
+  **Relation:** adopts
+  **Covers:** American spelling, a word's first spelling where an entry gives two
+
 - **Name:** RFC 3339
   **Title:** Date and Time on the Internet: Timestamps, the Internet Engineering Task Force
   **Version:** July 2002, the RFC as published, an RFC's text never changing

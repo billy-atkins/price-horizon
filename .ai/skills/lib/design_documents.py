@@ -401,7 +401,7 @@ def check_kind(design, root):
 
 def check_stack(folder):
     """-> (report lines, [(file name, problem)]): the workstack each design document's
-    Spawned By and Depends On draw, and where its Status is out of step with what it
+    Spawned By and Depends On draw, and where its Status is out of sync with what it
     depends on, per working-files.md § A Design Document."""
     read = read_designs(folder)
     designs = {name: dict(fields) for name, fields, _, _ in read}
@@ -1166,7 +1166,7 @@ FLAGS = (
     ("--check-design", "DESIGN", check_design,
      "run every check on one design document: its form, its Target's kind, its quoted edits applying, its citations resolving, and its place in the workstack"),
     ("--check-workstack", "PLANS_DIR", check_workstack,
-     "report what is out of step in the workstack: a Status out of step with what a design depends on, a Depends On naming no design, and a loop; reads the skill's plans folder, and those beside it, unless given a directory"),
+     "report what is out of sync in the workstack: a Status out of sync with what a design depends on, a Depends On naming no design, and a loop; reads the skill's plans folder, and those beside it, unless given a directory"),
     ("--show-workstack", "PLANS_DIR", show_workstack,
      "draw the workstack and list what to work next, what is blocked and what may be deleted; reads the skill's plans folder, and those beside it, unless given a directory"),
     ("--show-validation", "DESIGN", show_validation,

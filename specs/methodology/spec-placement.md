@@ -80,7 +80,7 @@ A directory's own mapping table, where it has one, is the exception that proves 
 
 ## What an Overview Describes
 
-An overview describes its directory, every directory beneath it, and what this table names for its directory (`§ Index, Architecture, Detail`), and is kept in step with all of it (`specs/methodology/sourcing-and-citation.md § Keeping Specs in Step § Materialized Views`):
+An overview describes its directory, every directory beneath it, and what this table names for its directory (`§ Index, Architecture, Detail`), and is kept in sync with all of it (`specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync § Materialized Views`):
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 

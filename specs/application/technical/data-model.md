@@ -249,7 +249,7 @@ Produced by the positioning engine (`specs/application/technical/query-service/l
 |---|---|
 | archetype | Hold, Match, Close the Gap, or Diverge |
 | resulting_effective_price | Brand A's price under this archetype's rule, at the query's geography and horizon, in that geography's own resolved currency |
-| price_gap | The absolute difference between resulting_effective_price and the competitor's forecasted price, both already in the same geography's resolved currency |
+| price_gap | The absolute difference between resulting_effective_price and the competitor's forecast price, both already in the same geography's resolved currency |
 | relative_price_index | The same comparison as a ratio, times 100 |
 | rationale | The same Rationale Record produced for the Predict output (`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Confidence and rationale packaging, extended`), attached here as its own copy so this candidate's confidence and driver breakdown are visible without navigating back to Predict |
 | simulated_outcome | A Simulated Outcome specific to this candidate; null when simulation did not complete for this answer, its outcome `specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration [States.State: simulate_failed]`, the forecast and this candidate still stand on their own in that case |
