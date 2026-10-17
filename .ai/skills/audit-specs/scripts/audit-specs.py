@@ -21,6 +21,17 @@ from pathlib import Path, PurePosixPath
 # directory and under an interpreter that leaves the script's directory off the import path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import constructs  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "lib"))
+import citation_links  # noqa: E402
+
+
+# @canon-spec specs/methodology/sourcing-and-citation.md § Writing a Citation § A Citation's Link
+def read(path):
+    """-> a file's text with each citation's link stripped, so every check reads the citation as written."""
+    return citation_links.strip(path.read_text(encoding="utf-8"))
+
+
+LINK_RULE = "sourcing-and-citation.md § Writing a Citation § A Citation's Link"
 
 # specs/methodology/scope.md § What Spec of Record Governs names where each kind is named:
 # specs by their place under specs/, the agent instructions by the root AGENTS.md and
@@ -186,7 +197,7 @@ def registry(root):
     if not p.exists():
         return [], [(SCOPE_HOME, REGISTRY, 0, "the skills registry is missing, so the scope cannot be read")]
     names, problems, inside = [], [], False
-    for n, line in enumerate(p.read_text(encoding="utf-8").split("\n"), 1):
+    for n, line in enumerate(read(p).split("\n"), 1):
         if line.startswith("| Skill |"):
             inside = True
             continue
@@ -1072,7 +1083,7 @@ def check(root, warned=None):
     to `warned` where a list is given, and is never a finding."""
     found, files = [], md_files(root)
     warned = [] if warned is None else warned
-    text = {f: f.read_text(encoding="utf-8") for f in files}
+    text = {f: read(f) for f in files}
     rel = {f: f.relative_to(root).as_posix() for f in files}
     lineage = {rel[f]: lineages(text[f]) for f in files}
     known = set(rel.values())
@@ -1272,7 +1283,7 @@ def check(root, warned=None):
         if not idx.exists():
             found.append(("spec-placement.md § Where a File Goes", rel_d, 0, "directory has no index.md"))
             continue
-        named = set(re.findall(r'^\|\s*`([^`]+)`', idx.read_text(encoding="utf-8"), re.M))
+        named = set(re.findall(r'^\|\s*`([^`]+)`', read(idx), re.M))
         present = {c.name + ("/" if c.is_dir() else "") for c in d.iterdir()
                    if c.name != "index.md" and (c.is_dir() or c.suffix == ".md")}
         for missing in sorted(present - named):
@@ -1304,6 +1315,7 @@ def check(root, warned=None):
     found += canon_spec_findings(root)
     found += scope_findings(root)
     found += voice_table_findings(root)
+    found += [(LINK_RULE, path, line, problem) for path, line, problem in citation_links.problems(root)]
     found += glossary_findings(root)
     found += abbreviation_findings(root)
     found += coverage_findings(root)
@@ -1338,7 +1350,7 @@ def image_findings(root):
         rel = f.relative_to(root).as_posix()
         if not rel.startswith("specs/"):
             continue
-        for n, line in enumerate(strip_fences(f.read_text(encoding="utf-8")).split("\n"), 1):
+        for n, line in enumerate(strip_fences(read(f)).split("\n"), 1):
             if IMAGE.search(constructs.CODE_SPAN.sub("", line)):
                 found.append((DIAGRAMS_RULE, rel, n, "embeds an image rather than a diagram's source"))
     return found
@@ -1382,7 +1394,7 @@ def workflow_citations(root):
     for n in registry(root)[0]:
         d = root / ".ai/skills" / n
         for f in [d / "SKILL.md"] + sorted((d / "references").glob("*.md")):
-            body = level2_section(strip_fences(f.read_text(encoding="utf-8")), "Workflow") if f.exists() else None
+            body = level2_section(strip_fences(read(f)), "Workflow") if f.exists() else None
             first = re.search(r'^(?:### |\*\*)', body or "", re.M)
             for m in CITATION.finditer(body[first.start():] if first else ""):
                 path, _, target = m.group(1).partition(" § ")
@@ -1400,7 +1412,7 @@ def coverage_findings(root):
     sk = root / AUDIT_SKILL
     if not sk.exists():
         return [(COVERAGE_RULE, AUDIT_SKILL, 0, "the audit skill is missing, so no rule's check is named")]
-    text, named, operating, found = sk.read_text(encoding="utf-8"), set(), set(), []
+    text, named, operating, found = read(sk), set(), set(), []
     for title, column in COVERAGE_TABLES:
         table = first_table(text, title, column)
         if table is None:
@@ -1416,7 +1428,7 @@ def coverage_findings(root):
                         operating.add((path.strip(), target.strip()))
     # specs/methodology/scope.md § Rules and Skills: a section of code.md is named by the check on code
     checks = root / CODE_CHECKS
-    table = first_table(checks.read_text(encoding="utf-8"), "The checks", "Enforces") if checks.exists() else None
+    table = first_table(read(checks), "The checks", "Enforces") if checks.exists() else None
     for row in table[1] if table else []:
         k = table[0].index("Enforces")
         for m in CITATION.finditer(row[k] if k < len(row) else ""):
@@ -1432,7 +1444,7 @@ def coverage_findings(root):
         rel = f.relative_to(root).as_posix()
         if not f.exists() or f.name in ("architecture.md", "index.md"):
             continue
-        for lin in sections(f.read_text(encoding="utf-8")):
+        for lin in sections(read(f)):
             parts = lin.split(" § ")
             if not any((rel, " § ".join(parts[:k])) in named for k in range(1, len(parts) + 1)):
                 found.append((COVERAGE_RULE, rel, 0, f"no check or step names § {lin}"))
@@ -1444,13 +1456,13 @@ def ignored_findings(root):
     naming it or a directory holding it, and un-ignored by none. A line ending in a slash
     names a directory only, as git reads it."""
     wf = root / WORKING_FILES
-    table = first_table(wf.read_text(encoding="utf-8"), "The Working Files") if wf.exists() else None
+    table = first_table(read(wf), "The Working Files") if wf.exists() else None
     if table is None:
         return [(WORKING_FILES_RULE, WORKING_FILES, 0, "no table of working files to check")]
     gi = root / ".gitignore"
     ignored, negated = set(), set()
     if gi.exists():
-        for line in gi.read_text(encoding="utf-8").split("\n"):
+        for line in read(gi).split("\n"):
             line = line.strip()
             if not line or line.startswith("#"):
                 continue
@@ -1478,7 +1490,7 @@ def style_phrases(root):
     """-> a pattern of the phrases the Example column of spec-style.md's table quotes, the one
     list of them, or None where it cannot be read."""
     f = root / STYLE_RULE_FILE
-    table = first_table(f.read_text(encoding="utf-8"), "What a Finished Spec Reads Like", "Example") if f.exists() else None
+    table = first_table(read(f), "What a Finished Spec Reads Like", "Example") if f.exists() else None
     if table is None:
         return None
     k = table[0].index("Example")
@@ -1582,7 +1594,7 @@ RHYTHM_SENTENCES, RHYTHM_MEAN, RHYTHM_SHORT = 3, 30, 15
 def clear_prose(root):
     """-> the text of spec-style.md § Clear Prose, or "" where it is missing."""
     f = root / STYLE_RULE_FILE
-    return (level2_section(f.read_text(encoding="utf-8"), "Clear Prose") or "") if f.exists() else ""
+    return (level2_section(read(f), "Clear Prose") or "") if f.exists() else ""
 
 
 def voice_table_findings(root):
@@ -1637,7 +1649,7 @@ def citation_candidates(root):
     out = []
     for f in md_files(root):
         rel = f.relative_to(root).as_posix()
-        for n, s, _ in prose_sentences(f.read_text(encoding="utf-8")):
+        for n, s, _ in prose_sentences(read(f)):
             if len(CITATION_SPAN.findall(s)) > 1:
                 out.append((rel, n, "more than one citation in a sentence", s.strip()))
             if any(inside_clause(s[:m.start()], s[m.end():]) for m in CITATION_SPAN.finditer(s)):
@@ -1669,7 +1681,7 @@ def voice_candidates(root):
     its clause. Places to read, never findings."""
     out, terms = [], voice_terms(root)
     for f in voice_files(root):
-        rel, text = f.relative_to(root).as_posix(), f.read_text(encoding="utf-8")
+        rel, text = f.relative_to(root).as_posix(), read(f)
         for n, s, masked in prose_sentences(text):
             long = len(words_of(code_masked(s))) > LONG_SENTENCE_WORDS
             for m in terms.finditer(masked) if terms else ():
@@ -1721,7 +1733,7 @@ def style_and_agent_candidates(root):
         rel = f.relative_to(root).as_posix()
         if not rel.startswith("specs/") or rel in (SPECS_AGENTS, STYLE_RULE_FILE):
             continue
-        for n, line in enumerate(strip_fences(f.read_text(encoding="utf-8")).split("\n"), 1):
+        for n, line in enumerate(strip_fences(read(f)).split("\n"), 1):
             m = style.search(line)
             if m:
                 a, b = max(0, m.start() - 60), min(len(line), m.end() + 60)
@@ -1735,7 +1747,7 @@ def style_and_agent_candidates(root):
         if not f.exists():
             continue
         rel = f.relative_to(root).as_posix()
-        for n, line in enumerate(f.read_text(encoding="utf-8").split("\n"), 1):
+        for n, line in enumerate(read(f).split("\n"), 1):
             m = VENDOR_NAMES.search(line)
             if m and not line.startswith("VENDOR_NAMES"):
                 a, b = max(0, m.start() - 60), min(len(line), m.end() + 60)
@@ -1744,10 +1756,10 @@ def style_and_agent_candidates(root):
         rel = f.relative_to(root).as_posix()
         if rel.startswith(".ai/skills/"):
             continue
-        for n, s in long_sentences(f.read_text(encoding="utf-8")):
+        for n, s in long_sentences(read(f)):
             out.append((rel, n, "a long sentence of chained clauses, which may need a second read", s.strip()))
         if rel in (SPECS_AGENTS, SPECS_ARCHITECTURE) or rel.startswith("specs/methodology/"):
-            for n, path in application_paths(f.read_text(encoding="utf-8")):
+            for n, path in application_paths(read(f)):
                 out.append((rel, n, "a path into the application specs, which may be an example from inside the house", path))
     return out
 
@@ -1766,7 +1778,7 @@ def glossary_terms(root):
     if not g.exists():
         return None
     rows, header = [], None
-    for n, line in enumerate(g.read_text(encoding="utf-8").split("\n"), 1):
+    for n, line in enumerate(read(g).split("\n"), 1):
         if not line.startswith("|") or TABLE_RULE.match(line):
             continue
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
@@ -1789,7 +1801,7 @@ def glossary_findings(root):
     if got is None:
         return [(GLOSSARY_RULE, GLOSSARY, 0, "the glossary is missing")]
     header, rows = got
-    found, text = [], (root / GLOSSARY).read_text(encoding="utf-8")
+    found, text = [], read((root / GLOSSARY))
     for n, line in enumerate(strip_fences(text).split("\n"), 1):
         if CITATION.search(line) or WHOLE_FILE.search(line):
             found.append((GLOSSARY_RULE, GLOSSARY, n, "the glossary cites nothing"))
@@ -1833,7 +1845,7 @@ def abbreviation_findings(root):
     found = []
     app = sorted((root / "specs" / "application").rglob("*.md"))
     for f in app:
-        for n, line in enumerate(f.read_text(encoding="utf-8").split("\n"), 1):
+        for n, line in enumerate(read(f).split("\n"), 1):
             for m in RECORDED_ABBREVIATION.finditer(line):
                 if not re.fullmatch(r"[A-Za-z0-9]+", m.group(1)):
                     found.append((ABBREVIATION_RULE, f.relative_to(root).as_posix(), n,
@@ -1856,7 +1868,7 @@ def abbreviation_findings(root):
         if not f.is_file():
             continue
         diagram = False
-        for n, line in enumerate(f.read_text(encoding="utf-8").split("\n"), 1):
+        for n, line in enumerate(read(f).split("\n"), 1):
             if line.strip().startswith("```"):
                 diagram = line.strip() == "```mermaid"
                 continue
@@ -1899,7 +1911,7 @@ def glossary_candidates(root):
         rel = f.relative_to(root).as_posix()
         if rel == GLOSSARY:
             continue
-        for n, line in enumerate(strip_fences(f.read_text(encoding="utf-8")).split("\n"), 1):
+        for n, line in enumerate(strip_fences(read(f)).split("\n"), 1):
             m = defining.search(line)
             if m:
                 a, b = max(0, m.start() - 40), min(len(line), m.end() + 60)
@@ -1913,7 +1925,7 @@ def record_type_findings(root):
     either is a finding until the copy is brought into sync; a record type has no copy, read from its declaration."""
     out = []
     path = "specs/methodology/modeling-constructs.md"
-    text = (root / path).read_text(encoding="utf-8")
+    text = read((root / path))
     for rule, line, msg in constructs.field_table_findings(text, sections(text)):
         out.append((rule, path, line or 1, msg))
     for rule, line, msg in constructs.column_table_findings(text, sections(text)):
@@ -1922,7 +1934,7 @@ def record_type_findings(root):
         out.append((rule, path, line or 1, msg))
     # FEEL's built-in functions, the child script's copy held to the table in their home
     path = "specs/methodology/expressions.md"
-    text = (root / path).read_text(encoding="utf-8")
+    text = read((root / path))
     for line, msg in constructs.expressions.function_table_findings(text):
         out.append(("expressions.md § Expressions § FEEL § Its Functions", path, line or 1, msg))
     for line, msg in constructs.expressions.keyword_findings(text):
@@ -1951,7 +1963,7 @@ def canon_spec_findings(root):
                 continue
             rel = f.relative_to(root).as_posix()
             run = []
-            for i, line in enumerate(f.read_text(encoding="utf-8").split("\n") + [""], 1):
+            for i, line in enumerate(read(f).split("\n") + [""], 1):
                 if not CANON_SPEC.search(line):
                     if run and [c for _, c in run] != sorted(c for _, c in run):
                         out.append((CITING_FROM_CODE, rel, run[0][0], "canon-spec annotations not sorted in plain character order"))
@@ -1971,7 +1983,7 @@ def canon_spec_findings(root):
                     out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation citing an index.md, never a citation target: " + cite))
                 elif not target.is_file():
                     out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation naming no file: " + path))
-                elif lineage and lineage not in sections(target.read_text(encoding="utf-8")):
+                elif lineage and lineage not in sections(read(target)):
                     out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation naming no heading: " + cite))
     return out
 
@@ -1984,7 +1996,7 @@ def scope_findings(root):
     scope = root / SCOPE_TREE
     if not scope.exists():
         return found + [(SCOPE_HOME, SCOPE_TREE, 0, "the scope file is missing")]
-    text = scope.read_text(encoding="utf-8")
+    text = read(scope)
     section = re.search(r'^## What Spec of Record Governs\n(.*?)(?=^## )', text, re.S | re.M)
     rows = re.findall(r'^\|\s*([A-Z][^|]*?)\s*\|[^|]*\|([^|]*)\|', section.group(1) if section else "", re.M)
     rows = [(k, named) for k, named in rows if k != "Kind"]
@@ -2034,7 +2046,7 @@ def skill_findings(root, names):
         if not (d / "SKILL.md").exists():
             found.append((REGISTRY_RULE, REGISTRY, 0, f"the registered skill {n} has no SKILL.md"))
             continue
-        fm = re.match(r'^---\n(.*?)\n---', (d / "SKILL.md").read_text(encoding="utf-8").replace("\r\n", "\n"), re.S)
+        fm = re.match(r'^---\n(.*?)\n---', read((d / "SKILL.md")).replace("\r\n", "\n"), re.S)
         meta = dict(re.findall(r'^(\w+):\s*(.*)$', fm.group(1), re.M)) if fm else {}
         if not fm:
             found.append((AUTHORING, rel, 1, "SKILL.md does not open with YAML front matter"))
@@ -2046,7 +2058,7 @@ def skill_findings(root, names):
             found.append((AUTHORING, rel, 1, "front matter description is longer than 1024 characters"))
         if len(n) > 64:
             found.append((AUTHORING, rel, 1, f"skill name is longer than 64 characters: {n}"))
-        if level2_section(strip_fences((d / "SKILL.md").read_text(encoding="utf-8")), "Workflow") is None:
+        if level2_section(strip_fences(read((d / "SKILL.md"))), "Workflow") is None:
             found.append((AUTHORING, rel, 0, "SKILL.md has no ## Workflow section"))
         if (d / "scripts").is_dir() and not (d / "scripts" / (n + ".py")).exists():
             found.append((AUTHORING, f".ai/skills/{n}/scripts", 0, f"no entry-point script named {n}.py"))
@@ -2056,7 +2068,7 @@ def skill_findings(root, names):
 def script_lines(path):
     """-> [(line_no, text)] of a script's comments and docstrings, where its prose is."""
     out, in_doc = [], False
-    for n, line in enumerate(path.read_text(encoding="utf-8").split("\n"), 1):
+    for n, line in enumerate(read(path).split("\n"), 1):
         s = line.strip()
         if path.suffix == ".py" and s.count('"""') % 2 == 1:
             out.append((n, line))
@@ -2079,7 +2091,7 @@ def candidates(root):
 
     for f in md_files(root):
         rel = f.relative_to(root).as_posix()
-        md = strip_fences(f.read_text(encoding="utf-8")).split("\n")
+        md = strip_fences(read(f)).split("\n")
         for n, line in enumerate(md, 1):
             if n < len(md) and md[n].strip() and not HEADING.match(line):
                 # a count wrapped onto the next line: add that line's opening words
@@ -2127,7 +2139,7 @@ def direction_candidates(root):
     out = []
     for f in md_files(root):
         rel = f.relative_to(root).as_posix()
-        for n, line in enumerate(strip_fences(f.read_text(encoding="utf-8")).split("\n"), 1):
+        for n, line in enumerate(strip_fences(read(f)).split("\n"), 1):
             m = DIRECTION.search(line)
             if m:
                 s, e = max(0, m.start() - 60), min(len(line), m.end() + 40)
@@ -2162,7 +2174,7 @@ def skill_candidates(root):
     if base.is_dir():
         for d in sorted(p for p in base.iterdir() if p.is_dir()):
             sk = d / "SKILL.md"
-            if d.name not in names and sk.exists() and re.search(r'specs/(?:methodology/|AGENTS\.md)', sk.read_text(encoding="utf-8")):
+            if d.name not in names and sk.exists() and re.search(r'specs/(?:methodology/|AGENTS\.md)', read(sk)):
                 out.append((f".ai/skills/{d.name}/SKILL.md", 0, "unregistered skill citing the method's rules", d.name))
     stdlib = set(getattr(sys, "stdlib_module_names", ()))
     if not stdlib:
@@ -2171,19 +2183,19 @@ def skill_candidates(root):
     lib = {p.stem for p in (base / "lib").glob("*.py")} if (base / "lib").is_dir() else set()
     for n in sorted(names) + (["lib"] if lib else []):
         for py in sorted((base / n).rglob("*.py")):
-            for k, line in enumerate(py.read_text(encoding="utf-8").split("\n"), 1):
+            for k, line in enumerate(read(py).split("\n"), 1):
                 m = re.match(r'^\s*(?:import\s+([A-Za-z_]\w*)|from\s+([A-Za-z_]\w*)[\w.]*\s+import\b)', line)
                 mod = m and (m.group(1) or m.group(2))
                 if mod and stdlib and mod not in stdlib and mod not in lib and not (py.parent / f"{mod}.py").exists():
                     out.append((py.relative_to(root).as_posix(), k, "import from outside the standard library", line.strip()))
     for n in sorted(names) + (["lib"] if lib else []):
         for f in sorted((base / n).rglob("*.md")):
-            for k, s in long_sentences(f.read_text(encoding="utf-8")):
+            for k, s in long_sentences(read(f)):
                 out.append((f.relative_to(root).as_posix(), k, "a long sentence of chained clauses, which may need a second read", s.strip()))
-            for k, path in application_paths(f.read_text(encoding="utf-8")):
+            for k, path in application_paths(read(f)):
                 out.append((f.relative_to(root).as_posix(), k, "a path into the application specs, which may be an example from inside the house", path))
         for f in sorted(p for p in (base / n).rglob("*") if p.suffix in SCRIPT_SUFFIXES):
-            for k, path in application_paths(f.read_text(encoding="utf-8")):
+            for k, path in application_paths(read(f)):
                 out.append((f.relative_to(root).as_posix(), k, "a path into the application specs, which may be an example from inside the house", path))
     return out
 
@@ -2197,7 +2209,7 @@ def literal_candidates(root):
     """
     known, out, fenced = set(FIELD_KEYS), [], []
     for f in md_files(root):
-        text = f.read_text(encoding="utf-8")
+        text = read(f)
         known.update(title for _, title in headings(text))
         # a span written verbatim in a fenced example, a Gherkin keyword or a Mermaid
         # directive, is literal text the tree itself shows
@@ -2207,7 +2219,7 @@ def literal_candidates(root):
     literal = re.compile(r'[§/._*\[\]:=()<>#;~]|^-|^[a-z0-9-]+$')
     for f in md_files(root):
         rel = f.relative_to(root).as_posix()
-        for n, line in enumerate(strip_fences(f.read_text(encoding="utf-8")).split("\n"), 1):
+        for n, line in enumerate(strip_fences(read(f)).split("\n"), 1):
             for m in constructs.CODE_SPAN.finditer(line):
                 span = m["text"]
                 if span in known or literal.search(span) or span in fenced_words or span in fenced_text:
@@ -2301,7 +2313,7 @@ def main(argv):
         for path, line, name, context in direction_candidates(root):
             print(f"  {path}:{line}  [{name}]\n    {context}")
         print("\nCandidates for the Construct choice and form audit: places to read, not findings")
-        files = [(f.relative_to(root).as_posix(), f.read_text(encoding="utf-8")) for f in md_files(root)]
+        files = [(f.relative_to(root).as_posix(), read(f)) for f in md_files(root)]
         for path, line, name, context in constructs.construct_candidates(files, sections, strip_fences):
             print(f"  {path}:{line}  [{name}]\n    {context}")
     return status

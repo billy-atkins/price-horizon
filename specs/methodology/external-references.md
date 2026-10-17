@@ -21,7 +21,7 @@
   **Version:** 1.5
   **URL:** `https://www.omg.org/spec/DMN/1.5/`
   **Relation:** adopts
-  **Covers:** the decision table and its hit policies; information requirements, as a decision table reads another's outcome; FEEL, its expression language, whole, as `specs/methodology/expressions.md § Expressions § FEEL` states it; and item definitions, with FEEL's names for their types
+  **Covers:** the decision table and its hit policies; information requirements, as a decision table reads another's outcome; FEEL, its expression language, whole, as [`specs/methodology/expressions.md § Expressions § FEEL`](/specs/methodology/expressions.md#feel) states it; and item definitions, with FEEL's names for their types
 
 - **Name:** GFM
   **Title:** GitHub Flavored Markdown Spec, GitHub

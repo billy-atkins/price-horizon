@@ -33,6 +33,15 @@ import sys
 import tempfile
 from pathlib import Path
 
+import citation_links
+
+
+# @canon-spec specs/methodology/sourcing-and-citation.md § Writing a Citation § A Citation's Link
+def read(path):
+    """-> a file's text with each citation's link stripped, so a quoted edit, written without links, is matched
+    against the file as an author writes it."""
+    return citation_links.strip(Path(path).read_text(encoding="utf-8"))
+
 
 REGISTRY = "specs/methodology/skills.md"
 # @canon-spec specs/methodology/working-files.md § A Design Document § The Kinds of Change
@@ -92,7 +101,7 @@ def declared_type(home, plural, root=None):
     base = Path(root) if root else next((p for p in (*here.parents, Path.cwd(), *Path.cwd().parents) if (p / path).exists()), Path.cwd())
     if not (base / path).exists():
         return [], [(path, "no file declares the %s type" % title)]
-    text = (base / path).read_text(encoding="utf-8").replace("\r\n", "\n")
+    text = read((base / path)).replace("\r\n", "\n")
     lines = [l.strip() for l in (section(text, title) or "").split("\n")]
     problems = [] if "**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`" in lines \
         else ["no Record Form declares the %s type" % title]
@@ -146,14 +155,14 @@ ROOT_FIELD = re.compile(r"^" + KEY + r" ?(.*?)(?=\n[ \t-]*\*\*[A-Z][A-Za-z ]*:\*
 def read_design(f):
     """-> (file name, [(key, value)], [level-two heading], text) for one design document;
     its fields are read from the Design Document section, before its first level-two heading."""
-    text = f.read_text(encoding="utf-8").replace("\r\n", "\n")
+    text = read(f).replace("\r\n", "\n")
     head = text.split("\n## ", 1)[0]
     fields = [(k, " ".join(v.split())) for k, v in ROOT_FIELD.findall(head)]
     return f.stem, fields, re.findall(r"^## (.+?)\s*$", text, re.M), text
 
 
 def is_design(f):
-    return f.read_text(encoding="utf-8").lstrip("\ufeff").startswith("# Design Document")
+    return read(f).lstrip("\ufeff").startswith("# Design Document")
 
 
 def read_designs(folder):
@@ -373,7 +382,7 @@ def kind_of(path, skills):
 def check_kind(design, root):
     """-> (1, [(file name, problem)]) where one design document's Target strays from its Kind."""
     reg = root / REGISTRY
-    skills = re.findall(r"^\| `([a-z0-9-]+)` \|", reg.read_text(encoding="utf-8"), re.M) if reg.exists() else []
+    skills = re.findall(r"^\| `([a-z0-9-]+)` \|", read(reg), re.M) if reg.exists() else []
     if not skills:
         return 0, [(REGISTRY, "no registered skills read, so a skill's files cannot be classified")]
     problems, designs = [], [read_design(design)]
@@ -577,7 +586,7 @@ def resolve(path, root):
 
 def check_citations(proposal, root):
     """-> [(ok, path, target, note)] for each cross-file citation, in order."""
-    text = Path(proposal).read_text(encoding="utf-8")
+    text = read(Path(proposal))
     seen, results = set(), []
     for m in CITATION.finditer(text):
         path, target = m.group("path"), " ".join(m.group("target").split())
@@ -591,7 +600,7 @@ def check_citations(proposal, root):
         if target_file is None:
             results.append((False, path, target, note))
             continue
-        found = lineages(target_file.read_text(encoding="utf-8"))
+        found = lineages(read(target_file))
         if target in found:
             results.append((True, path, target, ""))
             continue
@@ -644,7 +653,7 @@ def check(path, anchor, root):
 
     target = (root / path).resolve()
     try:
-        body = target.read_text(encoding="utf-8")
+        body = read(target)
     except FileNotFoundError:
         return "no-file", "file does not exist"
     except OSError as exc:
@@ -701,7 +710,7 @@ def edit_apply_problems(design):
     """-> a problem for each quoted edit that neither applies to its file exactly once nor is already applied there,
     as --with-edits-of takes an edit already applied; an edit whose file lies under a folder the files at hand do not
     hold, as code in the copy --with-edits-of builds, is left to the run that holds it."""
-    text = design.read_text(encoding="utf-8").replace("\r\n", "\n")
+    text = read(design).replace("\r\n", "\n")
     if dict(read_design(design)[1]).get("Status") not in EDITS_LIVE:
         return []
     out = []
@@ -712,7 +721,7 @@ def edit_apply_problems(design):
         top = Path.cwd() / Path(f).parts[0]
         if not target.is_file() and len(Path(f).parts) > 1 and not top.exists():
             continue
-        now = target.read_text(encoding="utf-8").replace("\r\n", "\n") if target.is_file() else ""
+        now = read(target).replace("\r\n", "\n") if target.is_file() else ""
         if now.count(old) != 1 and not (new in now and (old in new or old not in now)):
             out.append("the edit at line %d does not apply to %s exactly once, nor is it already applied" % (line, f))
     return out
@@ -722,7 +731,7 @@ def edited(design_text, path):
     """-> the texts of the file at path as the design's own quoted edits leave it and as it stood before them, the
     files at hand holding either, as a run with --with-edits-of holds the edits applied."""
     target = Path.cwd() / path
-    now = target.read_text(encoding="utf-8").replace("\r\n", "\n") if target.is_file() else None
+    now = read(target).replace("\r\n", "\n") if target.is_file() else None
     after, before = now, now
     for _, f, old, new in quoted(design_text):
         if f != path:
@@ -748,7 +757,7 @@ def citation_problems(design):
     edits are live."""
     if dict(read_design(design)[1]).get("Status") not in EDITS_LIVE:
         return []
-    text = design.read_text(encoding="utf-8").replace("\r\n", "\n")
+    text = read(design).replace("\r\n", "\n")
     kept = text
     for title in ("Steering Decisions", "The Builder's Passes"):
         body = section(kept, title)
@@ -796,7 +805,7 @@ def check_quoted_text(source):
         text = sys.stdin.read()
     else:
         try:
-            text = Path(source).read_text(encoding="utf-8")
+            text = read(Path(source))
         except OSError as exc:
             sys.stderr.write("cannot read manifest: %s\n" % exc)
             return 2
@@ -954,13 +963,13 @@ def with_applied(withs, argv):
             design = design_file(value)
             if design is None:
                 return 2
-            for _, f, old, new in quoted(design.read_text(encoding="utf-8").replace("\r\n", "\n")):
+            for _, f, old, new in quoted(read(design).replace("\r\n", "\n")):
                 target = copy / f
                 if old is None:
                     target.parent.mkdir(parents=True, exist_ok=True)
                     target.write_text(new + "\n", encoding="utf-8", newline="\n")
                     continue
-                now = target.read_text(encoding="utf-8").replace("\r\n", "\n") if target.is_file() else ""
+                now = read(target).replace("\r\n", "\n") if target.is_file() else ""
                 # already applied, as while the design is applying: its replacement there and, unless the replacement
                 # holds the text it replaces, that text gone
                 if new in now and (old in new or old not in now):
@@ -970,6 +979,8 @@ def with_applied(withs, argv):
                 else:
                     sys.stderr.write("--with-edits-of %s: an edit's text is not in %s exactly once, nor its replacement already there\n" % (value, f))
                     return 2
+        # a quoted edit carries no links, so the copy's links are written again once its edits are in, as the apply does
+        citation_links.refresh_tree(copy)
         rest, skip = [], False
         for a in argv[1:]:
             if skip:
@@ -1142,7 +1153,7 @@ def show_refactor_and_refine_of_existing_specs(baseline):
     now_files = sorted(set(git("ls-files", "--", *REFACTOR_AND_REFINE_PATHS).stdout.split())
                        | set(git("ls-files", "--others", "--exclude-standard", "--", *REFACTOR_AND_REFINE_PATHS).stdout.split()))
     then, then_where = count((f, git("show", "%s:%s" % (baseline, f)).stdout) for f in then_files)
-    now, where = count((f, Path(f).read_text(encoding="utf-8")) for f in now_files if Path(f).is_file())
+    now, where = count((f, read(Path(f))) for f in now_files if Path(f).is_file())
     # a line of six words or more repeats only by being copied or by design; a shorter line,
     # a heading or a table's header, repeats by nature, so a gain in one is listed as new instead
     repeated = sorted(t for t in now if now[t] > 1 and now[t] > then.get(t, 0) and len(t.split()) >= 6)
@@ -1157,6 +1168,20 @@ def show_refactor_and_refine_of_existing_specs(baseline):
 
 
 # Actions are flags per specs/methodology/skills.md § Authoring a Skill.
+# @canon-spec specs/methodology/sourcing-and-citation.md § Writing a Citation § A Citation's Link
+def refresh_links(value):
+    """--refresh-links: writes and refreshes each citation's link in the files a person reads; -> 0."""
+    root = Path(value).resolve()
+    if value == ".":
+        # run from anywhere in the repository, the links are written over the whole of it
+        found = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+        root = Path(found.stdout.strip()) if found.returncode == 0 else root
+    changed = citation_links.refresh_tree(root)
+    report("refresh-links", [])
+    print("%d files changed" % len(changed))
+    return 0
+
+
 FLAGS = (
     ("--check-quoted-text", "MANIFEST", check_quoted_text,
      "confirm each text the manifest quotes appears exactly once in the file it names; - reads the manifest from stdin"),
@@ -1178,6 +1203,8 @@ FLAGS = (
      "run every check on one design document and, if it passes, write its validation stamp; the builder runs it at validating"),
     ("--show-edits", "DESIGN", show_edits,
      "list every edit a design document quotes in the forms working-files.md § A Design Document gives, untruncated: its line, the file it edits, and the words it removes and adds; decides nothing"),
+    ("--refresh-links", "ROOT", refresh_links,
+     "write and refresh the link every citation in a file a person reads on GitHub carries, README.md, the files under docs/ and every spec but specs/AGENTS.md; the apply runs it once a design's edits are in; reads the repository holding the current directory unless given a root"),
     ("--show-refactor-and-refine-of-existing-specs", "BASELINE", show_refactor_and_refine_of_existing_specs,
      "show what a Refactor and Refine cycle over existing specs changed since the baseline commit, for a reader to trace: lines now repeated, lost and new, each with the files holding it; decides nothing; run from the repository's root on a tree with the cycle's changes applied"),
 )
@@ -1191,6 +1218,8 @@ def main(argv, plans=PLANS):
         # a flag given more than once runs once for each value it is given
         if flag in ("--check-workstack", "--show-workstack"):
             parser.add_argument(flag, metavar=metavar, nargs="?", const=PLANS, action="append", help=help_text)
+        elif flag == "--refresh-links":
+            parser.add_argument(flag, metavar=metavar, nargs="?", const=".", action="append", help=help_text)
         else:
             parser.add_argument(flag, metavar=metavar, action="append", help=help_text)
     parser.add_argument("--with-edits-of", metavar="DESIGN", action="append", help="run the other actions with the edits of this design document applied, in a copy of the repository, for a record using a form a design changing the method adds; given more than once, each design's edits applied in turn")

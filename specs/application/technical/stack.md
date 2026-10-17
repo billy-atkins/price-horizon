@@ -22,11 +22,11 @@ The backend holds the query, materialization and control plane services and the 
 
 | Technology | Kind | Purpose |
 |---|---|---|
-| PostgreSQL 17 | Database | The structured database: the harmonized quantitative foundation, reference and master data, pipeline and answer artifacts, and the audit log (`specs/application/technical/data-model.md § Core Data Model`) |
-| pgvector | Database extension | The vector database, within PostgreSQL: the qualitative corpus, chunked and embedded, each business unit in its own namespace (`specs/application/technical/data-model.md § Core Data Model`) |
+| PostgreSQL 17 | Database | The structured database: the harmonized quantitative foundation, reference and master data, pipeline and answer artifacts, and the audit log ([`specs/application/technical/data-model.md § Core Data Model`](/specs/application/technical/data-model.md#core-data-model)) |
+| pgvector | Database extension | The vector database, within PostgreSQL: the qualitative corpus, chunked and embedded, each business unit in its own namespace ([`specs/application/technical/data-model.md § Core Data Model`](/specs/application/technical/data-model.md#core-data-model)) |
 | Valkey | Cache | The question-intent cache |
-| Temporal | Orchestration engine | Durable execution of the live path and the batch path (`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration`) |
-| OpenBao | Secrets vault | Every credential the installation holds, the vault an installation uses unless it reaches one the customer already runs, through the vault adapter (`specs/application/technical/secrets-management.md § Secrets management`) |
-| MLflow | Model registry | The versioned quantitative models and weighting rubrics (`specs/application/technical/model-registry.md § Model registry`) |
+| Temporal | Orchestration engine | Durable execution of the live path and the batch path ([`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration`](/specs/application/technical/engineering-and-production-considerations.md#orchestration)) |
+| OpenBao | Secrets vault | Every credential the installation holds, the vault an installation uses unless it reaches one the customer already runs, through the vault adapter ([`specs/application/technical/secrets-management.md § Secrets management`](/specs/application/technical/secrets-management.md#secrets-management)) |
+| MLflow | Model registry | The versioned quantitative models and weighting rubrics ([`specs/application/technical/model-registry.md § Model registry`](/specs/application/technical/model-registry.md#model-registry)) |
 | vLLM | Model server | Acme AI's language models, hosted in the installation behind an OpenAI-compatible endpoint |
-| OpenTelemetry Collector | Telemetry | Application traces and logs (`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Security and governance`) |
+| OpenTelemetry Collector | Telemetry | Application traces and logs ([`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Security and governance`](/specs/application/technical/engineering-and-production-considerations.md#security-and-governance)) |
