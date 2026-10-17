@@ -275,6 +275,7 @@ Each row describes, in the script's own terms, what it checks for the rule it na
 | Check | Rule |
 |---|---|
 | Every `file § A § B` resolves to that heading path in that file | `specs/methodology/sourcing-and-citation.md § Writing a Citation` |
+| Every citation in `README.md`, the files under `docs/` and every spec but `specs/AGENTS.md` is a link reaching what it resolves to, a Construct, an Extends or an Implements value, a fenced block and front matter aside; and no skill or `AGENTS.md` file carries one | `specs/methodology/sourcing-and-citation.md § Writing a Citation § A Citation's Link` |
 | A citation never points down a layer except from `specs/AGENTS.md` or `specs/architecture.md`, never crosses between application and methodology or from an application spec to either, whether it names a section or a whole file, but a Construct field citing its construct's definition from any layer, and no spec cites a section of the project's root `AGENTS.md` | `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` |
 | No citation targets an `index.md` | `specs/methodology/sourcing-and-citation.md § Writing a Citation` |
 | A cross-file citation carries a project-root path | `specs/methodology/sourcing-and-citation.md § Writing a Citation` |

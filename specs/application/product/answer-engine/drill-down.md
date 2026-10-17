@@ -31,9 +31,9 @@ What a granularity drill-down shows depends on whether it stays within the range
 
 That boundary reflects which competitor data is currently licensed and ingested, not a permanent limit, a more granular data source would move it.
 
-The narrative layer's job throughout every stage (`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`, `specs/application/product/answer-engine/position.md § Position: where Brand A should sit`, `specs/application/product/answer-engine/simulate.md § Simulate: what follows for the business`) is fluent explanation of numbers that already exist, not generation of new ones. That distinction is what keeps the answer defensible in front of a retailer or a CFO.
+The narrative layer's job throughout every stage ([`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`](/specs/application/product/answer-engine/predict.md#predict-what-will-the-competitor-do), [`specs/application/product/answer-engine/position.md § Position: where Brand A should sit`](/specs/application/product/answer-engine/position.md#position-where-brand-a-should-sit), [`specs/application/product/answer-engine/simulate.md § Simulate: what follows for the business`](/specs/application/product/answer-engine/simulate.md#simulate-what-follows-for-the-business)) is fluent explanation of numbers that already exist, not generation of new ones. That distinction is what keeps the answer defensible in front of a retailer or a CFO.
 
-`specs/application/product/architecture.md § Diagrams § The Answer` renders this.
+[`specs/application/product/architecture.md § Diagrams § The Answer`](/specs/application/product/architecture.md#the-answer) renders this.
 
 ### Test Scenarios
 

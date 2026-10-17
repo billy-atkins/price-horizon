@@ -1,6 +1,6 @@
 ## Acceptance Scenarios
 
-A product capability's spec gets acceptance scenarios in Gherkin form (`specs/methodology/external-references.md § External References [Name: Gherkin]`), co-located inside that capability's own section, never in a separate scenarios file. This applies to every product capability with its own section in a product spec file, whether or not it already has a scenario block.
+A product capability's spec gets acceptance scenarios in Gherkin form ([`specs/methodology/external-references.md § External References [Name: Gherkin]`](/specs/methodology/external-references.md#external-references)), co-located inside that capability's own section, never in a separate scenarios file. This applies to every product capability with its own section in a product spec file, whether or not it already has a scenario block.
 
 **Reference Key:** Rule
 
@@ -15,7 +15,7 @@ A product capability's spec gets acceptance scenarios in Gherkin form (`specs/me
 
 The title is the same every time and does not restate the capability, because the capability's own heading is already the parent every citation carries. A repeated title lets a reader or a search recognize the pattern once and rely on it everywhere.
 
-**Why a fenced block.** These specifications are the authoritative source that code and its tests are written against and checked back against. Whoever writes that code parses a fenced block rather than transcribing prose by hand, for the same reason a JSON payload or a config file would be fenced rather than described in sentences. Fencing makes a scenario precise and stable to cite; it does not make it executable on its own. An executable copy generated into application code is a test citing the capability's `Test Scenarios` section (`specs/methodology/code.md § Tests`), rather than a separately maintained copy drifting from it.
+**Why a fenced block.** These specifications are the authoritative source that code and its tests are written against and checked back against. Whoever writes that code parses a fenced block rather than transcribing prose by hand, for the same reason a JSON payload or a config file would be fenced rather than described in sentences. Fencing makes a scenario precise and stable to cite; it does not make it executable on its own. An executable copy generated into application code is a test citing the capability's `Test Scenarios` section ([`specs/methodology/code.md § Tests`](/specs/methodology/code.md#tests)), rather than a separately maintained copy drifting from it.
 
 **Concrete values, not categories.** A scenario's `Given` and `When` steps use a named entity, a real date, a stated amount. A scenario proves one specific case actually produces the promised outcome; a step written in the abstract proves nothing a reader could check.
 
@@ -54,8 +54,8 @@ Editing a capability's stated promises or guardrails and editing that capability
 
 ## Why a Scenario Is Not a Modeling Construct
 
-A Gherkin scenario is not one of the approved constructs (`specs/methodology/modeling-constructs.md`) and does not belong there.
+A Gherkin scenario is not one of the approved constructs ([`specs/methodology/modeling-constructs.md`](/specs/methodology/modeling-constructs.md)) and does not belong there.
 
-Each of those constructs is checked for what prose would leave out, as each construct's definition lists (`specs/methodology/modeling-constructs.md § Constructs`), often across a space of branches, rows or states that is combinatorial or unbounded until the construct enumerates it. A scenario checks something narrower, a coverage checklist against one section's own already-finite, already-written list of promises and guardrails, not a proof that no branch of some larger space was missed.
+Each of those constructs is checked for what prose would leave out, as each construct's definition lists ([`specs/methodology/modeling-constructs.md § Constructs`](/specs/methodology/modeling-constructs.md#constructs)), often across a space of branches, rows or states that is combinatorial or unbounded until the construct enumerates it. A scenario checks something narrower, a coverage checklist against one section's own already-finite, already-written list of promises and guardrails, not a proof that no branch of some larger space was missed.
 
-A scenario is closer in spirit to a white-box harness that exercises one internal mechanism, but the two are parallel, independent checks rather than one ranked above the other. Such a harness checks that one internal mechanism fires correctly; a scenario checks that a capability delivers what it promises, regardless of which mechanism produced it. Neither cites the other, and keeping the two in agreement when a mechanism changes is the harness's own concern, since the harness is the product's code, which `specs/methodology/scope.md § What Spec of Record Governs` sets apart from the specs.
+A scenario is closer in spirit to a white-box harness that exercises one internal mechanism, but the two are parallel, independent checks rather than one ranked above the other. Such a harness checks that one internal mechanism fires correctly; a scenario checks that a capability delivers what it promises, regardless of which mechanism produced it. Neither cites the other, and keeping the two in agreement when a mechanism changes is the harness's own concern, since the harness is the product's code, which [`specs/methodology/scope.md § What Spec of Record Governs`](/specs/methodology/scope.md#what-spec-of-record-governs) sets apart from the specs.

@@ -9,7 +9,7 @@ technical-specs:
 
 If the system cannot complete a forecast at all, once retries are exhausted, it says so plainly; no forecast is shown, what is shown is that one could not be computed, and the Query user is told to try again. If the forecast completes but positioning cannot, the forecast, its confidence, and its rationale are still shown, clearly labeled as missing Position and Simulate. If the forecast and positioning both complete but simulation cannot, the forecast and the positioning options are still shown, clearly labeled as missing Simulate. None of these ever substitutes a stale, placeholder, or previous run's figure in place of what could not be freshly computed, and none ever withholds a result that was actually already computed just because a later stage failed.
 
-`specs/application/product/architecture.md § Diagrams § When an Answer Falls Short` renders this.
+[`specs/application/product/architecture.md § Diagrams § When an Answer Falls Short`](/specs/application/product/architecture.md#when-an-answer-falls-short) renders this.
 
 ### Test Scenarios
 

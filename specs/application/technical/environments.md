@@ -1,6 +1,6 @@
 ## Environments
 
-Where PriceHorizon is built, tested and run, each environment stating only what differs from the technical stack (`specs/application/technical/stack.md § Technical Stack`).
+Where PriceHorizon is built, tested and run, each environment stating only what differs from the technical stack ([`specs/application/technical/stack.md § Technical Stack`](/specs/application/technical/stack.md#technical-stack)).
 
 ### Local
 
@@ -38,7 +38,7 @@ Where PriceHorizon is built, tested and run, each environment stating only what 
 | Lint | `dotnet format backend --verify-no-changes`, `dotnet format acceptance-tests --verify-no-changes`, `npm run lint --prefix web`, `uv --directory model-serving run ruff check` | Checks every part's format and lint rules |
 | Test | `dotnet test backend --filter "Category!=golden-question"`, `npm test --prefix web`, `uv --directory model-serving run pytest` | Runs every part's own tests, the golden questions apart |
 | Test, targeted | `dotnet test backend --filter "<filter>"`, `npm test --prefix web -- <pattern>`, `uv --directory model-serving run pytest -k "<expression>"` | Runs only the tests the argument selects: a test filter for the backend, a file pattern for the web UI, an expression for model serving |
-| Golden questions | `dotnet test backend --filter "Category=golden-question"` | Runs the golden-question suite (`specs/application/technical/evaluation-and-monitoring.md § Evaluation and monitoring`) against the models the system serves |
+| Golden questions | `dotnet test backend --filter "Category=golden-question"` | Runs the golden-question suite ([`specs/application/technical/evaluation-and-monitoring.md § Evaluation and monitoring`](/specs/application/technical/evaluation-and-monitoring.md#evaluation-and-monitoring)) against the models the system serves |
 | Golden questions, targeted | `dotnet test backend --filter "Category=golden-question&Name~<name>"` | Runs only the golden questions whose name holds the argument |
 | Browsers | `pwsh artifacts/bin/PriceHorizon.AcceptanceTests/debug/playwright.ps1 install --with-deps` | Installs the browsers the acceptance tests drive, once the acceptance tests are built |
 | Acceptance test | `dotnet test acceptance-tests` | Runs every acceptance scenario against the whole system, started in containers |
@@ -67,17 +67,17 @@ Where PriceHorizon is built, tested and run, each environment stating only what 
 |---|---|---|---|
 | Restore, build, lint and test | the local environment's Restore, Build, Lint and Test commands | Builds, lints and tests every part | Windows, macOS, Linux |
 | Acceptance test | the local environment's Browsers and Acceptance test commands | Runs every acceptance scenario against the whole system, started in containers | Linux |
-| Golden questions | the local environment's Golden questions command | Runs the golden-question suite on every change, a model, prompt template or data pipeline version among them, so every assertion holds before that version ships (`specs/application/technical/evaluation-and-monitoring.md § Evaluation and monitoring`) | Linux |
+| Golden questions | the local environment's Golden questions command | Runs the golden-question suite on every change, a model, prompt template or data pipeline version among them, so every assertion holds before that version ships ([`specs/application/technical/evaluation-and-monitoring.md § Evaluation and monitoring`](/specs/application/technical/evaluation-and-monitoring.md#evaluation-and-monitoring)) | Linux |
 | Chart check and images | the local environment's Chart check and Images commands | Checks the chart once, its result the same on every operating system, and builds the images, which are Linux containers | Linux |
 
 ### Customer Installation
 
 **Kind:** production
 
-**What it is for.** The customer's own people ask questions and administer PriceHorizon, in the installation `specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology` describes.
+**What it is for.** The customer's own people ask questions and administer PriceHorizon, in the installation [`specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology`](/specs/application/product/platform-and-compliance-operations/deployment-topology.md#deployment-topology) describes.
 
 **Where it runs.** The customer's own Kubernetes cluster, inside their own environment, installed and upgraded from the deployment chart.
 
-**What differs from the stack.** Kubernetes runs it; the customer's own identity provider signs people in; the vault the customer already runs, HashiCorp Vault or AWS Secrets Manager, holds its credentials through the vault adapter (`specs/application/technical/secrets-management.md § Secrets management`), the stack's otherwise; and the Anthropic API or the OpenAI API serves only the kinds of model call the installation's configuration names (`specs/application/technical/model-registry.md § Model registry`).
+**What differs from the stack.** Kubernetes runs it; the customer's own identity provider signs people in; the vault the customer already runs, HashiCorp Vault or AWS Secrets Manager, holds its credentials through the vault adapter ([`specs/application/technical/secrets-management.md § Secrets management`](/specs/application/technical/secrets-management.md#secrets-management)), the stack's otherwise; and the Anthropic API or the OpenAI API serves only the kinds of model call the installation's configuration names ([`specs/application/technical/model-registry.md § Model registry`](/specs/application/technical/model-registry.md#model-registry)).
 
-**What data it holds.** The customer's own data, which stays inside their environment, save what the client chooses to let a frontier model provider see (`specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology § Frontier Models`).
+**What data it holds.** The customer's own data, which stays inside their environment, save what the client chooses to let a frontier model provider see ([`specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology § Frontier Models`](/specs/application/product/platform-and-compliance-operations/deployment-topology.md#frontier-models)).

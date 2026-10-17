@@ -11,13 +11,13 @@ technical-specs:
 
 Not a single recommendation. A small, named set of positioning options, each stated as a price gap and relative price index against the predicted competitor outcome, evaluated at the granularity the decision actually requires.
 
-Price gap is the plain currency difference between Brand A's price and the competitor's forecast price. Relative price index is the same comparison as a ratio, Brand A's price divided by the competitor's, times 100, so a value above 100 means Brand A sits at a premium and a value below 100 means a discount. Both compare effective price (`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`), not sticker price, so a promotion running on either side is already accounted for before the comparison is made. Price gap is shown in the local currency of the geography being discussed, never the Query user's own, and a business unit spanning more than one country never blends it into one converted total, each country's own figures stay in that country's own currency; the answer is about a specific market, and a number someone in that market could actually act on has to be priced the way that market is. Relative price index carries no currency at all, a ratio, not an amount, so it needs none.
+Price gap is the plain currency difference between Brand A's price and the competitor's forecast price. Relative price index is the same comparison as a ratio, Brand A's price divided by the competitor's, times 100, so a value above 100 means Brand A sits at a premium and a value below 100 means a discount. Both compare effective price ([`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`](/specs/application/product/answer-engine/predict.md#predict-what-will-the-competitor-do)), not sticker price, so a promotion running on either side is already accounted for before the comparison is made. Price gap is shown in the local currency of the geography being discussed, never the Query user's own, and a business unit spanning more than one country never blends it into one converted total, each country's own figures stay in that country's own currency; the answer is about a specific market, and a number someone in that market could actually act on has to be priced the way that market is. Relative price index carries no currency at all, a ratio, not an amount, so it needs none.
 
-Every option carries the forecast's own confidence and its own rationale unchanged, rather than computing a score of its own: applying a positioning strategy to a forecast introduces no uncertainty the forecast did not already carry, so an option built on a low-confidence forecast is flagged exactly as low-confidence, with the same explanation behind it. Opening an option's confidence shows the forecast's own reasons, since it is the same score. `specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes` is where that sits alongside the other stages.
+Every option carries the forecast's own confidence and its own rationale unchanged, rather than computing a score of its own: applying a positioning strategy to a forecast introduces no uncertainty the forecast did not already carry, so an option built on a low-confidence forecast is flagged exactly as low-confidence, with the same explanation behind it. Opening an option's confidence shows the forecast's own reasons, since it is the same score. [`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes) is where that sits alongside the other stages.
 
 If two options would produce essentially the same outcome, they are shown as one rather than manufacturing a choice that is not really there, though the set never shrinks to a single option, since avoiding exactly that is what this stage is built for. Options are framed for judgment: the answer surfaces the choice, it does not make it. Each option carries its own brief explanation of the trade-off it represents, not just the numbers, the same discipline as the Predict narrative.
 
-`specs/application/product/architecture.md § Diagrams § The Answer` and `specs/application/product/architecture.md § Diagrams § From Evidence to Answer` render this.
+[`specs/application/product/architecture.md § Diagrams § The Answer`](/specs/application/product/architecture.md#the-answer) and [`specs/application/product/architecture.md § Diagrams § From Evidence to Answer`](/specs/application/product/architecture.md#from-evidence-to-answer) render this.
 
 ### Test Scenarios
 
@@ -61,7 +61,7 @@ Scenario: Price gap stays in the geography's own local currency; relative price 
 
 ### Options by Kind of Decision
 
-Which kind of decision an answer serves is the Query user's session choice, or the question's own words where they say, per `specs/application/product/answer-engine/decision-context.md § Decision Context`. How far out the forecast looks never changes which options appear.
+Which kind of decision an answer serves is the Query user's session choice, or the question's own words where they say, per [`specs/application/product/answer-engine/decision-context.md § Decision Context`](/specs/application/product/answer-engine/decision-context.md#decision-context). How far out the forecast looks never changes which options appear.
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
@@ -77,7 +77,7 @@ Which kind of decision an answer serves is the Query user's session choice, or t
 
 Diverge is left out of a retailer or promotional decision because it moves the brand's price position, which such a decision does not own.
 
-`specs/application/product/architecture.md § Diagrams § The Answer` renders this.
+[`specs/application/product/architecture.md § Diagrams § The Answer`](/specs/application/product/architecture.md#the-answer) renders this.
 
 #### Test Scenarios
 
@@ -117,9 +117,9 @@ Each option follows one of the defined strategies:
 | Close the Gap | Split the difference, half the percentage change between Hold and Match |
 | Diverge | Lean further into whatever position Brand A already holds against the competitor, more premium if already at a premium, a deeper discount if already discounting, sized to the competitor's expected move |
 
-A business unit may show its own labels for these options, each still standing for the same strategy (`specs/application/product/tenant-administration/business-unit-settings.md § Business Unit Settings`).
+A business unit may show its own labels for these options, each still standing for the same strategy ([`specs/application/product/tenant-administration/business-unit-settings.md § Business Unit Settings`](/specs/application/product/tenant-administration/business-unit-settings.md#business-unit-settings)).
 
-`specs/application/product/architecture.md § Diagrams § The Answer` renders this.
+[`specs/application/product/architecture.md § Diagrams § The Answer`](/specs/application/product/architecture.md#the-answer) renders this.
 
 #### Test Scenarios
 

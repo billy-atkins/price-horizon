@@ -7,7 +7,7 @@ technical-specs:
 
 PriceHorizon keeps using it and administering it on architecturally separate paths, rather than relying on a permissions setting alone: the path that answers questions never holds the credentials to change configuration, so a problem in the far more widely used query path has no way to reach the far more sensitive administrative one. A security-conscious buyer can know not just who can ask a pricing question, but who can change what a competitor's code means or edit a threshold, and that those two are never the same path by accident, even for a person holding both the Query user and Control plane admin roles. Every role, and every technical service boundary built to enforce it, holds to this.
 
-`specs/application/product/architecture.md § Diagrams § Using and Administering` renders this.
+[`specs/application/product/architecture.md § Diagrams § Using and Administering`](/specs/application/product/architecture.md#using-and-administering) renders this.
 
 ### Test Scenarios
 
