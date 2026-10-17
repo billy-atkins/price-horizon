@@ -1,6 +1,6 @@
 ## Expressions
 
-How an expression is written wherever a construct computes or tests a value, so an author and a reader need neither memory of the language nor a network to write or read one. Each construct writing expressions writes them in FEEL:
+How an expression is written wherever a construct computes or tests a value, so that an author and a reader need neither memory of the language nor a network to write or read one. Each construct that writes expressions writes them in FEEL:
 
 **Reference Key:** Construct
 
@@ -15,11 +15,11 @@ How an expression is written wherever a construct computes or tests a value, so 
 | Constraint | its rule |
 | Facts record | its Values where they cite no closed set, a function's Derivation and an Initial Value |
 
-[`§ Expressions § FEEL`](#feel) states FEEL in the canon's own words, each statement citing the section of DMN it rests on, so nothing FEEL means is left to recall; where this file is silent, FEEL means what DMN's chapter 10 says ([`specs/methodology/external-references.md § External References [Name: DMN]`](/specs/methodology/external-references.md#external-references)). A construct's section says which of FEEL's forms its checks decide and which it leaves to reading, and states any writing of FEEL's it narrows to one, as [`specs/methodology/sourcing-and-citation.md § External Reference`](/specs/methodology/sourcing-and-citation.md#external-reference) has a section state it.
+[`§ Expressions § FEEL`](#feel) states FEEL in the canon's own words, and each statement cites the section of DMN it rests on, so nothing FEEL means is left to recall. Where this file is silent, FEEL means what DMN's chapter 10 says ([`specs/methodology/external-references.md § External References [Name: DMN]`](/specs/methodology/external-references.md#external-references)). A construct's section says which of FEEL's forms the construct's checks decide and which it leaves to reading. The section also states any writing of FEEL's that the construct narrows to one, as [`specs/methodology/sourcing-and-citation.md § External Reference`](/specs/methodology/sourcing-and-citation.md#external-reference) has a section state it.
 
 ### FEEL
 
-The Friendly Enough Expression Language, DMN's expression language (DMN 10.1), adopted whole. Its departures are a word written plain in a Decision Table's cell, which stands for the string FEEL writes in quotes ([`specs/methodology/modeling-constructs.md § Constructs § Decision Table`](/specs/methodology/modeling-constructs.md#decision-table)); and a system's own arithmetic, a precision, a rounding mode and the decimal places a value is held to, as [`§ Expressions § FEEL § Arithmetic and Time`](#arithmetic-and-time) states it.
+FEEL is the Friendly Enough Expression Language, DMN's expression language (DMN 10.1), and the canon adopts it whole. The canon's departures from it are these. A word written plain in a Decision Table's cell stands for the string FEEL writes in quotes ([`specs/methodology/modeling-constructs.md § Constructs § Decision Table`](/specs/methodology/modeling-constructs.md#decision-table)). A system may have its own arithmetic: a precision, a rounding mode and the decimal places a value is held to, as [`§ Expressions § FEEL § Arithmetic and Time`](#arithmetic-and-time) states it.
 
 #### Its Values
 
@@ -44,17 +44,17 @@ Each value is of one type, and the types never overlap (DMN 10.3.2.1, 10.3.2.3):
 | range | `[1..10)`, `]1..10[`, `>= 18`, `< @"2025-01-01"` | the values between two ends, an end included by a bracket facing the values and left out by a parenthesis or a bracket facing away; or every value on one side of one end, by a comparison and that end (DMN 10.3.2.7, grammar rules 7 to 12) |
 | function | `function(amount, rate) amount * rate` | parameters and the expression they give a value by (DMN 10.3.2.8) |
 
-A range open at one end is written as a comparison and its end, `< @"2025-01-01"`; the writing `(..x)` belongs to the string `range` reads, as `range("(..2)")`, never to an expression (DMN 10.3.1.2, grammar rule 66). `null` is the one value of no type: what is absent, unknown, or the result of an operation given values outside its domain (DMN 10.3.2.1, 10.3.2.16). The two kinds of duration are different types, and so are a date, a time and a date and time, a date standing for its midnight UTC where a date and time is wanted (DMN 10.3.2.9.4).
+A range open at one end is written as a comparison and its end, `< @"2025-01-01"`. The writing `(..x)` belongs to the string that `range` reads, as `range("(..2)")`, never to an expression (DMN 10.3.1.2, grammar rule 66). `null` is the one value of no type: what is absent, unknown, or the result of an operation given values outside its domain (DMN 10.3.2.1, 10.3.2.16). The two kinds of duration are different types. A date, a time and a date and time are different types too, and a date stands for its midnight UTC where a date and time is wanted (DMN 10.3.2.9.4).
 
 #### Names
 
-A name is words, each opening with a letter, `?` or `_` and holding letters, digits, `?` and `_`, the words separated by spaces, and any of `.`, `/`, `-`, `'`, `+` and `*` between them, as `days in arrears`, `loan's balance` or `Income+Expenses`; spaces between words count once, however many there are (DMN 10.3.1.2, grammar rules 25 to 30; 10.3.1.4). A name never opens with one of the words FEEL keeps for itself: `and`, `between`, `else`, `every`, `external`, `false`, `for`, `function`, `if`, `in`, `instance`, `not`, `null`, `of`, `or`, `return`, `satisfies`, `some`, `then` and `true`; a later word of it may be one (DMN 10.3.1.4). Where a name holds an operator or a word FEEL keeps, its words are matched from the left against the names in scope, the longest match winning, so `a-b` is the name `a-b` and `days in arrears` the name `days in arrears` where each is one, and `(a)-(b)` subtracts; parentheses around a name end it (DMN 10.3.1.6).
+A name is words, as `days in arrears`, `loan's balance` or `Income+Expenses`. Each word opens with a letter, `?` or `_`, and holds letters, digits, `?` and `_`. Spaces separate the words, and any of `.`, `/`, `-`, `'`, `+` and `*` may stand between them. Spaces between words count once, however many there are (DMN 10.3.1.2, grammar rules 25 to 30; 10.3.1.4). A name never opens with one of the words FEEL keeps for itself: `and`, `between`, `else`, `every`, `external`, `false`, `for`, `function`, `if`, `in`, `instance`, `not`, `null`, `of`, `or`, `return`, `satisfies`, `some`, `then` and `true`; a later word of the name may be one (DMN 10.3.1.4). Where a name holds an operator or a word FEEL keeps, the words are matched from the left against the names in scope, and the longest match wins. So `a-b` is the name `a-b`, and `days in arrears` the name `days in arrears`, where each is a name in scope. Parentheses around a name end it, so `(a)-(b)` subtracts (DMN 10.3.1.6).
 
-A name is in scope where the construct declares it, a fact, a Facts record or a Reads item, say; inside a filter, `item` names the item tested, and, where the item is a context, its entries are named too, `item` naming an entry rather than the item where the item holds one so named; inside a `for`, `partial` names the list of results already given; inside a function, its parameters name what it is given; and every built-in function is in scope everywhere (DMN 10.3.2.5, 10.3.2.11, 10.3.2.14).
+A name is in scope where the construct declares it, such as a fact, a Facts record or a Reads item. Inside a filter, `item` names the item tested. Where that item is a context, its entries are named too, and where the context holds an entry named `item`, `item` names that entry rather than the item. Inside a `for`, `partial` names the list of results already given. Inside a function, the function's parameters name what it is given. Every built-in function is in scope everywhere (DMN 10.3.2.5, 10.3.2.11, 10.3.2.14).
 
 #### Its Expressions
 
-From the loosest to the tightest, an expression is one of these, so `a + b * c` multiplies first and `a = b + c` adds first (DMN 10.3.1.2, grammar rules 2, 4 and 44 to 52, and the precedence stated beneath them):
+An expression is one of these, listed from the loosest to the tightest, so `a + b * c` multiplies first and `a = b + c` adds first (DMN 10.3.1.2, grammar rules 2, 4 and 44 to 52, and the precedence stated beneath them):
 
 **Reference Key:** Form
 
@@ -79,18 +79,18 @@ A comment is `//` to the line's end or `/*` to `*/` (DMN 10.3.1.2).
 
 #### Unary Tests
 
-A unary test is what a Decision Table's condition cell, an Input Values item and a Facts record's Values hold where they cite no closed set ([`specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact`](/specs/methodology/modeling-constructs.md#fact)): a test of one value, which that value meets or not, written without the value (DMN 10.3.1.2, grammar rules 7, 8, 13 to 16; Table 55):
+A unary test is a test of one value, which that value meets or not, written without the value. It is what a Decision Table's condition cell, an Input Values item and a Facts record's Values hold where they cite no closed set ([`specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact`](/specs/methodology/modeling-constructs.md#fact)). A unary test is one of these (DMN 10.3.1.2, grammar rules 7, 8, 13 to 16; Table 55):
 
 - `-`, met by any value;
 - a comparison and an end, `< 10`, `>= date("2024-01-01")`, `= base rate`, `!= "Gold"`;
 - a range, `[1..10)`, its ends values or expressions of one type;
-- an expression, met where the value equals it, where it is a list holding the value, where it is a range holding the value, or, where the expression names `?`, the value tested, where it is `true`, as `? > minimum and ? < maximum`;
+- an expression, met where the value equals it, where the expression is a list or a range holding the value, or, where the expression names `?` for the value tested, where the expression is `true`, as `? > minimum and ? < maximum`;
 - several of these separated by commas, met by any one;
 - `not(…)` around several of these, met by what none of them is.
 
 #### Null and Three-Valued Logic
 
-`and`, `or` and `not` take `true`, `false` and anything else, giving `null` only where the answer turns on what is not a boolean, the table read in either order (DMN 10.3.2.4, Tables 50 and 51):
+`and`, `or` and `not` take `true`, `false` and anything else. They give `null` only where the answer turns on a value that is not a boolean. The table holds with `a` and `b` in either order (DMN 10.3.2.4, Tables 50 and 51):
 
 **Reference Key:** `a`, `b`
 
@@ -105,17 +105,17 @@ A unary test is what a Decision Table's condition cell, an Input Values item and
 | `false` | another | `false` | `null` |
 | another | another | `null` | `null` |
 
-`not(true)` is `false`, `not(false)` is `true`, and `not` of anything else `null`. An equality with `null` is never `null`: `a = null` is `true` where `a` is `null` and `false` otherwise, and `a != null` the opposite (DMN Table 49). Any other comparison of two values not of one type, `"1" = 1`, `null < 5` and `null` tested against a range among them, is `null` (DMN Tables 52 to 54). So an absent value tested by a value, as a unary test `"Gold"` tests it, is `false`, and tested by a comparison or a range is `null`, which no test meets. A function given a value outside its parameters' domain gives `null` (DMN 10.3.2.16).
+`not(true)` is `false`, `not(false)` is `true`, and `not` of anything else `null`. An equality with `null` is never `null`: `a = null` is `true` where `a` is `null` and `false` otherwise, and `a != null` the opposite (DMN Table 49). Any other comparison of two values not of one type is `null`, `"1" = 1`, `null < 5` and `null` tested against a range among them (DMN Tables 52 to 54). So an absent value tested by a value, as a unary test `"Gold"` tests it, is `false`. Tested by a comparison or a range, it is `null`, which no test meets. A function given a value outside its parameters' domain gives `null` (DMN 10.3.2.16).
 
 #### Arithmetic and Time
 
-Numbers add, subtract, multiply and divide exactly to 34 significant digits, a division by zero or a result too large or too small to hold giving `null`; `decimal` and the rounding functions of [`§ Expressions § FEEL § Its Functions`](#its-functions) give a number the decimal places they are asked for (DMN Tables 57, 59, 60 and 76). Two strings added are joined, the first then the second (DMN Table 57).
+Numbers add, subtract, multiply and divide exactly to 34 significant digits. A division by zero, or a result too large or too small to hold, gives `null`. `decimal` and the rounding functions of [`§ Expressions § FEEL § Its Functions`](#its-functions) give a number the decimal places they are asked for (DMN Tables 57, 59, 60 and 76). Two strings added are joined, the first then the second (DMN Table 57).
 
-**A system's own arithmetic.** FEEL's numbers hold 34 significant digits, rounded to the nearest, a tie to the even neighbor, as [`§ Expressions § FEEL § Its Values`](#its-values) states: IEEE 754's decimal128 (DMN 10.3.2.3.1; [`specs/methodology/external-references.md § External References [Name: IEEE 754]`](/specs/methodology/external-references.md#external-references)). A system computing otherwise is specified by what follows, a departure, DMN fixing FEEL's context where this lets a construct state another:
+**A system's own arithmetic.** FEEL's numbers hold 34 significant digits, rounded to the nearest with a tie to the even neighbor, as [`§ Expressions § FEEL § Its Values`](#its-values) states. This is IEEE 754's decimal128 (DMN 10.3.2.3.1; [`specs/methodology/external-references.md § External References [Name: IEEE 754]`](/specs/methodology/external-references.md#external-references)). A system that computes otherwise is specified by what follows. What follows departs from DMN, which fixes FEEL's context, by letting a construct state another:
 
-- **A precision and a rounding mode.** A construct whose section gives the fields states the significant digits its system holds each operation's result to, and the mode it rounds by; each operation's result is then rounded to the decimal places that many significant digits leave, by the mode's function. An operation is each arithmetic operator applied, and each step a function aggregating numbers takes, as `sum` adds and `product` multiplies its items one by one in their order, each result rounded.
-- **Decimal places.** A value written to a fact whose Facts record states its decimal places ([`specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact`](/specs/methodology/modeling-constructs.md#fact)) is rounded to them by the writing construct's rounding mode, half even where it states none, a Decision Table's outcome among the values written; DMN's item definitions round nothing, so this too departs from DMN. A part of a fact holds no decimal places of its own, so money a step computes by multiplying or dividing is written to a fact holding them before a part takes it; a sum or difference of money already held to them, or money a function gives, needs none.
-- **The modes.** Each named for the function DMN gives it (DMN Table 76), the value rounded as that function rounds it:
+- **A precision and a rounding mode.** A construct whose section gives the fields states the significant digits its system holds each operation's result to, and the mode it rounds by. Each operation's result is then rounded, by the mode's function, to the decimal places that many significant digits leave. An operation is each arithmetic operator applied, and each step a function aggregating numbers takes: `sum` adds and `product` multiplies its items one by one in their order, each result rounded.
+- **Decimal places.** A value written to a fact whose Facts record states its decimal places ([`specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact`](/specs/methodology/modeling-constructs.md#fact)) is rounded to them by the writing construct's rounding mode, or half even where the construct states none. A Decision Table's outcome is among the values written. DMN's item definitions round nothing, so this too departs from DMN. A part of a fact holds no decimal places of its own, so money a step computes by multiplying or dividing is written to a fact holding them before a part takes it; a sum or difference of money already held to them, or money a function gives, needs none.
+- **The modes.** Each mode is named for the function DMN gives it (DMN Table 76), and rounds the value as that function rounds it:
 
 **Reference Key:** Mode
 
@@ -146,19 +146,26 @@ Dates, times and durations combine as this table has it, every other pairing giv
 | a duration | a duration of its kind | `a + b` and `a - b`, their sum or difference; `a / b`, a number |
 | a duration | a number | `a * b`, `b * a` and `a / b`, the duration that many times |
 
-A date, a date and time and a time have parts named by a path: `year`, `month`, `day` and `weekday`, Monday `1`; `hour`, `minute`, `second`, `time offset` and `timezone`; a years and months duration its `years` and `months`, a days and time duration its `days`, `hours`, `minutes` and `seconds`; and a range its `start`, `end`, `start included` and `end included` (DMN Tables 65 to 67).
+A path names the parts of these values (DMN Tables 65 to 67):
+
+- a date: `year`, `month`, `day` and `weekday`, with Monday `1`;
+- a time: `hour`, `minute`, `second`, `time offset` and `timezone`;
+- a date and time: the parts of a date and those of a time;
+- a years and months duration: `years` and `months`;
+- a days and time duration: `days`, `hours`, `minutes` and `seconds`;
+- a range: `start`, `end`, `start included` and `end included`.
 
 #### Lists, Contexts and Functions
 
-A list never changes: a function gives a new one. A value where a list is wanted is a list of it alone, and a list of one value where a value is wanted is that value (DMN 10.3.2.9.4). A filter's test reads its item as [`§ Expressions § FEEL § Names`](#names) has it, as `installments[due date < today()]` (DMN 10.3.2.5).
+A list never changes: a function gives a new one. A value where a list is wanted is a list of that value alone. A list of one value where a value is wanted is that value (DMN 10.3.2.9.4). A filter's test reads its item as [`§ Expressions § FEEL § Names`](#names) has it, as `installments[due date < today()]` (DMN 10.3.2.5).
 
-A context never changes either: `context put` gives a new one, every entry it does not set holding what it held, so an entry derived from others is not derived again when they change. A context's entry may read the entries before it, never itself or one after it (DMN 10.3.2.6). A function's body reads its parameters and whatever is in scope where it is written; a function written as a context's entry is named by its entry's name (DMN 10.3.2.13.2, 10.3.2.13.4).
+A context never changes either. `context put` gives a new one, in which every entry it does not set holds what that entry held. So an entry derived from others is not derived again when they change. A context's entry may read the entries before it, never itself or one after it (DMN 10.3.2.6). A function's body reads the function's parameters and whatever is in scope where the function is written. A function written as a context's entry is named by that entry's name (DMN 10.3.2.13.2, 10.3.2.13.4).
 
 A type in `instance of` or a function's parameter is a type's name from [`§ Expressions § FEEL § Its Values`](#its-values), `Any`, `Null`, `list<T>`, `range<T>`, `context<name: T, …>` or `function<T, …> -> U` (DMN 10.3.1.2, grammar rule 52; 10.3.2.9).
 
 #### Its Functions
 
-Every function FEEL builds in, each called by its name and its arguments in parentheses, by place or by its parameters' names as this table gives them; a parameter marked `?` given or left out, one marked `…` given any number of times; a function taking none written `()`, its empty parameter list; a number giving a place, as `position`, a whole number counting from `1` at the start or `-1` at the end; and a function whose signatures differ in their parameters' names given a row for each (DMN 10.3.4):
+This table holds every function FEEL builds in. A function is called by its name and its arguments in parentheses, given by place or by its parameters' names as this table gives them. A parameter marked `?` is given or left out, and one marked `…` is given any number of times. A function taking no parameter is written `()`, its empty parameter list. A number giving a place, as `position` does, is a whole number counting from `1` at the start or `-1` at the end. A function whose signatures differ in their parameters' names is given a row for each (DMN 10.3.4):
 
 **Reference Key:** Function, Takes
 
@@ -271,4 +278,4 @@ Every function FEEL builds in, each called by its name and its arguments in pare
 | now | `()` | date and time | the instant it is read (DMN Table 82) |
 | today | `()` | date | the day it is read (DMN Table 82) |
 
-`now()` and `today()` read the wall clock, so a construct reading time reads them as [`specs/methodology/modeling-constructs.md § Time`](/specs/methodology/modeling-constructs.md#time) has a construct read the wall clock, and a construct whose clock is another names that clock's fact instead.
+`now()` and `today()` read the wall clock. So a construct reading time reads them as [`specs/methodology/modeling-constructs.md § Time`](/specs/methodology/modeling-constructs.md#time) has a construct read the wall clock. A construct whose clock is another names that clock's fact instead.

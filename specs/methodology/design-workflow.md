@@ -1,10 +1,10 @@
 ## The Order of a Design's Work
 
-The order a design's work takes, and what moves it back, as two State Machines its Status runs ([`specs/methodology/working-files.md § A Design Document § The States It Moves Through`](/specs/methodology/working-files.md#the-states-it-moves-through)): the in-progress state is governed by [`§ The Order of a Design's Work § The Work of a Design`](#the-work-of-a-design), and the applying state by [`§ The Order of a Design's Work § The Apply`](#the-apply). Each state's work is done as the section it cites has it, so the machines hold the order alone, the principles staying in [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine). A design changing code takes the same order ([`specs/methodology/working-files.md § A Design Document § A Design Changing Code`](/specs/methodology/working-files.md#a-design-changing-code)).
+Two State Machines set the order a design's work takes, and what moves it back. The design's Status runs them ([`specs/methodology/working-files.md § A Design Document § The States It Moves Through`](/specs/methodology/working-files.md#the-states-it-moves-through)). [`§ The Order of a Design's Work § The Work of a Design`](#the-work-of-a-design) governs the in-progress state, and [`§ The Order of a Design's Work § The Apply`](#the-apply) governs the applying state. Each state's work is done as the section it cites has it, so the machines hold the order alone. The principles stay in [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine). A design changing code takes the same order ([`specs/methodology/working-files.md § A Design Document § A Design Changing Code`](/specs/methodology/working-files.md#a-design-changing-code)).
 
 ### The Work of a Design
 
-A design enters its work by the reason its Status entered in-progress, and its change leads back to another adversarial review wherever needs review? or needs reframing? holds and the user's approval has not ended its review ([`§ The Order of a Design's Work § Facts`](#facts)). A design its Depends On names finishes, a class of occurrences, when its Status enters complete or enters abandoned ([`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document)).
+A design enters its work by the reason its Status entered in-progress. Its change leads back to another adversarial review wherever needs review? or needs reframing? holds and the user's approval has not ended its review ([`§ The Order of a Design's Work § Facts`](#facts)). A design its Depends On names finishes when that design's Status enters complete or enters abandoned ([`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document)). Such a finish is a class of occurrences.
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
 
@@ -14,9 +14,9 @@ A design enters its work by the reason its Status entered in-progress, and its c
 |---|---|---|---|
 | entered | the design has entered in-progress, by its Status's move | Yes | No |
 | framing | the builder agrees on the design goals with the user and states the design frame, or revisits either, and brings them to the user, as [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine) has the goals, then the frame, come first, taking in each steer the user gives and each design its Depends On names that has finished ([`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document)) | No | No |
-| drafting | the builder takes the design through Design, Refactor, Refine ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)), recording each steer as it is given ([`specs/methodology/working-files.md § Steering Decision`](/specs/methodology/working-files.md#steering-decision)) and taking in each design its Depends On names that has finished ([`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document)), checks its whole work, as its row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What`](/specs/AGENTS.md#who-checks-what) sets, and, before the design's first adversarial review, or before its post-apply audit where the user's approval ends the review before any round, offers the user the review's model and reasoning effort | No | No |
+| drafting | the builder takes the design through the Design, Refactor, Refine process ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)), recording each steer as it is given ([`specs/methodology/working-files.md § Steering Decision`](/specs/methodology/working-files.md#steering-decision)) and taking in each design its Depends On names that has finished ([`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document)), checks its whole work, as its row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What`](/specs/AGENTS.md#who-checks-what) sets, and, before the design's first adversarial review, or before its post-apply audit where the user's approval ends the review before any round, offers the user the review's model and reasoning effort | No | No |
 | reviewing | a cold agent runs the adversarial review, as [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine) has it | No | No |
-| settling | the builder groups the round's findings, weighs them against the design's goals and weighs the steers they press on and states the causes and the change it proposes, the user triaging its design flaws and answering its other calls, the builder settling the rest, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round`](/specs/AGENTS.md#settling-a-round) has it, taking in each steer the user gives and each design its Depends On names that has finished, one finishing while the design was reviewed among them; where the user's approval has ended the review, it settles nothing, the round's findings left as they are | No | No |
+| settling | the builder groups the round's findings, weighs them against the design's goals, weighs the steers they press on, and states the causes and the change it proposes, the user triaging its design flaws and answering its other calls, the builder settling the rest, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round`](/specs/AGENTS.md#settling-a-round) has it, taking in each steer the user gives and each design its Depends On names that has finished, one finishing while the design was reviewed among them; where the user's approval has ended the review, it settles nothing, the round's findings left as they are | No | No |
 | reassessing | the builder and the user step back and reassess, as [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine) has a phase not converging, taking in each design its Depends On names that has finished | No | No |
 | changing | the builder revises the design, as the round was settled, taking in each steer the user gives and each design its Depends On names that has finished ([`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document)), and proves the change, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round`](/specs/AGENTS.md#settling-a-round) has it | No | No |
 | waiting | the design waits for each design its Depends On names to be approved or applying, as [`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document) has a design validated and approved only then | No | No |
@@ -66,7 +66,7 @@ A design enters its work by the reason its Status entered in-progress, and its c
 
 ### The Apply
 
-The order a design's apply takes, begun only as [`specs/methodology/working-files.md § A Design Document § The States It Moves Through`](/specs/methodology/working-files.md#the-states-it-moves-through) lets a design enter applying, and ended applied or sent back:
+A design's apply begins only as [`specs/methodology/working-files.md § A Design Document § The States It Moves Through`](/specs/methodology/working-files.md#the-states-it-moves-through) lets a design enter applying, and it ends applied or sent back. The order the apply takes:
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
 
@@ -145,7 +145,7 @@ The order a design's apply takes, begun only as [`specs/methodology/working-file
 - **Name:** text approved?
   **Type:** boolean
   **Initial Value:** false
-  **Means:** whether the user's approval of the design's text, given in any state of its work, covers the text as it stands ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)); set back to false by a change after the approval to its goals, its frame or The Design, the design then coming back to the user to approve again, and by its entering in-progress again
+  **Means:** whether the user's approval of the design's text, given in any state of its work, covers the text as it stands ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)). It is set back to false by a change after the approval to the design's goals, its frame or The Design, and by the design's entering in-progress again. After such a change, the design comes back to the user to approve again
 
 - **Name:** fix changes the design?
   **Type:** boolean
@@ -165,7 +165,7 @@ The order a design's apply takes, begun only as [`specs/methodology/working-file
 
 ## A Design's Reviews
 
-A design's Kind sizes its reviews, so the effort a design's reviews take, and what its post-apply audit reads, grow with what a flaw in it would cost, and a design whose Target names files of more than one Kind takes the highest effort among them. The effort this table gives is a review's default ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)); what the post-apply audit reads is its Kind's, as [`.ai/skills/audit-specs/SKILL.md`](/.ai/skills/audit-specs/SKILL.md) sets it, and `.ai/skills/verify-spec-implementation/` for code:
+A design's Kind sizes its reviews. The effort the design's reviews take, and what its post-apply audit reads, grow with what a flaw in the design would cost. A design whose Target names files of more than one Kind takes the highest effort among them. What the post-apply audit reads is its Kind's, as [`.ai/skills/audit-specs/SKILL.md`](/.ai/skills/audit-specs/SKILL.md) sets it, and as `.ai/skills/verify-spec-implementation/` sets it for code. The effort each Kind gives is a review's default ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)):
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
@@ -179,11 +179,11 @@ A design's Kind sizes its reviews, so the effort a design's reviews take, and wh
 | `documentation` | light |
 | `other` | medium |
 
-A flaw in the canon is reproduced in every specification written under it, as a flaw in a mint's engraving plate is reproduced on every banknote it prints. A flaw in the documentation reaches no file beyond it. A flaw in the application specifications reaches the code built from them, and a flaw in code reaches what it runs, so each takes the middle effort. What another file reaches is not known in advance, so it takes the middle effort too.
+A flaw in the canon is reproduced in every spec written under it. A mint's engraving plate works the same way: a flaw in it is reproduced on every banknote it prints. A flaw in the documentation reaches no file beyond it. A flaw in the application specifications reaches the code built from them, and a flaw in code reaches what it runs, so each takes the middle effort. What another file reaches is not known in advance, so it takes the middle effort too.
 
 ## A Review's Effort
 
-A review's reasoning effort, the level the user chose ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)), is applied by how the agent in use can apply it; the builder offers only a level it can apply, and where it can apply none, the review runs as the agent allows:
+A review's reasoning effort is the level the user chose ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)). The level is applied in the way the agent in use can apply it. The builder offers only a level the agent in use can apply. Where the agent in use can apply none, the review runs as the agent allows. How a level is applied:
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 

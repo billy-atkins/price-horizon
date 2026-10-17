@@ -42,7 +42,7 @@
   **Version:** 754-2008, the version DMN's FEEL rests on
   **URL:** `https://doi.org/10.1109/IEEESTD.2008.4610935`
   **Relation:** adopts
-  **Covers:** a decimal format's precision, the significant digits each operation's result is rounded to, which an Algorithm's Precision generalizes to fewer digits than decimal128's 34, the modes resting on DMN's rounding functions
+  **Covers:** a decimal format's precision, the significant digits each operation's result is rounded to, which an Algorithm's Precision generalizes to fewer digits than decimal128's 34; and the rounding modes, resting on DMN's rounding functions
 
 - **Name:** ISO 4217
   **Title:** Codes for the representation of currencies, the International Organization for Standardization
