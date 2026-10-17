@@ -25,7 +25,7 @@ Frame it per `specs/AGENTS.md § Design, Refactor, Refine`, and record it in a d
 
 ### Hand a change of its own to the user to spawn or log
 
-At any step of this Workflow, a change of its own that the work turns up, a migration of files a rule change leaves out of sync among them, and code a change to the specs leaves out of sync, as `specs/methodology/working-files.md § A Design Document` splits it, goes to the user, who decides how it is worked, per `specs/methodology/working-files.md § A Design Document`: spawned as a design, not-started until it is taken up and named in this design's Depends On if this design cannot finish without it, or logged as a follow-up, per `specs/methodology/working-files.md § A Follow-up`. Ask rather than choose: which suits depends on how the user means to work it.
+At any step of this Workflow, a change of its own that the work turns up, a migration of files a rule change leaves out of sync among them, and code a change to the specs leaves out of sync, as `specs/methodology/working-files.md § A Design Document` splits it, goes to the user, who decides how it is worked, per `specs/methodology/working-files.md § A Design Document`: spawned as a design, not-started until it is taken up and named in this design's Depends On if this design cannot finish without it, or logged as a follow-up, per `specs/methodology/working-files.md § A Follow-up`. Ask rather than choose: which suits depends on how the user means to work it. Show the user the design's or the follow-up's text, new or amended, and write it only once the user approves it.
 
 ### Revise what waited, once what it waited on finishes
 
