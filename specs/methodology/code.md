@@ -35,6 +35,8 @@ What governed code does changes only as its specs change, so the specs stay the 
 - fixing code that does not do what its specs state;
 - restructuring governed code.
 
+Making cloud infrastructure changes in the console guarantees drift. That is why every change goes through Terraform's natural process of write, plan and apply, which keeps the Terraform configuration and the infrastructure in sync.
+
 **Annotation lines alone.** An edit to annotation lines alone changes nothing the code does. A retitled heading asks such an edit of every annotation naming it ([`specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code`](/specs/methodology/sourcing-and-citation.md#citing-from-code)). The edit rides with the design that retitles the heading, whose Target names the files the edit touches. A change to the annotation's form is rolled out by a design changing code of its own, as a design leaving code out of sync hands that work on ([`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document)).
 
 **Wiring code.** Wiring code changes as any other file does: as a direct edit when the change is small and the user approves it ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)), or within a design changing code.
