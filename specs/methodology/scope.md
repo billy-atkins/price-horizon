@@ -86,6 +86,8 @@ The methodology is held to the rules it states:
 - a rule that is a lookup is authored as a Decision Table ([`specs/methodology/modeling-constructs.md § Constructs § Decision Table`](/specs/methodology/modeling-constructs.md#decision-table));
 - its files meet the style rules they set.
 
+It is dogfooding, the way a company uses its own product as its clients would: using it firsthand uncovers where it should improve.
+
 The rules on acceptance scenarios and on `technical-specs` frontmatter scope themselves to product specs, so they do not reach the methodology. A methodology file has no product capability to prove and no technical counterpart to name. The rules in [`specs/methodology/code.md`](/specs/methodology/code.md) reach only code, so they do not reach the methodology either.
 
 ## Agent Agnostic
