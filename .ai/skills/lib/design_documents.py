@@ -943,7 +943,7 @@ def quoted(text):
 
 
 # @canon-spec specs/methodology/working-files.md § A Design Document
-# a form the method is still adding: the checks run in a copy of the repository holding the edits of each design named
+# a form the methodology is still adding: the checks run in a copy of the repository holding the edits of each design named
 COPIED = ("specs", "docs", ".ai/skills", ".ai/plans")
 
 
@@ -1222,7 +1222,7 @@ def main(argv, plans=PLANS):
             parser.add_argument(flag, metavar=metavar, nargs="?", const=".", action="append", help=help_text)
         else:
             parser.add_argument(flag, metavar=metavar, action="append", help=help_text)
-    parser.add_argument("--with-edits-of", metavar="DESIGN", action="append", help="run the other actions with the edits of this design document applied, in a copy of the repository, for a record using a form a design changing the method adds; given more than once, each design's edits applied in turn")
+    parser.add_argument("--with-edits-of", metavar="DESIGN", action="append", help="run the other actions with the edits of this design document applied, in a copy of the repository, for a record using a form a design changing the methodology adds; given more than once, each design's edits applied in turn")
     args = vars(parser.parse_args(argv[1:]))
     if args["with_edits_of"]:
         return with_applied(args["with_edits_of"], argv)

@@ -1032,8 +1032,8 @@ def lineages(text):
     """-> set of '§'-joined ancestor paths, one per heading.
 
     A level-1 heading is the file's own title, not a section, so a lineage starts at
-    level 2. This is why `§ Citation Format` resolves in a file whose first line is
-    `# PriceHorizon: Agent Instructions`.
+    level 2. This is why `§ Overview` resolves in a file whose first line is
+    `# Payments Service`.
     """
     out, stack = set(), []
     for lvl, title in headings(text):
@@ -1270,7 +1270,7 @@ def check(root, warned=None):
             if paths:
                 if paths != sorted(paths):
                     found.append(("spec-placement.md § Naming the Technical Files Behind a Capability",
-                                  r, 0, "technical-specs is not alphabetically sorted"))
+                                  r, 0, "technical-specs is not sorted in plain character order"))
                 for p in paths:
                     if p not in known:
                         found.append(("spec-placement.md § Naming the Technical Files Behind a Capability",
@@ -1876,7 +1876,7 @@ def abbreviation_findings(root):
                 # a diagram's node ids are identifiers, not prose; only the text it shows is read
                 line = " ".join(m.group(0) for m in DIAGRAM_LABEL.finditer(line))
             if rel == GLOSSARY and line.startswith("|"):
-                # the Abbreviation column is where the method's are recorded
+                # the Abbreviation column is where the methodology's are recorded
                 cells = line.split("|")
                 if len(cells) > 3:
                     line = "|".join(cells[:2] + [""] + cells[3:])
@@ -1901,7 +1901,7 @@ def glossary_candidates(root):
     alt = "|".join(sorted((r'\s+'.join(map(re.escape, x.split())) for x in names), key=len, reverse=True))
     name = rf"(?:{alt})s?"
     # A definition equates the term with a kind, "A field is a key-value pair", or glosses it
-    # in apposition, "Spec of Record, the method"; "is written" or "is missing" states a rule
+    # in apposition, "Spec of Record, the methodology"; "is written" or "is missing" states a rule
     # about the term instead, and a term after an article or a comma is an item in a list.
     defining = re.compile(
         rf"(?:(?:^|[.!?:]\s+|\|\s*)|\b(?:a|an|the)\s+){name}\b(?:\s*\([^)]*\)|\s*{constructs.CODE_SPAN.pattern})?"
@@ -2163,8 +2163,8 @@ def _span_fits(m):
 
 
 def skill_candidates(root):
-    """An unregistered skill whose SKILL.md cites the method's rules, which may belong to the
-    method or may simply follow Authoring a Skill; and a registered skill's script importing
+    """An unregistered skill whose SKILL.md cites the methodology's rules, which may belong to the
+    methodology or may simply follow Authoring a Skill; and a registered skill's script importing
     from outside the standard library, which the rule allows where the standard library
     cannot serve; and a skill's long sentence of chained clauses, and a path into the application
     specs in a skill, for the Skill form audit's reading of
@@ -2175,7 +2175,7 @@ def skill_candidates(root):
         for d in sorted(p for p in base.iterdir() if p.is_dir()):
             sk = d / "SKILL.md"
             if d.name not in names and sk.exists() and re.search(r'specs/(?:methodology/|AGENTS\.md)', read(sk)):
-                out.append((f".ai/skills/{d.name}/SKILL.md", 0, "unregistered skill citing the method's rules", d.name))
+                out.append((f".ai/skills/{d.name}/SKILL.md", 0, "unregistered skill citing the methodology's rules", d.name))
     stdlib = set(getattr(sys, "stdlib_module_names", ()))
     if not stdlib:
         out.append(("(this Python)", 0, "imports not checked", "sys.stdlib_module_names needs Python 3.10 or later"))

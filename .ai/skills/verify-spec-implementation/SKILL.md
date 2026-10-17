@@ -5,39 +5,48 @@ description: Check that code truthfully carries out the application specs govern
 
 # Verifying the code against its specs
 
-This skill is to code what `audit-specs` is to the specs: the independent check that runs once the builder's own check is done, never the builder reading its own work. It reads; it does not run the project's tests, which a project runs as its own pipeline sets.
+This skill is to code what `audit-specs` is to the specs. It is the independent check that runs once the builder's own check is done, never the builder reading its own work. This skill reads. It does not run the project's tests, which a project runs as its own pipeline sets.
 
 ## Workflow
 
-Each step applying a rule carries its point-of-use citation (`specs/methodology/sourcing-and-citation.md § One Home Per Fact`). The script is `scripts/verify-spec-implementation.py`, the only one this skill runs, from the project root, as `python .ai/skills/verify-spec-implementation/scripts/verify-spec-implementation.py --check-annotations`; `--help` gives its actions.
+Each step applying a rule carries its point-of-use citation (`specs/methodology/sourcing-and-citation.md § One Home Per Fact`). The script is `scripts/verify-spec-implementation.py`, the only one this skill runs. Run it from the project root, as `python .ai/skills/verify-spec-implementation/scripts/verify-spec-implementation.py --check-annotations`. Its `--help` gives its actions.
 
 ### Start from the entry point
 
-Read `specs/AGENTS.md` and the glossary before any step, and descend only as far as a step needs, per `specs/methodology/scope.md § Progressive Disclosure`.
+Read `specs/AGENTS.md` and the glossary before any step. Descend only as far as a step needs, per `specs/methodology/scope.md § Progressive Disclosure`.
 
 ### Find the application's code
 
-Read the code roots the technical specs' `stack.md` names, per `specs/methodology/spec-placement.md § The Technical Stack`; the script reads them the same way. A project with no stack file, or none naming a code root, has no code this skill can find: present that to the user as a gap in the specs, and verify nothing.
+Read the code roots the technical specs' `stack.md` names, per `specs/methodology/spec-placement.md § The Technical Stack`. The script reads them the same way. A project with no stack file, or with none naming a code root, has no code this skill can find. Present that to the user as a gap in the specs, and verify nothing.
 
 ### Run the script first
 
-`scripts/verify-spec-implementation.py --check-annotations` reports each annotation in the code roots that does not follow `specs/methodology/code.md § Citing the Specs From Code`, or the form `specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code` gives it: a malformed line, a citation naming no section or file that exists, one citing anything but a product or technical spec, and a list out of order; and a code root the stack names that does not exist. `--list-candidates` lists the spec sections no annotation cites and the files in the code roots carrying none, places for the reading to look, deciding nothing.
+`scripts/verify-spec-implementation.py --check-annotations` reports each annotation in the code roots that does not follow `specs/methodology/code.md § Citing the Specs From Code`, or the form `specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code` gives it:
+
+- a malformed line;
+- a citation naming no section or file that exists;
+- a citation of anything but a product or technical spec;
+- a list out of order.
+
+It also reports a code root the stack names that does not exist. `--list-candidates` lists the spec sections no annotation cites and the files in the code roots carrying none. These are places for the reading to look, and the list decides nothing.
 
 ### Stop at annotations out of sync
 
-Where the script's findings show existing annotations out of sync with the specs, read them against `specs/methodology/code.md § Changing Code`, which says when they stop the work and how it resumes. Here the stop comes before any reading: present the findings to the user for triage, and verify nothing further until the user's fix is applied, then run the script again. Run as a design changing code's post-apply audit, the annotations that design wrote are its work under audit, never existing ones: their findings are this audit's, settled as `§ Workflow § Report, and settle as an audit` says.
+Where the script's findings show existing annotations out of sync with the specs, read them against `specs/methodology/code.md § Changing Code`. That section says when they stop the work and how the work resumes. Here the stop comes before any reading. Present the findings to the user for triage, and verify nothing further until the user's fix is applied. Then run the script again. When this skill runs as a design changing code's post-apply audit, the annotations that design wrote are the design's work under audit, never existing ones. Their findings are this audit's, settled as `§ Workflow § Report, and settle as an audit` says.
 
 ### Read the code against its specs
 
-For each annotated unit, read the sections it cites, and judge whether the unit carries them out, or checks them as a test does, no more and no less, per `specs/methodology/code.md § Governed Code and Wiring Code` and `specs/methodology/code.md § Tests`, and whether its annotations sit where `specs/methodology/code.md § Citing the Specs From Code` sets, as narrow as the unit, and never in a documentation comment, as `specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code` has it, which the script cannot judge. For each file the script lists as citing no spec, judge whether it is wiring or governed code missing its annotations; a file in a format with no comments is never governed code, and is judged as `specs/methodology/code.md § Governed Code and Wiring Code` sets. For each section it lists as cited by no code, judge whether it states something code must carry out, and so is not yet implemented, or something no code carries out, as an overview does. Where you audit a change, read what it wrote for American English, per `specs/methodology/code.md § Changing Code`.
+For each annotated unit, read the sections it cites. Judge whether the unit carries them out, or checks them as a test does, no more and no less, per `specs/methodology/code.md § Governed Code and Wiring Code` and `specs/methodology/code.md § Tests`. Judge too whether the unit's annotations sit where `specs/methodology/code.md § Citing the Specs From Code` sets: as narrow as the unit, and never in a documentation comment, as `specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code` has it. The script cannot judge where they sit.
+
+For each file the script lists as citing no spec, judge whether it is wiring or governed code missing its annotations. A file in a format with no comments is never governed code, and is judged as `specs/methodology/code.md § Governed Code and Wiring Code` sets. For each section the script lists as cited by no code, judge whether it states something code must carry out, and so is not yet implemented, or something no code carries out, as an overview does. Where you audit a change, read what the change wrote for American English, per `specs/methodology/code.md § Changing Code`.
 
 ### Read the technical overview against the code
 
-The technical specs' `architecture.md` describes the code carrying out the application specs, per `specs/methodology/spec-placement.md § What an Overview Describes`. Read its account of the code against the code, and report what it says that the code does not bear out, per `specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync § Materialized Views`.
+The technical specs' `architecture.md` describes the code carrying out the application specs, per `specs/methodology/spec-placement.md § What an Overview Describes`. Read the overview's account of the code against the code. Report what it says that the code does not bear out, per `specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync § Materialized Views`.
 
 ### Report, and settle as an audit
 
-Write the report to `.ai/tmp/verify-spec-implementation/`, one file per run, clearing an earlier report of the same scope, per `specs/methodology/working-files.md § The Working Files`. Name each finding with its file, its line, what it fails and the rule or spec it fails, and, run as a post-apply audit, mark it a design flaw, an implementation flaw or a nit (`specs/methodology/glossary.md`), as `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` has it. Run as a design changing code's post-apply audit, its findings are settled with the user by `specs/methodology/working-files.md § A Design Document § Changes After Approval`.
+Write the report to `.ai/tmp/verify-spec-implementation/`, one file per run, clearing an earlier report of the same scope, per `specs/methodology/working-files.md § The Working Files`. Name each finding with its file, its line, what it fails, and the rule or spec it fails. When this skill runs as a post-apply audit, mark each finding a design flaw, an implementation flaw or a nit (`specs/methodology/glossary.md`), as `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What` has it. When this skill runs as a design changing code's post-apply audit, its findings are settled with the user by `specs/methodology/working-files.md § A Design Document § Changes After Approval`.
 
 ## The checks
 
