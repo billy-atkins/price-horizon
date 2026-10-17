@@ -98,7 +98,7 @@ A definition leaving a member to its instances may narrow the member by a row of
 
 #### Fact
 
-A fact that multiple constructs test, where it is one fact by [`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`](/specs/methodology/sourcing-and-citation.md#a-definition-and-its-instances), is declared once, as DMN's item definition is ([`specs/methodology/external-references.md § External References [Name: DMN]`](/specs/methodology/external-references.md#external-references)). A fact narrows the item definition to a value of one type FEEL names, a list, a context or a function among them. It adds the unit a number is counted in, the decimal places a value written to it is rounded to, and the FEEL function a derived value is given by. It adds the fact's value as its entity is created, whether the fact may be absent, and what the fact means.
+A fact that multiple constructs test, where it is one fact by [`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`](/specs/methodology/sourcing-and-citation.md#a-definition-and-its-instances), is declared once, as DMN's ItemDefinition is ([`specs/methodology/external-references.md § External References [Name: DMN]`](/specs/methodology/external-references.md#external-references)). A fact narrows the item definition to a value of one type FEEL names, a list, a context or a function among them. It adds the unit a number is counted in, the decimal places a value written to it is rounded to, and the FEEL function a derived value is given by. It adds the fact's value as its entity is created, whether the fact may be absent, and what the fact means.
 
 A fact's name is words separated by single spaces. Each word opens with a letter and holds letters, digits and apostrophes, with a hyphen joining two runs of them. A boolean fact's name is a question instead: any words ending in a question mark. No fact's name opens with a word that FEEL keeps for itself ([`specs/methodology/expressions.md § Expressions § FEEL § Names`](/specs/methodology/expressions.md#names)). A fact's Values are values, never a fact's name. Its Initial Value is UML's default value, a Property's defaultValue evaluated when an instance is created, its section 9.5.3 ([`specs/methodology/external-references.md § External References [Name: UML]`](/specs/methodology/external-references.md#external-references)). A Decision Table names a fact it tests as [`§ Constructs § Decision Table`](#decision-table) sets. A file's facts sit in its record section of this type, a record type ([`§ Constructs § Record Form`](#record-form)), in the file whose subject owns them:
 
@@ -279,7 +279,7 @@ The tabular structure every construct extending it takes: a table of rows and co
 
 A table deciding the outcome of a case, so every case a rule decides is written down and checked for a case that two rows decide or none does. Each row states the cases it matches in its condition columns, and the outcome they are given in its outcome columns. An outcome is decided whether anything acts on it now, later or never: a decision is apart from any action on it. A rule that is a lookup, a table there to decide by one condition ([`§ When to Use Which § A Table's Construct`](#a-tables-construct)), is authored as a Decision Table with a single condition column. A decision whose conditions are asked in an order is a Decision Table too, as A tree of questions has it.
 
-It is the decision table of DMN, the Object Management Group's Decision Model and Notation ([`specs/methodology/external-references.md § External References [Name: DMN]`](/specs/methodology/external-references.md#external-references)). Its cells, its computed headers and its computed outcomes are written in FEEL, DMN's expression language. FEEL is adopted whole as [`specs/methodology/expressions.md § Expressions § FEEL`](/specs/methodology/expressions.md#feel) states it, with its departure for a cell, a word written plain. DMN's information requirements, chaining one decision to another, are written as a table's Reads field. DMN's other parts, its Decision Requirements Diagrams, its Business Knowledge Models, its decision services and its boxed expressions, are outside the set, and a project needing one adds it so. That file and the hit policies this section gives are all an author needs, so an agent that cannot fetch DMN, or does not know it, loses nothing a Decision Table relies on.
+It is DMN's DecisionTable, of the Object Management Group's Decision Model and Notation ([`specs/methodology/external-references.md § External References [Name: DMN]`](/specs/methodology/external-references.md#external-references)). Its cells, its computed headers and its computed outcomes are written in FEEL, DMN's expression language. FEEL is adopted whole as [`specs/methodology/expressions.md § Expressions § FEEL`](/specs/methodology/expressions.md#feel) states it, with its departure for a cell, a word written plain. DMN's InformationRequirement, chaining one Decision to another, is written as a table's Reads field. DMN's other parts, its Decision Requirements Diagrams, its Business Knowledge Models, its decision services and its boxed expressions, are outside the set, and a project needing one adds it so. That file and the hit policies this section gives are all an author needs, so an agent that cannot fetch DMN, or does not know it, loses nothing a Decision Table relies on.
 
 **Extends:** `§ Constructs § Tabular Construct`
 
@@ -317,7 +317,7 @@ Its columns are of these kinds, with `Name` and each annotation headed by a fiel
 
 **Columns.** Its condition columns come first, after a Name column where it has one ([`§ Constructs § Keyed Construct § Part Identifier`](#part-identifier)). No condition or outcome column is headed `Name`. Its outcome columns follow the conditions, one or more of each. Its annotations come after them. An annotation is a column that only describes or illustrates a row, which neither the match nor the check reads, and a cell of one is left empty where it has nothing to add. Its `**Conditions:**` field names its condition columns, a lookup's one among them, so which columns are conditions is declared, never inferred. A condition's header holds no comma, and no header that an Input Values or Output Values item names holds a colon, since those fields separate headers by them. An outcome cell outside a Computed column is never written as a test, `-`, `not(…)`, a comparison or a range, nor as a list, which would show a condition declared an outcome. Its `**Annotations:**` field names its annotations.
 
-**Facts.** Each condition column tests one fact. Its header names the fact, as [`§ Defining Constructs § Declaring a Construct § Fact`](#fact) has a fact's name written. Where the column tests a value computed from facts, its header is that computation in FEEL instead, DMN's input expression (DMN 8.2.3). A header computes where it holds `+`, `*`, `/`, `<`, `>`, `=`, a bracket, a parenthesis, a minus between spaces, or a dot between two words, a path such as `installment.due date`. No other header computes, so a word such as `and`, `in` or `between` leaves a header a name. A computed header holds no comma, so its functions take one argument and it writes no list. A question, a header ending in a question mark, names a boolean fact whose values are `true` and `false`, however its words read. A fact its file's Facts section declares by its name ([`§ Defining Constructs § Declaring a Construct § Fact`](#fact)) is typed by that record. Its column's cells test values of its Type. Its Values, or a question's `true` and `false`, are the column's values, so the table's Input Values field gives it no item. `null` joins those values, and tests the fact, only where the fact may be absent. A fact or an outcome read from elsewhere is an item of the `**Reads:**` field, its name beside the citation of the Facts record declaring it or of the construct deciding it. A table so reads another's outcome as one of its facts, DMN's information requirement (DMN 6.3.13). A fact so read is typed by its record, as a fact its file declares is, wherever the record sits. A cell, a computed header or a computed outcome names only a condition's fact, a fact its file's Facts section declares, or a Reads item. A cell ends only at a fact of its column's kind.
+**Facts.** Each condition column tests one fact. Its header names the fact, as [`§ Defining Constructs § Declaring a Construct § Fact`](#fact) has a fact's name written. Where the column tests a value computed from facts, its header is that computation in FEEL instead, DMN's input expression (DMN 8.2.3). A header computes where it holds `+`, `*`, `/`, `<`, `>`, `=`, a bracket, a parenthesis, a minus between spaces, or a dot between two words, a path such as `installment.due date`. No other header computes, so a word such as `and`, `in` or `between` leaves a header a name. A computed header holds no comma, so its functions take one argument and it writes no list. A question, a header ending in a question mark, names a boolean fact whose values are `true` and `false`, however its words read. A fact its file's Facts section declares by its name ([`§ Defining Constructs § Declaring a Construct § Fact`](#fact)) is typed by that record. Its column's cells test values of its Type. Its Values, or a question's `true` and `false`, are the column's values, so the table's Input Values field gives it no item. `null` joins those values, and tests the fact, only where the fact may be absent. A fact or an outcome read from elsewhere is an item of the `**Reads:**` field, its name beside the citation of the Facts record declaring it or of the construct deciding it. A table so reads another's outcome as one of its facts, DMN's InformationRequirement (DMN 6.3.13). A fact so read is typed by its record, as a fact its file declares is, wherever the record sits. A cell, a computed header or a computed outcome names only a condition's fact, a fact its file's Facts section declares, or a Reads item. A cell ends only at a fact of its column's kind.
 
 **Cells.** A row matches a case only when all its conditions hold. Each condition cell holds only what tests its condition, and what explains or illustrates the value goes in an annotation. A cell tests its condition by FEEL's unary tests ([`specs/methodology/expressions.md § Expressions § FEEL § Unary Tests`](/specs/methodology/expressions.md#unary-tests)), which say what it means, or by a value written plain. The table's checks of overlap and coverage decide a table whose every cell is in one of the forms the checks read and ends at no fact. The reading audit reads any other table for overlap and coverage.
 
@@ -417,7 +417,7 @@ The system checks a request, whether a command, an action asked for or a record 
 
 ### DAG
 
-A table of distinct tasks in an acyclic process. Each task gives the construct doing its work, the tasks it waits for, and, where it has them, its guard, its timeout and whether its failure is tolerated. Every task is considered on every run, and the tasks nothing orders run at once. Written so, what each task waits for, and what may run at once, is explicit and checked rather than implied. A DAG is UML's activity ([`specs/methodology/external-references.md § External References [Name: UML]`](/specs/methodology/external-references.md#external-references)), adopted whole and written as a table of tasks forked and joined. It has no tie to any engine, so it maps onto the DAG an orchestrator such as Airflow, Dagster or Argo Workflows defines. [`§ Constructs § DAG § What It Means`](#what-it-means) states what UML means for what its table writes, and names each departure the canon makes.
+A table of distinct tasks in an acyclic process. Each task gives the construct doing its work, the tasks it waits for, and, where it has them, its guard, its timeout and whether its failure is tolerated. Every task is considered on every run, and the tasks nothing orders run at once. Written so, what each task waits for, and what may run at once, is explicit and checked rather than implied. A DAG is UML's Activity ([`specs/methodology/external-references.md § External References [Name: UML]`](/specs/methodology/external-references.md#external-references)), adopted whole and written as a table of tasks forked and joined. It has no tie to any engine, so it maps onto the DAG an orchestrator such as Airflow, Dagster or Argo Workflows defines. [`§ Constructs § DAG § What It Means`](#what-it-means) states what UML means for what its table writes, and names each departure the canon makes.
 
 **Extends:** `§ Constructs § Tabular Construct`
 
@@ -662,21 +662,47 @@ An instance is reported for:
 
 #### What It Means
 
-A DAG means what UML's activity means for what the DAG's table writes. Each statement here cites the section of UML it rests on, so neither an author nor a reader needs to recall the standard. The canon's rules beyond UML are its departures, and each is named where it is stated.
+A DAG means what UML's Activity means for what the DAG's table writes, element by element as this section's UML Elements table gives it, so neither an author nor a reader needs to recall the standard.
 
-**A run.** The DAG is an Activity, its section 15.2.3.1. Each run is an execution, and the Runs When names what runs it ([`§ Constructs § DAG`](#dag), its Runs When field). Facts pass between tasks as Variables, its section 15.2.3.5, read and written by name.
+**A run.** Each run of the DAG is an execution, and the Runs When names what runs it ([`§ Constructs § DAG`](#dag), its Runs When field). Facts pass between tasks, read and written by name.
 
-**A task.** A task whose work cites an Algorithm, a Decision Table or a DAG is a CallBehaviorAction, its section 16.3.3.1, calling that construct. A Decision Table is taken as the Behavior it calls, the departure [`§ Constructs § Algorithm § What It Means`](#what-it-means-2) names for a run. A task whose work is `none` is an OpaqueAction, its section 16.2.3.2. The OpaqueAction's body is the prose after the table, which says whose the task is and when it counts as done, for a person's task and an external system's alike. What the task leaves is written in its cell as its output. That a task's work is cited by name and read from the file's facts, rather than wired by pins, is the departure the Algorithm's run makes.
+**A task.** A task whose work cites an Algorithm, a Decision Table or a DAG calls that construct. A task whose work is `none` is described in the prose after the table, which says whose the task is and when it counts as done, for a person's task and an external system's alike. What the task leaves is written in its cell as its output. A task's work is cited by name and read from the file's facts.
 
-**A dependency, and tasks at once.** A dependency is a ControlFlow from the task waited for to the task waiting, its section 15.2.3.3. The tasks nothing orders are reached through a ForkNode, its section 15.3.3.3, and a task waiting for several of them through a JoinNode, its section 15.3.3.4. The table stands for the forks and joins UML draws: every task's incoming flows are joined, and its outgoing flows forked.
+**A dependency, and tasks at once.** A dependency runs from the task waited for to the task waiting. The tasks nothing orders are reached at once, and a task may wait for several of them. A task waits for every task it depends on, and every task depending on it may start once it ends.
 
-**A guard, and a timeout.** A task's guard is the guard on the ActivityEdge that offers the task its token from the fork or the join before it, its section 15.2.3.3. A DecisionNode, its section 15.3.3.6, is placed after that fork or join, so that where the guard fails the token is shunted to the downstream JoinNode. UML's own note on 15.3.3.3 has it so for a guarded edge from a fork. A skipped task counting as done for what depends on it is that shunt, and no departure. Where every task is guarded and no guard holds, nothing runs and the run ends, with UML's join receiving every shunted token. A task's timeout is a wait time action, its section 16.10.3.1. Its trigger is a TimeEvent, its section 13.3.3.4, on an interrupting edge of an InterruptibleActivityRegion holding the task, its section 15.6.3.2, which ends the task's work when the time passes. The canon's departure is that the task then fails, its writes undone, and that a person's or an external system's work no longer counts. [`§ Constructs § Algorithm § What It Means`](#what-it-means-2) has the region among what the Algorithm's table does not write, and this table writes it by the one column.
+**A guard, and a timeout.** A task's guard is tested as the task becomes ready to start, once every task it waits for has ended as it waits. Where the guard fails, the task is skipped. A skipped task counts as done for what depends on it. Where every task is guarded and no guard holds, nothing runs and the run ends. A task's timeout ends the task's work when the time passes. The task then fails, its writes undone, and a person's or an external system's work no longer counts.
 
-**An end, and a failure.** The run ends as an Activity's execution completes, its section 15.2.3.6, once no task is running and none can run. A task that fails raises an exception, and the exception, uncaught, ends the run, its sections 16.3.3.1 and 15.5.3.2. A task whose tolerated is `Yes` has an ExceptionHandler, its section 15.5.3.2, and its tolerated cell stands for the handler. Once the handler's body completes, UML offers tokens to everything downstream as though the task had completed. The canon instead leaves unreached what waited for the task to be done, and runs only what waited `ended`. That is the canon's departure. So is the run going on past an untolerated failure to what waits `ended`, keeping what such a task writes. So, too, is a run being all or none, what it wrote undone where it fails, as [`§ Constructs § Constraint § What It Means`](#what-it-means-3) has it for an operation.
+**An end, and a failure.** The run ends once no task is running and none can run. A task that fails, untolerated, fails the run, and the run goes on to what waits `ended`, keeping what such a task writes. Where a task whose tolerated is `Yes` fails, what waited for it to be done is left unreached, and only what waited `ended` runs. A run is all or none, what it wrote undone where it fails, as [`§ Constructs § Constraint § What It Means`](#what-it-means-3) has it for an operation.
+
+The mapping from UML's Activity to the DAG:
+
+**Table Name:** UML Elements
+
+**Reference Key:** UML
+
+**Required:** Section, Treatment
+
+| UML | Section | Treatment |
+|---|---|---|
+| Activity | 15.2.3.1 | differs: the DAG, each run an execution, all or none, what it wrote undone where it fails, as [`§ Constructs § Constraint § What It Means`](#what-it-means-3) has it for an operation |
+| Variable | 15.2.3.5 | the same: a fact passed between tasks, read and written by name |
+| CallBehaviorAction | 16.3.3.1 | differs: a task whose work cites an Algorithm, a Decision Table or a DAG, calling that construct; a Decision Table is taken as the Behavior it calls, and a task's work is cited by name and read from the file's facts rather than wired by pins, the departures [`§ Constructs § Algorithm § What It Means`](#what-it-means-2) names for a run |
+| OpaqueAction | 16.2.3.2 | the same: a task whose work is `none`, its body the prose after the table |
+| ControlFlow | 15.2.3.3 | the same: a dependency, from the task waited for to the task waiting |
+| ForkNode | 15.3.3.3 | the same: the table stands for the forks and joins UML draws; the tasks nothing orders are reached through one, every task's outgoing flows forked; UML's own note on it has a token shunted to the downstream JoinNode where a guard on an edge from it fails |
+| JoinNode | 15.3.3.4 | the same: a task waiting for several tasks, every task's incoming flows joined; where every task is guarded and no guard holds, it receives every shunted token |
+| guard | 15.2.3.3 | the same: a task's guard, on the ActivityEdge offering the task its token from the fork or the join before it |
+| DecisionNode | 15.3.3.6 | the same: placed after the fork or the join before a guarded task, so that where the guard fails the token is shunted to the downstream join node, a skipped task counting as done for what depends on it |
+| wait time action | 16.10.3.1 | the same: a task's timeout |
+| TimeEvent | 13.3.3.4 | the same: the timeout's trigger |
+| InterruptibleActivityRegion | 15.6.3.2 | differs: holding the task, with the TimeEvent on an interrupting edge, it ends the task's work when the time passes, and the task then fails, its writes undone, and a person's or an external system's work no longer counts; [`§ Constructs § Algorithm § What It Means`](#what-it-means-2) has it among what the Algorithm's table does not write, and the DAG's table writes it by its Timeout column |
+| activity execution completing | 15.2.3.6 | the same: the run ends once no task is running and none can run |
+| exception | 16.3.3.1, 15.5.3.2 | differs: the run goes on past an untolerated failure to what waits `ended`, keeping what such a task writes, where in UML an exception a failing task raises, uncaught, ends the run |
+| ExceptionHandler | 15.5.3.2 | differs: a task whose tolerated is `Yes`, its tolerated cell standing for the handler, leaves unreached what waited for it to be done and runs only what waited `ended`, where UML, once the handler's body completes, offers tokens to everything downstream as though the task had completed |
 
 ### State Machine
 
-A model of the states a system or an entity can be in, the transitions between them, and the conditions under which each transition is taken. It answers where the entity is in its journey, and what happens when something happens in a given state, so a reviewer can check that every case is covered. It is UML's state machine ([`specs/methodology/external-references.md § External References [Name: UML]`](/specs/methodology/external-references.md#external-references)), adopted whole and written as tables, with no tie to any serialization or execution engine. [`§ Constructs § State Machine § What It Means`](#what-it-means-1) states what UML means for what the tables write, and names each departure the canon makes from UML. A machine whose every transition is taken on its trigger alone, an entity's plain lifecycle, is a State Machine that leaves its optional parts unused. It is no construct of its own ([`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`](/specs/methodology/sourcing-and-citation.md#a-definition-and-its-instances)).
+A model of the states a system or an entity can be in, the transitions between them, and the conditions under which each transition is taken. It answers where the entity is in its journey, and what happens when something happens in a given state, so a reviewer can check that every case is covered. It is UML's StateMachine ([`specs/methodology/external-references.md § External References [Name: UML]`](/specs/methodology/external-references.md#external-references)), adopted whole and written as tables, with no tie to any serialization or execution engine. [`§ Constructs § State Machine § What It Means`](#what-it-means-1) states what UML means for what the tables write, and names each departure the canon makes from UML. A machine whose every transition is taken on its trigger alone, an entity's plain lifecycle, is a State Machine that leaves its optional parts unused. It is no construct of its own ([`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`](/specs/methodology/sourcing-and-citation.md#a-definition-and-its-instances)).
 
 **Extends:** `§ Constructs § Tabular Construct`
 
@@ -695,7 +721,7 @@ A model of the states a system or an entity can be in, the transitions between t
 
 | Field | Required | Default Value | Values | Holds |
 |---|---|---|---|---|
-| Protocol | no | No | "Yes", "No" | whether it says which actions an actor may take in each state, UML's protocol state machine, rather than what the entity does, its behavioral state machine |
+| Protocol | no | No | "Yes", "No" | whether it says which actions an actor may take in each state, UML's ProtocolStateMachine, rather than what the entity does, a behavior StateMachine |
 | Recorded In | no | none | text | the fact the entity records its state in, its name, a colon and the citation of the Facts record declaring it, as a Decision Table's Reads item is written, each state's name one of that record's Values |
 
 A State Machine is authored as a States table and a Transitions table. Each table opens with its `**Table Name:**`, `States` and `Transitions` ([`§ Constructs § Tabular Construct`](#tabular-construct)). A reader then sees each table's name, and a citation reaches a part of either table by the path the table's name and its key make.
@@ -726,7 +752,7 @@ After `Trigger` come the `Guard` column and the `Effect` column, in that order. 
 
 A guard testing a fact for a word, by `=`, `!=` or `in` a list or tests, wherever the test stands in the guard, tests one of the fact's Values, as a Decision Table's cell does. The fact is the one its machine's own file declares, or else the one other files declare alike. A name that other files declare with differing Values is read, not checked.
 
-A trigger names only what happens. Whatever must hold when it happens for the move to be taken is a guard, never a qualifier written into the trigger. A trigger is written in the same words wherever it recurs, since two triggers are the same only where their words are. Each distinct thing that can happen is a trigger of its own: each action an actor may take, and each outcome of an event from outside the entity. So each takes a row of its own, and no row lists triggers. A class of occurrences, named once in the section's prose with each of its members, is one trigger, as UML's trigger accepts any event of a class (UML 14.2.3.9.2). A From names one state, or, for a join, joins several with `and`, so transitions from several states to one on the same trigger take a row for each From. A transition may lead back to an earlier state, as a reopened item does. A state's own work being done is not a trigger, and a transition taken on it carries none. A state whose description gives it nothing to wait for cannot stay once its work is done.
+A trigger names only what happens. Whatever must hold when it happens for the move to be taken is a guard, never a qualifier written into the trigger. A trigger is written in the same words wherever it recurs, since two triggers are the same only where their words are. Each distinct thing that can happen is a trigger of its own: each action an actor may take, and each outcome of an event from outside the entity. So each takes a row of its own, and no row lists triggers. A class of occurrences, named once in the section's prose with each of its members, is one trigger, as UML's Trigger accepts any Event of a class (UML 14.2.3.9.2). A From names one state, or, for a join, joins several with `and`, so transitions from several states to one on the same trigger take a row for each From. A transition may lead back to an earlier state, as a reopened item does. A state's own work being done is not a trigger, and a transition taken on it carries none. A state whose description gives it nothing to wait for cannot stay once its work is done.
 
 What a State Machine expresses beyond a move its trigger alone decides:
 
@@ -761,29 +787,19 @@ Every fork is closed by one join, from states its branches reach, and a join clo
 
 #### What It Means
 
-A State Machine means what UML's state machine means for what the machine's tables write. Each statement here cites the section of UML it rests on, so neither an author nor a reader needs to recall the standard. The canon's rules beyond UML are its departures, and each is named where it is stated:
+A State Machine means what UML's StateMachine means for what the machine's tables write, element by element as this section's UML Elements table gives it, so neither an author nor a reader needs to recall the standard.
 
-- an action a protocol machine does not take, refused;
-- a protocol machine's transitions taken on an actor's action alone;
-- conditions one occurrence makes true together, taken in one step;
-- an exclusive choice's guards never both holding;
-- relative time counted from entering the state;
-- a terminal state in a fork's branch ending the run;
-- a join carrying a trigger;
-- `exit` naming which terminal state the machine governing a state reached;
-- in [`§ Time`](#time), an instant already past taken at once, and an instant following its fact.
+**One occurrence at a time.** The machine handles each thing that happens fully before it takes the next, taking the transitions the occurrence enables until it reaches states where it waits. An occurrence that enables no transition is discarded, except in a protocol machine. A state's work being done is handled ahead of anything else waiting. Conditions one occurrence makes true together are taken in the occurrence's one step, and the transitions they enable from one state are an exclusive choice.
 
-**One occurrence at a time.** The machine handles each thing that happens fully before it takes the next. It takes the transitions the occurrence enables until it reaches states where it waits: UML's run-to-completion, its section 14.2.3.9.1. An occurrence that enables no transition is discarded, except in a protocol machine. A state's work being done is handled ahead of anything else waiting. Conditions one occurrence makes true together are taken in the occurrence's one step. This is a departure, since UML dispatches each event on its own. The transitions those conditions enable from one state are an exclusive choice.
+**A state and its initial state.** The initial state is the one the machine enters as its run begins. Before its run begins and once the run has ended, a machine is in no state. What must outlast a run is a fact the entity records: its status, named by the entity, as `loan status`, and declared in a Facts section ([`§ Defining Constructs § Declaring a Construct § Fact`](#fact)). The fact's Values are the values it may take, either listed or given as the citation of the section holding a closed set, its record section or its keyed Basic Table, their one home. The machine names that fact in its Recorded In field. The machine's states are those of the values it uses, a terminal state's among them, and a value it does not use is left out.
 
-**A state and its initial state.** A state is UML's state. The initial state is the one the machine enters as its run begins, the target of UML's initial Pseudostate's transition, its section 14.2.3.7. Before its run begins and once the run has ended, a machine is in no state, its sections 14.2.3.4.2 and 14.2.3.8.3. What must outlast a run is a fact the entity records: its status, named by the entity, as `loan status`, and declared in a Facts section ([`§ Defining Constructs § Declaring a Construct § Fact`](#fact)). The fact's Values are the values it may take, either listed or given as the citation of the section holding a closed set, its record section or its keyed Basic Table, their one home. The machine names that fact in its Recorded In field. The machine's states are those of the values it uses, a terminal state's among them, and a value it does not use is left out.
+**A state's work.** A state's work is what its description says goes on in it, begun when the state is entered. Once done, the work lets a transition with no trigger be taken. For a state whose description states no work, that transition may be taken at once, and for a submachine state, once the run of the machine governing it ends. A transition taken while the work runs cuts it short. A transition from a state to itself leaves the state and enters it again, and the state's work, the run of the machine governing it and its relative times then start afresh.
 
-**A state's work.** A state's work is what its description says goes on in it. The work begins when the state is entered: UML's entry and doActivity Behaviors, its section 14.2.3.4.3. Once done, the work lets a transition with no trigger be taken: UML's completion transition, its section 14.2.3.8.3. For a state whose description states no work, that transition may be taken at once, and for a submachine state, once the run of the machine governing it ends. A transition taken while the work runs cuts it short. A transition from a state to itself leaves the state and enters it again: UML's external transition, its section 14.2.3.8.1. The state's work, the run of the machine governing it and its relative times then start afresh.
-
-**A terminal state.** The machine's run is complete, UML's final state, its section 14.2.3.6. It has no work: what its description says is the run's outcome, and work that ends a run is the effect of the transition entering it.
+**A terminal state.** Entering a terminal state completes the machine's run. It has no work: what its description says is the run's outcome, and work that ends a run is the effect of the transition entering it.
 
 **A fact.** A fact is held by the entity, or by another. It is set by a state's work, a transition's effect or an occurrence's data, or from outside the machine, as a payment received lowers a balance. It is declared in a Facts section where a guard compares a fact with it.
 
-**A trigger.** A trigger names what happens: UML's event, its sections 13.3.3.2 to 13.3.3.4. What moves the entity decides the trigger's kind:
+**A trigger.** A trigger names what happens. What moves the entity decides the trigger's kind:
 
 **Construct:** `§ Constructs § Decision Table`
 
@@ -801,42 +817,76 @@ A State Machine means what UML's state machine means for what the machine's tabl
 | "a part of another construct being reached, or another machine's state being entered" | that part reached, or that state entered |
 | "an action of an actor, or a message from another system, by its happening" | something done |
 
-- **Something done.** An action of an actor, a message from another system, or a periodic job's run, as a user approving or a payment arriving: UML's message event, its section 13.3.3.2. What it carries, as a payment's amount, is a fact its occurrence sets, the data its message carries, its section 13.3.3.2. That fact is declared in a Facts section, and the transition's guard may test it. A delayed message whose time is fixed when it is sent is something done, written as the message.
-- **A part reached, or a state entered.** Another construct's part completing, or another machine's state being entered: UML's signal event, its section 13.3.3.2. It is written as the part's citation and `is reached` or `is entered`, in the same words wherever it recurs. Two machines may each be triggered by the other's. Another machine's state is cited. A state of another instance of the same machine is named by its identifier, as a part within its own section is. Either is followed by its instance after `of` where the instance matters, as `active of another sale of its loan is entered`.
-- **A condition becoming true.** Taken the moment the condition goes from false to true, never while it stays true, as a balance reaching zero: UML's change event, its section 13.3.3.3.
-- **Time passing.** Either relative, as 30 days passing, or an absolute instant, as month end or a payment's due date and 30 days: UML's time event, its section 13.3.3.4. Relative time is counted from entering the state the transition leaves. Where the machine waited elsewhere first, that is a departure, since UML counts from the time event's activation. [`§ Time`](#time) says what clock it reads.
+- **Something done.** An action of an actor, a message from another system, or a periodic job's run, as a user approving or a payment arriving. What it carries, as a payment's amount, is a fact its occurrence sets. That fact is declared in a Facts section, and the transition's guard may test it. A delayed message whose time is fixed when it is sent is something done, written as the message.
+- **A part reached, or a state entered.** Another construct's part completing, or another machine's state being entered. It is written as the part's citation and `is reached` or `is entered`, in the same words wherever it recurs. Two machines may each be triggered by the other's. Another machine's state is cited. A state of another instance of the same machine is named by its identifier, as a part within its own section is. Either is followed by its instance after `of` where the instance matters, as `active of another sale of its loan is entered`.
+- **A condition becoming true.** Taken the moment the condition goes from false to true, never while it stays true, as a balance reaching zero.
+- **Time passing.** Either relative, as 30 days passing, or an absolute instant, as month end or a payment's due date and 30 days. Relative time is counted from entering the state the transition leaves, even where the machine waited elsewhere first. [`§ Time`](#time) says what clock it reads.
 
-**A guard.** A guard is tested when its trigger happens, or when its state's work is done, against the facts as they then stand. A transition whose guard does not hold is no transition at all for that occurrence, its section 14.2.3.9.2. A transition with no guard has one that is always true. A guard may test any fact about the entity or another, another entity's recorded status among them, as `loan status = "closed"`, a terminal state's name included. The state a machine governs is left by which terminal state that machine reached. A guard tests that by `exit` alone, whose value is that terminal state's name, as `exit = "approved"`. This is a departure, since UML tells a machine's ends apart by exit points, its section 14.2.3.4.6.
+**A guard.** A guard is tested when its trigger happens, or when its state's work is done, against the facts as they then stand. A transition whose guard does not hold is no transition at all for that occurrence. A transition with no guard has one that is always true. A guard may test any fact about the entity or another, another entity's recorded status among them, as `loan status = "closed"`, a terminal state's name included. The state a machine governs is left by which terminal state that machine reached. A guard tests that by `exit` alone, whose value is that terminal state's name, as `exit = "approved"`.
 
-**Two transitions one occurrence enables.** At most one is taken from a state, its section 14.2.3.9.3, and the exclusive choice decides which. A governed state and a state of the machine governing it may both leave on one occurrence. Then the inner machine's transition, the more deeply nested, is taken, its sections 14.2.3.9.4 and 14.2.3.9.5.
+**Two transitions one occurrence enables.** At most one is taken from a state, and the exclusive choice decides which, its guards never both holding. A governed state and a state of the machine governing it may both leave on one occurrence. Then the inner machine's transition, the more deeply nested, is taken.
 
-**An effect.** An effect is the Algorithm or the Decision Table a transition's Effect cell cites, run as the transition is taken: UML's effect Behavior, its sections 14.2.3.8 and 14.2.3.9.6. It runs after the From state is left and before the To state is entered. An action whose outcome decides where the entity goes is no effect. It is a state's work, and the transitions from that state route on what the work found. One occurrence that moves several entities in order is written in the machine it reaches first. That machine's effect is an Algorithm whose steps move the others. Each moved machine's trigger cites the step that moves it, and each step's move is complete before the next.
+**An effect.** An effect is the Algorithm or the Decision Table a transition's Effect cell cites, run as the transition is taken, after the From state is left and before the To state is entered. An action whose outcome decides where the entity goes is no effect. It is a state's work, and the transitions from that state route on what the work found. One occurrence that moves several entities in order is written in the machine it reaches first. That machine's effect is an Algorithm whose steps move the others. Each moved machine's trigger cites the step that moves it, and each step's move is complete before the next.
 
-**A fork and a join.** A fork and a join are UML's fork and join Pseudostates, its section 14.2.3.7. The branches between them are its orthogonal regions, its section 14.2.3.2, each running at once, and one occurrence can take one transition in each, its section 14.2.3.9.1. A terminal state reached in one branch ends the machine's run and cuts its other branches short. This is a departure, since UML's final state completes that branch's region alone, its section 14.2.3.6. A join may carry a trigger, also a departure, since UML's join takes none, its section 14.2.3.7.
+**A fork and a join.** The branches between a fork and a join each run at once, and one occurrence can take one transition in each. A terminal state reached in one branch ends the machine's run and cuts its other branches short. A join may carry a trigger.
 
-**A protocol machine.** A machine whose Protocol field is `Yes` is UML's protocol state machine, its section 14.4. Its states hold no work, its section 14.4.3.1, so it takes no Effect column, no transition with no trigger and no governed state. Each transition is taken on an actor's action, and says the state allows that action. This is a departure, where UML allows other events, its section 14.4.3.2.4. An action no transition from the state takes is refused. This too is a departure: UML leaves it undefined, its section 14.4.3.2.1, and leaves an operation no transition refers to callable in any state, its section 14.4.3.2.3, which the canon does not write. Where the system tells an actor why, the reasons it distinguishes are a Decision Table over the request, as [`§ Constructs § Decision Table § A Request Turned Away`](#a-request-turned-away) has it, and no other reasons are written. Whether the machine allows an action in the entity's state is a fact, a question named `{entity} permits {action}?`, as `loan permits disbursal?`. Any construct may test that fact, citing the machine.
+**A protocol machine.** A machine whose Protocol field is `Yes` is a protocol machine. Its states hold no work, so it takes no Effect column, no transition with no trigger and no governed state. Each transition is taken on an actor's action alone, and says the state allows that action. An action no transition from the state takes is refused. Where the system tells an actor why, the reasons it distinguishes are a Decision Table over the request, as [`§ Constructs § Decision Table § A Request Turned Away`](#a-request-turned-away) has it, and no other reasons are written. Whether the machine allows an action in the entity's state is a fact, a question named `{entity} permits {action}?`, as `loan permits disbursal?`. Any construct may test that fact, citing the machine.
 
-**Resuming where it left off.** UML returns to where a machine was through a history Pseudostate, its section 14.2.3.4.4. The canon writes it with a fact the entity records, guarding the transitions from the machine's initial state.
+**Resuming where it left off.** A machine resumes where it left off by a fact the entity records, guarding the transitions from the machine's initial state.
 
-**What the tables do not write.** Each part of UML's state machine named in this list, and the writing the canon uses instead:
+A design adds a form for an element the canon does not write where a spec needs what the canon's writing cannot say. The mapping from UML's StateMachine to the State Machine:
 
-- **A composite state.** Its section 14.2.3.4.7 calls it semantically equivalent to a submachine state. A nested machine is a section of its own, governing a state as [`§ Constructs § State Machine § A Submachine State`](#a-submachine-state) has it.
-- **Entry and exit points.** Its sections 14.2.3.4.6 and 14.2.3.7: a machine is entered at its initial state and left by its terminal states, told apart by `exit`, as `exit = "approved"`.
-- **History Pseudostates, and deferred events.** Its section 14.2.3.4.4: written with a fact the entity records.
-- **Internal and local transitions.** Its section 14.2.3.8.1: an occurrence that moves the entity nowhere is no transition; what it changes is a fact.
-- **Exit Behaviors.** Its section 14.2.3.4.3: the effect of the transitions leaving the state.
-- **Choice and junction Pseudostates, and compound transitions.** Its sections 14.2.3.7 and 14.2.3.8.4: a state whose work decides, its transitions an exclusive choice.
-- **A terminate Pseudostate.** Its section 14.2.3.7: a terminal state.
-- **An AnyReceiveEvent.** Its section 13.3.3.2: a class of occurrences, named once.
-- **A state invariant, and a protocol transition's postcondition.** Its sections 14.2.3.4 and 14.4.3.2.3: a Constraint ([`§ Constructs § Constraint`](#constraint)). A protocol transition's precondition is its guard.
-- **A guard testing another object's state.** Its section 14.2.3.8.3: a test of that entity's recorded status.
-- **Protocol conformance.** Its section 14.4.3.3: not written.
+**Table Name:** UML Elements
 
-A design adds a form for one where a spec needs what these writings cannot say.
+**Reference Key:** UML
+
+**Required:** Section, Treatment
+
+| UML | Section | Treatment |
+|---|---|---|
+| State | 14.2.3.4 | the same |
+| initial Pseudostate | 14.2.3.7 | the same: the target of its transition is the initial state |
+| no active state | 14.2.3.4.2, 14.2.3.8.3 | the same: before its run begins and once the run has ended, a machine is in no state |
+| run-to-completion | 14.2.3.9.1 | differs: conditions one occurrence makes true together are taken in the occurrence's one step, where UML dispatches each event on its own |
+| entry and doActivity Behaviors | 14.2.3.4.3 | the same: a state's work, begun when the state is entered |
+| completion transition | 14.2.3.8.3 | the same: a transition with no trigger, taken once the state's work is done |
+| external transition | 14.2.3.8.1 | the same: a transition from a state to itself |
+| FinalState | 14.2.3.6 | differs: a terminal state, entering it completing the run; reached in one branch of a fork, it ends the machine's run and cuts its other branches short, where UML's FinalState completes that branch's Region alone |
+| Event | 13.3.3.2 to 13.3.3.4 | the same: a trigger, its kind decided by what moves the entity |
+| MessageEvent | 13.3.3.2 | the same: something done, what it carries the data its message carries, a fact its occurrence sets |
+| SignalEvent | 13.3.3.2 | the same: a part reached, or a state entered |
+| ChangeEvent | 13.3.3.3 | the same: a condition becoming true |
+| TimeEvent | 13.3.3.4 | differs: relative time is counted from entering the state the transition leaves, even where the machine waited elsewhere first, where UML counts from the TimeEvent's activation; and, as [`§ Time`](#time) has it, an instant already past is taken at once, and an instant follows its fact |
+| guard | 14.2.3.9.2 | the same: a transition whose guard does not hold is no transition for that occurrence |
+| conflicting transitions | 14.2.3.9.3 | differs: at most one is taken, as UML has it, and an exclusive choice's guards never both hold |
+| transition priority | 14.2.3.9.4, 14.2.3.9.5 | the same: of a governed state and a state of the machine governing it, both leaving on one occurrence, the inner machine's transition is taken |
+| effect Behavior | 14.2.3.8, 14.2.3.9.6 | the same: the Algorithm or the Decision Table a transition's Effect cell cites |
+| fork Pseudostate | 14.2.3.7 | the same |
+| join Pseudostate | 14.2.3.7 | differs: a join may carry a trigger, where UML's join takes none |
+| orthogonal regions | 14.2.3.2, 14.2.3.9.1 | the same: the branches between a fork and a join, one occurrence able to take one transition in each |
+| ProtocolStateMachine | 14.4, 14.4.3.1 | the same: a machine whose Protocol is `Yes`, its states holding no work |
+| ProtocolTransition | 14.4.3.2.4 | differs: taken on an actor's action alone, where UML allows other events |
+| unexpected event | 14.4.3.2.1 | differs: in a protocol machine, an action no transition from the state takes is refused, where UML leaves it undefined |
+| operation no transition refers to | 14.4.3.2.3 | differs: refused, as any action no transition from the state takes is, where UML leaves it callable in any state |
+| ProtocolTransition's precondition | 14.4.3.2.3 | the same: its guard |
+| history Pseudostate | 14.2.3.4.4 | not written: a fact the entity records, guarding the transitions from the machine's initial state |
+| deferred event | 14.2.3.4.4 | not written: a fact the entity records |
+| composite State | 14.2.3.4.7 | not written: UML calls it semantically equivalent to a submachine state, and a nested machine is a section of its own, governing a state as [`§ Constructs § State Machine § A Submachine State`](#a-submachine-state) has it |
+| entry point | 14.2.3.4.6, 14.2.3.7 | not written: a machine is entered at its initial state |
+| exit point | 14.2.3.4.6, 14.2.3.7 | differs: a machine is left by its terminal states, a guard telling them apart by `exit` alone, as `exit = "approved"`, where UML tells a machine's ends apart by exit points, which the canon does not write |
+| internal and local transitions | 14.2.3.8.1 | not written: an occurrence that moves the entity nowhere is no transition, and what it changes is a fact |
+| exit Behavior | 14.2.3.4.3 | not written: the effect of the transitions leaving the state |
+| choice and junction Pseudostates, compound transitions | 14.2.3.7, 14.2.3.8.4 | not written: a state whose work decides, its transitions an exclusive choice |
+| terminate Pseudostate | 14.2.3.7 | not written: a terminal state |
+| AnyReceiveEvent | 13.3.3.2 | not written: a class of occurrences, named once |
+| state invariant | 14.2.3.4 | not written: a Constraint ([`§ Constructs § Constraint`](#constraint)) |
+| ProtocolTransition's postcondition | 14.4.3.2.3 | not written: a Constraint ([`§ Constructs § Constraint`](#constraint)) |
+| guard testing another object's state | 14.2.3.8.3 | not written: a test of that entity's recorded status |
+| ProtocolConformance | 14.4.3.3 | not written |
 
 #### A Submachine State
 
-A State Machine's state whose work is the run of another State Machine, started by entering the state, is UML's submachine state, its section 14.2.3.4.7, governed by that machine. A machine run apart from the state, another entity's or one started elsewhere, is no state's work. A state waiting on such a machine is left on a trigger, a part of that machine being reached. A governed state's description says it is governed: the words `governed by`, which name only a machine, then that machine's section cited. A description citing another machine's whole section always says them, so a state referring to a machine it is not governed by cites one of that machine's parts.
+A State Machine's state whose work is the run of another State Machine, started by entering the state, is UML's submachine State, its section 14.2.3.4.7, governed by that machine. A machine run apart from the state, another entity's or one started elsewhere, is no state's work. A state waiting on such a machine is left on a trigger, a part of that machine being reached. A governed state's description says it is governed: the words `governed by`, which name only a machine, then that machine's section cited. A description citing another machine's whole section always says them, so a state referring to a machine it is not governed by cites one of that machine's parts.
 
 - **Machine.** One at most. A machine never governs itself, directly or through those it governs. A governed state is never terminal, since a terminal state has no work.
 - **Entering it.** At the governing machine's initial state, by however many transitions reach it. The transitions from that initial state are guarded by why the state was entered, where that matters.
@@ -858,7 +908,7 @@ Its table of exits:
 
 ### Algorithm
 
-A precise, step-by-step computational procedure that produces a value or a transformation. A DAG or a State Machine orchestrates named tasks or services. An Algorithm specifies the computation inside one of those tasks, or any calculation that is not itself an orchestration. Each step written in one of its forms is checked, so a computation is stated exactly rather than described. It is UML's activity ([`specs/methodology/external-references.md § External References [Name: UML]`](/specs/methodology/external-references.md#external-references)), adopted whole and written as a numbered table of steps taken one at a time, with no tie to any language or engine. [`§ Constructs § Algorithm § What It Means`](#what-it-means-2) states what UML means for what the table writes, and names each departure the canon makes from UML.
+A precise, step-by-step computational procedure that produces a value or a transformation. A DAG or a State Machine orchestrates named tasks or services. An Algorithm specifies the computation inside one of those tasks, or any calculation that is not itself an orchestration. Each step written in one of its forms is checked, so a computation is stated exactly rather than described. It is UML's Activity ([`specs/methodology/external-references.md § External References [Name: UML]`](/specs/methodology/external-references.md#external-references)), adopted whole and written as a numbered table of steps taken one at a time, with no tie to any language or engine. [`§ Constructs § Algorithm § What It Means`](#what-it-means-2) states what UML means for what the table writes, and names each departure the canon makes from UML.
 
 **Extends:** `§ Constructs § Tabular Construct`
 
@@ -1023,39 +1073,58 @@ Step 1 walks the list in its keys' order and gathers each updated item back into
 
 #### What It Means
 
-An Algorithm means what UML's activity means for what the Algorithm's table writes. Each statement here cites the section of UML it rests on, so neither an author nor a reader needs to recall the standard. The canon's rules beyond UML are its departures, and each is named where it is stated:
+An Algorithm means what UML's Activity means for what the Algorithm's table writes, element by element as this section's UML Elements table gives it, so neither an author nor a reader needs to recall the standard.
 
-- a loop going back or a run recurring stating why it ends;
-- a value a later step reads set only by a computation;
-- a run's arguments and what it gives matched to the construct's facts by name;
-- a gathered list in the order of the list walked, whatever order the passes ran in, holding the item of every pass where a loop gathers its own item, and left as it stood where an `End` in the body ends the run;
-- a Decision Table run as a Behavior;
-- an Output its Inputs also name holding what it was given where nothing sets it;
-- `End` inside a loop's body ending the whole run.
+**A run.** Each run of the Algorithm takes its Inputs and gives its Output. Its Inputs and Output are its parameters. A fact both name holds what it was given where nothing sets it. A run of another construct is synchronous: the step waits until that construct's run ends. A Decision Table is run as another construct is. Each `with` is an argument, the value passed to a fact the run takes. Each fact the run takes that no `with` gives takes the value of the fact of that name. Each fact the run gives is written to the fact of that name, or to the fact `as` names. A run's arguments and what it gives are matched to the construct's facts by name. A run recurring states why it ends.
 
-**A run.** The Algorithm is an Activity, its section 15.2.3.1. Each run of it is an execution, taking its Inputs as its input parameters and giving its Output as its output parameters, its sections 15.2.3.6 and 15.4.3.2. Its Inputs and Output are its parameters, and a fact both name is an inout parameter, its section 15.2.3.6. That such a fact holds what it was given where nothing sets it is a departure, since UML passes out only what flows to its output node. A run of another construct is a CallBehaviorAction, its section 16.3.3.1. It is synchronous: the step waits until that construct's run ends. A Decision Table is taken as the Behavior it calls, a departure, since a DMN decision is no UML Behavior. Each `with` is an argument, the value its input pin passes to a parameter. Each fact the run takes that no `with` gives takes the value a ReadVariableAction, its section 16.9.3.2, reads from the fact of that name. Each fact the run gives is the value on an output pin. An AddVariableValueAction, its section 16.9.3.3, writes that value to the fact of that name, or to the fact `as` names. UML matches pins to parameters by their order. The canon matches them by name, a departure. A run recurring states why it ends, a departure, since UML requires none.
+**A step.** The steps follow one another. A computation's language is FEEL. A computation writes its value to the fact, replacing what the fact held. A computation setting a part reads the fact and replaces the part's value for each name of its path. Because the fact's value is a data value, that replacement gives a modified copy. The computation then writes that copy back to the fact. Work is a step whose body is written in words. A value a later step reads is set only by a computation.
 
-**A step.** A step is an Action, its section 16.2.3.1, and the steps follow one another by control flows, its section 15.2.3.3. A computation is a ValueSpecificationAction, its section 16.4.3.5, with FEEL its language. An AddVariableValueAction writes the computation's value to the fact, held as a Variable is, replacing what the fact held, its sections 15.2.3.5 and 16.9.3.3. A computation setting a part reads the fact by a ReadVariableAction, its section 16.9.3.2. It replaces the part's value by an AddStructuralFeatureValueAction for each name of its path, `isReplaceAll` true, its section 16.8.3.3. Because the fact's value is a data value, that action gives a modified copy on its result pin, its section 16.8.3.1. The computation then writes that copy back to the fact by an AddVariableValueAction. Work is an OpaqueAction whose body is written in words, its section 16.2.3.2. That a value a later step reads is set only by a computation is a departure, since UML lets an OpaqueAction write values.
+**A comparison and a jump.** A comparison has two outgoing flows, one guarded by its condition and one by `else`. A step that two flows reach, by a jump or by following another, is entered where the flows merge, so a jump back forms a loop. Such a loop states why it ends.
 
-**A comparison and a jump.** A comparison is a DecisionNode whose two outgoing flows are guarded by its condition and by `else`, its section 15.3.3.6. A step that two flows reach, by a jump or by following another, is entered through a MergeNode, its section 15.3.3.5, so a jump back forms a loop. That such a loop states why it ends is a departure, since UML requires none.
+**A loop over a list.** A loop over a list runs its passes:
 
-**A loop over a list.** A loop over a list is an ExpansionRegion over the list, its section 16.12.3. The region is:
+- one after another in the order of its `by` keys where the loop is ordered by them, the list sorted by them;
+- one after another over an unordered collection where the loop is `in any order` or `in an order the system leaves open`;
+- free to overlap where the loop is `at once`.
 
-- iterative where the loop is ordered `by` keys, its passes run one after another in that order, the list sorted by them;
-- iterative over an unordered collection where the loop is `in any order` or `in an order the system leaves open`;
-- parallel where the loop is `at once`, its passes free to overlap.
+The loop's list is fixed as the loop begins. What the loop gathers is offered once every pass has completed. It holds the values of the passes that set it, in the order of the list walked, whatever order the passes ran in. It holds the item of a pass that set nothing where the loop gathers its own item. It is left as it stood where an `End` inside the body ends the run.
 
-What the loop gathers is an output ExpansionNode, offered once every pass has completed, holding the values of the passes that set it in the order the input collection induces. The loop's list is fixed as the loop begins, the input collection of UML's expansion region. A gathered list keeps the order of the list walked where the region is unordered or parallel. It holds the item of a pass that set nothing where the loop gathers its own item. It is left as it stood where an `End` inside the body ends the run. Each of these is a departure: UML leaves that order undefined, filters out the pass that set nothing, and offers the list partly filled.
+**An end.** The first `End` reached ends the run and every flow in it, and the Output's facts hold the values set. Inside a loop's body, `End` ends the whole run.
 
-**An end.** `End` is an ActivityFinalNode, its section 15.3.3.2. The first `End` reached ends the run and every flow in it, and the Output's facts hold the values set. Inside a loop's body, `End` ends the whole run. This is a departure, since UML's final node inside a structured node or an expansion region ends that node or region alone, its sections 16.11.3.1 and 16.12.3.
+The mapping from UML's Activity to the Algorithm:
 
-**What the table does not write.** Each of these, by UML's sections cited, is written elsewhere or not at all:
+**Table Name:** UML Elements
 
-- **A fork and a join of steps, and steps run at once other than a loop's passes.** Its sections 15.3.3.3 and 15.3.3.4: a DAG ([`§ Constructs § DAG`](#dag)).
-- **A wait for an occurrence.** Its section 16.10.3.1, AcceptEventAction: a State Machine's trigger, the Algorithm running once it happens.
-- **An exception raised and handled.** Its sections 16.13.3.2 and 15.5.3.2: a failure is an outcome the Output gives, and the run ends at `End` with it.
-- **An interruptible region and a partition.** Its section 15.6.3: not written by an Algorithm's table. A task's timeout writes the region in a DAG's table ([`§ Constructs § DAG § What It Means`](#what-it-means)).
-- **A stream, and an object flow other than a named fact.** Its sections 13.2, 16.12.3 and 15.2.3.4: not written. A fact passes between steps by its name.
+**Reference Key:** UML
+
+**Required:** Section, Treatment
+
+| UML | Section | Treatment |
+|---|---|---|
+| Activity | 15.2.3.1 | the same: the Algorithm |
+| execution | 15.2.3.6, 15.4.3.2 | the same: a run, taking its Inputs as its input parameters and giving its Output as its output parameters |
+| Parameter | 15.2.3.6 | the same: the Inputs and the Output |
+| inout Parameter | 15.2.3.6 | differs: a fact the Inputs and the Output both name holds what it was given where nothing sets it, where UML passes out only what flows to its output node |
+| CallBehaviorAction | 16.3.3.1 | differs: a run of another construct, synchronous, each `with` an argument, the value its InputPin passes to a Parameter, and each fact the run gives the value on an OutputPin; a Decision Table is taken as the Behavior it calls, where a DMN Decision is no UML Behavior; pins are matched to parameters by name, where UML matches them by their order; and a run recurring states why it ends, where UML requires none |
+| ReadVariableAction | 16.9.3.2 | the same: reads the fact of that name, for each fact a run takes that no `with` gives, and for a computation setting a part |
+| Variable | 15.2.3.5 | the same: a fact, held as a Variable is |
+| AddVariableValueAction | 16.9.3.3 | the same: writes a value to the fact of that name, or to the fact `as` names, replacing what the fact held |
+| Action | 16.2.3.1 | the same: a step |
+| ControlFlow | 15.2.3.3 | the same: the steps following one another |
+| ValueSpecificationAction | 16.4.3.5 | the same: a computation, FEEL its language |
+| AddStructuralFeatureValueAction | 16.8.3.3 | the same: a computation setting a part replaces the part's value by one for each name of its path, `isReplaceAll` true |
+| StructuralFeatureAction on a data value | 16.8.3.1 | the same: the action gives a modified copy on its result pin, which the computation writes back to the fact by an AddVariableValueAction |
+| OpaqueAction | 16.2.3.2 | differs: work, its body written in words; a value a later step reads is set only by a computation, where UML lets an OpaqueAction write values |
+| DecisionNode | 15.3.3.6 | the same: a comparison, its two outgoing flows guarded by its condition and by `else` |
+| MergeNode | 15.3.3.5 | differs: a step two flows reach, by a jump or by following another, so a jump back forms a loop; such a loop states why it ends, where UML requires none |
+| ExpansionRegion | 16.12.3 | the same: a loop over a list, iterative where the loop is ordered `by` keys, its passes run one after another in that order, the list sorted by them; iterative over an unordered collection where the loop is `in any order` or `in an order the system leaves open`; parallel where the loop is `at once`, its passes free to overlap; the loop's list its input collection, fixed as the loop begins |
+| output ExpansionNode | 16.12.3 | differs: what the loop gathers, offered once every pass has completed, holding the values of the passes that set it in the order the input collection induces; it keeps the order of the list walked where the region is unordered or parallel, where UML leaves that order undefined; it holds the item of a pass that set nothing where the loop gathers its own item, where UML filters that pass out; and it is left as it stood where an `End` inside the body ends the run, where UML offers the list partly filled |
+| ActivityFinalNode | 15.3.3.2, 16.11.3.1, 16.12.3 | differs: `End`, the first reached ending the run and every flow in it; inside a loop's body, it ends the whole run, where UML's ActivityFinalNode inside a StructuredActivityNode or an ExpansionRegion ends that node or region alone |
+| ForkNode and JoinNode | 15.3.3.3, 15.3.3.4 | not written: a fork and a join of steps, and steps run at once other than a loop's passes, are a DAG ([`§ Constructs § DAG`](#dag)) |
+| AcceptEventAction | 16.10.3.1 | not written: a wait for an occurrence is a State Machine's trigger, the Algorithm running once it happens |
+| exception raised and handled | 16.13.3.2, 15.5.3.2 | not written: a failure is an outcome the Output gives, and the run ends at `End` with it |
+| InterruptibleActivityRegion and ActivityPartition | 15.6.3 | not written by an Algorithm's table: a task's timeout writes the region in a DAG's table ([`§ Constructs § DAG § What It Means`](#what-it-means)) |
+| stream, and ObjectFlow other than a named fact | 13.2, 16.12.3, 15.2.3.4 | not written: a fact passes between steps by its name |
 
 ### Constraint
 
@@ -1166,17 +1235,36 @@ An instance is reported for:
 
 #### What It Means
 
-A Constraint means what UML's Constraint means for what its table writes. Each statement here cites the section of UML it rests on, so neither an author nor a reader needs to recall the standard. The canon's rules beyond UML are its additions, and each is named where it is stated.
+A Constraint means what UML's Constraint means for what its table writes, element by element as this section's UML Elements table gives it, so neither an author nor a reader needs to recall the standard.
 
-**A rule.** A Constraint is UML's Constraint, its section 7.6.3. Its rule is the Constraint's specification, a ValueSpecification of type Boolean, satisfied where it evaluates to true. The rule's language is FEEL, which its section 7.6.4 leaves to the Constraint, so FEEL is no departure. The facts the rule names are its constrainedElements, and its Applies To is its context, which its section 7.6.3 has decide when the Constraint is evaluated. That `always` is every rest between operations is the canon's addition, since UML names no such time.
+**A rule.** A Constraint's rule is a Boolean expression, satisfied where it evaluates to true. The rule's language is FEEL. The facts the rule names are the elements it constrains. Its Applies To is its context, which decides when the Constraint is evaluated. `always` is every rest between operations.
 
-**A precondition and a postcondition.** A rule `before` an operation is a precondition, and one `after` it a postcondition, of the Behavior that the Algorithm, the DAG or the transition's effect is, its section 13.2.3.1. An Activity holds them as a Behavior does, its section 15.2.3.6. A precondition holds as the Behavior is invoked, and an implementation may assume it. A postcondition holds once the Behavior's invocation completes successfully. That an operation a section's own text states takes them is the canon's addition, since UML holds a precondition and a postcondition of a Behavior alone. A protocol transition's precondition is its guard and its postcondition a Constraint, as [`§ Constructs § State Machine § What It Means`](#what-it-means-1) has it.
+**A precondition and a postcondition.** A rule `before` an operation is a precondition, and one `after` it a postcondition, of the Behavior that the Algorithm, the DAG or the transition's effect is. An Activity holds them as a Behavior does. A precondition holds as the Behavior is invoked, and an implementation may assume it. A postcondition holds once the Behavior's invocation completes successfully. An operation a section's own text states takes them too. A ProtocolTransition's precondition is its guard and its postcondition a Constraint, as [`§ Constructs § State Machine § What It Means`](#what-it-means-1) has it.
 
-**A derived value.** A derived value is a derived Property, its section 9.5.3, whose derivation may be specified by a constraint. The Constraint whose rule is `{fact} = {expression}` is that constraint.
+**A derived value.** A derived value's derivation may be specified by a constraint. The Constraint whose rule is `{fact} = {expression}` is that constraint.
 
-**An operation all or none.** An occurrence a State Machine answers is dispatched only once the one before it is fully processed, its section 14.2.3.9.1. The canon adds that an occurrence, a run of an Algorithm or of a DAG, or a transition taken is all or none: where it fails, what it wrote is undone, and where it does not complete, it fails.
+**An operation all or none.** An occurrence a State Machine answers is dispatched only once the one before it is fully processed. An occurrence, a run of an Algorithm or of a DAG, or a transition taken is all or none. Where it fails, what it wrote is undone. Where it does not complete, it fails.
 
-**Enforced By.** Enforced By is the canon's addition. UML holds that an unsatisfied Constraint makes the model's realization invalid, its section 7.6.3, and says nothing of what keeps one satisfied.
+**Enforced By.** An unsatisfied Constraint makes the model's realization invalid. Enforced By names what keeps a Constraint satisfied.
+
+The mapping from UML to the Constraint:
+
+**Table Name:** UML Elements
+
+**Reference Key:** UML
+
+**Required:** Section, Treatment
+
+| UML | Section | Treatment |
+|---|---|---|
+| Constraint | 7.6.3 | the same: its specification, a ValueSpecification of type Boolean satisfied where it evaluates to true, is the rule, and its constrainedElements are the facts the rule names |
+| constraint language | 7.6.4 | the same: FEEL, a language UML leaves to the Constraint, so FEEL is no departure |
+| context | 7.6.3 | differs: Applies To, which decides when the Constraint is evaluated, and the canon adds that `always` is every rest between operations, where UML names no such time |
+| precondition and postcondition | 13.2.3.1 | differs: a rule `before` or `after` the Behavior that the Algorithm, the DAG or the transition's effect is, and an operation a section's own text states takes them too, where UML holds them of a Behavior alone |
+| Activity's preconditions and postconditions | 15.2.3.6 | the same: an Activity holds them as a Behavior does |
+| derived Property | 9.5.3 | the same: a derived value, its derivation specified by the Constraint whose rule is `{fact} = {expression}` |
+| run-to-completion | 14.2.3.9.1 | differs: kept, and the canon adds that an occurrence, a run of an Algorithm or of a DAG, or a transition taken is all or none |
+| unsatisfied Constraint | 7.6.3 | differs: the canon adds Enforced By, where UML holds that an unsatisfied Constraint makes the model's realization invalid and says nothing of what keeps one satisfied |
 
 ### Basic Table
 
@@ -1359,7 +1447,7 @@ How a construct reads time, wherever a cell, a guard, a trigger or a step reads 
 
 **The value in force.** A value that changes from a date on, as a rate or a limit does, is a fact read at an instant. A construct reads it at the start of the period the construct computes, unless the construct's prose names another instant. A period a change falls within says how it is split. A rule changed from a date is one construct testing the period's date, not two.
 
-**Backdated and withdrawn.** An instant computed from a fact follows the fact while the machine waits on it. The instant moves when the fact changes, and it is withdrawn when the fact is removed. This is a departure, since UML leaves a time event fixed once activated. A status that may change on past dates is derived from its facts each time it is read, never a machine's state.
+**Backdated and withdrawn.** An instant computed from a fact follows the fact while the machine waits on it. The instant moves when the fact changes, and it is withdrawn when the fact is removed. This is a departure, since UML leaves a TimeEvent fixed once activated. A status that may change on past dates is derived from its facts each time it is read, never a machine's state.
 
 **Calendars.** Date and time arithmetic is FEEL's, in the Gregorian calendar ([`specs/methodology/expressions.md § Expressions § FEEL § Arithmetic and Time`](/specs/methodology/expressions.md#arithmetic-and-time)). An end-of-month rule other than FEEL's is named where it is used. Another calendar, a business-day calendar among them, is a named input. A length counting both its first and its last day is written with `+ 1`.
 
@@ -1371,7 +1459,7 @@ How a construct reads time, wherever a cell, a guard, a trigger or a step reads 
 
 ## When to Use Which
 
-A construct is used where a rule, a process, an entity's behavior, an entry written repeatedly into the specs or the working files, or a closed set a spec defines needs checkable completeness. Prose is used everywhere else. Prose states a rule one fact decides, sending its cases to at most two outcomes, the fact's and its otherwise, unless the rule is written as a table, which [`§ When to Use Which § A Table's Construct`](#a-tables-construct) decides. A rule reading two or more facts, or one fact sending its cases to more than two outcomes, takes the construct this section's table chooses, however it reads, since routing written in an author's own words never looks like a rule to the one writing it. A claim that something holds of the system's facts sends no case anywhere and is a Constraint's ([`§ Constructs § Constraint`](#constraint)). A request turned away for a reason is one of the outcomes counted.
+A construct is used where a rule, a process, an entity's behavior, an entry written repeatedly into the specs or the working files, or a closed set a spec defines needs checkable completeness. Prose is used everywhere else. Prose that repeats one framing for each of several items holds items of one kind, however it reads. They are written as a table, its columns giving the framing once, its construct the one [`§ When to Use Which § A Table's Construct`](#a-tables-construct) gives. Prose states a rule one fact decides, sending its cases to at most two outcomes, the fact's and its otherwise, unless the rule is written as a table, which [`§ When to Use Which § A Table's Construct`](#a-tables-construct) decides. A rule reading two or more facts, or one fact sending its cases to more than two outcomes, takes the construct this section's table chooses, however it reads, since routing written in an author's own words never looks like a rule to the one writing it. A claim that something holds of the system's facts sends no case anywhere and is a Constraint's ([`§ Constructs § Constraint`](#constraint)). A request turned away for a reason is one of the outcomes counted.
 
 Choose the simplest construct that meets the need, by the questions this section's table asks, in order. The first question answered yes chooses, so prose is reached first. The State Machine comes after every other construct a rule or a process can take, since it is the most general of them. The Record Form, which holds entries and no logic, comes last. Each question is answered from the shape of the case, what it is made of and what it waits for, never from what it is called. The construct chosen is written as its section in [`§ Constructs`](#constructs) has it, and means what its standard says. A table is never prose. Where these questions send a table's case to no DAG, Algorithm, State Machine or Constraint, [`§ When to Use Which § A Table's Construct`](#a-tables-construct) decides which of a Decision Table, a record type's records and a Basic Table the table is. A definition whose need the construct it defines would meet takes a more basic one, as [`§ Defining Constructs`](#defining-constructs) has it. A table's construct is chosen as the table is written. An existing table keeps the construct its declaration gives, and a table declaring none stays a Basic Table, until the user decides to migrate it.
 
