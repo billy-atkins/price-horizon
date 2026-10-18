@@ -6,7 +6,7 @@ This file holds the audits only the application specs owe. It is read from the f
 
 ### Counterpart currency
 
-Take each product file's `technical-specs` frontmatter as the map, and read both sides. Then sweep the other way, because a missing frontmatter entry is the likelier failure and the frontmatter map cannot see it. Check that each product section a technical file cites sits in a product file whose list names that technical file.
+Take each product file's `technical-specs` front matter as the map, and read both sides. Then sweep the other way, because a missing front matter entry is the likelier failure and the front matter map cannot see it. Check that each product section a technical file cites sits in a product file whose list names that technical file.
 
 Sweep the same pairing once more, for the converse: an entry naming a technical file that cites nothing in that product file back. This sweep is a judgment rather than an arithmetic check, which is why it is easy to skip. Reading decides which of two things such an entry is:
 

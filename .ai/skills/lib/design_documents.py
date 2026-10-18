@@ -145,7 +145,8 @@ REVIEW_FORM = re.compile(r"^\*\*(?:Adversarial review|Post-apply audit)\b")
 RAN_ON = re.compile(r"\bon [^\s,;]+(?: [^\s,;]+)*? (?:at (?:light|medium|high) effort|as the agent allows)\b", re.I)
 # @canon-spec specs/methodology/working-files.md § A Design Document § The States It Moves Through
 STATES = ("not-started", "in-progress", "approved", "applying", "complete", "abandoned")
-# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files.md § A Design Document § The States It Moves Through
+# the states its Trigger Classes table makes a design finish in
 FINISHED = ("complete", "abandoned")
 # A field's value runs to the next line opening with a field's key, or to a blank line.
 KEY = r"\*\*([A-Z][A-Za-z ]*):\*\*"
@@ -222,7 +223,7 @@ def validation(text, fields):
 
 
 def kebab(text):
-    """The Name in kebab-case: lower case, each run of other characters a hyphen."""
+    """The Name in kebab-case: lowercase, each run of other characters a hyphen."""
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
 
 
@@ -613,7 +614,7 @@ def check_citations(proposal, root):
 
 
 def collapse(text):
-    """Whitespace-insensitive form, for reporting near-misses."""
+    """White-space-insensitive form, for reporting near-misses."""
     return " ".join(text.split())
 
 
@@ -667,7 +668,7 @@ def check(path, anchor, root):
 
     # Not found. Say why, since the cause changes the fix.
     if collapse(anchor) in collapse(body):
-        return "missing", "matches only with whitespace collapsed; copy the exact text"
+        return "missing", "matches only with white space collapsed; copy the exact text"
     head = collapse(anchor)[:40]
     if head and head in collapse(body):
         return "missing", "first 40 characters match; the anchor diverges after them"
@@ -1042,8 +1043,9 @@ def show_edits(value):
 
 def edit_form_problems(text):
     """working-files.md § A Design Document: each edit of The Design in a form that section gives,
-    `This text:` then `becomes:`, or `A new file:`; an edit in another form is reported, as is a `This text:`
-    with no `becomes:`, since the listing reads only those forms."""
+    `This text:` then `becomes:`, or `A new file:`, each text quoted as a blockquote; an edit in another form is
+    reported, as is a `This text:` with no `becomes:`, and a text quoted otherwise, as a bare code block, since the
+    listing, the check that an edit applies and a copy holding the edits read only a blockquote."""
     lines = (section(text, "The Design") or "").split("\n")
     out, fenced = [], False
     for i, line in enumerate(lines):
@@ -1058,6 +1060,14 @@ def edit_form_problems(text):
             end = next((j for j, l in enumerate(rest) if LEAD_IN.match(l)), len(rest))
             if "becomes:" not in (l.rstrip() for l in rest[:end]):
                 out.append("an edit quoting the text it replaces with no becomes: " + FILE_LEAD.match(line).group(1))
+            else:
+                at = next(j for j, l in enumerate(rest[:end]) if l.rstrip() == "becomes:")
+                if not any(l.startswith(">") for l in rest[:at]) or not any(l.startswith(">") for l in rest[at + 1:end]):
+                    out.append("an edit whose text or replacement is not quoted as a blockquote: " + FILE_LEAD.match(line).group(1))
+        elif lead and lead.group(2) == "A new file":
+            end = next((j for j, l in enumerate(rest) if LEAD_IN.match(l)), len(rest))
+            if not any(l.startswith(">") for l in rest[:end]):
+                out.append("a new file not quoted as a blockquote: " + FILE_LEAD.match(line).group(1))
         elif not lead and (LEAD_WORDS.match(line) or line.rstrip().endswith(":") and next((l for l in rest if l.strip()), "").startswith((">", "```"))):
             out.append("an edit in neither form, This text: then becomes:, or A new file: " + FILE_LEAD.match(line).group(1))
     return out
@@ -1117,7 +1127,7 @@ REFACTOR_AND_REFINE_PATHS = ("specs", ".ai/skills")  # the canon's specs and ski
 def refactor_and_refine_lines(text):
     """-> the lines of text a Refactor and Refine cycle carries, blank lines and bare markup set
     aside, and a heading read without its level, since a move raises or lowers it."""
-    # a table's separator row, a code fence or a frontmatter fence carries no text of its own
+    # a table's separator row, a code fence or a front matter fence carries no text of its own
     return [re.sub(r"^#+ ", "", l).strip() for l in text.replace("\r\n", "\n").split("\n")
             if l.strip() and not re.fullmatch(r"[|:\- ]+|```\w*", l.strip())]
 

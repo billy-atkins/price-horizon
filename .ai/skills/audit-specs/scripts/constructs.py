@@ -267,8 +267,9 @@ def _keyed(cells, name=None):
 
 
 # @canon-spec specs/methodology/glossary.md
-# a word of a field label, opening with a capital and made of letters or digits, a hyphen joining two parts of one word
-LABEL = r"[A-Z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*"
+# a word of a field label: opening with a capital and made of letters or digits, a hyphen joining two parts of one
+# word; or, after a label's first word, made of digits alone
+LABEL = r"(?:[A-Z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*|[0-9]+)"
 LABEL_WORD = re.compile(f"^{LABEL}$")
 
 
@@ -679,6 +680,13 @@ def declarations(body, sections):
             else:
                 break
             j += 1
+        # § Constructs § State Machine: a machine's Trigger Classes table, wherever its section holds one after its
+        # Transitions table, held as that table's, so the machine's tables stay the two its form gives
+        if name == "State Machine" and len(tables) == 2:
+            stop = next((end for lin, (h, end) in secs if lin == lineage), len(lines))
+            classes = _classes_table(lines, j, stop)
+            if classes:
+                tables[1]["classes"] = classes
         out.append((i + 1, name, fields, tables, lineage))
     return out
 
@@ -1141,7 +1149,8 @@ def _choice_groups(transitions, off):
     gi = transitions["header"].index("Guard") if "Guard" in transitions["header"] else None
     groups = {}
     for ln, row in transitions["rows"]:
-        trig = row[off + 2] or NONE_CELL
+        # two triggers in FEEL are one where their tokens are
+        trig = trigger_key(row[off + 2] or NONE_CELL)
         groups.setdefault((row[off], trig), []).append((ln, row[gi] if gi is not None else NONE_CELL))
     return groups
 
@@ -1282,6 +1291,208 @@ def submachine_findings(text_of, found, sections, strip_fences, citation, resolv
             if m not in seen:
                 seen.add(m)
                 todo.extend(governs.get(m, ()))
+
+
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
+# a State Machine's table of each class's members, in its section after its Transitions table, and its columns
+CLASSES = "Trigger Classes"
+CLASS_COLUMNS = ["Member", "Class"]
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine § What It Means
+# a trigger written in FEEL, by its opening, UML's notation for each kind of event, and the kinds its expression gives
+EXPRESSION_TRIGGERS = {"after ": ("days and time duration", "years and months duration"),
+                       "at ": ("date", "date and time"), "when ": ("boolean",)}
+
+
+def _classes_table(lines, start, stop):
+    """The Trigger Classes table between a machine's Transitions table and the end of its section or the next construct
+    -> {"header", "rows", "line", "name", "named"} or None; a `Member | Class` table with no Table Name before it is unnamed."""
+    named = other = False
+    for k in range(start, stop):
+        l = lines[k]
+        if _margin_field(l) and _margin_field(l)["key"] == "Construct":
+            return None
+        f = _margin_field(l)
+        if f and f["key"] == "Table Name":
+            named = (f["value"] or "").strip() == CLASSES
+            other = not named
+            continue
+        if l.startswith("|"):
+            header = _cells(l)
+            if named or (header == CLASS_COLUMNS and not other):
+                rows, h = [], k
+                for m in range(k + 1, stop):
+                    if not lines[m].startswith("|"):
+                        break
+                    if not _rule_row(lines[m]):
+                        rows.append((m + 1, _cells(lines[m])))
+                return {"header": header, "rows": rows, "line": h + 1, "name": CLASSES, "named": named}
+            named = other = False
+        elif l.strip():
+            named = named and l.startswith("**")
+            other = other and l.startswith("**")
+    return None
+
+
+def trigger_key(trigger):
+    """A trigger as two triggers are compared: one written in FEEL by its opening and its expression's tokens, spaces
+    outside a string aside; any other as written."""
+    opening = next((o for o in EXPRESSION_TRIGGERS if trigger.startswith(o)), None)
+    if opening is None:
+        return trigger
+    try:
+        return opening + " ".join(v for _, v in expressions._tokens(trigger[len(opening):]))
+    except expressions.FeelError:
+        return trigger
+
+
+def _fact_scopes(text_of, sections, strip_fences):
+    """Each file's facts in scope, as a guard's are -> {file: {name: Type}}: its own file's first, else the one other
+    files declare alike, a name other files declare with differing Types held with no Type, read and not checked."""
+    own, every = {}, {}
+    for r, body in text_of.items():
+        facts = facts_of(fact_records(strip_fences(body), sections(body)))
+        own[r] = {n: re.sub(r'\s+', " ", t) for n, (t, _, _) in facts.items()}
+        for n, t in own[r].items():
+            every.setdefault(n, set()).add(t)
+    alike = {n: next(iter(ts)) if len({_parsed(t) or t for t in ts}) == 1 else None for n, ts in every.items()}
+    return {r: {**alike, **facts} for r, facts in own.items()}
+
+
+def _trigger_problems(trigger, kinds):
+    """A trigger written in FEEL -> [problem]: its expression in no form FEEL has, or giving no value of its kind."""
+    opening = next((o for o in EXPRESSION_TRIGGERS if trigger.startswith(o)), None)
+    if opening is None:
+        return []
+    kind, problems = expressions.check(trigger[len(opening):], kinds)
+    out = [f"a trigger's expression: {p}: {trigger}" for p in problems]
+    # FEEL's built-in today() or now(), as the parser resolves a call, a fact's longer name winning
+    if {"today", "now"} & expressions.called(trigger[len(opening):], kinds):
+        out.append(f"a trigger reading the wall clock by today() or now(), which `after` and `at` read: {trigger}")
+    if kind is not None and _kind_name(kind) not in EXPRESSION_TRIGGERS[opening]:
+        out.append(f"a trigger `{opening.strip()}` whose expression gives {_kind_name(kind)}, not "
+                   f"{' or '.join(EXPRESSION_TRIGGERS[opening])}: {trigger}")
+    return out
+
+
+def occurrence_findings(text_of, found, sections, strip_fences, citation, resolve):
+    """§ Constructs § State Machine and § Time: each trigger written in FEEL in its form, judged with the facts in scope
+    as a guard's are; no protocol machine taken on time or a condition; and each Trigger Classes table in its form, its rows
+    whole, its classes triggers, a member citing another machine's class reaching it, and no state taking a class and
+    one of its members. `citation` and `resolve` are the citation check's own."""
+    machine = f"{RULE} § State Machine"
+    scopes = _fact_scopes(text_of, sections, strip_fences)
+    machines = {}
+    for r, body in text_of.items():
+        for line, name, fields, tables, lineage in declarations(strip_fences(body), sections(body)):
+            if name == "State Machine" and len(tables) == 2:
+                machines[(r, lineage)] = tables[1].get("classes")
+    for r, body in text_of.items():
+        live, secs = strip_fences(body), sections(body)
+        kinds = {n: kind_of_type(t) if t is not None else None for n, t in scopes.get(r, {}).items()}
+        claimed = set()
+        for line, name, fields, tables, lineage in declarations(live, secs):
+            values = dict((k, v) for _, k, v in fields)
+            if name != "State Machine" or len(tables) != 2:
+                continue
+            transitions = tables[1]
+            off = 1 if transitions["header"][:1] == ["Name"] else 0
+            protocol = values.get("Protocol") == "Yes"
+            taken = {}
+            for ln, row in transitions["rows"]:
+                if off + 2 >= len(row):
+                    continue
+                trigger = row[off + 2]
+                taken.setdefault(row[off], set()).add(trigger_key(trigger))
+                opening = next((o for o in EXPRESSION_TRIGGERS if trigger.startswith(o)), None)
+                if protocol and opening:
+                    found.append((machine, r, ln, f"a protocol machine's transition taken on time or a condition: {trigger}"))
+                for p in _trigger_problems(trigger, kinds):
+                    found.append((machine, r, ln, p))
+            classes = transitions.get("classes")
+            if not classes:
+                continue
+            claimed.add(classes["line"])
+            if not classes["named"]:
+                found.append((machine, r, classes["line"], "a Trigger Classes table not opening with its Table Name, Trigger Classes"))
+            if classes["header"] != CLASS_COLUMNS:
+                found.append((machine, r, classes["line"], f"a Trigger Classes table headed {classes['header']}, not Member and Class"))
+                continue
+            members = {}
+            for ln, row in classes["rows"]:
+                if len(row) != 2 or not all(c.strip() for c in row) or NONE_CELL in row:
+                    found.append((machine, r, ln, f"a Trigger Classes row that is not a member and its class, each written: {row}"))
+                    continue
+                member, cls = row
+                cited = citation.findall(member)
+                if cited and member.strip("` ") == cited[0]:
+                    # a member citing another machine's Trigger Classes table stands for every member it gives the class
+                    given, seen, todo = [], set(), [resolve(cited[0], r)]
+                    while todo:
+                        key = todo.pop()
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        for _, rw in (machines.get(key) or {}).get("rows", []):
+                            if len(rw) == 2 and rw[1] == cls:
+                                inner = citation.findall(rw[0])
+                                if inner and rw[0].strip("` ") == inner[0]:
+                                    todo.append(resolve(inner[0], key[0]))
+                                else:
+                                    given.append(rw[0])
+                    if not given:
+                        found.append((machine, r, ln, f"a member citing no machine whose Trigger Classes table holds the class: {member}"))
+                    expanded = [member] + given
+                else:
+                    expanded = [member]
+                    for p in _trigger_problems(member, kinds):
+                        found.append((machine, r, ln, f"a Trigger Classes member, {p}"))
+                for m in expanded:
+                    if protocol and any(m.startswith(o) for o in EXPRESSION_TRIGGERS):
+                        found.append((machine, r, ln, f"a protocol machine's transition taken on time or a condition, by a member of its class: {m}"))
+                    if trigger_key(m) in members:
+                        found.append((machine, r, ln, f"a member written twice in a Trigger Classes table, or given twice by its citations: {m}"))
+                    members[trigger_key(m)] = cls
+            triggers = set().union(*taken.values()) if taken else set()
+            classes_named = {row[1] for _, row in classes["rows"] if len(row) == 2}
+            for cls in sorted(classes_named - triggers):
+                found.append((machine, r, classes["line"], f"a class no transition's trigger names: {cls}"))
+            for state, ts in sorted(taken.items()):
+                for member in sorted(m for m in ts if members.get(m) in ts):
+                    found.append((machine, r, transitions["line"], f"a state taking a class's trigger and a member's too: {state}, {member}"))
+        # a Trigger Classes table, or a table headed Member and Class, that no machine's section holds before a subsection
+        lines = live.split(chr(10))
+        for i, l in enumerate(lines):
+            f = _margin_field(l)
+            if f and f["key"] == "Table Name" and (f["value"] or "").strip() == CLASSES:
+                k = next((j for j in range(i + 1, len(lines)) if lines[j].startswith("|")), None)
+                if k is not None and k + 1 not in claimed:
+                    found.append((machine, r, k + 1, "a Trigger Classes table outside a machine's section, within a subsection of it, or a second in one"))
+                    claimed.add(k + 1)
+            elif (l.startswith("|") and _cells(l) == CLASS_COLUMNS and (i == 0 or not lines[i - 1].startswith("|")) and i + 1 not in claimed
+                  and not _named_otherwise(lines, i)):
+                found.append((machine, r, i + 1, "a table headed Member and Class outside a machine's section, or within a subsection of it"))
+
+
+def _named_otherwise(lines, i):
+    """Whether the table at line `i` opens with a Table Name other than Trigger Classes, among the fields above it."""
+    for k in range(i - 1, -1, -1):
+        l = lines[k]
+        if not l.strip():
+            continue
+        f = _margin_field(l)
+        if not f:
+            return False
+        if f["key"] == "Table Name":
+            return (f["value"] or "").strip() != CLASSES
+    return False
+
+
+def _parsed(type_text):
+    """A Type as FEEL parses it, so two writings of one type compare equal -> its kind, or None."""
+    try:
+        return expressions.parse_type(type_text) if type_text else None
+    except expressions.FeelError:
+        return None
 
 
 def effect_findings(text_of, found, sections, strip_fences, citation, resolve):
@@ -1644,7 +1855,7 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
         found.append((rule, r, line, "a Conditions or Annotations field naming no column of its table"))
         return
     for note in notes:
-        if not all(LABEL_WORD.match(w) for w in note.split(" ")):
+        if not all(LABEL_WORD.match(w) for w in note.split(" ")) or note.split(" ")[0].isdigit():
             found.append((rule, r, line, f"an annotation not headed by a field label: {note}"))
     n, m = len(conds), len(notes)
     # § Columns: its conditions first, then one or more outcomes, then its annotations
@@ -3268,6 +3479,9 @@ def column_table_findings(text, sections):
         else:
             want = [(["Name"] if k in NAMEABLE.get(name, set()) else []) + (form or []) + OPTIONAL_COLUMNS.get((name, k), [])
                     for k, form in enumerate(FORMS[name])]
+            # a State Machine's Trigger Classes table, held as its Transitions table's, has its columns too
+            if name == "State Machine":
+                want.append(CLASS_COLUMNS)
         if len(tables) != len(want):
             out.append((rule, sections[lineage][0] + 1, f"{_a(name)} defined with {len(tables)} Column | Holds tables, where the script's copy gives {len(want)}"))
             continue

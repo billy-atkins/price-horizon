@@ -145,7 +145,7 @@ Attribution: "PriceHorizon by Billy Atkins, https://github.com/billy-atkins/pric
 
 Designed by [Billy Atkins](https://www.linkedin.com/in/billy-atkins) and authored by AI agents, as an applied exercise in spec-driven system design.
 
-I am an engineering leader who has spent over twenty years building software, and the platforms and teams behind it. Most recently I led platform engineering for a cloud core banking platform, where I also helped engineering teams adopt AI. I have engineered framework capabilities that other engineers used to build applications and systems. Spec of Record continues that theme for designing and building applications and systems through the agentic software development lifecycle, the agentic SDLC. It is built from what that work taught me.
+I am an engineering leader who has spent over twenty years building software, and the platforms and teams behind it. Most recently I led platform engineering for a cloud core banking platform, where I also helped engineering teams adopt AI. I have engineered framework capabilities that other engineers used to build applications and systems. Spec of Record continues that theme for designing and building applications and systems through the agentic software development life cycle, the agentic SDLC. It is built from what that work taught me.
 
 ### Teaching through analogies
 

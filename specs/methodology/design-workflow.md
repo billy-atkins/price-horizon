@@ -4,7 +4,7 @@ Two State Machines set the order a design's work takes, and what moves it back. 
 
 ### The Work of a Design
 
-A design enters its work by the reason its Status entered in-progress. Its change leads back to another adversarial review wherever needs review? or needs reframing? holds and the user's approval has not ended its review ([`§ The Order of a Design's Work § Facts`](#facts)). A design its Depends On names finishes when that design's Status enters complete or enters abandoned ([`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document)). Such a finish is a class of occurrences.
+A design enters its work by the reason its Status entered in-progress. Its change leads back to another adversarial review wherever needs review? or needs reframing? holds and the user's approval has not ended its review ([`§ The Order of a Design's Work § Facts`](#facts)). A design its Depends On names finishing is a class of occurrences. This machine's Trigger Classes table cites the section that lists its members.
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
 
@@ -49,7 +49,7 @@ A design enters its work by the reason its Status entered in-progress. Its chang
 | changing | drafting | none | not(needs reframing?) and needs review? and not(review ended by approval?) |
 | changing | validating | none | not(needs reframing?) and (not(needs review?) or review ended by approval?) and depends on ready? |
 | changing | waiting | none | not(needs reframing?) and (not(needs review?) or review ended by approval?) and not(depends on ready?) |
-| waiting | validating | depends on ready? becomes true | none |
+| waiting | validating | when depends on ready? | none |
 | waiting | changing | the user gives a steer | none |
 | waiting | changing | a design its Depends On names finishes | none |
 | validating | approved by the user | none | text approved? |
@@ -63,6 +63,12 @@ A design enters its work by the reason its Status entered in-progress. Its chang
 | awaiting approval | drafting | the user asks for another round | none |
 | awaiting approval | waiting | [`specs/methodology/working-files.md § A Design Document § The States It Moves Through [States.State: in-progress]`](/specs/methodology/working-files.md#the-states-it-moves-through) of a design its Depends On names is entered | none |
 | awaiting approval | changing | a design its Depends On names finishes | none |
+
+**Table Name:** Trigger Classes
+
+| Member | Class |
+|---|---|
+| [`specs/methodology/working-files.md § A Design Document § The States It Moves Through`](/specs/methodology/working-files.md#the-states-it-moves-through) | a design its Depends On names finishes |
 
 ### The Apply
 

@@ -19,7 +19,21 @@ How an expression is written wherever a construct computes or tests a value, so 
 
 ### FEEL
 
-FEEL is the Friendly Enough Expression Language, DMN's expression language (DMN 10.1), and the canon adopts it whole. The canon's departures from it are these. A word written plain in a Decision Table's cell stands for the string FEEL writes in quotes ([`specs/methodology/modeling-constructs.md § Constructs § Decision Table`](/specs/methodology/modeling-constructs.md#decision-table)). A system may have its own arithmetic: a precision, a rounding mode and the decimal places a value is held to, as [`§ Expressions § FEEL § Arithmetic and Time`](#arithmetic-and-time) states it.
+FEEL is the Friendly Enough Expression Language, DMN's expression language (DMN 10.1), and the canon adopts it whole. The canon's departures from it, each mapped onto the element of DMN it departs from, as [`specs/methodology/sourcing-and-citation.md § External Reference § A Mapping onto a Standard`](/specs/methodology/sourcing-and-citation.md#a-mapping-onto-a-standard) has a mapping written:
+
+**Table Name:** DMN Elements
+
+**Reference Key:** DMN
+
+**Required:** Section, Treatment
+
+| DMN | Section | Treatment | Departs For | Why |
+|---|---|---|---|---|
+| string literal | 10.3.2.3.2 | differs: a word written plain in a Decision Table's cell stands for the string FEEL writes in quotes ([`specs/methodology/modeling-constructs.md § Constructs § Decision Table`](/specs/methodology/modeling-constructs.md#decision-table)) | the canon's form | a table's cells read as the words a reader means, where quotes around every word bury them, and a check still reads each as a string |
+| number | 10.3.2.3.1 | differs: a construct may state its system's own precision and rounding mode, as [`§ Expressions § FEEL § Arithmetic and Time`](#arithmetic-and-time) states it | the standard's gap | a spec states the values its system gives, and a system computing to another precision, as a ledger does, gives values FEEL's would not |
+| ItemDefinition | 7.3.3 | differs: a value written to a fact holding decimal places is rounded to them, as [`§ Expressions § FEEL § Arithmetic and Time`](#arithmetic-and-time) states it | the standard's gap | a system stores a value to the decimal places it holds, as money to its minor units, and a spec states the value stored |
+| years and months duration | 9.4, 10.3.2.15 Table 57 | differs: added to a date or a date and time, a day the month lacks is that month's last day, as [`§ Expressions § FEEL § Arithmetic and Time`](#arithmetic-and-time) states it, where FEEL's Table 57 keeps the day | the standard's gap | DMN says two things, FEEL's Table 57 keeping a day the month lacks, which makes no date, and S-FEEL adding as XPath's op:add-yearMonthDuration-to-date does, pinning it to the month's last day; its issue DMN17-7 is deferred to a later version, and a spec needs one answer, the one S-FEEL, XPath and most libraries give |
+| BusinessKnowledgeModel | 6.3.9, 6.3.14 | differs: the canon's functions are in scope in every expression, as FEEL's built-in functions are, as [`§ Expressions § FEEL § The Canon's Functions`](#the-canons-functions) has them, where a decision names each business knowledge model it calls as a knowledge requirement | the canon's form | a construct's cell names no requirements, and a function every spec shares then reads the same wherever it is called |
 
 #### Its Values
 
@@ -111,10 +125,10 @@ A unary test is a test of one value, which that value meets or not, written with
 
 Numbers add, subtract, multiply and divide exactly to 34 significant digits. A division by zero, or a result too large or too small to hold, gives `null`. `decimal` and the rounding functions of [`§ Expressions § FEEL § Its Functions`](#its-functions) give a number the decimal places they are asked for (DMN Tables 57, 59, 60 and 76). Two strings added are joined, the first then the second (DMN Table 57).
 
-**A system's own arithmetic.** FEEL's numbers hold 34 significant digits, rounded to the nearest with a tie to the even neighbor, as [`§ Expressions § FEEL § Its Values`](#its-values) states. This is IEEE 754's decimal128 (DMN 10.3.2.3.1; [`specs/methodology/external-references.md § External References [Name: IEEE 754]`](/specs/methodology/external-references.md#external-references)). A system that computes otherwise is specified by what follows. What follows departs from DMN, which fixes FEEL's context, by letting a construct state another:
+**A system's own arithmetic.** FEEL's numbers hold 34 significant digits, rounded to the nearest with a tie to the even neighbor, as [`§ Expressions § FEEL § Its Values`](#its-values) states. This is IEEE 754's decimal128 (DMN 10.3.2.3.1; [`specs/methodology/external-references.md § External References [Name: IEEE 754]`](/specs/methodology/external-references.md#external-references)). A system that computes otherwise is specified by what follows. What follows departs from DMN, which fixes FEEL's context, by letting a construct state another ([`§ Expressions § FEEL [DMN Elements.DMN: number]`](#feel)):
 
 - **A precision and a rounding mode.** A construct whose section gives the fields states the significant digits its system holds each operation's result to, and the mode it rounds by. Each operation's result is then rounded, by the mode's function, to the decimal places that many significant digits leave. An operation is each arithmetic operator applied, and each step a function aggregating numbers takes: `sum` adds and `product` multiplies its items one by one in their order, each result rounded.
-- **Decimal places.** A value written to a fact whose Facts record states its decimal places ([`specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact`](/specs/methodology/modeling-constructs.md#fact)) is rounded to them by the writing construct's rounding mode, or half even where the construct states none. It is the same idea as a SQL column's scale in `DECIMAL(p, s)`. A Decision Table's outcome is among the values written. DMN's ItemDefinition rounds nothing, so this too departs from DMN. A part of a fact holds no decimal places of its own, so money a step computes by multiplying or dividing is written to a fact holding them before a part takes it; a sum or difference of money already held to them, or money a function gives, needs none.
+- **Decimal places.** A value written to a fact whose Facts record states its decimal places ([`specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact`](/specs/methodology/modeling-constructs.md#fact)) is rounded to them by the writing construct's rounding mode, or half even where the construct states none. It is the same idea as a SQL column's scale in `DECIMAL(p, s)`. A Decision Table's outcome is among the values written. DMN's ItemDefinition rounds nothing, so this too departs from DMN ([`§ Expressions § FEEL [DMN Elements.DMN: ItemDefinition]`](#feel)). A part of a fact holds no decimal places of its own, so money a step computes by multiplying or dividing is written to a fact holding them before a part takes it; a sum or difference of money already held to them, or money a function gives, needs none.
 - **The modes.** Each mode is named for the function DMN gives it (DMN Table 76), and rounds the value as that function rounds it:
 
 **Reference Key:** Mode
@@ -142,9 +156,11 @@ Dates, times and durations combine as this table has it, every other pairing giv
 | date and time, or date | date and time, or date | `a - b`, a days and time duration; both with an offset, or neither |
 | time | time | `a - b`, a days and time duration |
 | date, date and time or time | days and time duration | `a + b` and `a - b`, the instant that long after, or before; `b + a` as `a + b` |
-| date or date and time | years and months duration | `a + b` and `a - b`, the same day of the month that many months after, or before, the year carrying; `null` where that month has no such day, as `@"2024-01-31" + @"P1M"`; `b + a` as `a + b` |
+| date or date and time | years and months duration | `a + b` and `a - b`, the same day of the month that many months after, or before, the year carrying; that month's last day where it has no such day, as `@"2024-01-31" + @"P1M"` gives `@"2024-02-29"` and `@"2023-01-31" + @"P1M"` gives `@"2023-02-28"`, a departure from DMN ([`§ Expressions § FEEL [DMN Elements.DMN: years and months duration]`](#feel)); `b + a` as `a + b` |
 | a duration | a duration of its kind | `a + b` and `a - b`, their sum or difference; `a / b`, a number |
 | a duration | a number | `a * b`, `b * a` and `a / b`, the duration that many times |
+
+Each addition pins against its own result, so a pinned day stays pinned: `@"2024-01-31" + @"P1M" + @"P1M"` is `@"2024-03-29"`. A series of dates a month apart that adds each month's multiple to its first date, `start + @"P1M" * i`, is pinned against that first date alone, and a series kept on each month's last day takes each month's, `last day of month(start + @"P1M" * i)` ([`§ Expressions § FEEL § The Canon's Functions § Time`](#time)). Each is shown in `specs/methodology/examples/time/calendar/`.
 
 A path names the parts of these values (DMN Tables 65 to 67):
 
@@ -279,3 +295,30 @@ This table holds every function FEEL builds in. A function is called by its name
 | today | `()` | date | the day it is read (DMN Table 82) |
 
 `now()` and `today()` read the wall clock. So a construct reading time reads them as [`specs/methodology/modeling-constructs.md § Time`](/specs/methodology/modeling-constructs.md#time) has a construct read the wall clock. A construct whose clock is another names that clock's fact instead.
+
+#### The Canon's Functions
+
+A need FEEL's built-in functions do not meet is met by a function of the canon's own, written once here, whose body is a FEEL expression over its parameters. It is DMN's business knowledge model, a named function whose logic is FEEL (DMN 6.3.9). Its parameters are what its logic needs. A parameter whose values a standard names takes them by that standard's names, as `adjust` takes FpML's business day conventions ([`specs/methodology/external-references.md § External References [Name: FpML]`](/specs/methodology/external-references.md#external-references)), and a function no standard bears on takes the parameters its logic needs alone. Its functions are grouped by subject, each group a section named in the word the canon uses for that subject everywhere, so a function, its rule and its worked examples sit under one name. A function's body calls FEEL's built-in functions and the functions before it, in its group's table or a group above, never itself or one after it, since DMN has a business knowledge model never require itself, directly or indirectly (DMN 6.3.9). Each function is in scope in every FEEL expression, as FEEL's built-in functions are, which departs from DMN ([`§ Expressions § FEEL [DMN Elements.DMN: BusinessKnowledgeModel]`](#feel)). It is called as a built-in function is, its arguments given by place or by its parameters' names.
+
+##### Time
+
+The canon's functions on dates, beside DMN's temporal functions, its group for the functions computing on a date (DMN 10.3.4.8).
+
+**A calendar.** A calendar of business days is a context of the type `context<weekend: list<number>, holidays: list<date>>`: `weekend`, the days of the week no business is done on, each its number as a date's `weekday` gives it, Monday `1`; and `holidays`, the other dates no business is done on. Its weekend leaves at least one day of the week. So any `7 * (k + n)` days running, `n` the count of its holidays, hold at least `k + n` days of the week its weekend leaves, of which its holidays take no more than `n`, and so at least `k` business days. Each search below for `k` business days looks across that many days or more, and finds them.
+
+**Its functions.** Each row's Takes gives each parameter its type as FEEL names one, and its Values the values a parameter is held to where they are closed:
+
+**Reference Key:** Function
+
+**Required:** Takes, Gives, Values, Does, Body
+
+| Function | Takes | Gives | Values | Does | Body |
+|---|---|---|---|---|---|
+| last day of month | day: date | date | none | the last day of the day's month | `date(day.year, day.month, 1) + @"P1M" - @"P1D"` |
+| business day? | day: date, calendar: context<weekend: list<number>, holidays: list<date>> | boolean | none | whether the day is neither one of the calendar's weekend days nor one of its holidays | `not(list contains(calendar.weekend, day.weekday)) and not(list contains(calendar.holidays, day))` |
+| following business day | day: date, calendar: context<weekend: list<number>, holidays: list<date>> | date | none | the day where it is a business day, or else the first business day after it | `(for i in 0..7 * (count(calendar.holidays) + 1) return day + @"P1D" * i)[business day?(item, calendar)][1]` |
+| preceding business day | day: date, calendar: context<weekend: list<number>, holidays: list<date>> | date | none | the day where it is a business day, or else the last business day before it | `(for i in 0..7 * (count(calendar.holidays) + 1) return day - @"P1D" * i)[business day?(item, calendar)][1]` |
+| adjust | day: date, convention: string, calendar: context<weekend: list<number>, holidays: list<date>> | date | `convention`: `"FOLLOWING"`, `"MODFOLLOWING"`, `"PRECEDING"`, `"MODPRECEDING"`, `"NONE"` | the day moved to a business day by FpML's business day convention of that name: FOLLOWING, the following business day; MODFOLLOWING, the following one unless it falls in the next month, and the preceding one then; PRECEDING and MODPRECEDING the same toward the days before; NONE, the day unmoved | `if convention = "FOLLOWING" then following business day(day, calendar) else if convention = "PRECEDING" then preceding business day(day, calendar) else if convention = "MODFOLLOWING" then (if following business day(day, calendar).month = day.month then following business day(day, calendar) else preceding business day(day, calendar)) else if convention = "MODPRECEDING" then (if preceding business day(day, calendar).month = day.month then preceding business day(day, calendar) else following business day(day, calendar)) else day` |
+| add business days | from: date, days: number, calendar: context<weekend: list<number>, holidays: list<date>> | date | none | the business day that many business days after from, or before it where days is negative; from itself where days is 0 | `if days = 0 then from else if days > 0 then (for i in 1..7 * (days + count(calendar.holidays) + 1) return from + @"P1D" * i)[business day?(item, calendar)][days] else (for i in 1..7 * (count(calendar.holidays) - days + 1) return from - @"P1D" * i)[business day?(item, calendar)][-days]` |
+
+**Worked examples.** Dates computed by these functions and by FEEL's own arithmetic, written whole as a file would hold them, are in `specs/methodology/examples/time/calendar/`.

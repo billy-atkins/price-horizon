@@ -129,6 +129,13 @@ _TEXT_OF = {}
 FIELDS = "modeling-constructs.md § Fields"
 # modeling-constructs.md § Constructs § Basic Table: its headers, its Reference Key and its rows
 TABLES = "modeling-constructs.md § Constructs § Basic Table"
+MAPPING = "sourcing-and-citation.md § External Reference § A Mapping onto a Standard"
+# @canon-spec specs/methodology/sourcing-and-citation.md § External Reference § A Mapping onto a Standard
+# the kinds of a departure's reason, in their order: the one copy, held to the mapping's Departs For row by
+# mapping_rule_findings
+DEPARTS_FOR = ("the standard's gap", "the canon's form", "no need yet")
+# the registered standards' Names, read from their records as a check begins; a mapping's first header names one
+STANDARDS = set()
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
 # @canon-spec specs/methodology/modeling-constructs.md § Diagrams
 # @canon-spec specs/methodology/spec-placement.md § Environments
@@ -637,7 +644,7 @@ def environment_findings(r, body, found):
 
 
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Basic Table
-# a word in a proper noun's own casing, a capital after a lower-case letter within the word, which a header keeps
+# a word in a proper noun's own casing, a capital after a lowercase letter within the word, which a header keeps
 OWN_CASING = re.compile(r"^[A-Za-z0-9]*[a-z][A-Z][A-Za-z0-9]*$")
 
 
@@ -653,9 +660,18 @@ def header_findings(r, body, found):
                 or (i > 0 and lines[i - 1].startswith("|")) or i + 1 in in_construct:
             continue
         for h in constructs._cells(l):
-            if not h or h in ("...", "-") or h.startswith("`") or all(constructs.LABEL_WORD.match(w) or OWN_CASING.match(w) for w in h.split(" ")):
+            # a label's first word opens with a capital, a later word made of digits alone
+            if not h or h in ("...", "-") or h.startswith("`") or (all(constructs.LABEL_WORD.match(w) or OWN_CASING.match(w) for w in h.split(" "))
+                                                                     and not h.split(" ")[0].isdigit()):
                 continue
             found.append((TABLES, r, i + 1, f"a header that is no field label: {h}"))
+        # a mapping onto a standard opened by none of its fields escapes the Basic Table's reading of its form
+        cells, k = constructs._cells(l), i - 1
+        while k >= 0 and not lines[k].strip():
+            k -= 1
+        if cells and cells[0] in STANDARDS and "Treatment" in cells \
+                and not (k >= 0 and lines[k].startswith(tuple(f"**{f}:**" for f in constructs.TABLE_OPENERS))):
+            found.append((MAPPING, r, i + 1, f"a mapping onto a standard opened by none of its fields: {cells[0]}"))
 
 
 def field_findings(r, body, found):
@@ -804,6 +820,7 @@ def basic_tables(body):
     lines, secs = live.split("\n"), sorted(sections(body).items(), key=lambda x: x[1][0])
     decls = constructs.declarations(live, sections(body))
     in_construct = {t["line"] for _, _, _, tables, _ in decls for t in tables}
+    in_construct |= {t["classes"]["line"] for _, _, _, tables, _ in decls for t in tables if "classes" in t}
     declared = {lin for _, _, _, _, lin in decls}
     out = {}
     for i, l in enumerate(lines):
@@ -878,6 +895,30 @@ def basic_findings(r, body, found):
             for c in t["required"]:
                 if c in t["header"] and not (row[t["header"].index(c)] if t["header"].index(c) < len(row) else ""):
                     found.append((TABLES, r, ln, f"a blank cell in a column its Required names: {c}"))
+        # sourcing-and-citation.md § External Reference § A Mapping onto a Standard: a table headed first by a registered
+        # standard's Name and holding a Treatment column is a mapping, written in its one form, a Departs For and a Why
+        # on each row that departs and on no other
+        if t["header"] and t["header"][0] in STANDARDS and "Treatment" in t["header"]:
+            std = t["header"][0]
+            if (t["header"] != [std, "Section", "Treatment", "Departs For", "Why"] or t["key"] != [std]
+                    or t["required"] != ["Section", "Treatment"] or t["name"] != f"{std} Elements"):
+                found.append((MAPPING, r, t["field"], "a mapping onto a standard not in its form: its Table Name the standard's "
+                              "Name and `Elements`, its Reference Key that Name, its Required `Section, Treatment`, and its "
+                              "columns that Name, Section, Treatment, Departs For and Why"))
+                continue
+            for ln, row in t["rows"]:
+                treatment, kind, why = (row[k].strip() if k < len(row) else "" for k in (2, 3, 4))
+                kinds = [k.strip() for k in kind.split(",")] if kind else []
+                if not treatment.startswith(("the same", "differs:", "not written")):
+                    found.append((MAPPING, r, ln, "a Treatment opening neither `the same`, `differs:` nor `not written`"))
+                elif treatment.startswith("the same") and (kind or why):
+                    found.append((MAPPING, r, ln, "a Departs For or a Why on a row whose Treatment is the same"))
+                elif not treatment.startswith("the same") and (not kinds or len(kinds) > 2 or any(k not in DEPARTS_FOR for k in kinds)
+                                                               or kinds != sorted(set(kinds), key=DEPARTS_FOR.index)):
+                    found.append((MAPPING, r, ln, "a departure whose Departs For is not one or two of " + ", ".join(DEPARTS_FOR)
+                                  + ", in that order"))
+                elif not treatment.startswith("the same") and not why:
+                    found.append((MAPPING, r, ln, "a departure with no Why"))
         if not t["order"]:
             found.append((TABLES, r, t["field"], "a table's opening fields out of their order, Table Name, Reference Key, Required"))
         if not t["key"]:
@@ -914,7 +955,7 @@ def basic_findings(r, body, found):
         names.setdefault(lineage, []).extend((t["name"], t["line"]) for t in tables if t.get("name"))
     for lineage, ns in names.items():
         for n, (name, ln) in enumerate(ns):
-            if not all(constructs.LABEL_WORD.match(w) for w in name.split(" ")):
+            if not all(constructs.LABEL_WORD.match(w) for w in name.split(" ")) or name.split(" ")[0].isdigit():
                 found.append(("modeling-constructs.md § Constructs § Tabular Construct", r, ln, f"a Table Name that is no field label: {name}"))
             if any(name == n2 for n2, _ in ns[:n]):
                 found.append(("modeling-constructs.md § Constructs § Tabular Construct", r, ln, f"a Table Name another table of its section declares: {name}"))
@@ -1078,6 +1119,64 @@ def direction(src_layer, path, rel, line, found, section=True):
                       rel, line, f"{src_layer} cites {dst_layer}: {path}"))
 
 
+def mapping_rule_findings(root):
+    """sourcing-and-citation.md § External Reference § A Mapping onto a Standard: the script's copy of the kinds of a
+    departure's reason against the mapping's Departs For row; and each sentence of a methodology file, its overview and
+    its index aside, naming a departure from a registered standard, citing its mapping's row."""
+    out = []
+    sc = "specs/methodology/sourcing-and-citation.md"
+    row = next((l for l in read(root / sc).split("\n") if l.startswith("| Departs For |")), "")
+    if tuple(re.findall(r"`([^`]+)`", row)[:3]) != DEPARTS_FOR:
+        out.append((MAPPING, sc, 0, f"the script's kinds of a departure's reason are not the Departs For row's: {list(DEPARTS_FOR)}"))
+    names = sorted(STANDARDS | {"FEEL"}, key=len, reverse=True)
+    if not names:
+        return out
+    alt = "|".join(re.escape(n) for n in names)
+    named = re.compile(r"\b(?i:(?:depart(?:s|ed|ing|ures?)?|differ(?:s|ed|ing|ences?)?|deviat(?:es?|ed|ing|ions?)) from|unlike|contrary to) (?P<n>" + alt + r")\b")
+    for path in sorted((root / "specs/methodology").glob("*.md")):
+        if path.name in ("architecture.md", "index.md"):
+            continue
+        rel = path.relative_to(root).as_posix()
+        lines = strip_fences(read(path)).split("\n")
+        for n, line in enumerate(lines, 1):
+            if line.startswith("|"):
+                continue
+            after = next((l for l in lines[n:] if l.strip()), "")
+            opens = re.match(r"\*\*Table Name:\*\* (.+) Elements$", after)
+            for sentence in re.split(r"(?<=\.)\s+(?=[A-Z`])", line):
+                # a sentence opening a mapping, ending at a colon before the mapping's table, names no departure of its own
+                for m in named.finditer(sentence):
+                    std = "DMN" if m["n"] == "FEEL" else m["n"]
+                    if sentence.rstrip().endswith(":") and opens and opens.group(1) == std:
+                        continue
+                    if f"{std} Elements." not in sentence:
+                        out.append((MAPPING, rel, n, f"a departure from {std} named in prose, citing no row of its mapping: {sentence[:90]}"))
+    return out
+
+
+def example_pointer_findings(root):
+    """scope.md § Progressive Disclosure: each directory of the worked examples a section names exists, and each topic's
+    directory, a subject's subdirectory, is named by a section of the canon outside the examples."""
+    out, rule = [], "scope.md § Progressive Disclosure"
+    tree = root / "specs/methodology/examples"
+    named = set()
+    for path in [root / "specs/AGENTS.md", *sorted((root / "specs/methodology").glob("*.md"))]:
+        if not path.exists():
+            continue
+        rel = path.relative_to(root).as_posix()
+        for n, line in enumerate(read(path).split("\n"), 1):
+            for m in re.finditer(r"`(specs/methodology/examples/[^`]*?)/?`", line):
+                named.add(m.group(1).rstrip("/"))
+                there = root / m.group(1)
+                if not (there.is_file() if m.group(1).endswith(".md") else there.is_dir()):
+                    out.append((rule, rel, n, f"a worked example's directory or file that does not exist: {m.group(1)}"))
+    for topic in sorted(p for p in tree.glob("*/*") if p.is_dir()) if tree.is_dir() else []:
+        t = topic.relative_to(root).as_posix()
+        if t not in named:
+            out.append((rule, t, 0, f"a topic of the worked examples no section of the canon names: {t}"))
+    return out
+
+
 def check(root, warned=None):
     """-> list of (rule, path, line, message); a warning, what the specs record as a gap of the system, is appended
     to `warned` where a list is given, and is never a finding."""
@@ -1088,6 +1187,9 @@ def check(root, warned=None):
     lineage = {rel[f]: lineages(text[f]) for f in files}
     known = set(rel.values())
     text_of = {rel[f]: text[f] for f in files}
+    # the registered standards' Names, a mapping's first header naming one
+    register = root / "specs/methodology/external-references.md"
+    STANDARDS.update(re.findall(r"^- \*\*Name:\*\* (.+?)\s*$", read(register), re.M) if register.exists() else [])
     # the record types the specs declare, by their Plural Names, before any record is read
     found += declared_types(text_of)
     found += closed_set_findings(text_of)
@@ -1250,13 +1352,13 @@ def check(root, warned=None):
             field_findings(r, body, found)
             environment_findings(r, body, found)
             for m in re.finditer(r'^```mermaid\s*\n(.*?)^```', body, re.S | re.M):
-                # a diagram opens with a config frontmatter block, so scan the whole
+                # a diagram opens with a config front matter block, so scan the whole
                 # fence rather than its first line
                 if not re.search(r'^\s*flowchart\b', m.group(1), re.M):
                     found.append(("modeling-constructs.md § Diagrams", r, 0,
                                   "a mermaid block that does not declare flowchart"))
 
-        # technical-specs frontmatter: product files only, paths under technical/
+        # technical-specs front matter: product files only, paths under technical/
         if body.startswith("---"):
             fm = body.split("---", 2)[1]
             paths = re.findall(r'^\s*-\s+(\S+\.md)\s*$', fm, re.M) if "technical-specs:" in fm else []
@@ -1311,8 +1413,12 @@ def check(root, warned=None):
     constructs.constraint_findings(text_of, found, warned, sections, strip_fences, CITATION, resolve)
     # each DAG's tasks' work and what runs it, and two tasks free at once giving one fact or reading what the other gives
     constructs.dag_findings(text_of, found, sections, strip_fences, CITATION, resolve)
+    # each trigger written in FEEL in its form, and a machine's Trigger Classes
+    constructs.occurrence_findings(text_of, found, sections, strip_fences, CITATION, resolve)
     found += record_type_findings(root)
     found += canon_spec_findings(root)
+    found += mapping_rule_findings(root)
+    found += example_pointer_findings(root)
     found += scope_findings(root)
     found += voice_table_findings(root)
     found += [(LINK_RULE, path, line, problem) for path, line, problem in citation_links.problems(root)]
@@ -1939,6 +2045,8 @@ def record_type_findings(root):
         out.append(("expressions.md § Expressions § FEEL § Its Functions", path, line or 1, msg))
     for line, msg in constructs.expressions.keyword_findings(text):
         out.append(("expressions.md § Expressions § FEEL § Names", path, line or 1, msg))
+    for line, msg in constructs.expressions.library_table_findings(text):
+        out.append(("expressions.md § Expressions § FEEL § The Canon's Functions", path, line or 1, msg))
     return out
 
 

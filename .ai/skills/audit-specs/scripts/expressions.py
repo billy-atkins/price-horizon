@@ -186,6 +186,45 @@ for _name, _takes, _gives in FUNCTION_TABLE:
     FUNCTIONS.setdefault(_name, []).append((_arities(_takes), _gives))
 for _name in ITEMS_AS_ARGUMENTS:
     FUNCTIONS[_name].append(((1, None), FUNCTIONS[_name][0][1]))
+# @canon-spec specs/methodology/expressions.md § Expressions § FEEL § The Canon's Functions
+# each function of the canon's own, as the file's table writes it: its name, what it takes with each parameter's type,
+# what it gives and the values a parameter is held to; the one copy, held to the table by library_table_findings
+LIBRARY = (
+    ('last day of month', 'day: date', 'date', 'none'),
+    ('business day?', 'day: date, calendar: context<weekend: list<number>, holidays: list<date>>', 'boolean', 'none'),
+    ('following business day', 'day: date, calendar: context<weekend: list<number>, holidays: list<date>>', 'date', 'none'),
+    ('preceding business day', 'day: date, calendar: context<weekend: list<number>, holidays: list<date>>', 'date', 'none'),
+    ('adjust', 'day: date, convention: string, calendar: context<weekend: list<number>, holidays: list<date>>', 'date', '`convention`: `"FOLLOWING"`, `"MODFOLLOWING"`, `"PRECEDING"`, `"MODPRECEDING"`, `"NONE"`'),
+    ('add business days', 'from: date, days: number, calendar: context<weekend: list<number>, holidays: list<date>>', 'date', 'none'),
+)
+
+
+def parameters(takes):
+    """What a function of the canon's takes -> [(each parameter's name, its type)], split at the commas outside a type."""
+    out, depth, cur = [], 0, ""
+    for ch in takes + ",":
+        depth += (ch == "<") - (ch == ">")
+        if ch == "," and depth == 0:
+            name, _, kind = cur.partition(":")
+            out.append((name.strip(), kind.strip()))
+            cur = ""
+        else:
+            cur += ch
+    return out
+
+
+def held_to(values):
+    """A Values cell -> {parameter: (each value it is held to)}, `none` holding none."""
+    out = {}
+    for part in re.findall(r'`([^`"]+)`:((?:\s*`"[^"]*"`,?)+)', values):
+        out[part[0]] = tuple(re.findall(r'"([^"]*)"', part[1]))
+    return out
+
+
+HELD_TO = {}
+for _name, _takes, _gives, _values in LIBRARY:
+    FUNCTIONS[_name] = [((len(parameters(_takes)),) * 2, _gives)]
+    HELD_TO[_name] = [(p, held_to(_values).get(p)) for p, _ in parameters(_takes)]
 
 TOKEN = re.compile(r'''\s*(?:(?P<comment>//[^\n]*|/\*.*?\*/)|(?P<at>@"(?:[^"\\]|\\.)*")|(?P<str>"(?:[^"\\]|\\.)*")
     |(?P<num>(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+-]?\d+)?)|(?P<op>\*\*|<=|>=|!=|\.\.|[-+*/<>=()\[\]{},.:?])
@@ -245,11 +284,13 @@ class _Parser:
     def __init__(self, text, facts, known=None, used=None):
         self.toks, self.i, self.problems = _tokens(text), 0, []
         self.used = used  # a list each fact the parse resolves is appended to, or None
+        self.calls = []  # each built-in function the parse resolves a call of
         self.facts = {k: ("string" if v == "word" else v) for k, v in dict(facts).items()}
         self.known = known  # a name the caller knows though no fact is named it, or None
         self.bound = []  # names bound by a loop, a quantifier, a filter or a function, innermost last
         self.open = 0  # how many filters over items of unknown shape enclose the parse, their entries unnamed
         self.compared = None  # each (fact, word) a comparison of a fact with a quoted word gives, where kept, or None
+        self.literals = []  # of the call being parsed, each argument's quoted value where it is one given alone, or None
 
     # -- tokens
     def peek(self, k=0):
@@ -574,19 +615,33 @@ class _Parser:
             k = 0
             while self.peek(k)[0] == "word":
                 k += 1
+            name = None
             if k and self.peek(k) == ("op", ":"):
+                name = " ".join(self.peek(x)[1] for x in range(k))
                 self.i += k
                 self.take(":")
                 named = True
+            # a quoted value given alone, which a parameter held to values is checked against, by its place or its name
+            alone = self.peek()[0] == "str" and self.peek(1)[1] in (",", ")")
+            literal = self.peek()[1][1:-1] if alone else None
             args.append(self.expr())
+            self.literals.append((name, literal))
             if self.at(","):
                 self.take()
         return args, named
 
     def call(self, fn):
         self.take("(")
+        outer, self.literals = self.literals, []
         args, named = self._arguments()
+        literals, self.literals = self.literals, outer
         self.take(")")
+        held = dict(HELD_TO.get(fn, []))
+        params = [p for p, _ in HELD_TO.get(fn, [])]
+        for at, (name, literal) in enumerate(literals):
+            param = name if name is not None else (params[at] if at < len(params) else None)
+            if held.get(param) and literal is not None and literal not in held[param]:
+                self.problems.append(f"a call giving {fn}'s {param} a value it is not held to: {literal}")
         sigs = FUNCTIONS[fn]
         if not named and not any(lo <= len(args) and (hi is None or len(args) <= hi) for (lo, hi), _ in sigs):
             self.problems.append(f"a call giving {fn} {len(args)} argument{'s' if len(args) != 1 else ''}, which it does not take")
@@ -743,6 +798,7 @@ class _Parser:
                     return self.facts[n]
                 if self.peek(len(parts)) == ("op", "("):
                     self.i += len(parts)
+                    self.calls.append(n)
                     return ("fn", n, None)
                 if not self.open and self.peek(len(parts))[0] != "word":
                     self.i += len(parts)
@@ -845,6 +901,17 @@ def check(text, facts, known=None, used=None):
         return None, [f"an expression in no form FEEL has: {e}"]
 
 
+def called(text, facts):
+    """A FEEL expression, and each fact it may name with its kind -> the built-in functions it calls, as the parser
+    resolves each name, a fact's longer name winning; none where it is in no form FEEL has."""
+    try:
+        p = _Parser(text, facts)
+        p.expr()
+        return set(p.calls)
+    except FeelError:
+        return set()
+
+
 def check_tests(text, facts, value=None, known=None):
     """A cell's unary tests, the value they test of kind `value` -> [problem]."""
     try:
@@ -897,6 +964,48 @@ def function_table_findings(text):
         items = "also given its items as arguments" in (cells[3] if len(cells) > 3 else "")
         if items != (cells[0] in ITEMS_AS_ARGUMENTS):
             out.append((ln, f"a function the script's copy gives its items as arguments otherwise: {cells[0]}"))
+    return out
+
+
+def library_table_findings(text):
+    """The file's tables of the canon's functions, each group's in order, against LIBRARY, this script's copy: each row's
+    Function, Takes, Gives and Values, in order; and each Body a FEEL expression, its parameters in scope, giving what
+    its row gives and calling no function at or after its own row -> [(line, message)]."""
+    lines, out, rows = text.split("\n"), [], []
+    for i, l in enumerate(lines):
+        # each group's table, in the file's order
+        if l.startswith("| Function | Takes | Gives | Values | Does | Body |"):
+            for j in range(i + 2, len(lines)):
+                if not lines[j].startswith("|"):
+                    break
+                rows.append((j + 1, [c.strip() for c in lines[j].strip().strip("|").split("|")]))
+    if not rows:
+        return [(0, "no table of the canon's functions headed Function, Takes, Gives, Values, Does and Body")]
+    copy, table = list(LIBRARY), [tuple(cells[:4]) for _, cells in rows]
+    for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(None, table, copy, autojunk=False).get_opcodes():
+        for k in range(i1, i2) if tag in ("replace", "delete") else ():
+            out.append((rows[k][0], f"a function row the script's copy does not hold: {list(table[k])}"))
+        for k in range(j1, j2) if tag in ("replace", "insert") else ():
+            out.append((rows[min(i1, len(rows) - 1)][0], f"a function row the table does not hold, of the script's copy: {list(copy[k])}"))
+    names = [cells[0] for _, cells in rows]
+    for at, (ln, cells) in enumerate(rows):
+        body = cells[5].strip("`") if len(cells) > 5 else ""
+        try:
+            scope = {p: parse_type(t) for p, t in parameters(cells[1])}
+        except FeelError as e:
+            out.append((ln, f"a parameter of no type FEEL names: {e}"))
+            continue
+        used = []
+        kind, problems = check(body, scope, used=used)
+        out += [(ln, f"{p}: {cells[0]}") for p in problems]
+        if kind is not None and kind != cells[2]:
+            out.append((ln, f"a body giving {kind}, where its row gives {cells[2]}: {cells[0]}"))
+        # the functions a body calls: each name before a parenthesis, a name within a longer one's call not counted
+        spans = [(m.start(), m.end(), n) for n in names for m in re.finditer(r"(?<![\w?])" + re.escape(n) + r"\s*\(", body)]
+        called = {n for s, e, n in spans if not any(s2 <= s and e <= e2 and (s2, e2) != (s, e) for s2, e2, _ in spans)}
+        for later in names[at:]:
+            if later in called:
+                out.append((ln, f"a body calling itself or a function after it: {cells[0]} calls {later}"))
     return out
 
 

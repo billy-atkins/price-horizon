@@ -13,7 +13,7 @@
 - when a structured construct is required instead of prose, and which one, each construct adopting an outside standard whole where one meets its need;
 - how one construct hands its work to another, and how a construct reads time;
 - how a field is written, and how a diagram is drawn and sourced;
-- how an expression that a construct computes or tests is written in FEEL, adopted whole, and where a system's own arithmetic, in its precision, rounding and decimal places, departs from FEEL;
+- how an expression that a construct computes or tests is written in FEEL, adopted whole, where a system's own arithmetic, in its precision, rounding and decimal places, and a month's end depart from FEEL; and the canon's own functions, written in FEEL where FEEL's built-in functions meet no need;
 - when a capability owes acceptance scenarios;
 - what a finished spec reads like and the trade-off that belongs in one, the clear prose it is written in, where an example is drawn from, how a number is used, and how Markdown, a bold lead-in, emphasis and literal text are written;
 - the order a design's work takes, how a design's kind sizes its reviews, and how a review's reasoning effort is applied;
@@ -22,7 +22,7 @@
 
 ## The Methodology Governs Itself
 
-The methodology is held to the rules it states. A rule reaches a methodology file unless the rule itself scopes it away, as the rules on acceptance scenarios and on `technical-specs` frontmatter do. `code.md`'s rules scope it away too, since they reach only code ([`specs/methodology/scope.md § The Methodology Governs Itself`](/specs/methodology/scope.md#the-methodology-governs-itself)).
+The methodology is held to the rules it states. A rule reaches a methodology file unless the rule itself scopes it away, as the rules on acceptance scenarios and on `technical-specs` front matter do. `code.md`'s rules scope it away too, since they reach only code ([`specs/methodology/scope.md § The Methodology Governs Itself`](/specs/methodology/scope.md#the-methodology-governs-itself)).
 
 ## How the Rules Relate
 
@@ -44,7 +44,7 @@ A fact stated once is often restated elsewhere: in a directory's `architecture.m
 
 **Modeling constructs cut across both.** Whether a passage is prose or a construct is independent of which spec it sits in or how it is cited. `modeling-constructs.md` applies wherever a rule, a process, an entity's behavior, an entry recorded repeatedly or a closed set a spec defines is described: at any altitude, in either half of `specs/application/`, and in these files. Its Record Form reaches the working files too. What it tests is a rule's shape, never how the rule reads, and, for a table's construct, what the table is there for. Prose holds only the simplest rules, and its choosing table picks the construct for the rest.
 
-Each construct but the Record Form and the Basic Table adopts an outside standard whole, registered in `external-references.md`. The Decision Table is DMN's DecisionTable; the State Machine, UML's StateMachine; the Algorithm and the DAG, UML's Activity; and the Constraint, UML's Constraint. Each means what its standard says, with its departures named, and each writes its expressions in FEEL as `expressions.md` states it. The constructs and the Record Form apply `sourcing-and-citation.md`'s rule that a form is defined once and each use is an instance of it.
+Each construct but the Record Form and the Basic Table adopts an outside standard whole, registered in `external-references.md`. The Decision Table is DMN's DecisionTable; the State Machine, UML's StateMachine; the Algorithm and the DAG, UML's Activity; and the Constraint, UML's Constraint. Each means what its standard says, with each departure named and why it was needed, and each writes its expressions in FEEL as `expressions.md` states it. A construct is chosen over prose however rarely its case appears, and it adopts a notation an engineer already knows before the canon invents one. The worked examples sit apart, in `examples/`, a tree named broad to narrow by subject and topic, so an agent loads one only when a step needs it. The constructs and the Record Form apply `sourcing-and-citation.md`'s rule that a form is defined once and each use is an instance of it.
 
 `modeling-constructs.md`'s definitions relate as classes do. Construct is the abstract root. Every other definition but an interface extends one base, and an interface extends only interfaces. A definition implements interfaces by citing them, and the interfaces include being declared, ordered, configured or keyed. Every reference to a definition is a citation. In a tabular construct, a column headed by a field label is a field of each row, as every column of a Basic Table is. Each other header says what its column represents. A construct that extends another is a sub-definition of it. An instance of a construct implementing Configured Construct is a configured instance when its rows, states or steps are data the system's users change. The tables written are then an example of that data. `modeling-constructs.md` also defines the Fact record type for a fact several constructs test, and says how one construct hands its work to another.
 

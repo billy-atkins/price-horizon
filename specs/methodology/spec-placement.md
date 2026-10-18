@@ -162,7 +162,7 @@ Check for these traps before finalizing any new product file:
 
 ## Naming the Technical Files Behind a Capability
 
-A product spec file may open with a YAML frontmatter block ([`specs/methodology/external-references.md § External References [Name: YAML]`](/specs/methodology/external-references.md#external-references)) naming which technical files build its capabilities:
+A product spec file may open with a YAML front matter block ([`specs/methodology/external-references.md § External References [Name: YAML]`](/specs/methodology/external-references.md#external-references)) naming which technical files build its capabilities:
 
 ```yaml
 ---
@@ -172,7 +172,7 @@ technical-specs:
 ---
 ```
 
-The block holds a list of file paths from the project root, written exactly as they appear anywhere else. The list is sorted in plain character order, so the order is never a judgment call and never signals importance. `technical-specs` is kebab-case, as every frontmatter key here is.
+The block holds a list of file paths from the project root, written exactly as they appear anywhere else. The list is sorted in plain character order, so the order is never a judgment call and never signals importance. `technical-specs` is kebab-case, as every front matter key here is.
 
 This is a label, not a citation. It names files, never headings, and is never wrapped in the backtick-and-`§` form a citation uses.
 
@@ -200,7 +200,7 @@ For a domain that decomposes into sub-parts, a product module is a folder direct
 A change to a module's code reads:
 
 - the module's product specs;
-- the technical files they name in their `technical-specs` frontmatter ([`§ Naming the Technical Files Behind a Capability`](#naming-the-technical-files-behind-a-capability)): a file only this module names is read whole, and a file several modules name is read at the sections this module's code needs.
+- the technical files they name in their `technical-specs` front matter ([`§ Naming the Technical Files Behind a Capability`](#naming-the-technical-files-behind-a-capability)): a file only this module names is read whole, and a file several modules name is read at the sections this module's code needs.
 
 Every module also reads what no module owns:
 
@@ -210,7 +210,7 @@ Every module also reads what no module owns:
 - the technical specs' stack, `stack.md` ([`§ The Technical Stack`](#the-technical-stack));
 - the technical specs' environments, `environments.md` ([`§ Environments`](#environments)).
 
-Any other product file or folder that the product specs' `architecture.md` does not name is a gap in the specs. So is technical content that no module's frontmatter reaches. Each such gap is put right in the specs before code is written for it.
+Any other product file or folder that the product specs' `architecture.md` does not name is a gap in the specs. So is technical content that no module's front matter reaches. Each such gap is put right in the specs before code is written for it.
 
 ## The Technical Stack
 
