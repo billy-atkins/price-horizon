@@ -1042,8 +1042,9 @@ def show_edits(value):
 
 def edit_form_problems(text):
     """working-files.md § A Design Document: each edit of The Design in a form that section gives,
-    `This text:` then `becomes:`, or `A new file:`; an edit in another form is reported, as is a `This text:`
-    with no `becomes:`, since the listing reads only those forms."""
+    `This text:` then `becomes:`, or `A new file:`, each text quoted as a blockquote; an edit in another form is
+    reported, as is a `This text:` with no `becomes:`, and a text quoted otherwise, as a bare code block, since the
+    listing, the check that an edit applies and a copy holding the edits read only a blockquote."""
     lines = (section(text, "The Design") or "").split("\n")
     out, fenced = [], False
     for i, line in enumerate(lines):
@@ -1058,6 +1059,14 @@ def edit_form_problems(text):
             end = next((j for j, l in enumerate(rest) if LEAD_IN.match(l)), len(rest))
             if "becomes:" not in (l.rstrip() for l in rest[:end]):
                 out.append("an edit quoting the text it replaces with no becomes: " + FILE_LEAD.match(line).group(1))
+            else:
+                at = next(j for j, l in enumerate(rest[:end]) if l.rstrip() == "becomes:")
+                if not any(l.startswith(">") for l in rest[:at]) or not any(l.startswith(">") for l in rest[at + 1:end]):
+                    out.append("an edit whose text or replacement is not quoted as a blockquote: " + FILE_LEAD.match(line).group(1))
+        elif lead and lead.group(2) == "A new file":
+            end = next((j for j, l in enumerate(rest) if LEAD_IN.match(l)), len(rest))
+            if not any(l.startswith(">") for l in rest[:end]):
+                out.append("a new file not quoted as a blockquote: " + FILE_LEAD.match(line).group(1))
         elif not lead and (LEAD_WORDS.match(line) or line.rstrip().endswith(":") and next((l for l in rest if l.strip()), "").startswith((">", "```"))):
             out.append("an edit in neither form, This text: then becomes:, or A new file: " + FILE_LEAD.match(line).group(1))
     return out
