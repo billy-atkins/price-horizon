@@ -2,6 +2,8 @@
 
 This file defines the bounded, approved set of structured modeling constructs, rather than free prose, for authoring specs in this repo. Prose can describe anything, since human language has no limit. But prose cannot be checked for what it leaves out. A paragraph can describe a process without ever mentioning what happens under some condition, and nothing in reading it flags the gap. A construct can be checked for exactly that: the definition of each construct an author uses lists what an instance of it is checked for. [`§ When to Use Which`](#when-to-use-which) chooses a construct wherever a rule needs one, and prose everywhere else.
 
+**Between a language and prose.** Each construct gives structure to what prose would leave to grammar and spelling alone. It stands between a modern programming language, which a machine checks but a reader must learn, and prose, which anyone reads but nothing checks: a reader takes a construct in as a table or a record, and a script checks it as it would a program. A construct is chosen over prose as [`§ Defining Constructs`](#defining-constructs) draws the line between them. And a construct leans on the industry's standards. It adopts a notation an agent or an engineer already knows before the canon invents one, and says where it departs from that notation and why. Each departure is deliberate, and is judged again as the standards move, as [`specs/methodology/sourcing-and-citation.md § External Reference § A Mapping onto a Standard`](/specs/methodology/sourcing-and-citation.md#a-mapping-onto-a-standard) has a departure judged.
+
 The set is bounded and approved. A new definition, whether a construct, an abstract base or an interface, earns its place only by filling a real gap that none of the existing definitions cover. A preference for a different notation does not earn it a place. Extending the set is a deliberate decision, made by updating this file first, never an ad hoc addition inside a single spec.
 
 ## Fields
@@ -24,7 +26,7 @@ The most basic form is the plain table: a table as GitHub Flavored Markdown writ
 
 **A shape two definitions share.** A shape alone relates no definitions. Where definitions share what they are, a base they extend or an interface they implement states it once ([`§ Defining Constructs § Inheritance`](#inheritance), [`§ Defining Constructs § Interfaces and Members`](#interfaces-and-members)). Where they only represent a similar need the same way, each defines what its own need takes. It cites neither the other definition nor the first to use the shape.
 
-**Form or prose.** The line between a construct and prose runs through a construct's own section, both the section defining it in [`§ Constructs`](#constructs) and a spec's section holding an instance. It falls between what the section's tables write and what the section's prose holds. A thing the prose could state is a column, a field or a form of the construct, with a check, where an outcome the spec states depends on it and the files alone could check what it says. An exclusive choice's Guard column is one: whether a move is taken decides where the entity goes. In an instance, such a thing is written nowhere where the instance's tables already give it, as the order of an Algorithm's steps is given by their numbers. Where no stated outcome depends on the thing, it is prose, as an Algorithm's work in words is, which decides nothing. Where a stated outcome depends on it but only a judgment can check what it says, it is prose too, and a reading audit asks it, as it asks what a state's work is. Where a stated outcome depends on it and whether the files could check it is arguable, the form is favored, since a rule without a check is a suggestion ([`specs/methodology/scope.md § Rules and Skills`](/specs/methodology/scope.md#rules-and-skills)). A form that costs a new construct or a notation is the deliberate decision extending the set, made by updating this file first.
+**Form or prose.** The line between a construct and prose runs through a construct's own section, both the section defining it in [`§ Constructs`](#constructs) and a spec's section holding an instance. It falls between what the section's tables write and what the section's prose holds. A thing the prose could state is a column, a field or a form of the construct, with a check, where an outcome the spec states depends on it and the files alone could check what it says. An exclusive choice's Guard column is one: whether a move is taken decides where the entity goes. In an instance, such a thing is written nowhere where the instance's tables already give it, as the order of an Algorithm's steps is given by their numbers. Where no stated outcome depends on the thing, it is prose, as an Algorithm's work in words is, which decides nothing. Where a stated outcome depends on it but only a judgment can check what it says, it is prose too, and a reading audit asks it, as it asks what a state's work is. Where a stated outcome depends on it and whether the files could check it is arguable, the form is favored, since a rule without a check is a suggestion ([`specs/methodology/scope.md § Rules and Skills`](/specs/methodology/scope.md#rules-and-skills)). How often a thing appears is no part of this test. A case written once in prose is one nothing checks, so the form is favored for it as for a case written many times. A form that costs a new construct or a notation is the deliberate decision extending the set, made by updating this file first.
 
 **A definition's fields.** Each is a field ([`§ Fields`](#fields)) opening a paragraph of its own. They come in this table's order, followed by each member of an interface the definition sets. They stand directly after the prose opening the definition's section and before any lead-in or table, so a definition's fields always come first:
 
@@ -120,37 +122,7 @@ A fact's name is words separated by single spaces. Each word opens with a letter
 | May Be Absent | no | no | No | "Yes", "No" | whether it may have no value |
 | Means | no | yes | | text | what the fact is |
 
-**A worked example.** A basket's facts, written whole as a file would hold them. They are a list of contexts, a value derived from it and held to cents, a percentage that starts at zero, and a code the buyer may leave out:
-
-```markdown
-## Facts
-
-**Records:**
-
-- **Name:** basket lines
-  **Type:** list<context<sku: string, quantity: number, unit price: number>>
-  **Means:** the lines of a buyer's basket, each an item, how many and its price in euros
-
-- **Name:** basket total
-  **Type:** function<list<context<sku: string, quantity: number, unit price: number>>> -> number
-  **Decimal Places:** 2
-  **Derivation:** function(lines) if count(lines) = 0 then 0 else sum(for line in lines return line.quantity * line.unit price)
-  **Means:** what a basket's lines come to in euros, before any discount
-
-- **Name:** discount rate
-  **Type:** number
-  **Values:** [0..100]
-  **Unit:** percent
-  **Initial Value:** 0
-  **Means:** the share of the basket total a coupon takes off
-
-- **Name:** coupon code
-  **Type:** string
-  **May Be Absent:** Yes
-  **Means:** the code the buyer entered, where they entered one
-```
-
-The fact basket total is a function of the basket's lines. Its Derivation is the FEEL function giving it. An empty basket comes to 0, since FEEL's sum of an empty list is null. A step reads it by a call given the current lines, `basket total(basket lines)`, as [`§ Constructs § Algorithm`](#algorithm) has a derived value read. Its Decimal Places hold the value it gives to cents. The fact discount rate is counted in percent, bounded by its Values, and starts at 0 by its Initial Value. The fact coupon code may be absent.
+**Worked examples.** Facts sections written whole, as a file would hold them, are in `specs/methodology/examples/construct/fact/`.
 
 **Checks.** A Facts record is reported where:
 
@@ -267,7 +239,20 @@ What a construct shares whose instances' parts are cited: a part of an instance 
 - a definition's Reference Key giving no path to a column of each place where its instances keep their keys in more than one;
 - a citation written as no key its construct has, or matching no part.
 
-**Key or a path to it.** A construct whose instances keep their keys in one place is cited by its key alone, `[Name: Session Timeout]`. One keeping them in more than one place, in multiple keyed tables or nested constructs, is cited by a path to the key, its levels joined by dots, `one.two.three.key`. The path is written in its Reference Key, an item to each place its keys are kept, in the order they come, and in every citation of one of its parts, `[Table.Key: value]`. The path is JSONPath's dot notation for a member's name ([`specs/methodology/external-references.md § External References [Name: JSONPath]`](/specs/methodology/external-references.md#external-references)). It names the path to the key and nothing more, as a column qualified by its table is written. Each level is a field label, the name its definition or its `**Table Name:**` gives the place, or the key, so the dots always part the levels.
+**Key or a path to it.** A construct whose instances keep their keys in one place is cited by its key alone, `[Name: Session Timeout]`. One keeping them in more than one place, in multiple keyed tables or nested constructs, is cited by a path to the key, its levels joined by dots, `one.two.three.key`. The path is written in its Reference Key, an item to each place its keys are kept, in the order they come, and in every citation of one of its parts, `[Table.Key: value]`. The path is JSONPath's dot notation for a member's name ([`specs/methodology/external-references.md § External References [Name: JSONPath]`](/specs/methodology/external-references.md#external-references)), which it departs from as its mapping's rows have it ([`§ Constructs § Keyed Construct [JSONPath Elements.JSONPath: member-name-shorthand]`](#keyed-construct)). It names the path to the key and nothing more, as a column qualified by its table is written. Each level is a field label, the name its definition or its `**Table Name:**` gives the place, or the key, so the dots always part the levels.
+
+The mapping from JSONPath's dot notation to a path:
+
+**Table Name:** JSONPath Elements
+
+**Reference Key:** JSONPath
+
+**Required:** Section, Treatment
+
+| JSONPath | Section | Treatment | Departs For | Why |
+|---|---|---|---|---|
+| member-name-shorthand | 2.5.1.1 | differs: each level a field label, its words parted by spaces, as `UML Elements.UML`, where JSONPath's shorthand takes a name holding no space, a name with spaces written in its bracket notation | the canon's form | a level is the name a reader knows a table or a key by, written as its section writes it, where brackets and quotes around each would bury the path |
+| root identifier | 2.2.1 | not written: a path starts at the construct its citation's section holds, never at `$` | the canon's form | a citation's section already names the construct a path starts from, so a root would say it twice |
 
 A citation names one table in its section. A declared construct keeping its keys in one place is cited by its key alone, and a Table Name it declares only labels its table for a reader. A Basic Table declaring no Table Name is cited by its key's columns. A Basic Table declaring one, or a table a definition names, is cited by the path its name and its key make, `[Terms.Term: …]`, as a State Machine's states are cited. Where two or more tables in one section have keys declared by the same columns, by a Reference Key or by a definition naming its tables, all but one declare a distinct Table Name ([`§ Constructs § Tabular Construct`](#tabular-construct)), or the tables stand in sections of their own. A table keyed by its form, a table of fields or a `Column | Holds` table ([`§ Constructs § Construct`](#construct), [`§ Constructs § Tabular Construct`](#tabular-construct)), has no row cited and takes no part in it.
 
@@ -311,7 +296,7 @@ The tabular structure every construct extending it takes: a table of rows and co
 
 A table deciding the outcome of a case, so every case a rule decides is written down and checked for a case that two rows decide or none does. Each row states the cases it matches in its condition columns, and the outcome they are given in its outcome columns. An outcome is decided whether anything acts on it now, later or never: a decision is apart from any action on it. A rule that is a lookup, a table there to decide by one condition ([`§ When to Use Which § A Table's Construct`](#a-tables-construct)), is authored as a Decision Table with a single condition column. A decision whose conditions are asked in an order is a Decision Table too, as A tree of questions has it.
 
-It is DMN's DecisionTable, of the Object Management Group's Decision Model and Notation ([`specs/methodology/external-references.md § External References [Name: DMN]`](/specs/methodology/external-references.md#external-references)). Its cells, its computed headers and its computed outcomes are written in FEEL, DMN's expression language. FEEL is adopted whole as [`specs/methodology/expressions.md § Expressions § FEEL`](/specs/methodology/expressions.md#feel) states it, with its departure for a cell, a word written plain. DMN's InformationRequirement, chaining one Decision to another, is written as a table's Reads field. DMN's other parts, its Decision Requirements Diagrams, its Business Knowledge Models, its decision services and its boxed expressions, are outside the set, and a project needing one adds it so. That file and the hit policies this section gives are all an author needs, so an agent that cannot fetch DMN, or does not know it, loses nothing a Decision Table relies on.
+It is DMN's DecisionTable, of the Object Management Group's Decision Model and Notation ([`specs/methodology/external-references.md § External References [Name: DMN]`](/specs/methodology/external-references.md#external-references)). Its cells, its computed headers and its computed outcomes are written in FEEL, DMN's expression language. FEEL is adopted whole as [`specs/methodology/expressions.md § Expressions § FEEL`](/specs/methodology/expressions.md#feel) states it, with its departure for a cell, a word written plain ([`specs/methodology/expressions.md § Expressions § FEEL [DMN Elements.DMN: string literal]`](/specs/methodology/expressions.md#feel)). DMN's InformationRequirement, chaining one Decision to another, is written as a table's Reads field. DMN's other parts, its Decision Requirements Diagrams, its decision services and its boxed expressions, are outside the set, and a project needing one adds it so. Its Business Knowledge Model is the form of the canon's own functions alone ([`specs/methodology/expressions.md § Expressions § FEEL § The Canon's Functions`](/specs/methodology/expressions.md#the-canons-functions)). That file and the hit policies this section gives are all an author needs, so an agent that cannot fetch DMN, or does not know it, loses nothing a Decision Table relies on.
 
 **Extends:** `§ Constructs § Tabular Construct`
 
@@ -422,8 +407,8 @@ Whether a known fix matches is never asked of a critical ticket, and the plan is
 
 **Checks.** An instance is reported for:
 
-- a cell in no form FEEL or its departure for a cell has, a value tested after `=`, or a condition column testing values of more than one kind;
-- an expression or a cell in no form FEEL has, naming what no fact, binding or function names, combining values of two kinds, reaching by a path a part a value does not hold, calling a function FEEL does not build in, or giving one a number of arguments none of its signatures takes, a minus before what is neither a number nor a duration, a filter testing neither a yes or no nor a place, or an `@` value in no form;
+- a cell in no form FEEL or its departure for a cell ([`specs/methodology/expressions.md § Expressions § FEEL [DMN Elements.DMN: string literal]`](/specs/methodology/expressions.md#feel)) has, a value tested after `=`, or a condition column testing values of more than one kind;
+- an expression or a cell in no form FEEL has, naming what no fact, binding or function names, combining values of two kinds, reaching by a path a part a value does not hold, calling a function neither FEEL builds in nor the canon's functions hold, or giving one a number of arguments none of its signatures takes, a minus before what is neither a number nor a duration, a filter testing neither a yes or no nor a place, or an `@` value in no form;
 - a question's outcome other than `true`, `false` or `null`;
 - a condition's header neither a fact's name nor a computation;
 - an annotation's header that is no field label;
@@ -501,177 +486,7 @@ Facts pass between tasks by name. A task's work, and its guard, read what the fi
 
 **What is no DAG.** A process that waits within a task's work on anything but that task's completion is a State Machine, whose trigger is the wait. A process that repeats a step on a condition or branches into different downstream handling, with no wait, is a State Machine or an Algorithm, as [`§ When to Use Which`](#when-to-use-which) chooses. The same work once per item of a list is an Algorithm's loop `at once` ([`§ Constructs § Algorithm`](#algorithm)), gathering what each pass gives. Where a DAG holds such work, a task's work is that Algorithm. A process whose tasks or their order are configured as data is an Algorithm over the configuration, its loop taking each configured task in turn. A configuration shipped with the system is an instance, data, never a DAG.
 
-**A worked example.** A nightly pricing run, written whole as a file would hold it. Two extracts are free at once. A check of the margins they give has a timeout. A person makes a review only where a margin is flagged. A load waits for the check and the review. A report runs however the load ended, and the run tolerates the report's own failure:
-
-```markdown
-## Nightly Pricing
-
-The nightly pricing run: prices and costs extracted, margins checked and reviewed, then loaded and reported.
-
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § DAG`
-
-**Runs When:** the nightly pricing run, at 02:00 on each business date, a missed run caught up on the next and a late run taken when it comes
-
-| Task | Work | Depends On | Guard | Timeout | Tolerated |
-|---|---|---|---|---|---|
-| extract prices | `§ Price Extraction` | none | none | none | No |
-| extract costs | `§ Cost Extraction` | none | none | none | No |
-| check margins | `§ Margin Check` | extract prices, extract costs | none | @"PT30M" | No |
-| review flagged | none, leaving margins | check margins | some m in margins satisfies m.flagged? | none | No |
-| load | `§ Margin Load` | check margins, review flagged | none | none | No |
-| report | `§ Report Run` | load ended | none | none | Yes |
-
-Review flagged is the pricing analyst's: each flagged margin is confirmed or corrected in the margins list, done when the analyst marks the review complete.
-
-## Price Extraction
-
-The night's valid prices, taken from the price feed.
-
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
-**Inputs:**
-
-- price feed
-
-**Output:**
-
-- prices
-
-**Runs When:** `§ Nightly Pricing`
-
-| Step | Action |
-|---|---|
-| 1 | Set prices to price feed[valid?] |
-| 2 | End |
-
-## Cost Extraction
-
-The night's valid costs, taken from the cost feed.
-
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
-**Inputs:**
-
-- cost feed
-
-**Output:**
-
-- costs
-
-**Runs When:** `§ Nightly Pricing`
-
-| Step | Action |
-|---|---|
-| 1 | Set costs to cost feed[valid?] |
-| 2 | End |
-
-## Margin Check
-
-Each sku's margin, flagged where it falls below the floor.
-
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
-**Inputs:**
-
-- prices
-- costs
-- floor
-
-**Output:**
-
-- margins
-
-**Runs When:** `§ Nightly Pricing`
-
-| Step | Action |
-|---|---|
-| 1 | Set margins to for p in prices return {sku: p.sku, margin: p.price - costs[sku = p.sku][1].cost, flagged?: p.price - costs[sku = p.sku][1].cost < floor} |
-| 2 | End |
-
-## Margin Load
-
-The load of the reviewed margins, giving how many were written.
-
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
-**Inputs:**
-
-- margins
-
-**Output:**
-
-- loaded
-
-**Runs When:** `§ Nightly Pricing`
-
-| Step | Action |
-|---|---|
-| 1 | Set loaded to count(margins) |
-| 2 | End |
-
-## Report Run
-
-The run's report of what it loaded for the business date.
-
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
-**Inputs:**
-
-- loaded
-- business date
-
-**Output:**
-
-- report
-
-**Runs When:** `§ Nightly Pricing`
-
-| Step | Action |
-|---|---|
-| 1 | Set report to {loaded: loaded, for: business date} |
-| 2 | End |
-
-## Facts
-
-**Records:**
-
-- **Name:** business date
-  **Type:** date
-  **Means:** the date the run prices, the business date the nightly run is launched for, in the trading desk's zone
-
-- **Name:** price feed
-  **Type:** list<context<sku: string, price: number, valid?: boolean>>
-  **Means:** the night's prices as the feed delivers them
-
-- **Name:** cost feed
-  **Type:** list<context<sku: string, cost: number, valid?: boolean>>
-  **Means:** the night's costs as the feed delivers them
-
-- **Name:** prices
-  **Type:** list<context<sku: string, price: number>>
-  **Means:** the valid prices
-
-- **Name:** costs
-  **Type:** list<context<sku: string, cost: number>>
-  **Means:** the valid costs
-
-- **Name:** floor
-  **Type:** number
-  **Means:** the margin below which a sku is flagged
-
-- **Name:** margins
-  **Type:** list<context<sku: string, margin: number, flagged?: boolean>>
-  **Means:** each sku's margin, flagged where it is below the floor, as the review left it
-
-- **Name:** loaded
-  **Type:** number
-  **May Be Absent:** Yes
-  **Means:** how many margins the load wrote, absent where the load failed
-
-- **Name:** report
-  **Type:** context<loaded: number, for: date>
-  **Means:** the run's report, what it loaded and the business date it priced
-```
+**Worked examples.** DAGs written whole, as a file would hold them, are in `specs/methodology/examples/construct/dag/`.
 
 **Name.** A DAG is named for its process as a thing, `Nightly Pricing`, never for an activity, `Extract Prices`.
 
@@ -716,27 +531,27 @@ The mapping from UML's Activity to the DAG:
 
 **Required:** Section, Treatment
 
-| UML | Section | Treatment |
-|---|---|---|
-| Activity | 15.2.3.1 | differs: the DAG, each run an execution, all or none, what it wrote undone where it fails, as [`§ Constructs § Constraint § What It Means`](#what-it-means-3) has it for an operation |
-| Variable | 15.2.3.5 | the same: a fact passed between tasks, read and written by name |
-| CallBehaviorAction | 16.3.3.1 | differs: a task whose work cites an Algorithm, a Decision Table or a DAG, calling that construct; a Decision Table is taken as the Behavior it calls, and a task's work is cited by name and read from the file's facts rather than wired by pins, the departures [`§ Constructs § Algorithm § What It Means`](#what-it-means-2) names for a run |
-| OpaqueAction | 16.2.3.2 | the same: a task whose work is `none`, its body the prose after the table |
-| ControlFlow | 15.2.3.3 | the same: a dependency, from the task waited for to the task waiting |
-| ForkNode | 15.3.3.3 | the same: the table stands for the forks and joins UML draws; the tasks nothing orders are reached through one, every task's outgoing flows forked; UML's own note on it has a token shunted to the downstream JoinNode where a guard on an edge from it fails |
-| JoinNode | 15.3.3.4 | the same: a task waiting for several tasks, every task's incoming flows joined; where every task is guarded and no guard holds, it receives every shunted token |
-| guard | 15.2.3.3 | the same: a task's guard, on the ActivityEdge offering the task its token from the fork or the join before it |
-| DecisionNode | 15.3.3.6 | the same: placed after the fork or the join before a guarded task, so that where the guard fails the token is shunted to the downstream join node, a skipped task counting as done for what depends on it |
-| wait time action | 16.10.3.1 | the same: a task's timeout |
-| TimeEvent | 13.3.3.4 | the same: the timeout's trigger |
-| InterruptibleActivityRegion | 15.6.3.2 | differs: holding the task, with the TimeEvent on an interrupting edge, it ends the task's work when the time passes, and the task then fails, its writes undone, and a person's or an external system's work no longer counts; [`§ Constructs § Algorithm § What It Means`](#what-it-means-2) has it among what the Algorithm's table does not write, and the DAG's table writes it by its Timeout column |
-| activity execution completing | 15.2.3.6 | the same: the run ends once no task is running and none can run |
-| exception | 16.3.3.1, 15.5.3.2 | differs: the run goes on past an untolerated failure to what waits `ended`, keeping what such a task writes, where in UML an exception a failing task raises, uncaught, ends the run |
-| ExceptionHandler | 15.5.3.2 | differs: a task whose tolerated is `Yes`, its tolerated cell standing for the handler, leaves unreached what waited for it to be done and runs only what waited `ended`, where UML, once the handler's body completes, offers tokens to everything downstream as though the task had completed |
+| UML | Section | Treatment | Departs For | Why |
+|---|---|---|---|---|
+| Activity | 15.2.3.1 | differs: the DAG, each run an execution, all or none, what it wrote undone where it fails, as [`§ Constructs § Constraint § What It Means`](#what-it-means-3) has it for an operation | the standard's gap | a Constraint over what a run writes relies on the run being all or none, and UML leaves what a failed execution wrote in place |
+| Variable | 15.2.3.5 | the same: a fact passed between tasks, read and written by name | | |
+| CallBehaviorAction | 16.3.3.1 | differs: a task whose work cites an Algorithm, a Decision Table or a DAG, calling that construct; a Decision Table is taken as the Behavior it calls, and a task's work is cited by name and read from the file's facts rather than wired by pins, the departures [`§ Constructs § Algorithm § What It Means`](#what-it-means-2) names for a run | the canon's form | a table has no pins to wire, and a fact named once in a Facts section is what a check follows across files |
+| OpaqueAction | 16.2.3.2 | the same: a task whose work is `none`, its body the prose after the table | | |
+| ControlFlow | 15.2.3.3 | the same: a dependency, from the task waited for to the task waiting | | |
+| ForkNode | 15.3.3.3 | the same: the table stands for the forks and joins UML draws; the tasks nothing orders are reached through one, every task's outgoing flows forked; UML's own note on it has a token shunted to the downstream JoinNode where a guard on an edge from it fails | | |
+| JoinNode | 15.3.3.4 | the same: a task waiting for several tasks, every task's incoming flows joined; where every task is guarded and no guard holds, it receives every shunted token | | |
+| guard | 15.2.3.3 | the same: a task's guard, on the ActivityEdge offering the task its token from the fork or the join before it | | |
+| DecisionNode | 15.3.3.6 | the same: placed after the fork or the join before a guarded task, so that where the guard fails the token is shunted to the downstream join node, a skipped task counting as done for what depends on it | | |
+| wait time action | 16.10.3.1 | the same: a task's timeout | | |
+| TimeEvent | 13.3.3.4 | the same: the timeout's trigger | | |
+| InterruptibleActivityRegion | 15.6.3.2 | differs: holding the task, with the TimeEvent on an interrupting edge, it ends the task's work when the time passes, and the task then fails, its writes undone, and a person's or an external system's work no longer counts; [`§ Constructs § Algorithm § What It Means`](#what-it-means-2) has it among what the Algorithm's table does not write, and the DAG's table writes it by its Timeout column | the standard's gap, the canon's form | a timeout bounds one task, so the task's row writes it, where a region is drawn around the task; and undoing the task's writes keeps the run all or none |
+| activity execution completing | 15.2.3.6 | the same: the run ends once no task is running and none can run | | |
+| exception | 16.3.3.1, 15.5.3.2 | differs: the run goes on past an untolerated failure to what waits `ended`, keeping what such a task writes, where in UML an exception a failing task raises, uncaught, ends the run | the canon's form | a run that fails must still be able to report or clean up, and `ended` writes that wait as a dependency a check reads, where UML would need a handler around every task |
+| ExceptionHandler | 15.5.3.2 | differs: a task whose tolerated is `Yes`, its tolerated cell standing for the handler, leaves unreached what waited for it to be done and runs only what waited `ended`, where UML, once the handler's body completes, offers tokens to everything downstream as though the task had completed | the standard's gap | a tolerated failure is no success, and running what waited for the task to be done would let a task act on work that never happened |
 
 ### State Machine
 
-A model of the states a system or an entity can be in, the transitions between them, and the conditions under which each transition is taken. It answers where the entity is in its journey, and what happens when something happens in a given state, so a reviewer can check that every case is covered. It is UML's StateMachine ([`specs/methodology/external-references.md § External References [Name: UML]`](/specs/methodology/external-references.md#external-references)), adopted whole and written as tables, with no tie to any serialization or execution engine. [`§ Constructs § State Machine § What It Means`](#what-it-means-1) states what UML means for what the tables write, and names each departure the canon makes from UML. A machine whose every transition is taken on its trigger alone, an entity's plain lifecycle, is a State Machine that leaves its optional parts unused. It is no construct of its own ([`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`](/specs/methodology/sourcing-and-citation.md#a-definition-and-its-instances)).
+A model of the states a system or an entity can be in, the transitions between them, and the conditions under which each transition is taken. It answers where the entity is in its journey, and what happens when something happens in a given state, so a reviewer can check that every case is covered. It is UML's StateMachine ([`specs/methodology/external-references.md § External References [Name: UML]`](/specs/methodology/external-references.md#external-references)), adopted whole and written as tables, with no tie to any serialization or execution engine. [`§ Constructs § State Machine § What It Means`](#what-it-means-1) states what UML means for what the tables write, and names each departure the canon makes from UML. A machine whose every transition is taken on its trigger alone, an entity's plain life cycle, is a State Machine that leaves its optional parts unused. It is no construct of its own ([`specs/methodology/sourcing-and-citation.md § A Definition and Its Instances`](/specs/methodology/sourcing-and-citation.md#a-definition-and-its-instances)).
 
 **Extends:** `§ Constructs § Tabular Construct`
 
@@ -791,78 +606,14 @@ A trigger names only what happens. Whatever must hold when it happens for the mo
 What a State Machine expresses beyond a move its trigger alone decides:
 
 - a guard, which lets a transition's trigger happen, or its From state's work be done, without the transition being taken;
-- an exclusive choice: two or more transitions from one state on the same trigger, on none, or on conditions one occurrence makes true together, whose guards never both hold. This is a departure, where UML would take either. Each of their guards is a FEEL boolean expression, UML's guard written in FEEL ([`specs/methodology/expressions.md § Expressions § FEEL`](/specs/methodology/expressions.md#feel)), as `receipt = "attached"` or `paid on < due date and amount >= minimum`, with a word in it quoted. A guard of none tests no fact. A boolean fact a guard tests is a question, as `fully paid?` or `not(fully paid?)`. A fact that another is compared with is one a guard of the choice tests or a Facts section declares, of the same kind as the fact compared with it. A fact a guard tests holds no word FEEL keeps in its name ([`specs/methodology/expressions.md § Expressions § FEEL § Names`](/specs/methodology/expressions.md#names)), so FEEL never reads a word of the name as one of its own. Where each guard is a conjunction, joined by `and`, of tests of one fact each, with each fact tested once, the guards read together are a Unique Decision Table over those facts. A test here is a comparison with a value or another fact, `in`, `between`, or a question alone or within `not(…)`. Each test is its fact's cell, and a fact a guard does not test is `-`. Where the state's work is done and the state cannot stay, together the guards also cover every case. A choice with any other guard is read for both. A guard on a transition alone on its trigger, or alone with none, is prose. Once another transition joins it, both guards take this form;
+- an exclusive choice: two or more transitions from one state on the same trigger, on none, or on conditions one occurrence makes true together, whose guards never both hold. This departs from UML, which would take either ([`§ Constructs § State Machine § What It Means [UML Elements.UML: conflicting transitions]`](#what-it-means-1)). Each of their guards is a FEEL boolean expression, UML's guard written in FEEL ([`specs/methodology/expressions.md § Expressions § FEEL`](/specs/methodology/expressions.md#feel)), as `receipt = "attached"` or `paid on < due date and amount >= minimum`, with a word in it quoted. A guard of none tests no fact. A boolean fact a guard tests is a question, as `fully paid?` or `not(fully paid?)`. A fact that another is compared with is one a guard of the choice tests or a Facts section declares, of the same kind as the fact compared with it. A fact a guard tests holds no word FEEL keeps in its name ([`specs/methodology/expressions.md § Expressions § FEEL § Names`](/specs/methodology/expressions.md#names)), so FEEL never reads a word of the name as one of its own. Where each guard is a conjunction, joined by `and`, of tests of one fact each, with each fact tested once, the guards read together are a Unique Decision Table over those facts. A test here is a comparison with a value or another fact, `in`, `between`, or a question alone or within `not(…)`. Each test is its fact's cell, and a fact a guard does not test is `-`. Where the state's work is done and the state cannot stay, together the guards also cover every case. A choice with any other guard is read for both. A guard on a transition alone on its trigger, or alone with none, is prose. Once another transition joins it, both guards take this form;
 - an effect, an Algorithm or a Decision Table a transition runs as it is taken;
 - a fork, a transition into several states that then run concurrently, written as one row whose To joins them with `and`;
 - a join, a transition from several states running concurrently, written as one row whose From joins them with `and`, taken once every one of them has done its work.
 
 Every fork is closed by one join, from states its branches reach, and a join closes one fork.
 
-**A worked example.** A parcel's journey from draft to sent or voided, written whole as a file would hold it. A warehouse clerk packs the parcel and sends it. Sending is an exclusive choice on whether the parcel is on hold, and each move to sent runs an Algorithm as its effect:
-
-```markdown
-## Parcel
-
-The journey of a parcel from a basket's draft to the carrier, or to being voided with its purchase.
-
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
-
-**Table Name:** States
-
-| State | Description | Initial | Terminal |
-|---|---|---|---|
-| draft | a parcel of a basket, not yet packed | Yes | No |
-| packed | packed, waiting for a warehouse clerk to send it | No | No |
-| held | packed, kept back until a warehouse clerk releases it | No | No |
-| sent | handed to the carrier | No | Yes |
-| voided | voided with its purchase | No | Yes |
-
-**Table Name:** Transitions
-
-| From | To | Trigger | Guard | Effect |
-|---|---|---|---|---|
-| draft | packed | a warehouse clerk packs it | none | none |
-| draft | voided | the purchase is voided | none | none |
-| packed | sent | a warehouse clerk sends it | not(on hold?) | `§ Send Stamp` |
-| packed | held | a warehouse clerk sends it | on hold? | none |
-| held | sent | a warehouse clerk releases it | none | `§ Send Stamp` |
-| packed | voided | the purchase is voided | none | none |
-| held | voided | the purchase is voided | none | none |
-
-## Send Stamp
-
-The moment a parcel leaves for the carrier, recorded as it is sent.
-
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
-**Inputs:** none
-
-**Output:**
-
-- sent at
-
-**Runs When:** `§ Parcel`
-
-| Step | Action |
-|---|---|
-| 1 | Set sent at to now() |
-| 2 | End |
-
-## Facts
-
-**Records:**
-
-- **Name:** on hold?
-  **Type:** boolean
-  **Means:** whether the buyer's address failed its check, so the parcel waits for a warehouse clerk
-
-- **Name:** sent at
-  **Type:** date and time
-  **May Be Absent:** Yes
-  **Means:** when the parcel was handed to the carrier
-```
-
-When a warehouse clerk sends a packed parcel, the two transitions from packed are an exclusive choice. Their guards are a question and its negation over a fact the file declares. They never both hold. Both moves to sent run Send Stamp as their effect, and Send Stamp's Runs When cites the machine. A voided purchase ends a parcel whether it is a draft, packed or held, with a row for each From.
+**Worked examples.** State Machines written whole, as a file would hold them, are in `specs/methodology/examples/construct/state-machine/`.
 
 **Name.** A State Machine is named for the entity it follows, `Work Order`.
 
@@ -942,47 +693,47 @@ A design adds a form for an element the canon does not write where a spec needs 
 
 **Required:** Section, Treatment
 
-| UML | Section | Treatment |
-|---|---|---|
-| State | 14.2.3.4 | the same |
-| initial Pseudostate | 14.2.3.7 | the same: the target of its transition is the initial state |
-| no active state | 14.2.3.4.2, 14.2.3.8.3 | the same: before its run begins and once the run has ended, a machine is in no state |
-| run-to-completion | 14.2.3.9.1 | differs: conditions one occurrence makes true together are taken in the occurrence's one step, where UML dispatches each event on its own |
-| entry and doActivity Behaviors | 14.2.3.4.3 | the same: a state's work, begun when the state is entered |
-| completion transition | 14.2.3.8.3 | the same: a transition with no trigger, taken once the state's work is done |
-| external transition | 14.2.3.8.1 | the same: a transition from a state to itself |
-| FinalState | 14.2.3.6 | differs: a terminal state, entering it completing the run; reached in one branch of a fork, it ends the machine's run and cuts its other branches short, where UML's FinalState completes that branch's Region alone |
-| Event | 13.3.3.2 to 13.3.3.4 | the same: a trigger, its kind decided by what moves the entity |
-| MessageEvent | 13.3.3.2 | the same: something done, what it carries the data its message carries, a fact its occurrence sets |
-| SignalEvent | 13.3.3.2 | the same: a part reached, or a state entered |
-| ChangeEvent | 13.3.3.3 | the same: a condition becoming true |
-| TimeEvent | 13.3.3.4 | differs: relative time is counted from entering the state the transition leaves, even where the machine waited elsewhere first, where UML counts from the TimeEvent's activation; and, as [`§ Time`](#time) has it, an instant already past is taken at once, and an instant follows its fact |
-| guard | 14.2.3.9.2 | the same: a transition whose guard does not hold is no transition for that occurrence |
-| conflicting transitions | 14.2.3.9.3 | differs: at most one is taken, as UML has it, and an exclusive choice's guards never both hold |
-| transition priority | 14.2.3.9.4, 14.2.3.9.5 | the same: of a governed state and a state of the machine governing it, both leaving on one occurrence, the inner machine's transition is taken |
-| effect Behavior | 14.2.3.8, 14.2.3.9.6 | the same: the Algorithm or the Decision Table a transition's Effect cell cites |
-| fork Pseudostate | 14.2.3.7 | the same |
-| join Pseudostate | 14.2.3.7 | differs: a join may carry a trigger, where UML's join takes none |
-| orthogonal regions | 14.2.3.2, 14.2.3.9.1 | the same: the branches between a fork and a join, one occurrence able to take one transition in each |
-| ProtocolStateMachine | 14.4, 14.4.3.1 | the same: a machine whose Protocol is `Yes`, its states holding no work |
-| ProtocolTransition | 14.4.3.2.4 | differs: taken on an actor's action alone, where UML allows other events |
-| unexpected event | 14.4.3.2.1 | differs: in a protocol machine, an action no transition from the state takes is refused, where UML leaves it undefined |
-| operation no transition refers to | 14.4.3.2.3 | differs: refused, as any action no transition from the state takes is, where UML leaves it callable in any state |
-| ProtocolTransition's precondition | 14.4.3.2.3 | the same: its guard |
-| history Pseudostate | 14.2.3.4.4 | not written: a fact the entity records, guarding the transitions from the machine's initial state |
-| deferred event | 14.2.3.4.4 | not written: a fact the entity records |
-| composite State | 14.2.3.4.7 | not written: UML calls it semantically equivalent to a submachine state, and a nested machine is a section of its own, governing a state as [`§ Constructs § State Machine § A Submachine State`](#a-submachine-state) has it |
-| entry point | 14.2.3.4.6, 14.2.3.7 | not written: a machine is entered at its initial state |
-| exit point | 14.2.3.4.6, 14.2.3.7 | differs: a machine is left by its terminal states, a guard telling them apart by `exit` alone, as `exit = "approved"`, where UML tells a machine's ends apart by exit points, which the canon does not write |
-| internal and local transitions | 14.2.3.8.1 | not written: an occurrence that moves the entity nowhere is no transition, and what it changes is a fact |
-| exit Behavior | 14.2.3.4.3 | not written: the effect of the transitions leaving the state |
-| choice and junction Pseudostates, compound transitions | 14.2.3.7, 14.2.3.8.4 | not written: a state whose work decides, its transitions an exclusive choice |
-| terminate Pseudostate | 14.2.3.7 | not written: a terminal state |
-| AnyReceiveEvent | 13.3.3.2 | not written: a class of occurrences, named once |
-| state invariant | 14.2.3.4 | not written: a Constraint ([`§ Constructs § Constraint`](#constraint)) |
-| ProtocolTransition's postcondition | 14.4.3.2.3 | not written: a Constraint ([`§ Constructs § Constraint`](#constraint)) |
-| guard testing another object's state | 14.2.3.8.3 | not written: a test of that entity's recorded status |
-| ProtocolConformance | 14.4.3.3 | not written |
+| UML | Section | Treatment | Departs For | Why |
+|---|---|---|---|---|
+| State | 14.2.3.4 | the same | | |
+| initial Pseudostate | 14.2.3.7 | the same: the target of its transition is the initial state | | |
+| no active state | 14.2.3.4.2, 14.2.3.8.3 | the same: before its run begins and once the run has ended, a machine is in no state | | |
+| run-to-completion | 14.2.3.9.1 | differs: conditions one occurrence makes true together are taken in the occurrence's one step, where UML dispatches each event on its own | the standard's gap | an occurrence making two conditions true is one thing that happened, and a spec states one outcome for it, where dispatching each apart makes the outcome hang on an order no spec states |
+| entry and doActivity Behaviors | 14.2.3.4.3 | the same: a state's work, begun when the state is entered | | |
+| completion transition | 14.2.3.8.3 | the same: a transition with no trigger, taken once the state's work is done | | |
+| external transition | 14.2.3.8.1 | the same: a transition from a state to itself | | |
+| FinalState | 14.2.3.6 | differs: a terminal state, entering it completing the run; reached in one branch of a fork, it ends the machine's run and cuts its other branches short, where UML's FinalState completes that branch's Region alone | the standard's gap | a terminal state means the entity's journey is over, where completing one Region alone would leave it both finished and still moving |
+| Event | 13.3.3.2 to 13.3.3.4 | the same: a trigger, its kind decided by what moves the entity | | |
+| MessageEvent | 13.3.3.2 | the same: something done, what it carries the data its message carries, a fact its occurrence sets | | |
+| SignalEvent | 13.3.3.2 | the same: a part reached, or a state entered | | |
+| ChangeEvent | 13.3.3.3 | the same: a condition becoming true | | |
+| TimeEvent | 13.3.3.4 | differs: relative time is counted from entering the state the transition leaves, even where the machine waited elsewhere first, where UML counts from the TimeEvent's activation; and, as [`§ Time`](#time) has it, an instant already past is taken at once, and an instant follows its fact | the standard's gap | a time rule is read from the state the entity is in, as 30 days in this state is, and an instant moved or already past is a case UML leaves to the tool, which a spec must decide |
+| guard | 14.2.3.9.2 | the same: a transition whose guard does not hold is no transition for that occurrence | | |
+| conflicting transitions | 14.2.3.9.3 | differs: at most one is taken, as UML has it, and an exclusive choice's guards never both hold | the standard's gap | UML takes either of two enabled transitions, leaving the outcome to chance, where a spec decides one outcome for every case and a check proves the guards never both hold |
+| transition priority | 14.2.3.9.4, 14.2.3.9.5 | the same: of a governed state and a state of the machine governing it, both leaving on one occurrence, the inner machine's transition is taken | | |
+| effect Behavior | 14.2.3.8, 14.2.3.9.6 | the same: the Algorithm or the Decision Table a transition's Effect cell cites | | |
+| fork Pseudostate | 14.2.3.7 | the same | | |
+| join Pseudostate | 14.2.3.7 | differs: a join may carry a trigger, where UML's join takes none | the standard's gap | a join often waits for something to happen once its branches are done, as an approval does, which UML would hold in a state of its own |
+| orthogonal regions | 14.2.3.2, 14.2.3.9.1 | the same: the branches between a fork and a join, one occurrence able to take one transition in each | | |
+| ProtocolStateMachine | 14.4, 14.4.3.1 | the same: a machine whose Protocol is `Yes`, its states holding no work | | |
+| ProtocolTransition | 14.4.3.2.4 | differs: taken on an actor's action alone, where UML allows other events | the canon's form | a protocol machine states what an actor may do, so its transitions are the actions it allows, and a machine another event moves is a behavioral machine |
+| unexpected event | 14.4.3.2.1 | differs: in a protocol machine, an action no transition from the state takes is refused, where UML leaves it undefined | the standard's gap | an action a state does not allow needs an outcome a spec states, where undefined leaves the answer to the code |
+| operation no transition refers to | 14.4.3.2.3 | differs: refused, as any action no transition from the state takes is, where UML leaves it callable in any state | the standard's gap | one rule then holds for every action a state does not allow, whether or not a transition names it |
+| ProtocolTransition's precondition | 14.4.3.2.3 | the same: its guard | | |
+| history Pseudostate | 14.2.3.4.4 | not written: a fact the entity records, guarding the transitions from the machine's initial state | the canon's form | a state to return to is something the entity knows, and a fact puts it where a guard and a check read it, where a history Pseudostate keeps it inside the machine |
+| deferred event | 14.2.3.4.4 | not written: a fact the entity records | the canon's form | an occurrence held for later is something the entity keeps, and a fact shows it to every construct reading the entity |
+| composite State | 14.2.3.4.7 | not written: UML calls it semantically equivalent to a submachine state, and a nested machine is a section of its own, governing a state as [`§ Constructs § State Machine § A Submachine State`](#a-submachine-state) has it | the canon's form | UML counts it equivalent to a submachine state, so one way of writing a nested machine keeps one way of saying it |
+| entry point | 14.2.3.4.6, 14.2.3.7 | not written: a machine is entered at its initial state | the canon's form | a machine entered one way is read from its initial state, and another way in is another machine's initial state |
+| exit point | 14.2.3.4.6, 14.2.3.7 | differs: a machine is left by its terminal states, a guard telling them apart by `exit` alone, as `exit = "approved"`, where UML tells a machine's ends apart by exit points, which the canon does not write | the canon's form | a guard on `exit` is a FEEL test a check reads, where exit points are a diagram's connectors, which a table does not draw |
+| internal and local transitions | 14.2.3.8.1 | not written: an occurrence that moves the entity nowhere is no transition, and what it changes is a fact | the canon's form | a table of transitions lists where the entity moves, and what an occurrence changes without moving it is a fact, written by the construct changing it |
+| exit Behavior | 14.2.3.4.3 | not written: the effect of the transitions leaving the state | the canon's form | work done on leaving is written on each transition leaving, so a reader of a row sees all the move does |
+| choice and junction Pseudostates, compound transitions | 14.2.3.7, 14.2.3.8.4 | not written: a state whose work decides, its transitions an exclusive choice | the canon's form | a decision kept in one state's transitions has guards a check reads together, where pseudostates chain decisions across rows |
+| terminate Pseudostate | 14.2.3.7 | not written: a terminal state | the canon's form | a terminal state already ends the run, and a second way of ending it would say one thing two ways |
+| AnyReceiveEvent | 13.3.3.2 | not written: a class of occurrences, named once | the canon's form | a trigger matching anything leaves unchecked which occurrences move the entity, where a class named with its members is read against the triggers written |
+| state invariant | 14.2.3.4 | not written: a Constraint ([`§ Constructs § Constraint`](#constraint)) | the canon's form | a rule holding while a state is active is a Constraint like any other, written once in the construct whose checks read rules |
+| ProtocolTransition's postcondition | 14.4.3.2.3 | not written: a Constraint ([`§ Constructs § Constraint`](#constraint)) | the canon's form | a rule holding after a move is a Constraint `after` the move, written once in the construct whose checks read rules |
+| guard testing another object's state | 14.2.3.8.3 | not written: a test of that entity's recorded status | the canon's form | a guard reads facts, and another entity's state is a fact it records, so no machine reaches into another |
+| ProtocolConformance | 14.4.3.3 | not written | no need yet | no spec here relates two protocol machines as one conforming to another, and a project needing it adds the form |
 
 #### A Submachine State
 
@@ -1090,65 +841,7 @@ An Algorithm is authored as a numbered table of steps, its columns each headed b
 
 **Order.** A result that could depend on an order states the order, as the Order field has it ([`§ Constructs § Ordered Construct`](#ordered-construct)). A loop's order is stated with its ties broken, and a remainder's share is given by the order that takes it.
 
-**A worked example.** A schedule's installments, each period given its share of the rate by a Decision Table, in a system holding 19 significant digits and rounding money half up, written whole as a file would hold it:
-
-```markdown
-### Installments
-
-A schedule's installments, each period's share of the rate applied to its balance, and the total still due.
-
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
-**Inputs:**
-
-- periods
-- rate
-
-**Output:**
-
-- periods
-- total due
-
-**Runs When:** `§ Schedule Build`
-
-**Precision:** 19
-
-**Rounding Mode:** half up
-
-| Step | Action |
-|---|---|
-| 1 | For each period of periods, by period.number ascending, gathering period into periods: steps 2 to 4 |
-| 2 | Run `§ Period Share` with Days as (period.due date - period.from date).days, with Annual rate as rate, giving Share as share |
-| 3 | Set installment to balance(period) * share |
-| 4 | Set period.installment to installment |
-| 5 | Set total due to sum(for p in periods[not(settled(item))] return p.installment) |
-| 6 | End |
-
-#### Facts
-
-**Records:**
-
-- **Name:** periods
-  **Type:** list<context<number: number, from date: date, due date: date, installment: number>>
-  **Means:** the schedule's periods, in order
-
-- **Name:** installment
-  **Type:** number
-  **Decimal Places:** 2
-  **Means:** a period's installment, held to cents
-
-- **Name:** balance
-  **Type:** function<context> -> number
-  **Decimal Places:** 2
-  **Means:** a period's opening balance, as the ledger computes it
-
-- **Name:** settled
-  **Type:** function<context> -> boolean
-  **Derivation:** function(period) period.installment = 0
-  **Means:** whether a period has nothing left to pay
-```
-
-Step 1 walks the list in its keys' order and gathers each updated item back into it, and the list is set once the loop ends. Step 2 runs a Decision Table. It gives each fact the table takes by `with`, and writes the table's outcome `Share` to a fact of another name by `as`. Step 3 multiplies money, so it writes to a fact holding decimal places, rounded to cents half up, with each operation first held to 19 digits. Step 3 also reads a value the ledger computes, by a call. Step 4 sets a part from that fact, a part holding no decimal places of its own. Step 5 reads a value the specs derive, by a call given each current period, and its `settled` is defined once, by its Derivation.
+**Worked examples.** Algorithms written whole, as a file would hold them, are in `specs/methodology/examples/construct/algorithm/`.
 
 **Name.** An Algorithm is named for its process as a thing, `Report Assembly`, never for an activity, `Running payroll`.
 
@@ -1199,32 +892,32 @@ The mapping from UML's Activity to the Algorithm:
 
 **Required:** Section, Treatment
 
-| UML | Section | Treatment |
-|---|---|---|
-| Activity | 15.2.3.1 | the same: the Algorithm |
-| execution | 15.2.3.6, 15.4.3.2 | the same: a run, taking its Inputs as its input parameters and giving its Output as its output parameters |
-| Parameter | 15.2.3.6 | the same: the Inputs and the Output |
-| inout Parameter | 15.2.3.6 | differs: a fact the Inputs and the Output both name holds what it was given where nothing sets it, where UML passes out only what flows to its output node |
-| CallBehaviorAction | 16.3.3.1 | differs: a run of another construct, synchronous, each `with` an argument, the value its InputPin passes to a Parameter, and each fact the run gives the value on an OutputPin; a Decision Table is taken as the Behavior it calls, where a DMN Decision is no UML Behavior; pins are matched to parameters by name, where UML matches them by their order; and a run recurring states why it ends, where UML requires none |
-| ReadVariableAction | 16.9.3.2 | the same: reads the fact of that name, for each fact a run takes that no `with` gives, and for a computation setting a part |
-| Variable | 15.2.3.5 | the same: a fact, held as a Variable is |
-| AddVariableValueAction | 16.9.3.3 | the same: writes a value to the fact of that name, or to the fact `as` names, replacing what the fact held |
-| Action | 16.2.3.1 | the same: a step |
-| ControlFlow | 15.2.3.3 | the same: the steps following one another |
-| ValueSpecificationAction | 16.4.3.5 | the same: a computation, FEEL its language |
-| AddStructuralFeatureValueAction | 16.8.3.3 | the same: a computation setting a part replaces the part's value by one for each name of its path, `isReplaceAll` true |
-| StructuralFeatureAction on a data value | 16.8.3.1 | the same: the action gives a modified copy on its result pin, which the computation writes back to the fact by an AddVariableValueAction |
-| OpaqueAction | 16.2.3.2 | differs: work, its body written in words; a value a later step reads is set only by a computation, where UML lets an OpaqueAction write values |
-| DecisionNode | 15.3.3.6 | the same: a comparison, its two outgoing flows guarded by its condition and by `else` |
-| MergeNode | 15.3.3.5 | differs: a step two flows reach, by a jump or by following another, so a jump back forms a loop; such a loop states why it ends, where UML requires none |
-| ExpansionRegion | 16.12.3 | the same: a loop over a list, iterative where the loop is ordered `by` keys, its passes run one after another in that order, the list sorted by them; iterative over an unordered collection where the loop is `in any order` or `in an order the system leaves open`; parallel where the loop is `at once`, its passes free to overlap; the loop's list its input collection, fixed as the loop begins |
-| output ExpansionNode | 16.12.3 | differs: what the loop gathers, offered once every pass has completed, holding the values of the passes that set it in the order the input collection induces; it keeps the order of the list walked where the region is unordered or parallel, where UML leaves that order undefined; it holds the item of a pass that set nothing where the loop gathers its own item, where UML filters that pass out; and it is left as it stood where an `End` inside the body ends the run, where UML offers the list partly filled |
-| ActivityFinalNode | 15.3.3.2, 16.11.3.1, 16.12.3 | differs: `End`, the first reached ending the run and every flow in it; inside a loop's body, it ends the whole run, where UML's ActivityFinalNode inside a StructuredActivityNode or an ExpansionRegion ends that node or region alone |
-| ForkNode and JoinNode | 15.3.3.3, 15.3.3.4 | not written: a fork and a join of steps, and steps run at once other than a loop's passes, are a DAG ([`§ Constructs § DAG`](#dag)) |
-| AcceptEventAction | 16.10.3.1 | not written: a wait for an occurrence is a State Machine's trigger, the Algorithm running once it happens |
-| exception raised and handled | 16.13.3.2, 15.5.3.2 | not written: a failure is an outcome the Output gives, and the run ends at `End` with it |
-| InterruptibleActivityRegion and ActivityPartition | 15.6.3 | not written by an Algorithm's table: a task's timeout writes the region in a DAG's table ([`§ Constructs § DAG § What It Means`](#what-it-means)) |
-| stream, and ObjectFlow other than a named fact | 13.2, 16.12.3, 15.2.3.4 | not written: a fact passes between steps by its name |
+| UML | Section | Treatment | Departs For | Why |
+|---|---|---|---|---|
+| Activity | 15.2.3.1 | the same: the Algorithm | | |
+| execution | 15.2.3.6, 15.4.3.2 | the same: a run, taking its Inputs as its input parameters and giving its Output as its output parameters | | |
+| Parameter | 15.2.3.6 | the same: the Inputs and the Output | | |
+| inout Parameter | 15.2.3.6 | differs: a fact the Inputs and the Output both name holds what it was given where nothing sets it, where UML passes out only what flows to its output node | the standard's gap | an Algorithm updating a fact in place is common, as a balance is, and holding what it was given states what the fact holds on every path, where UML would leave it with no value |
+| CallBehaviorAction | 16.3.3.1 | differs: a run of another construct, synchronous, each `with` an argument, the value its InputPin passes to a Parameter, and each fact the run gives the value on an OutputPin; a Decision Table is taken as the Behavior it calls, where a DMN Decision is no UML Behavior; pins are matched to parameters by name, where UML matches them by their order; and a run recurring states why it ends, where UML requires none | the standard's gap, the canon's form | a Decision Table is one of the canon's constructs a step runs, so it is called as one; a name is what a reader and a check match, where an order is easily got wrong; and a run recurring with no stated end has no stated outcome |
+| ReadVariableAction | 16.9.3.2 | the same: reads the fact of that name, for each fact a run takes that no `with` gives, and for a computation setting a part | | |
+| Variable | 15.2.3.5 | the same: a fact, held as a Variable is | | |
+| AddVariableValueAction | 16.9.3.3 | the same: writes a value to the fact of that name, or to the fact `as` names, replacing what the fact held | | |
+| Action | 16.2.3.1 | the same: a step | | |
+| ControlFlow | 15.2.3.3 | the same: the steps following one another | | |
+| ValueSpecificationAction | 16.4.3.5 | the same: a computation, FEEL its language | | |
+| AddStructuralFeatureValueAction | 16.8.3.3 | the same: a computation setting a part replaces the part's value by one for each name of its path, `isReplaceAll` true | | |
+| StructuralFeatureAction on a data value | 16.8.3.1 | the same: the action gives a modified copy on its result pin, which the computation writes back to the fact by an AddVariableValueAction | | |
+| OpaqueAction | 16.2.3.2 | differs: work, its body written in words; a value a later step reads is set only by a computation, where UML lets an OpaqueAction write values | the canon's form | a value set by words alone is one nothing checks, so only a computation in FEEL sets what a later step reads |
+| DecisionNode | 15.3.3.6 | the same: a comparison, its two outgoing flows guarded by its condition and by `else` | | |
+| MergeNode | 15.3.3.5 | differs: a step two flows reach, by a jump or by following another, so a jump back forms a loop; such a loop states why it ends, where UML requires none | the standard's gap | a loop with no stated end has no outcome a reader can check |
+| ExpansionRegion | 16.12.3 | the same: a loop over a list, iterative where the loop is ordered `by` keys, its passes run one after another in that order, the list sorted by them; iterative over an unordered collection where the loop is `in any order` or `in an order the system leaves open`; parallel where the loop is `at once`, its passes free to overlap; the loop's list its input collection, fixed as the loop begins | | |
+| output ExpansionNode | 16.12.3 | differs: what the loop gathers, offered once every pass has completed, holding the values of the passes that set it in the order the input collection induces; it keeps the order of the list walked where the region is unordered or parallel, where UML leaves that order undefined; it holds the item of a pass that set nothing where the loop gathers its own item, where UML filters that pass out; and it is left as it stood where an `End` inside the body ends the run, where UML offers the list partly filled | the standard's gap | a result a spec states never hangs on how the passes were scheduled, so the list walked orders it, and keeping a pass's own item and a list as it stood gives every path a stated value |
+| ActivityFinalNode | 15.3.3.2, 16.11.3.1, 16.12.3 | differs: `End`, the first reached ending the run and every flow in it; inside a loop's body, it ends the whole run, where UML's ActivityFinalNode inside a StructuredActivityNode or an ExpansionRegion ends that node or region alone | the canon's form | `End` reads as the end of the procedure wherever it stands, and ending only the loop would give one word two meanings |
+| ForkNode and JoinNode | 15.3.3.3, 15.3.3.4 | not written: a fork and a join of steps, and steps run at once other than a loop's passes, are a DAG ([`§ Constructs § DAG`](#dag)) | the canon's form | work at once, with waits between tasks, is a DAG's, whose dependencies a check reads, and an Algorithm stays a sequence a reader follows a step at a time |
+| AcceptEventAction | 16.10.3.1 | not written: a wait for an occurrence is a State Machine's trigger, the Algorithm running once it happens | the canon's form | waiting for something to happen is behavior over time, which a State Machine's trigger writes, and an Algorithm computes once it has what it needs |
+| exception raised and handled | 16.13.3.2, 15.5.3.2 | not written: a failure is an outcome the Output gives, and the run ends at `End` with it | the canon's form | an outcome a caller handles is written in the Output, where a reader and a check see every way the run ends |
+| InterruptibleActivityRegion and ActivityPartition | 15.6.3 | not written by an Algorithm's table: a task's timeout writes the region in a DAG's table ([`§ Constructs § DAG § What It Means`](#what-it-means)) | the canon's form | a timeout bounds a task's work, which a DAG schedules, and an Algorithm's steps compute and wait for nothing |
+| stream, and ObjectFlow other than a named fact | 13.2, 16.12.3, 15.2.3.4 | not written: a fact passes between steps by its name | the canon's form | a fact named once is what a check follows from step to step, where flows between pins are drawn, which a table does not do |
 
 ### Constraint
 
@@ -1262,67 +955,7 @@ A Constraint is authored as a table, its columns each headed by a field label:
 
 **An approximation.** A rule bounding an approximation states the bound as the rule, `abs({computed} - {intended}) <= {tolerance}`, Enforced By the step that approximates.
 
-**A worked example.** A schedule's installments, a payment settling one, written whole as a file would hold it. It holds an invariant over every installment, a postcondition of the settlement reading its Output and a before-value, and a stored total the system derives and keeps only by a nightly job, which is a warning:
-
-```markdown
-## Installment Settlement
-
-A payment received, settled against its installment up to what is due.
-
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
-**Inputs:**
-
-- installment
-- payment
-
-**Output:**
-
-- installment
-
-**Runs When:** a payment is received
-
-| Step | Action |
-|---|---|
-| 1 | Set installment.paid to min(installment.paid + payment, installment.due) |
-| 2 | End |
-
-## Settlement Rules
-
-What holds of a schedule's installments as payments settle them.
-
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Constraint`
-
-| Constraint | Applies To | Enforced By |
-|---|---|---|
-| every i in installments satisfies i.paid <= i.due | always | `§ Installment Settlement [Step: 1]` |
-| installment.paid >= paid before | after `§ Installment Settlement` | `§ Installment Settlement [Step: 1]` |
-| schedule.total paid = sum(for i in installments return i.paid) | always | nothing: the total is written by a nightly job and lags the installments between its runs |
-
-## Facts
-
-**Records:**
-
-- **Name:** installments
-  **Type:** list<context<due: number, paid: number>>
-  **Means:** the schedule's installments, each with what it is due and what has been paid of it
-
-- **Name:** installment
-  **Type:** context<due: number, paid: number>
-  **Means:** the installment a payment settles
-
-- **Name:** payment
-  **Type:** number
-  **Means:** the amount received
-
-- **Name:** paid before
-  **Type:** number
-  **Means:** what the installment had paid as the settlement began
-
-- **Name:** schedule
-  **Type:** context<total paid: number>
-  **Means:** the schedule, with the total its nightly job writes
-```
+**Worked examples.** Constraints written whole, as a file would hold them, are in `specs/methodology/examples/construct/constraint/`.
 
 **Checks.** A Constraint is checked once, across files, with its citations resolved. A citation that resolves to nothing is a finding of the citation checks. Some questions are read, never decided by the script: which part keeps a rule, whether a section an Applies To cites states an operation in its own text, whether every write able to break a rule is covered, and whether a bounded step keeps its bound.
 
@@ -1355,16 +988,16 @@ The mapping from UML to the Constraint:
 
 **Required:** Section, Treatment
 
-| UML | Section | Treatment |
-|---|---|---|
-| Constraint | 7.6.3 | the same: its specification, a ValueSpecification of type Boolean satisfied where it evaluates to true, is the rule, and its constrainedElements are the facts the rule names |
-| constraint language | 7.6.4 | the same: FEEL, a language UML leaves to the Constraint, so FEEL is no departure |
-| context | 7.6.3 | differs: Applies To, which decides when the Constraint is evaluated, and the canon adds that `always` is every rest between operations, where UML names no such time |
-| precondition and postcondition | 13.2.3.1 | differs: a rule `before` or `after` the Behavior that the Algorithm, the DAG or the transition's effect is, and an operation a section's own text states takes them too, where UML holds them of a Behavior alone |
-| Activity's preconditions and postconditions | 15.2.3.6 | the same: an Activity holds them as a Behavior does |
-| derived Property | 9.5.3 | the same: a derived value, its derivation specified by the Constraint whose rule is `{fact} = {expression}` |
-| run-to-completion | 14.2.3.9.1 | differs: kept, and the canon adds that an occurrence, a run of an Algorithm or of a DAG, or a transition taken is all or none |
-| unsatisfied Constraint | 7.6.3 | differs: the canon adds Enforced By, where UML holds that an unsatisfied Constraint makes the model's realization invalid and says nothing of what keeps one satisfied |
+| UML | Section | Treatment | Departs For | Why |
+|---|---|---|---|---|
+| Constraint | 7.6.3 | the same: its specification, a ValueSpecification of type Boolean satisfied where it evaluates to true, is the rule, and its constrainedElements are the facts the rule names | | |
+| constraint language | 7.6.4 | the same: FEEL, a language UML leaves to the Constraint, so FEEL is no departure | | |
+| context | 7.6.3 | differs: Applies To, which decides when the Constraint is evaluated, and the canon adds that `always` is every rest between operations, where UML names no such time | the standard's gap | a rule is checked at a time a spec states, and UML names none, so the canon's operations give it, `always` being every rest between them |
+| precondition and postcondition | 13.2.3.1 | differs: a rule `before` or `after` the Behavior that the Algorithm, the DAG or the transition's effect is, and an operation a section's own text states takes them too, where UML holds them of a Behavior alone | the standard's gap | the canon's operations are its Algorithms, DAGs and effects, and an operation a section states in its own text, so the rules about an operation attach to it there |
+| Activity's preconditions and postconditions | 15.2.3.6 | the same: an Activity holds them as a Behavior does | | |
+| derived Property | 9.5.3 | the same: a derived value, its derivation specified by the Constraint whose rule is `{fact} = {expression}` | | |
+| run-to-completion | 14.2.3.9.1 | differs: kept, and the canon adds that an occurrence, a run of an Algorithm or of a DAG, or a transition taken is all or none | the standard's gap | a Constraint holds between operations only where no operation is ever seen half done |
+| unsatisfied Constraint | 7.6.3 | differs: the canon adds Enforced By, where UML holds that an unsatisfied Constraint makes the model's realization invalid and says nothing of what keeps one satisfied | the standard's gap | a rule nothing keeps is a suggestion ([`specs/methodology/scope.md § Rules and Skills`](/specs/methodology/scope.md#rules-and-skills)), so the canon names the parts keeping it, which a check reads |
 
 ### Basic Table
 
@@ -1433,7 +1066,7 @@ A type's tables come in this order, each a table of fields as [`§ Constructs §
 
 A blank line separates one section field from the next, and one record from the next. Each list value ends as [`§ Fields`](#fields) states, so the Diagrams bullets and the records never run together.
 
-**A record.** A record gives its fields ([`§ Fields`](#fields)), at most one per row of its type's table, in that order. The first sits on the list item's own line. Each of the rest sits on a line indented two spaces directly beneath the one before, and every line of the item belongs to one field's value. No blank line falls between a record's fields, since they are one record's facts serving one purpose, and whitespace separates only content that differs. Every record carries every field its type requires, and no field its type does not define. No two records in one section share the values of their identifying fields. An identifying field is required.
+**A record.** A record gives its fields ([`§ Fields`](#fields)), at most one per row of its type's table, in that order. The first sits on the list item's own line. Each of the rest sits on a line indented two spaces directly beneath the one before, and every line of the item belongs to one field's value. No blank line falls between a record's fields, since they are one record's facts serving one purpose, and white space separates only content that differs. Every record carries every field its type requires, and no field its type does not define. No two records in one section share the values of their identifying fields. An identifying field is required.
 
 **An identifying value.** A record's identifying value is written as [`§ Constructs § Keyed Construct`](#keyed-construct) has any part's. A type whose records are cited and whose natural identifier is long, such as a question or a description, adds a short identifier as its key. The natural identifier is then a field marked Unique.
 
@@ -1441,88 +1074,7 @@ A blank line separates one section field from the next, and one record from the 
 
 **A closed set.** A fact whose values are a closed set's members takes them by its Values, the citation of the section holding them. That section is the set's record section or, where its members need no more than a row, its keyed Basic Table ([`§ Defining Constructs § Declaring a Construct § Fact`](#fact), [`§ Constructs § Basic Table`](#basic-table)). So every construct testing the fact draws on the one set. A State Machine recording its state in the fact has each of its states one of the set, described as [`§ Constructs § State Machine`](#state-machine) has a state drawn from a closed set described. A Decision Table's condition testing the fact has each cell within the set. The set's members sit in the one section cited, the set's home. Another section of the set's type holding records where they may sit is reported. Several workflows may each draw on one set, using the members each needs.
 
-**A worked example.** A work order's statuses, a closed set a product spec defines, a fact taking its values from them, and a workflow drawing on the set, written whole as a file would hold it:
-
-```markdown
-## Work Order Status
-
-A status a work order can hold, the set the product owner settles before, and apart from, the workflows that move a work order between them, each with the code integrations exchange for it. Its records sit in this spec.
-
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`
-
-**Plural Name:** Work Order Statuses
-
-**Reference Key:** Name
-
-| Field | Unique | Required | Default Value | Values | Holds |
-|---|---|---|---|---|---|
-| Name | yes | yes | | text | the status as users read it |
-| Description | no | yes | | text | what it means for a work order to hold it |
-| Is Active | no | no | Yes | "Yes", "No" | whether a work order may still be given it |
-| Code | yes | yes | | text | the identifier integrations exchange for it, never changed once published |
-
-## Work Order Statuses
-
-**Records:**
-
-- **Name:** Open
-  **Description:** raised, not yet given to a technician
-  **Code:** WO-OPEN
-
-- **Name:** Assigned
-  **Description:** given to a technician to carry out
-  **Code:** WO-ASGN
-
-- **Name:** On Hold
-  **Description:** paused awaiting parts, retired, no workflow giving it any longer
-  **Is Active:** No
-  **Code:** WO-HOLD
-
-- **Name:** Completed
-  **Description:** carried out and signed off
-  **Code:** WO-DONE
-
-- **Name:** Canceled
-  **Description:** withdrawn before it was carried out
-  **Code:** WO-CANC
-
-## Facts
-
-**Records:**
-
-- **Name:** work order status
-  **Type:** string
-  **Values:** `§ Work Order Statuses`
-  **Means:** the status a work order holds
-
-## Work Order
-
-The workflow of a work order raised through the portal.
-
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
-
-**Recorded In:** work order status: `§ Facts [Name: work order status]`
-
-**Table Name:** States
-
-| State | Description | Initial | Terminal |
-|---|---|---|---|
-| Open | `§ Work Order Statuses [Name: Open]`, waiting in the portal's queue for a dispatcher | Yes | No |
-| Assigned | `§ Work Order Statuses [Name: Assigned]`, its technician notified by the portal | No | No |
-| Completed | `§ Work Order Statuses [Name: Completed]` | No | Yes |
-| Canceled | `§ Work Order Statuses [Name: Canceled]` | No | Yes |
-
-**Table Name:** Transitions
-
-| From | To | Trigger |
-|---|---|---|
-| Open | Assigned | a dispatcher assigns it |
-| Open | Canceled | the requester cancels it |
-| Assigned | Completed | the technician signs it off |
-| Assigned | Canceled | the requester cancels it |
-```
-
-The statuses are records, not a Basic Table's rows, since Is Active takes a default and is held to its Values, and Code is unique on its own ([`§ When to Use Which § A Table's Construct`](#a-tables-construct)). The defining section, titled with the type's name, declares the type. Its Plural Name titles the record section, and its Reference Key, Name, is what a citation of a status names. Code is unique on its own and never cited. On Hold writes Is Active, where it differs from its default. The fact's Values cite the record section, so the fact's values are the statuses' Names. The State Machine recorded in the fact uses all but the retired On Hold. Each state's description opens with its status's record, then says what goes on in that state in this workflow.
+**Worked examples.** Record types and their records written whole, as a file would hold them, are in `specs/methodology/examples/construct/record-form/`.
 
 **Name.** A record type is named for the entity its records are, `Work Order Status`.
 
@@ -1547,11 +1099,11 @@ How a construct reads time, wherever a cell, a guard, a trigger or a step reads 
 
 **The value in force.** A value that changes from a date on, as a rate or a limit does, is a fact read at an instant. A construct reads it at the start of the period the construct computes, unless the construct's prose names another instant. A period a change falls within says how it is split. A rule changed from a date is one construct testing the period's date, not two.
 
-**Backdated and withdrawn.** An instant computed from a fact follows the fact while the machine waits on it. The instant moves when the fact changes, and it is withdrawn when the fact is removed. This is a departure, since UML leaves a TimeEvent fixed once activated. A status that may change on past dates is derived from its facts each time it is read, never a machine's state.
+**Backdated and withdrawn.** An instant computed from a fact follows the fact while the machine waits on it. The instant moves when the fact changes, and it is withdrawn when the fact is removed. This departs from UML, which leaves a TimeEvent fixed once activated ([`§ Constructs § State Machine § What It Means [UML Elements.UML: TimeEvent]`](#what-it-means-1)). A status that may change on past dates is derived from its facts each time it is read, never a machine's state.
 
-**Calendars.** Date and time arithmetic is FEEL's, in the Gregorian calendar ([`specs/methodology/expressions.md § Expressions § FEEL § Arithmetic and Time`](/specs/methodology/expressions.md#arithmetic-and-time)). An end-of-month rule other than FEEL's is named where it is used. Another calendar, a business-day calendar among them, is a named input. A length counting both its first and its last day is written with `+ 1`.
+**Calendars.** Date and time arithmetic is FEEL's, in the Gregorian calendar ([`specs/methodology/expressions.md § Expressions § FEEL § Arithmetic and Time`](/specs/methodology/expressions.md#arithmetic-and-time)), a month's end pinned as its row records ([`specs/methodology/expressions.md § Expressions § FEEL [DMN Elements.DMN: years and months duration]`](/specs/methodology/expressions.md#feel)). A date kept on its month's last day, a date moved to a business day and a date moved by a count of business days are the canon's functions, and a calendar of business days is a fact of the type they take ([`specs/methodology/expressions.md § Expressions § FEEL § The Canon's Functions`](/specs/methodology/expressions.md#the-canons-functions)). Another calendar, as a fiscal one, is a named input. A length counting both its first and its last day is written with `+ 1`.
 
-**An instant already past.** An absolute instant already past when its state is entered is taken at once. This is a departure, since UML leaves the case unsaid ([`specs/methodology/external-references.md § External References [Name: UML]`](/specs/methodology/external-references.md#external-references), its section 13.3.3.4).
+**An instant already past.** An absolute instant already past when its state is entered is taken at once. This departs from UML, which leaves the case unsaid ([`§ Constructs § State Machine § What It Means [UML Elements.UML: TimeEvent]`](#what-it-means-1)).
 
 **A relative amount.** The amount of relative time passing may be a fact, read each time its state is entered. Time counted from a condition becoming true is an absolute instant, computed from the recorded fact of when the condition became true.
 

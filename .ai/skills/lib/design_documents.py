@@ -222,7 +222,7 @@ def validation(text, fields):
 
 
 def kebab(text):
-    """The Name in kebab-case: lower case, each run of other characters a hyphen."""
+    """The Name in kebab-case: lowercase, each run of other characters a hyphen."""
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
 
 
@@ -613,7 +613,7 @@ def check_citations(proposal, root):
 
 
 def collapse(text):
-    """Whitespace-insensitive form, for reporting near-misses."""
+    """White-space-insensitive form, for reporting near-misses."""
     return " ".join(text.split())
 
 
@@ -667,7 +667,7 @@ def check(path, anchor, root):
 
     # Not found. Say why, since the cause changes the fix.
     if collapse(anchor) in collapse(body):
-        return "missing", "matches only with whitespace collapsed; copy the exact text"
+        return "missing", "matches only with white space collapsed; copy the exact text"
     head = collapse(anchor)[:40]
     if head and head in collapse(body):
         return "missing", "first 40 characters match; the anchor diverges after them"
@@ -1126,7 +1126,7 @@ REFACTOR_AND_REFINE_PATHS = ("specs", ".ai/skills")  # the canon's specs and ski
 def refactor_and_refine_lines(text):
     """-> the lines of text a Refactor and Refine cycle carries, blank lines and bare markup set
     aside, and a heading read without its level, since a move raises or lowers it."""
-    # a table's separator row, a code fence or a frontmatter fence carries no text of its own
+    # a table's separator row, a code fence or a front matter fence carries no text of its own
     return [re.sub(r"^#+ ", "", l).strip() for l in text.replace("\r\n", "\n").split("\n")
             if l.strip() and not re.fullmatch(r"[|:\- ]+|```\w*", l.strip())]
 

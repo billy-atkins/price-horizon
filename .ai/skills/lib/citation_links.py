@@ -2,7 +2,7 @@
 carries, and the link stripped again for a script reading the citation. Run by no agent directly: the design-specs
 skill's entry script writes the links, and the audit-specs skill's checks them.
 
-A citation names a heading by its lineage, and GitHub addresses a heading by a flat anchor, its title lower-cased, its
+A citation names a heading by its lineage, and GitHub addresses a heading by a flat anchor, its title lowercased, its
 punctuation dropped and its spaces made hyphens, a title met again numbered by its place among the headings of its
 file. The citation is resolved to its one heading first, so the anchor reaches that heading even where titles repeat.
 """
@@ -36,7 +36,7 @@ def linked_files(root):
 
 
 def slug(title):
-    """-> GitHub's anchor for a heading's title: inline code marks and emphasis dropped, lower case, every character
+    """-> GitHub's anchor for a heading's title: inline code marks and emphasis dropped, lowercase, every character
     but a letter, a digit, a space, a hyphen or an underscore dropped, and each space made a hyphen."""
     text = re.sub(r"[`*]", "", title.strip()).lower()
     text = "".join(c for c in text if c.isalnum() or c in " -_")

@@ -267,8 +267,9 @@ def _keyed(cells, name=None):
 
 
 # @canon-spec specs/methodology/glossary.md
-# a word of a field label, opening with a capital and made of letters or digits, a hyphen joining two parts of one word
-LABEL = r"[A-Z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*"
+# a word of a field label: opening with a capital and made of letters or digits, a hyphen joining two parts of one
+# word; or, after a label's first word, made of digits alone
+LABEL = r"(?:[A-Z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*|[0-9]+)"
 LABEL_WORD = re.compile(f"^{LABEL}$")
 
 
@@ -1644,7 +1645,7 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
         found.append((rule, r, line, "a Conditions or Annotations field naming no column of its table"))
         return
     for note in notes:
-        if not all(LABEL_WORD.match(w) for w in note.split(" ")):
+        if not all(LABEL_WORD.match(w) for w in note.split(" ")) or note.split(" ")[0].isdigit():
             found.append((rule, r, line, f"an annotation not headed by a field label: {note}"))
     n, m = len(conds), len(notes)
     # § Columns: its conditions first, then one or more outcomes, then its annotations

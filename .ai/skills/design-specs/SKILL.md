@@ -267,7 +267,7 @@ A same-file citation, one with no path, is skipped. A proposal is not the file i
 
 The manifest `--check-quoted-text` reads takes the form the script's `--help` gives. The `--help` is that form's home, because the script's actions are the code the skills share in `.ai/skills/lib/design_documents.py`. `.ai/skills/implement-specs/` runs that code through its own entry script too.
 
-Each anchor reports `ok`, `missing`, or `ambiguous` with a match count. A missing anchor is retried with whitespace collapsed, and the report says so when whitespace is the only difference, which is the usual cause.
+Each anchor reports `ok`, `missing`, or `ambiguous` with a match count. A missing anchor is retried with white space collapsed, and the report says so when white space is the only difference, which is the usual cause.
 
 Ways a quoted anchor fails, each of which the script names:
 

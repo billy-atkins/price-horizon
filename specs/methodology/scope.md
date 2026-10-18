@@ -33,6 +33,7 @@ specs/
 │   ├── acceptance-scenarios.md
 │   ├── code.md
 │   ├── design-workflow.md
+│   ├── examples/
 │   ├── expressions.md
 │   ├── external-references.md
 │   ├── glossary.md
@@ -74,6 +75,8 @@ An agent loads what its current step needs, when the step needs it, descending o
 
 What is loaded long before it is needed sits behind everything loaded since, and competes with all of it. What is loaded at the step that needs it is at the front of the agent's attention, and carries its full weight.
 
+Worked examples teach applying the canon's forms, as [`specs/methodology/spec-style.md § Clear Prose`](/specs/methodology/spec-style.md#clear-prose) has an example teach, and they are loaded the same way. They sit in `specs/methodology/examples/`, a tree whose path names what each example shows, as a Java package's name is its directory, so an agent that knows what it needs knows where it is. The path runs broad to narrow, a subject and then a topic within it, as `examples/construct/dag/` or `examples/time/calendar/`. The directories at one level are one kind of thing, a subject's topics the things its section of the canon defines, as the constructs and the Fact they declare are the construct subject's, each named in singular kebab-case as the canon names it, and one word names one concept wherever the canon writes it. An example sits under the topic it shows, whichever file states the topic's rule, and one showing two topics sits under the one it is chiefly about. The section stating a topic's rule names the topic's directory, whose `index.md` describes each example, and an agent loads an example only where its step needs one.
+
 The glossary is the one methodology file loaded ahead of need. An agent reads it with [`specs/AGENTS.md`](/specs/AGENTS.md) before any step, since the agent cannot know a word is one of the glossary's terms without having read the glossary.
 
 An agent reads what it loads from a directory in the order that the directory's `index.md` lists, a parent directory before the directories under it. That order is the one the directory's authors set ([`specs/methodology/spec-placement.md § Where a File Goes`](/specs/methodology/spec-placement.md#where-a-file-goes)). Progressive disclosure governs when to read, not how much. Whatever is loaded is read in full, never skimmed, and read fresh rather than recalled ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)). A task whose unit is a whole directory, an audit among them, loads the whole directory.
@@ -88,7 +91,7 @@ The methodology is held to the rules it states:
 
 It is dogfooding, the way a company uses its own product as its clients would: using it firsthand uncovers where it should improve.
 
-The rules on acceptance scenarios and on `technical-specs` frontmatter scope themselves to product specs, so they do not reach the methodology. A methodology file has no product capability to prove and no technical counterpart to name. The rules in [`specs/methodology/code.md`](/specs/methodology/code.md) reach only code, so they do not reach the methodology either.
+The rules on acceptance scenarios and on `technical-specs` front matter scope themselves to product specs, so they do not reach the methodology. A methodology file has no product capability to prove and no technical counterpart to name. The rules in [`specs/methodology/code.md`](/specs/methodology/code.md) reach only code, so they do not reach the methodology either.
 
 ## Agent Agnostic
 
@@ -113,6 +116,6 @@ A rule without a check is a suggestion, so every rule of Spec of Record is enfor
 
 **An operating rule.** It is checked where it leaves a trace in the files the audits read: the scope's tree, the skills registry, a skill's form, a follow-up. A plan's form leaves its trace outside those files. The skill that writes the plan checks the plan's form, through the skill's script and steps. Where a rule leaves no trace, as reading fresh leaves none, the rule is carried out as a named step of [`specs/AGENTS.md`](/specs/AGENTS.md) or of a registered skill. A skipped step is found by what it leaves wrong in the files.
 
-**Which check enforces each section.** `.ai/skills/audit-specs/` covers every section of [`specs/AGENTS.md`](/specs/AGENTS.md) and of the methodology's files, except the methodology's `architecture.md` and `index.md`, which hold no rule of their own. For each section, it names the reading audit that enforces the section, or names the section an operating rule. An operating rule's check is a step under a registered skill's `## Workflow` that applies the rule and gives it a point-of-use citation. For a section of [`specs/methodology/code.md`](/specs/methodology/code.md), `.ai/skills/verify-spec-implementation/` names the check that enforces it instead, or `.ai/skills/audit-specs/` names it an operating rule.
+**Which check enforces each section.** `.ai/skills/audit-specs/` covers every section of [`specs/AGENTS.md`](/specs/AGENTS.md) and of the methodology's files, except the methodology's `architecture.md` and `index.md` and its worked examples under `examples/`, which hold no rule of their own. For each section, it names the reading audit that enforces the section, or names the section an operating rule. An operating rule's check is a step under a registered skill's `## Workflow` that applies the rule and gives it a point-of-use citation. For a section of [`specs/methodology/code.md`](/specs/methodology/code.md), `.ai/skills/verify-spec-implementation/` names the check that enforces it instead, or `.ai/skills/audit-specs/` names it an operating rule.
 
 **A section read in parts.** An audit that reads only part of a section it names says which part. The audits that name one section read all of it between them, each part once. Where a step names the section too, the step carries what leaves no trace in the files, and the audits read the rest.

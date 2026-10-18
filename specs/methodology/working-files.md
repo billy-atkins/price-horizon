@@ -28,7 +28,7 @@ Each design document is a file of its own, one per change taken through the Desi
 
 | Part | Form | Required | Default Value | Holds |
 |---|---|---|---|---|
-| Name | a `**Name:**` field | yes | | the change, in a few words. The file is named for it in kebab-case: lower case, each run of other characters a hyphen. Other design documents name this one by that file name without its extension; one in another skill's plans folder puts this design's folder name and a slash before it, as `design-specs/{file name}` |
+| Name | a `**Name:**` field | yes | | the change, in a few words. The file is named for it in kebab-case: lowercase, each run of other characters a hyphen. Other design documents name this one by that file name without its extension; one in another skill's plans folder puts this design's folder name and a slash before it, as `design-specs/{file name}` |
 | Status | a `**Status:**` field | yes | | its state in [`§ A Design Document § The States It Moves Through`](#the-states-it-moves-through) |
 | Source | a `**Source:**` field | yes | | what asked for the change: the user's own words, or the finding that raised it |
 | Kind | a `**Kind:**` field | yes | | the kind of change, one of the kinds [`§ A Design Document § The Kinds of Change`](#the-kinds-of-change) gives, which bounds the files the change may edit and sizes its reviews ([`specs/methodology/design-workflow.md § A Design's Reviews`](/specs/methodology/design-workflow.md#a-designs-reviews)), settled while the design is shaped and before any file is edited |
@@ -252,7 +252,7 @@ A design's path is not straight. Working toward an elegant solution takes loops,
 A stamp lets a later reader tell whether content has changed since a check passed on it, so nothing has to be cleared by hand. It is written as a UTC timestamp and a content hash separated by a space, `2026-09-29T14:05:12Z sha256:3f9a0c1b2d4e5f60`:
 
 - **The timestamp.** A date and time as RFC 3339 writes one ([`specs/methodology/external-references.md § External References [Name: RFC 3339]`](/specs/methodology/external-references.md#external-references)), in UTC, to the second, ending in `Z`, as `YYYY-MM-DDThh:mm:ssZ`, so stamps written on different machines compare without a time zone.
-- **The content hash.** SHA-256 of the file's text, encoded as UTF-8 with line-feed line endings, after dropping the lines that hold the fields the form leaves out. It is written as `sha256:` followed by the digest's first sixteen hexadecimal characters, lower case. The hash detects a change, and is not meant to resist tampering.
+- **The content hash.** SHA-256 of the file's text, encoded as UTF-8 with line-feed line endings, after dropping the lines that hold the fields the form leaves out. It is written as `sha256:` followed by the digest's first sixteen hexadecimal characters, lowercase. The hash detects a change, and is not meant to resist tampering.
 
 The form a stamp is used in names the field holding the stamp and the fields the stamp leaves out. The stamp always leaves out its own field, since writing the stamp must not change the hash. It also leaves out any field whose change the check does not concern, as a design document's Validated field leaves out its Status ([`§ A Design Document`](#a-design-document)).
 
@@ -273,7 +273,7 @@ Each follow-up holds these parts, in this order:
 | Part | Form | Required | Default Value | Holds |
 |---|---|---|---|---|
 | Name | a `###` heading, a kebab-case slug | yes | | the name the follow-up is referred to by |
-| Status | a `**Status:**` field | yes | | where the follow-up is in this section's lifecycle |
+| Status | a `**Status:**` field | yes | | where the follow-up is in this section's life cycle |
 | Category | a `**Category:**` field | yes | | what kind of gap it is, such as under-developed, stale wording, a missing citation, or an open scope decision |
 | Location | a `**Location:**` field | yes | | the file, section or files it concerns |
 | Body | prose | yes | | the work, the context needed to take it up, and, where known, what found it |
