@@ -820,6 +820,7 @@ def basic_tables(body):
     lines, secs = live.split("\n"), sorted(sections(body).items(), key=lambda x: x[1][0])
     decls = constructs.declarations(live, sections(body))
     in_construct = {t["line"] for _, _, _, tables, _ in decls for t in tables}
+    in_construct |= {t["classes"]["line"] for _, _, _, tables, _ in decls for t in tables if "classes" in t}
     declared = {lin for _, _, _, _, lin in decls}
     out = {}
     for i, l in enumerate(lines):
@@ -912,10 +913,10 @@ def basic_findings(r, body, found):
                     found.append((MAPPING, r, ln, "a Treatment opening neither `the same`, `differs:` nor `not written`"))
                 elif treatment.startswith("the same") and (kind or why):
                     found.append((MAPPING, r, ln, "a Departs For or a Why on a row whose Treatment is the same"))
-                elif not treatment.startswith("the same") and (not kinds or any(k not in DEPARTS_FOR for k in kinds)
+                elif not treatment.startswith("the same") and (not kinds or len(kinds) > 2 or any(k not in DEPARTS_FOR for k in kinds)
                                                                or kinds != sorted(set(kinds), key=DEPARTS_FOR.index)):
-                    found.append((MAPPING, r, ln, "a departure whose Departs For is not one or more of " + ", ".join(DEPARTS_FOR)
-                                  + ", each once and in that order"))
+                    found.append((MAPPING, r, ln, "a departure whose Departs For is not one or two of " + ", ".join(DEPARTS_FOR)
+                                  + ", in that order"))
                 elif not treatment.startswith("the same") and not why:
                     found.append((MAPPING, r, ln, "a departure with no Why"))
         if not t["order"]:
@@ -1412,6 +1413,8 @@ def check(root, warned=None):
     constructs.constraint_findings(text_of, found, warned, sections, strip_fences, CITATION, resolve)
     # each DAG's tasks' work and what runs it, and two tasks free at once giving one fact or reading what the other gives
     constructs.dag_findings(text_of, found, sections, strip_fences, CITATION, resolve)
+    # each trigger written in FEEL in its form, and a machine's Trigger Classes
+    constructs.occurrence_findings(text_of, found, sections, strip_fences, CITATION, resolve)
     found += record_type_findings(root)
     found += canon_spec_findings(root)
     found += mapping_rule_findings(root)

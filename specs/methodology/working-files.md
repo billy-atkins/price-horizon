@@ -49,7 +49,7 @@ Each design document is a file of its own, one per change taken through the Desi
 
 **Depends On records what blocks what.** A spawned design blocks the design it came from when that design cannot finish without it, and is named in that design's Depends On. A spawned design that can be worked before or after the design it came from does not block that design. Depends On is the one record of what blocks what. It names any design that must finish first, spawned or not, as an application design names the canon design whose rule it follows. A workstack is worked from the designs nothing open blocks, back toward the design it began from.
 
-**Blocked and to revise are read, not recorded.** A design finishes when it is complete or abandoned. A design is blocked while its Depends On names a design that has not finished. It is to revise once a design its Depends On names has finished. Blocked and to revise are both read from the Status of the designs its Depends On names, never recorded in the design itself. A blocked design may still be worked. A design is validated and approved only once each design its Depends On names is approved or applying, so designs that build on each other can be shaped and approved before any of them is applied. A finished design among those it names is taken in and removed first. This works the way integrating branches early beats discovering the conflict at merge. A design is applied only once its Depends On names none, so designs apply in dependency order. Where a design goes back to in progress, the builder moves back each approved design whose Depends On names it. Once a design its Depends On names finishes, the design naming it goes back to in progress if it is approved. It takes in what the finished design settled, or why it was dropped, against the files as they stand once that design finishes. It then removes the finished design from Depends On.
+**Blocked and to revise are read, not recorded.** A design finishes when it enters one of the states the Trigger Classes table of [`§ A Design Document § The States It Moves Through`](#the-states-it-moves-through) lists. A design is blocked while its Depends On names a design that has not finished. It is to revise once a design its Depends On names has finished. Blocked and to revise are both read from the Status of the designs its Depends On names, never recorded in the design itself. A blocked design may still be worked. A design is validated and approved only once each design its Depends On names is approved or applying, so designs that build on each other can be shaped and approved before any of them is applied. A finished design among those it names is taken in and removed first. This works the way integrating branches early beats discovering the conflict at merge. A design is applied only once its Depends On names none, so designs apply in dependency order. Where a design goes back to in progress, the builder moves back each approved design whose Depends On names it. Once a design its Depends On names finishes, the design naming it goes back to in progress if it is approved. It takes in what the finished design settled, or why it was dropped, against the files as they stand once that design finishes. It then removes the finished design from Depends On.
 
 **Unwinding.** A finished design is deleted once no design names it in Depends On, so what it settled or why it was dropped stays readable until the designs that waited on it have taken it in. When a design is abandoned, each open design it spawned goes on as a design of its own, or is abandoned with it, as the user decides. A Spawned By naming a design since deleted stays, as the spawned design's history.
 
@@ -145,7 +145,12 @@ The states a design document's Status moves through, and what moves it from one 
 | approved | abandoned | the user abandons it | none |
 | applying | abandoned | the user abandons it | none |
 
-A design its Depends On names finishes when it enters complete or abandoned, so that trigger is a class of occurrences.
+**Table Name:** Trigger Classes
+
+| Member | Class |
+|---|---|
+| complete of a design its Depends On names is entered | a design its Depends On names finishes |
+| abandoned of a design its Depends On names is entered | a design its Depends On names finishes |
 
 ### A Design Changing Code
 

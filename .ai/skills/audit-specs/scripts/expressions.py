@@ -284,6 +284,7 @@ class _Parser:
     def __init__(self, text, facts, known=None, used=None):
         self.toks, self.i, self.problems = _tokens(text), 0, []
         self.used = used  # a list each fact the parse resolves is appended to, or None
+        self.calls = []  # each built-in function the parse resolves a call of
         self.facts = {k: ("string" if v == "word" else v) for k, v in dict(facts).items()}
         self.known = known  # a name the caller knows though no fact is named it, or None
         self.bound = []  # names bound by a loop, a quantifier, a filter or a function, innermost last
@@ -797,6 +798,7 @@ class _Parser:
                     return self.facts[n]
                 if self.peek(len(parts)) == ("op", "("):
                     self.i += len(parts)
+                    self.calls.append(n)
                     return ("fn", n, None)
                 if not self.open and self.peek(len(parts))[0] != "word":
                     self.i += len(parts)
@@ -897,6 +899,17 @@ def check(text, facts, known=None, used=None):
         return kind, p.problems
     except FeelError as e:
         return None, [f"an expression in no form FEEL has: {e}"]
+
+
+def called(text, facts):
+    """A FEEL expression, and each fact it may name with its kind -> the built-in functions it calls, as the parser
+    resolves each name, a fact's longer name winning; none where it is in no form FEEL has."""
+    try:
+        p = _Parser(text, facts)
+        p.expr()
+        return set(p.calls)
+    except FeelError:
+        return set()
 
 
 def check_tests(text, facts, value=None, known=None):

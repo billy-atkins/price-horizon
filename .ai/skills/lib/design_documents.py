@@ -145,7 +145,8 @@ REVIEW_FORM = re.compile(r"^\*\*(?:Adversarial review|Post-apply audit)\b")
 RAN_ON = re.compile(r"\bon [^\s,;]+(?: [^\s,;]+)*? (?:at (?:light|medium|high) effort|as the agent allows)\b", re.I)
 # @canon-spec specs/methodology/working-files.md § A Design Document § The States It Moves Through
 STATES = ("not-started", "in-progress", "approved", "applying", "complete", "abandoned")
-# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files.md § A Design Document § The States It Moves Through
+# the states its Trigger Classes table makes a design finish in
 FINISHED = ("complete", "abandoned")
 # A field's value runs to the next line opening with a field's key, or to a blank line.
 KEY = r"\*\*([A-Z][A-Za-z ]*):\*\*"
