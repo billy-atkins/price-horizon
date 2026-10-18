@@ -21,7 +21,7 @@ Read `specs/AGENTS.md`, then `specs/methodology/glossary.md`, and a directory's 
 
 ### Frame the change
 
-Frame the change per `specs/AGENTS.md § Design, Refactor, Refine`. Record it in a design document in `.ai/plans/design-specs/`, copied from `.ai/skills/design-specs/references/design-document-template.md`, per `specs/methodology/working-files.md § A Design Document`. The design document's Kind field settles the change's kind before any file is edited. The kind also sizes the design's reviews, as `specs/methodology/design-workflow.md § A Design's Reviews` has them.
+Frame the change per `specs/AGENTS.md § Design, Refactor, Refine`. Record it in a design document in `.ai/plans/design-specs/`, copied from `.ai/skills/design-specs/references/design-document-form-template.md`, per `specs/methodology/working-files.md § A Design Document`. The design document's Kind field settles the change's kind before any file is edited. The kind also sizes the design's reviews, as `specs/methodology/design-workflow.md § A Design's Reviews` has them.
 
 Agree on the design goals with the user first, then present the design frame, as `specs/AGENTS.md § Design, Refactor, Refine` has them come first. Record the goals as `specs/methodology/working-files.md § Design Goal` has them. Draft The Design only once the user agrees on the goals and agrees to or adjusts the frame. Record each answer as a steer.
 
