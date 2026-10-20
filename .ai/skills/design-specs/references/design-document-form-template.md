@@ -1,12 +1,12 @@
 # Design Document
 
-**Name:** {a few words}
+**Name:** {the design's slug, its file name without .md}
 **Status:** {not-started, or in-progress once it is worked}
 **Source:** {the user's words, quoted, or the finding}
 **Kind:** {canon-specs, application-specs, documentation or other}
 **Target:** {`path`; `path`}
-**Spawned By:** {a design document's file name, without .md, as `implement-specs/{file name}` for one in that skill's plans folder, or none}
-**Depends On:** {design documents' file names, in the same form, separated by semicolons, or none}
+**Spawned By:** {a design document's Name, as `implement-specs/{Name}` for one in that skill's plans folder, or none}
+**Depends On:** {design documents' Names, in the same form, separated by semicolons, or none}
 **Validated:** none
 
 ## The Problem
@@ -26,7 +26,7 @@
 
 ### Scope
 
-{the cases the change governs and what tells them apart; then the sweep and what it found}
+{the cases the change governs and what tells them apart; then the sweep and what it found; and, where Depends On names a design, what this design relies on from each: what it leaves in the files that this one cites or builds on}
 
 ### Approach
 
@@ -70,6 +70,6 @@
 
 {each pass and each review, as `specs/methodology/working-files.md § A Design Document` has the Builder's Passes hold them}
 
-## Deliberately Left Alone
+## Out of Scope
 
-{each change declined, and each piece of work deferred}
+{each thing the design deliberately leaves unaddressed, each change considered and declined and each piece of work handed on, with its reason, naming no other working file}

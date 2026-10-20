@@ -50,7 +50,7 @@ UNSTAMPED = ("Validated", "Status")
 # @canon-spec specs/methodology/working-files.md § A Design Document
 IMPACT = "Impact on the Application Specs"  # a canon design's, and no other design's
 # @canon-spec specs/methodology/working-files.md § A Design Document
-SECTIONS = ("The Problem", "Design Goals", "The Design Frame", "Steering Decisions", "Design Plan Steps", IMPACT, "The Builder's Passes", "Deliberately Left Alone")
+SECTIONS = ("The Problem", "Design Goals", "The Design Frame", "Steering Decisions", "Design Plan Steps", IMPACT, "The Builder's Passes", "Out of Scope")
 # @canon-spec specs/methodology/working-files.md § A Design Document
 OPTIONAL = ("Steering Decisions",)
 # @canon-spec specs/methodology/working-files.md § A Design Document
@@ -280,7 +280,7 @@ def check_goals(body):
             problems.append("a design goal's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
             continue
         name = re.match(KEY + r" ?(.*)", item).group(2).strip()
-        # working-files.md § Design Goal: a Name in kebab-case, as a design document's file name is
+        # working-files.md § Design Goal: a Name in kebab-case, as a design document's Name is
         if kebab(name) != name:
             problems.append("a design goal's Name is not in kebab-case: " + name)
         if name in seen:
@@ -316,7 +316,7 @@ def check_steps(body):
             problems.append("a design plan step's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
             continue
         name = re.match(r"- " + KEY + r" ?(.*)", item).group(2).strip()
-        # working-files.md § Design Plan Step: a Name in kebab-case, as a design document's file name is
+        # working-files.md § Design Plan Step: a Name in kebab-case, as a design document's Name is
         if kebab(name) != name:
             problems.append("a design plan step's Name is not in kebab-case: " + name)
         if name in seen:
@@ -350,8 +350,11 @@ def check_form(design):
         keys, values = [k for k, _ in fields], dict(fields)
         if keys != list(FIELDS):
             problems.append((name, "its fields are %s, not %s" % (", ".join(keys), ", ".join(FIELDS))))
-        if values.get("Name") and kebab(values["Name"]) != name:
-            problems.append((name, "the file is not named for its Name: %s.md" % kebab(values["Name"])))
+        # working-files.md § A Design Document: the Name is the design's slug, and its file is {Name}.md
+        if values.get("Name") and kebab(values["Name"]) != values["Name"]:
+            problems.append((name, "Name is not a slug: " + values["Name"]))
+        elif values.get("Name") and values["Name"] != name:
+            problems.append((name, "Name is not its file name without .md: " + values["Name"]))
         if values.get("Status", "") not in STATES:
             problems.append((name, "Status is not a state: " + values.get("Status", "")))
         if not values.get("Name"):
@@ -423,6 +426,15 @@ def kind_of(path, skills):
     return None
 
 
+# @canon-spec specs/methodology/working-files.md § The Working Files
+WORKING_FILES = (".ai/plans/", ".ai/follow-ups.md", ".ai/tmp/")  # a working file is of no kind of change
+
+
+def is_working_file(path):
+    path = path.removeprefix("./")
+    return any(path == w.rstrip("/") or path.startswith(w) for w in WORKING_FILES)
+
+
 def check_kind(design, root):
     """-> (1, [(file name, problem)]) where one design document's Target strays from its Kind."""
     reg = root / REGISTRY
@@ -448,6 +460,9 @@ def check_kind(design, root):
             problems.append((title, "Target names no path"))
             continue
         for path in re.findall(r"`([^`]+)`", target):
+            if is_working_file(path):
+                problems.append((title, "Target names a working file, which no design changes: " + path))
+                continue
             k = kind_of(path, skills)
             if k and k != value:
                 article = lambda w: ("an " if w[0] in "aeiou" else "a ") + w
@@ -862,7 +877,7 @@ FLAGS = (
     ("--check-design-form", "DESIGN", check_design_form,
      "confirm a design document holds the form working-files.md sets"),
     ("--check-target-kind", "DESIGN", check_target_kind,
-     "confirm every file a design document's Target names is of the kind its Kind field declares"),
+     "confirm every file a design document's Target names is of the kind its Kind field declares, and that it names no working file"),
     ("--check-design", "DESIGN", check_design,
      "run the validation review on one design document, writing no stamp: its form, its records and the references within it, drawing only on the document and the canon's declarations of its form; the builder runs it at validating before each adversarial round"),
     ("--check-workstack", "PLANS_DIR", check_workstack,
