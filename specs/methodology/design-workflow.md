@@ -14,52 +14,54 @@ A design enters its work by the reason its Status entered in-progress. Its chang
 |---|---|---|---|
 | entered | the design has entered in-progress, by its Status's move | Yes | No |
 | framing | the builder agrees on the design goals with the user and states the design frame, or revisits either, and brings them to the user, as [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine) has the goals, then the frame, come first, taking in each steer the user gives and each design its Depends On names that has finished ([`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document)) | No | No |
-| drafting | the builder takes the design through the Design, Refactor, Refine process ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)), recording each steer as it is given ([`specs/methodology/working-files.md § Steering Decision`](/specs/methodology/working-files.md#steering-decision)) and taking in each design its Depends On names that has finished ([`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document)), checks its whole work, as its row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What`](/specs/AGENTS.md#who-checks-what) sets, and, before the design's first adversarial review, or before its post-apply audit where the user's approval ends the review before any round, offers the user the review's model and reasoning effort | No | No |
+| drafting | the builder takes the design's steps through the Design, Refactor, Refine process ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)), recording each steer as it is given ([`specs/methodology/working-files.md § Steering Decision`](/specs/methodology/working-files.md#steering-decision)) and taking in each design its Depends On names that has finished ([`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document)), then makes its self-review, as its row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What`](/specs/AGENTS.md#who-checks-what) sets, and, before the design's first adversarial review, or before its post-apply review where the user's approval of the plan ends the review before any round, offers the user the review's model and reasoning effort | No | No |
 | reviewing | a cold agent runs the adversarial review, as [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine) has it | No | No |
 | settling | the builder groups the round's findings, weighs them against the design's goals, weighs the steers they press on, and states the causes and the change it proposes, the user triaging its design flaws and answering its other calls, the builder settling the rest, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round`](/specs/AGENTS.md#settling-a-round) has it, taking in each steer the user gives and each design its Depends On names that has finished, one finishing while the design was reviewed among them; where the user's approval has ended the review, it settles nothing, the round's findings left as they are | No | No |
 | reassessing | the builder and the user step back and reassess, as [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine) has a phase not converging, taking in each design its Depends On names that has finished | No | No |
-| changing | the builder revises the design, as the round was settled, taking in each steer the user gives and each design its Depends On names that has finished ([`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document)), and proves the change, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round`](/specs/AGENTS.md#settling-a-round) has it | No | No |
-| waiting | the design waits for each design its Depends On names to be approved or applying, as [`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document) has a design validated and approved only then | No | No |
-| validating | the builder checks its whole work, as its row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What`](/specs/AGENTS.md#who-checks-what) sets, and the validation review checks that the design document is valid, the builder fixing what it reports and running it again until it stamps the design ([`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document)) | No | No |
-| awaiting approval | the user is asked to approve the design | No | No |
-| approved by the user | the user approved the design | No | Yes |
+| reassessing the send-backs | the builder and the user step back and reassess a run of the design's applies sent back, as [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine) has a phase not converging, taking in each design its Depends On names that has finished | No | No |
+| changing | the builder revises the design, as the round was settled, taking in each steer the user gives and each design its Depends On names that has finished ([`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document)), takes each step the change moved through the Design, Refactor, Refine process, then makes its self-review, proving the change, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round`](/specs/AGENTS.md#settling-a-round) has it | No | No |
+| waiting | the design waits for each design its Depends On names to be approved or applying, as [`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document) has a design go to the user's approval only then | No | No |
+| validating | the builder runs `--check-workstack` and puts right what it reports, and the validation review checks the design document's structure, as its row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What`](/specs/AGENTS.md#who-checks-what) sets, the builder fixing what it reports and running it again until it passes, the review stamping the design on its way to the user's approval ([`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document)) | No | No |
+| awaiting approval | the user is asked to approve the plan | No | No |
+| approved by the user | the user approved the plan | No | Yes |
 
 **Table Name:** Transitions
 
 | From | To | Trigger | Guard |
 |---|---|---|---|
 | entered | framing | none | entry reason = "taken up" |
-| entered | framing | none | entry reason = "sent back" |
+| entered | framing | none | entry reason = "sent back" and consecutive send-backs < 3 |
+| entered | reassessing the send-backs | none | entry reason = "sent back" and consecutive send-backs >= 3 |
 | entered | changing | none | entry reason = "reopened" |
 | entered | changing | none | entry reason = "a dependency finished" |
 | entered | waiting | none | entry reason = "a dependency moved back" |
+| reassessing the send-backs | framing | the user decides the reassessment | none |
+| reassessing the send-backs | changing | the user approves the plan | none |
 | framing | drafting | the user agrees on the goals and agrees to or adjusts the frame | none |
 | drafting | framing | the user gives a steer | needs reframing? |
-| drafting | reviewing | none | not(review ended by approval?) |
-| drafting | validating | none | review ended by approval? and depends on ready? |
-| drafting | waiting | none | review ended by approval? and not(depends on ready?) |
+| drafting | validating | none | none |
 | reviewing | settling | none | none |
 | reviewing | changing | the user gives a steer | none |
 | settling | reassessing | none | not(review ended by approval?) and (consecutive design flaw rounds >= 3 or consecutive implementation flaw rounds >= 5) |
 | settling | changing | none | review ended by approval? or (consecutive design flaw rounds < 3 and consecutive implementation flaw rounds < 5) |
 | reassessing | framing | the user decides the reassessment | reassessment != "go on" |
 | reassessing | changing | the user decides the reassessment | reassessment = "go on" |
-| reassessing | changing | the user approves the design's text | none |
+| reassessing | changing | the user approves the plan | none |
 | changing | framing | none | needs reframing? |
-| changing | drafting | none | not(needs reframing?) and needs review? and not(review ended by approval?) |
-| changing | validating | none | not(needs reframing?) and (not(needs review?) or review ended by approval?) and depends on ready? |
-| changing | waiting | none | not(needs reframing?) and (not(needs review?) or review ended by approval?) and not(depends on ready?) |
+| changing | validating | none | not(needs reframing?) |
 | waiting | validating | when depends on ready? | none |
 | waiting | changing | the user gives a steer | none |
 | waiting | changing | a design its Depends On names finishes | none |
-| validating | approved by the user | none | text approved? |
-| validating | awaiting approval | none | not(text approved?) |
-| validating | changing | the validation review reports a problem | fix changes the design? |
-| validating | waiting | [`specs/methodology/working-files.md § A Design Document § The States It Moves Through [States.State: in-progress]`](/specs/methodology/working-files.md#the-states-it-moves-through) of a design its Depends On names is entered | none |
+| validating | reviewing | none | needs review? and not(review ended by approval?) |
+| validating | awaiting approval | none | (not(needs review?) or review ended by approval?) and depends on ready? and not(plan approved?) |
+| validating | approved by the user | none | (not(needs review?) or review ended by approval?) and depends on ready? and plan approved? |
+| validating | waiting | none | (not(needs review?) or review ended by approval?) and not(depends on ready?) |
+| validating | changing | the validation review reports a problem | fix changes the plan? |
+| validating | waiting | [`specs/methodology/working-files.md § A Design Document § The States It Moves Through [States.State: in-progress]`](/specs/methodology/working-files.md#the-states-it-moves-through) of a design its Depends On names is entered | not(needs review?) or review ended by approval? |
 | validating | changing | the user gives a steer | none |
 | validating | changing | a design its Depends On names finishes | none |
-| awaiting approval | approved by the user | the user approves the design's text | depends on ready? |
-| awaiting approval | changing | the user does not approve the design's text | none |
+| awaiting approval | approved by the user | the user approves the plan | depends on ready? |
+| awaiting approval | changing | the user does not approve the plan | none |
 | awaiting approval | drafting | the user asks for another round | none |
 | awaiting approval | waiting | [`specs/methodology/working-files.md § A Design Document § The States It Moves Through [States.State: in-progress]`](/specs/methodology/working-files.md#the-states-it-moves-through) of a design its Depends On names is entered | none |
 | awaiting approval | changing | a design its Depends On names finishes | none |
@@ -80,31 +82,55 @@ A design's apply begins only as [`specs/methodology/working-files.md § A Design
 
 | State | Description | Initial | Terminal |
 |---|---|---|---|
-| writing | the builder writes the design's edits, checks the files against them, as its row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What`](/specs/AGENTS.md#who-checks-what) sets, and starts the post-apply audit as [`§ A Design's Reviews`](#a-designs-reviews) sizes it, a cold agent's on the model and reasoning effort the user chose for the design | Yes | No |
-| auditing | the post-apply audit runs, as its row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What`](/specs/AGENTS.md#who-checks-what) sets | No | No |
-| settling the audit | each finding of the audit is settled with the user, as [`specs/methodology/working-files.md § A Design Document § Changes After Approval`](/specs/methodology/working-files.md#changes-after-approval) has it | No | No |
+| writing | the builder writes each step's text or code with each file open, within the Target, from the files as they stand, the changes a send-back kept among them ([`specs/methodology/working-files.md § A Design Document § The States It Moves Through § A Send-back`](/specs/methodology/working-files.md#a-send-back)), takes in the user's feedback on the applied result, then makes its self-review of what it wrote, as its row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What`](/specs/AGENTS.md#who-checks-what) sets, and starts the post-apply review, a cold agent's on the model and reasoning effort the user chose for the design | Yes | No |
+| post-apply reviewing | a cold agent runs the post-apply review, as its row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What`](/specs/AGENTS.md#who-checks-what) sets | No | No |
+| settling the post-apply round | the builder settles the round, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round`](/specs/AGENTS.md#settling-a-round) has it, the user triaging a finding lying in the plan, fixes the round's nits in the files, and sets plan finding? and writing flaw? by what the round found | No | No |
+| user reviewing | the builder shows the user the applied result and the post-apply review's pass, and waits on the user | No | No |
+| auditing | a cold agent runs an audit, given the skill's name and the kinds [`§ A Design's Reviews`](#a-designs-reviews) sets, as its row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What`](/specs/AGENTS.md#who-checks-what) sets | No | No |
+| settling the audit | the builder reads and triages the audit's findings as [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine) has an audit read, each settled as [`specs/methodology/working-files.md § A Design Document § Changes After Approval`](/specs/methodology/working-files.md#changes-after-approval) has it, and the builder sets plan finding? and audit rework? | No | No |
 | reassessing the apply | the builder and the user step back and reassess, as [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine) has a phase not converging | No | No |
 | awaiting the commit | the builder shows the user the commit for the design's changes and waits for the go-ahead | No | No |
 | committing | the builder commits the design's changes on their own, one commit for the design ([`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document)) | No | No |
-| reverting | the builder reverts the changes the design wrote, through version control where the project has it, as [`specs/methodology/working-files.md § A Design Document § Changes After Approval`](/specs/methodology/working-files.md#changes-after-approval) has a design sent back | No | No |
-| applied | the design's edits are written, its audit settled, and its changes committed where the project has version control | No | Yes |
-| sent back | the design goes back to in-progress, its changes reverted, a finding of its audit sending it back or its builder finding, as it writes, a change the design does not hold | No | Yes |
+| applied | the text or code its steps call for is written, its post-apply review converged, the user's review given, its audit settled, and its changes committed where the project has version control | No | Yes |
+| sent back | the design goes back to in-progress with its written changes kept in place, as [`specs/methodology/working-files.md § A Design Document § The States It Moves Through § A Send-back`](/specs/methodology/working-files.md#a-send-back) has it, a finding lying in the plan, a steer, a reassessment of the apply, or its builder's finding that the plan cannot be delivered, triaged by the user as lying in the plan, sending it back | No | Yes |
 
 **Table Name:** Transitions
 
 | From | To | Trigger | Guard |
 |---|---|---|---|
-| writing | auditing | none | none |
-| writing | reverting | the builder finds a change the design does not hold | none |
+| writing | post-apply reviewing | none | none |
+| writing | sent back | the user triages the builder's finding that the plan cannot be delivered as its steps and Target state it as lying in the plan | none |
+| post-apply reviewing | settling the post-apply round | none | none |
+| settling the post-apply round | sent back | none | plan finding? |
+| settling the post-apply round | reassessing the apply | none | not(plan finding?) and writing flaw? and consecutive post-apply flaw rounds >= 5 |
+| settling the post-apply round | writing | none | not(plan finding?) and writing flaw? and consecutive post-apply flaw rounds < 5 |
+| settling the post-apply round | user reviewing | none | not(plan finding?) and not(writing flaw?) |
+| user reviewing | auditing | the user approves the applied result | none |
+| user reviewing | post-apply reviewing | the user asks for another round | none |
 | auditing | settling the audit | none | none |
-| settling the audit | reassessing the apply | none | audit sends back? and consecutive send-back audits >= 3 |
-| settling the audit | reverting | none | audit sends back? and consecutive send-back audits < 3 |
-| settling the audit | awaiting the commit | none | not(audit sends back?) and version control? |
-| settling the audit | applied | none | not(audit sends back?) and not(version control?) |
-| reassessing the apply | reverting | the user decides the reassessment | none |
+| settling the audit | sent back | none | plan finding? |
+| settling the audit | reassessing the apply | none | not(plan finding?) and audit rework? and consecutive rework audits >= 3 |
+| settling the audit | writing | none | not(plan finding?) and audit rework? and consecutive rework audits < 3 |
+| settling the audit | awaiting the commit | none | not(plan finding?) and not(audit rework?) and version control? |
+| settling the audit | applied | none | not(plan finding?) and not(audit rework?) and not(version control?) |
+| reassessing the apply | sent back | the user decides the reassessment | reassessment != "go on" |
+| reassessing the apply | writing | the user decides the reassessment | reassessment = "go on" |
 | awaiting the commit | committing | the user approves its commit | none |
 | committing | applied | none | none |
-| reverting | sent back | none | none |
+| writing | sent back | the user gives a steer | none |
+| post-apply reviewing | sent back | the user gives a steer | none |
+| settling the post-apply round | sent back | the user gives a steer | none |
+| user reviewing | sent back | the user gives a steer | none |
+| auditing | sent back | the user gives a steer | none |
+| settling the audit | sent back | the user gives a steer | none |
+| reassessing the apply | sent back | the user gives a steer | none |
+| awaiting the commit | sent back | the user gives a steer | none |
+| post-apply reviewing | writing | the user gives feedback on the applied result | none |
+| settling the post-apply round | writing | the user gives feedback on the applied result | none |
+| user reviewing | writing | the user gives feedback on the applied result | none |
+| auditing | writing | the user gives feedback on the applied result | none |
+| settling the audit | writing | the user gives feedback on the applied result | none |
+| awaiting the commit | writing | the user gives feedback on the applied result | none |
 
 ### Facts
 
@@ -125,10 +151,20 @@ A design's apply begins only as [`specs/methodology/working-files.md § A Design
   **Initial Value:** 0
   **Means:** the adversarial rounds in a row of the design's phase, this one among them, each not ended by the user's approval and finding an implementation flaw, a nit the builder judged harmful among them, counted as [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine) has a phase converge; set back to zero by a round finding none and by the design's starting afresh at its frame, a reassessment's or a send-back's
 
-- **Name:** consecutive send-back audits
+- **Name:** consecutive send-backs
   **Type:** number
   **Initial Value:** 0
-  **Means:** the post-apply audits in a row of the design, this one among them, each sending the design back, for a design flaw or an implementation flaw, as [`specs/methodology/working-files.md § A Design Document § Changes After Approval`](/specs/methodology/working-files.md#changes-after-approval) has it, counted as [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine) has a phase converge; set back to zero only by an audit sending none back, a send-back leaving it as it stands
+  **Means:** the applies of the design in a row, this one among them, each ending sent back; set back to zero as an apply reaches awaiting the commit or applied; set back to zero too by a reassessment, of the send-backs or of the apply, that decides other than "go on", the apply it sends back not counted
+
+- **Name:** consecutive post-apply flaw rounds
+  **Type:** number
+  **Initial Value:** 0
+  **Means:** the post-apply rounds in a row of the apply, this one among them, each finding an implementation flaw lying in the writing; set back to zero by a round finding none and as an apply begins
+
+- **Name:** consecutive rework audits
+  **Type:** number
+  **Initial Value:** 0
+  **Means:** the audits in a row of the apply, this one among them, each sending a finding back to writing; set back to zero by an audit sending none and as an apply begins
 
 - **Name:** reassessment
   **Type:** string
@@ -137,7 +173,7 @@ A design's apply begins only as [`specs/methodology/working-files.md § A Design
 
 - **Name:** needs review?
   **Type:** boolean
-  **Means:** whether the design takes another adversarial round before it is validated: the last round it settled found a design flaw the user triaged as one or an implementation flaw, or its goals, its frame or its structure have moved since that round began, or it has settled none since it was last framed ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine))
+  **Means:** whether the design takes another adversarial round before the user's approval: the last round it settled found a design flaw the user triaged as one or an implementation flaw, or its goals, its frame or its steps have moved since that round began, or it has settled none since it was last framed, or the user asked for another round ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine))
 
 - **Name:** needs reframing?
   **Type:** boolean
@@ -146,24 +182,35 @@ A design's apply begins only as [`specs/methodology/working-files.md § A Design
 - **Name:** review ended by approval?
   **Type:** boolean
   **Initial Value:** false
-  **Means:** whether the user's approval of the design's text, given before its adversarial review ended, ended it ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)). The approval sets it in any state of the design's work. No transition fires on it but the reassessment's, and each state finishes its own work first. It is set back to false only where the design is sent back, a reassessment starts it afresh or the user asks for another round. So a change after the approval keeps it, a reopen or a dependency's move among them, even one changing the goals or the frame, and the design comes back to the user
+  **Means:** whether the user's approval of the plan, given before its adversarial review ended, ended it ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)). The approval sets it in any state of the design's work. No transition fires on it but the reassessments', and each state finishes its own work first. It is set back to false only where the design is sent back, a reassessment starts it afresh or the user asks for another round. So a change after the approval keeps it, a reopen or a dependency's move among them, even one changing the goals or the frame, and the design comes back to the user
 
-- **Name:** text approved?
+- **Name:** plan approved?
   **Type:** boolean
   **Initial Value:** false
-  **Means:** whether the user's approval of the design's text, given in any state of its work, covers the text as it stands ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)). It is set back to false by a change after the approval to the design's goals, its frame or The Design, and by the design's entering in-progress again. After such a change, the design comes back to the user to approve again
+  **Means:** whether the user's approval of the plan, given in any state of its work, covers the plan as it stands ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)). It is set back to false by a change after the approval to the design's goals, its frame or its steps, and by the design's entering in-progress again. After such a change, the design comes back to the user to approve again
 
-- **Name:** fix changes the design?
+- **Name:** fix changes the plan?
   **Type:** boolean
-  **Means:** whether fixing a problem the validation review reports changes The Design, as an edit that no longer applies does, and not only the record around it
+  **Means:** whether fixing a problem the validation review reports changes the design's goals, its frame or a step, and not only the record around them
 
 - **Name:** depends on ready?
   **Type:** boolean
   **Means:** whether each design its Depends On names is approved or applying
 
-- **Name:** audit sends back?
+- **Name:** plan finding?
   **Type:** boolean
-  **Means:** whether a finding of the post-apply audit sends the design back to in-progress, as [`specs/methodology/working-files.md § A Design Document § Changes After Approval`](/specs/methodology/working-files.md#changes-after-approval) has one
+  **Initial Value:** false
+  **Means:** whether the post-apply round or the audit just settled holds a finding lying in the plan, as [`specs/methodology/working-files.md § A Design Document § Changes After Approval`](/specs/methodology/working-files.md#changes-after-approval) has one; set by the settling state, and set back as that state is left
+
+- **Name:** writing flaw?
+  **Type:** boolean
+  **Initial Value:** false
+  **Means:** whether the post-apply round just settled found an implementation flaw lying in the writing; set by settling the post-apply round, and set back as it is left
+
+- **Name:** audit rework?
+  **Type:** boolean
+  **Initial Value:** false
+  **Means:** whether a finding of the audit just settled, one the design caused, goes back to writing, as [`specs/methodology/working-files.md § A Design Document § Changes After Approval`](/specs/methodology/working-files.md#changes-after-approval) has it; set by settling the audit, and set back as it is left
 
 - **Name:** version control?
   **Type:** boolean
@@ -171,7 +218,7 @@ A design's apply begins only as [`specs/methodology/working-files.md § A Design
 
 ## A Design's Reviews
 
-A design's Kind sizes its reviews. The effort the design's reviews take, and what its post-apply audit reads, grow with what a flaw in the design would cost. A design whose Target names files of more than one Kind takes the highest effort among them. What the post-apply audit reads is its Kind's, as [`.ai/skills/audit-specs/SKILL.md`](/.ai/skills/audit-specs/SKILL.md) sets it, and as `.ai/skills/verify-spec-implementation/` sets it for code. The effort each Kind gives is a review's default ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)):
+A design's Kind sizes its reviews and its audit. The effort they take grows with what a flaw in the design would cost. A design whose Target names files of more than one Kind takes the highest effort among them. The kinds of the files its Target names pick its audit, each file's kind as [`specs/methodology/working-files.md § A Design Document § The Kinds of Change`](/specs/methodology/working-files.md#the-kinds-of-change) defines it. Where they include `code`, the audit is `.ai/skills/verify-spec-implementation/`'s full run. Where they include any other kind, it is an `.ai/skills/audit-specs/` run given those kinds as the skill's `--kind`, which reads only the audits, and the files, of those kinds. A design whose Target names both runs both. A run given `canon-specs` is the full run, every audit over every file, since a change to the canon can leave any file in breach of it, the application specs among them. A run given no kind, as the user starts one, is the full run too. The effort each Kind gives is a review's default ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)):
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
@@ -186,6 +233,23 @@ A design's Kind sizes its reviews. The effort the design's reviews take, and wha
 | `other` | medium |
 
 A flaw in the canon is reproduced in every spec written under it. A mint's engraving plate works the same way: a flaw in it is reproduced on every banknote it prints. A flaw in the documentation reaches no file beyond it. A flaw in the application specifications reaches the code built from them, and a flaw in code reaches what it runs, so each takes the middle effort. What another file reaches is not known in advance, so it takes the middle effort too.
+
+## A Review's Brief
+
+Every adversarial review and every post-apply review the standard process runs is started with this brief alone, the same in every round, so the design is the one thing that changes between rounds. The brief holds no part of a review's task. The review's paragraph and its row in [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine) hold the whole of it. The builder fills the brief's blanks as it starts a round, and adds nothing about the design or the rounds before it. What a finding means and where it goes stay the builder's to settle. The brief sits in a fenced block, so no link is written into it and it stays this text:
+
+```text
+You are the {adversarial | post-apply} reviewer of a Spec of Record design. You are cold: you did not build or apply it, and you change nothing but your report.
+
+Design: {design document}
+Report: {report file}
+
+1. Read specs/AGENTS.md, then specs/methodology/glossary.md, then the design document whole.
+2. Do the {adversarial | post-apply} review as specs/AGENTS.md § Design, Refactor, Refine sets it: its paragraph and its row of specs/AGENTS.md § Design, Refactor, Refine § Who Checks What.
+3. Write the report, and end with its path and a count of findings by mark.
+```
+
+An audit takes no brief. Whoever starts one, the user or the builder in a design's apply, starts a cold agent given the skill's name and, in a design's apply, the kinds [`§ A Design's Reviews`](#a-designs-reviews) sets, as [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What`](/specs/AGENTS.md#who-checks-what) has an audit run.
 
 ## A Review's Effort
 
