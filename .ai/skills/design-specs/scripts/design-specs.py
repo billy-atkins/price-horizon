@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """design-specs' entry script: the design document tooling in .ai/skills/lib/design_documents.py,
-reading the design documents that change the specs, under .ai/plans/design-specs/. Its actions,
-and the manifest format, are in its --help."""
+reading the design documents that change the specs, under .ai/plans/design-specs/. Its actions
+are in its --help."""
 
 import sys
 from pathlib import Path

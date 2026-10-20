@@ -48,13 +48,21 @@
   **Steer:** {the user's words, quoted}
   **Decision:** {the essence of what the steer decided}
 
-## The Design
+## Design Plan Steps
 
-{what the design does; then each unit of governed code, where it is, its app-spec annotations, sorted, and what it does; the wiring, and what it connects; and the tests, and what each checks; quoting existing code only where it changes it, each such edit in the forms `specs/methodology/working-files.md § A Design Document` gives}
+{`Not yet drafted.` until drafting states the steps; then:}
+
+**Records:**
+
+- **Name:** {a slug}
+  **What:** {what the step changes: a unit of governed code, where it is and its app-spec annotations, the wiring and what it connects, or the tests}
+  **Why:** {why the step is needed, citing by Name each goal it serves}
+  **Objectives:**
+  - {a state the applied code holds once the step is applied, such as what a unit does or what a test checks}
 
 ## The Builder's Passes
 
-{each pass and each review under a bold lead-in naming it, each review but the validation review named with its report, an adversarial review's opening Adversarial review and a post-apply audit's Post-apply audit, each of those two naming the model and reasoning effort it ran on, and recording the design flaws among its findings with the user's triage of each; an adversarial review's pass also recording how its implementation flaws were settled, the causes the round's change addressed, a mechanism it rewrote whole where its findings clustered, and the worked case proving it, or the user's approval of the text where it ended the review, with the round it ended; a post-apply audit's pass how each finding settled; the nits a round left and each judgment handed off; the trace, before a review, of each mechanism with states or routes the design changes; and each ephemeral differential test of a script the design changes, or each of the local environment's tasks it ran on code, and what it showed}
+{each pass and each review, as `specs/methodology/working-files.md § A Design Document` has the Builder's Passes hold them}
 
 ## Deliberately Left Alone
 
