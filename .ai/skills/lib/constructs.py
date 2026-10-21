@@ -3319,8 +3319,9 @@ def construct_candidates(files, sections, strip_fences):
     Machine an exclusive choice's guard of which compares a fact with another or is in another of FEEL's forms, a
     Decision Table a cell of which tests against
     a fact, a Decision Table whose cells do not settle that every case is matched, a table shaped as a construct's
-    with no declaration, an Algorithm's step that may fold a comparison, and an Enforced By that may
-    say nothing enforces its rule. `files` holds (path, body) pairs."""
+    with no declaration, an Algorithm's step that may fold a comparison, an Enforced By that may
+    say nothing enforces its rule, and a Decision Table condition whose kinds only its table names. `files` holds
+    (path, body) pairs."""
     out = []
     for r, body in files:
         live = strip_fences(body)
@@ -3341,6 +3342,10 @@ def construct_candidates(files, sections, strip_fences):
             elif name == "Decision Table" and tables and not _settled(fields, tables[0], facts):
                 out.append((r, line, "coverage the cells do not settle",
                             f"§ {lineage}: whether every case matches a row is read"))
+            if name == "Decision Table" and tables:
+                for h in _kinds_named_only_here(fields, tables[0], facts):
+                    out.append((r, line, "a condition whose kinds only its table names",
+                                f"§ {lineage}: whether the values of {h} hold every kind of case is read, or it is written as the questions defining its kinds"))
             # wording a script cannot judge, listed for the reading audit to read: a step that is no comparison
             # holding a comparison's words, its separator aside, which the Algorithm's check reports
             # an Algorithm's or a DAG's Runs When in words beside its citations: an occurrence the reading audit reads
@@ -3402,6 +3407,36 @@ def _against_a_fact(fields, table):
     conds = [c.strip() for c in values.get("Conditions", "").split(",") if c.strip()]
     idx = [header.index(c) for c in conds if c in header]
     return any((c := feel(row[k])) is not None and symbolic(c) for _, row in table["rows"] for k in idx)
+
+
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
+def _kinds_named_only_here(fields, table, facts):
+    """Each condition whose values are words named only in its table, in its Input Values item or, with none, in its
+    cells alone: no question, no fact a Facts record declares, no closed set cited, no number, date or range. Whether
+    its values hold every kind of case no check can tell, however the table's completeness is settled."""
+    header = table["header"]
+    values = dict((k, v) for _, k, v in fields)
+    conds = [c.strip() for c in values.get("Conditions", "").split(",") if c.strip()]
+    given = values.get("Input Values", "")
+    items = {k.strip(): v for k, _, v in (item.lstrip("- ").partition(":") for item in given.split("\n")) if v}
+    named = _named(given)
+    out = []
+    for h in conds:
+        if h.endswith("?") or h in facts or h not in header:
+            continue
+        if h in items:
+            if CITATION.search(items[h]):
+                continue
+            tests = (named.get(h) or (False, []))[1]
+        else:
+            k = header.index(h)
+            parsed = [feel(row[k]) for _, row in table["rows"] if len(row) > k]
+            if any(p is None for p in parsed):
+                continue
+            tests = [t for _, ts in parsed for t in ts if t != ("any",)]
+        if tests and all(t[0] == "is" and t[-1] == "word" for t in tests):
+            out.append(h)
+    return out
 
 
 def _settled(fields, table, facts=None):

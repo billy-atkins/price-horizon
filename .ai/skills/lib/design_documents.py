@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """The design document tooling the skills writing design documents share: the validation review, which holds a
 design document to its form, drawing only on the document and the canon's declarations of its form, and stamps a
-design that passes; and the builder's tools, which check the headings a proposal cites, a Target against its
-Kind and the constructs a design or a file states, through the construct checks in constructs.py, for its
-self-review, check the workstack, show a validation, write citations' links, and show what a
+design that passes; and the builder's tools, which append a design's log entries, check the headings a proposal
+cites, a Target against its Kind and the constructs a design or a file states, through the construct checks in
+constructs.py, for its self-review, show and check the wording a design retires, list the files changed outside
+its Target, check the workstack, show a validation, write citations' links, and show what a
 Refactor and Refine cycle changed.
 
 A design document must hold the form working-files.md sets, and the workstack its lineage draws must hold
@@ -25,7 +26,7 @@ from pathlib import Path
 
 import citation_links
 import constructs
-from spec_text import REGISTRY, lineages, read, registry, sections, skill_dirs, spec_texts, strip_fences
+from spec_text import REGISTRY, lineages, read, registry, scope_paths, sections, skill_dirs, spec_texts, strip_fences
 
 
 # @canon-spec specs/methodology/working-files.md § A Design Document § The Kinds of Change
@@ -40,15 +41,27 @@ FIELDS = ("Name", "Status", "Source", "Kind", "Target", "Spawned By", "Depends O
 # working-files.md § A Stamp: a UTC timestamp and a content hash; a design document's
 # Validated stamp leaves out the Validated and Status fields.
 STAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z sha256:[0-9a-f]{16}$")
+# @canon-spec specs/methodology/working-files.md § A Stamp
+TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+# @canon-spec specs/methodology/working-files.md § A Design Document
+# a design validated by hand, its record using a form the methodology is still adding
+BY_HAND = "by hand"
 # @canon-spec specs/methodology/working-files.md § A Design Document
 # @canon-spec specs/methodology/working-files.md § A Stamp
 UNSTAMPED = ("Validated", "Status")
 # @canon-spec specs/methodology/working-files.md § A Design Document
+LOG = "Design Log Entries"
+# @canon-spec specs/methodology/working-files.md § A Stamp
+UNSTAMPED_SECTIONS = (LOG,)  # an entry appended after the stamp leaves it current
+# @canon-spec specs/methodology/working-files.md § A Design Document
 IMPACT = "Impact on the Application Specs"  # a canon design's, and no other design's
 # @canon-spec specs/methodology/working-files.md § A Design Document
-SECTIONS = ("The Problem", "Design Goals", "The Design Frame", "Steering Decisions", "Design Plan Steps", IMPACT, "The Builder's Passes", "Out of Scope")
+RETIRED = "Retired Phrases"
 # @canon-spec specs/methodology/working-files.md § A Design Document
-OPTIONAL = ("Steering Decisions",)
+SECTIONS = ("The Problem", "Design Goals", "The Design Frame", "Steering Decisions", "Design Plan Steps", RETIRED, IMPACT, LOG, "Out of Scope")
+# @canon-spec specs/methodology/working-files.md § A Design Document
+# the log is required once its first entry is appended, so a design with none holds no section
+OPTIONAL = ("Steering Decisions", RETIRED, LOG)
 # @canon-spec specs/methodology/working-files.md § A Design Document
 # the goals, required as the frame is, but in a design complete or abandoned
 UNTIL_FINISHED = ("Design Goals",)
@@ -68,27 +81,39 @@ STEER_HOME = ("specs/methodology/working-files.md", "Steering Decision")
 GOAL_HOME = ("specs/methodology/working-files.md", "Design Goal")
 # @canon-spec specs/methodology/working-files.md § Design Plan Step
 STEP_HOME = ("specs/methodology/working-files.md", "Design Plan Step")
+# @canon-spec specs/methodology/working-files.md § Design Log Entry
+LOG_HOME = ("specs/methodology/working-files.md", "Design Log Entry")
+# @canon-spec specs/methodology/working-files.md § Retired Phrase
+RETIRED_HOME = ("specs/methodology/working-files.md", "Retired Phrase")
 
 
-def declared_type(home, plural, root=None):
-    """A record type as its declaration gives it -> (its table of record fields, a row to a field, problems with the
-    declaration: no Record Form, a Plural Name other than the one a design's record section takes, a Reference Key
-    other than Name, or no table of its record fields)."""
+def declaration(home, root=None):
+    """-> (the text of the section declaring a type, or None, and the file's path)."""
     path, title = home
     # the checkout's root: the one given, or the nearest directory up from this file, or else from where it runs,
     # holding the declaration's file
     here = Path(__file__).resolve()
     base = Path(root) if root else next((p for p in (*here.parents, Path.cwd(), *Path.cwd().parents) if (p / path).exists()), Path.cwd())
     if not (base / path).exists():
+        return None, path
+    return section(read((base / path)).replace("\r\n", "\n"), title) or "", path
+
+
+def declared_type(home, plural, root=None, key="Name"):
+    """A record type as its declaration gives it -> (its table of record fields, a row to a field, problems with the
+    declaration: no Record Form, a Plural Name other than the one a design's record section takes, a Reference Key
+    other than the one given, or no table of its record fields)."""
+    title = home[1]
+    body, path = declaration(home, root)
+    if body is None:
         return [], [(path, "no file declares the %s type" % title)]
-    text = read((base / path)).replace("\r\n", "\n")
-    lines = [l.strip() for l in (section(text, title) or "").split("\n")]
+    lines = [l.strip() for l in body.split("\n")]
     problems = [] if "**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`" in lines \
         else ["no Record Form declares the %s type" % title]
     if "**Plural Name:** " + plural not in lines:
         problems.append("the %s type declares no Plural Name %s, the title a design's record section takes" % (title, plural))
-    if "**Reference Key:** Name" not in lines:
-        problems.append("the %s type declares no Reference Key Name" % title)
+    if "**Reference Key:** " + key not in lines:
+        problems.append("the %s type declares no Reference Key %s" % (title, key))
     head = next((i for i, l in enumerate(lines) if l.startswith("| Field | Unique | Required | Default Value | Values |")), None)
     rows = []
     for l in lines[head + 2:] if head is not None else []:
@@ -120,16 +145,41 @@ def step_type(root=None):
     return tuple(row[0] for row in rows), problems
 
 
-# working-files.md § A Design Document: an adversarial review's, a post-apply review's or an audit's pass,
-# its lead-in and what follows it to the next, names the model and effort it ran on; a lead-in in another case,
-# or the retired Post-apply audit lead-in, is caught to be reported.
-# @canon-spec specs/methodology/working-files.md § A Design Document
-REVIEW = re.compile(r"^\*\*(?:Adversarial review|Post-apply (?:review|audit)|Audit)(?![\w-])", re.I)
-# @canon-spec specs/methodology/working-files.md § A Design Document
-REVIEW_FORM = re.compile(r"^\*\*(?:Adversarial review|Post-apply review|Audit)(?![\w-])")
-# @canon-spec specs/AGENTS.md § Design, Refactor, Refine
-# @canon-spec specs/methodology/working-files.md § A Design Document
-RAN_ON = re.compile(r"\bon [^\s,;]+(?: [^\s,;]+)*? (?:at (?:light|medium|high) effort|as the agent allows)\b", re.I)
+def log_type(root=None):
+    """The Design Log Entry type as its declaration gives it -> ({field: its quoted values, or () for any text},
+    {field: whether it holds a count}, {kind: its fields beside Entry and Timestamp, in the type's order}, problems
+    with the declaration). A count's Holds opens "the count"."""
+    rows, problems = declared_type(LOG_HOME, LOG, root, key="Entry")
+    values = {row[0]: tuple(re.findall(r'"([^"]+)"', row[4])) for row in rows if len(row) > 5}
+    counts = {row[0]: row[5].startswith("the count") for row in rows if len(row) > 5}
+    body = declaration(LOG_HOME, root)[0] or ""
+    kinds, table = {}, body.split("**Reference Key:** Kind", 1)
+    for line in (table[1].split("\n") if len(table) > 1 else []):
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if line.startswith("| `") and len(cells) == 3:
+            given = [] if cells[1] == "none" else [f.strip() for f in cells[1].split(",")]
+            kinds[cells[0].strip("`")] = tuple(f for f in values if f in given)
+    if not kinds:
+        problems.append((LOG_HOME[0], "the Design Log Entry type gives no table of its kinds"))
+    return values, counts, kinds, problems
+
+
+def retired_type(root=None):
+    """The Retired Phrase type as its declaration gives it -> (its fields in order, the fields it requires,
+    problems with the declaration)."""
+    rows, problems = declared_type(RETIRED_HOME, RETIRED, root, key="Phrase")
+    return tuple(row[0] for row in rows), tuple(row[0] for row in rows if len(row) > 2 and row[2] == "yes"), problems
+
+
+# a record's own fields: the first opening its list item, the rest indented two spaces
+RECORD_FIELD = re.compile(r"^(?:- |  )\*\*([A-Z][A-Za-z ]*):\*\* ?(.*)$", re.M)
+
+
+def records(body):
+    """-> each record of a record section as [(field, value)], or None where it has no Records field."""
+    if body is None or not re.search(r"^\*\*Records:\*\*\s*$", body, re.M):
+        return None
+    return [RECORD_FIELD.findall("- " + item) for item in re.split(r"^- ", body.split("**Records:**", 1)[1], flags=re.M)[1:]]
 # @canon-spec specs/methodology/working-files.md § A Design Document § The States It Moves Through
 STATES = ("not-started", "in-progress", "approved", "applying", "complete", "abandoned")
 # @canon-spec specs/methodology/working-files.md § A Design Document § The States It Moves Through
@@ -185,11 +235,17 @@ def named(value):
     return [n.strip().strip("`") for n in value.split(";") if n.strip()]
 
 
-def content_hash(text, leave_out=UNSTAMPED):
+def content_hash(text, leave_out=UNSTAMPED, leave_out_sections=UNSTAMPED_SECTIONS):
     """working-files.md § A Stamp: SHA-256 of the text as UTF-8, line endings a line feed,
-    the lines holding the left-out fields dropped; its first 16 hexadecimal characters."""
+    the lines holding the left-out fields dropped, and each left-out section, its heading through the next heading
+    of its level; its first 16 hexadecimal characters."""
     keys = "|".join(re.escape(k) for k in leave_out)
-    lines = [l for l in text.replace("\r\n", "\n").split("\n") if not re.match(r"\*\*(?:%s):\*\*" % keys, l)]
+    lines, dropping = [], False
+    for l in text.replace("\r\n", "\n").split("\n"):
+        if l.startswith("## "):
+            dropping = l[3:].strip() in leave_out_sections
+        if not dropping and not re.match(r"\*\*(?:%s):\*\*" % keys, l):
+            lines.append(l)
     return "sha256:" + hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()[:16]
 
 
@@ -331,10 +387,90 @@ def check_steps(body):
     return problems
 
 
+def entry_problems(kind, fields, values, counts, kinds):
+    """-> problems with one log entry's kind and its fields beside Entry and Timestamp, [(field, value)]: a kind the
+    table does not give, its fields other than the kind gives, in the type's order, and a value outside its field's
+    Values, a count not a whole number, or an empty value."""
+    if kind not in kinds:
+        return ["a log entry's kind is not one of %s: %s" % (", ".join(kinds), kind)]
+    keys, an = [k for k, _ in fields], "an" if kind[0] in "aeiou" else "a"
+    if keys != list(kinds[kind]):
+        return ["%s %s entry's fields are %s, not %s" % (an, kind, ", ".join(keys) or "none", ", ".join(kinds[kind]) or "none")]
+    problems = []
+    for k, v in fields:
+        if not v:
+            problems.append("%s %s entry's %s is empty" % (an, kind, k))
+        elif values.get(k) and v not in values[k]:
+            problems.append("%s %s entry's %s is not one of %s: %s" % (an, kind, k, ", ".join(values[k]), v))
+        elif counts.get(k) and not re.fullmatch(r"\d+", v):
+            problems.append("%s %s entry's %s is not a whole number: %s" % (an, kind, k, v))
+    return problems
+
+
+def check_log(body):
+    """-> problems with a Design Log Entries section: a Records field, and each entry its kind's fields, its Entry
+    its kind and its count among its kind from 1 in the order the entries stand, and its Timestamp a UTC time no
+    earlier than the one before it."""
+    entries = records(body)
+    if entries is None:
+        return ["%s has no Records field" % LOG]
+    if not entries:
+        return ["%s holds no entry" % LOG]
+    values, counts, kinds, declared = log_type()
+    if not kinds:
+        return [p for _, p in declared]
+    problems, seen, last = [], {}, ""
+    for fields in entries:
+        if [k for k, _ in fields[:2]] != ["Entry", "Timestamp"]:
+            problems.append("a log entry does not open with Entry and Timestamp: " + ", ".join(k for k, _ in fields))
+            continue
+        entry, stamp_ = fields[0][1].strip(), fields[1][1].strip()
+        m = re.fullmatch(r"([a-z-]+?)-(\d+)", entry)
+        if not m:
+            problems.append("a log entry's Entry is not its kind and its count: " + entry)
+            continue
+        kind = m.group(1)
+        seen[kind] = seen.get(kind, 0) + 1
+        if int(m.group(2)) != seen[kind]:
+            problems.append("log entry %s is not counted in order, it is %s-%d" % (entry, kind, seen[kind]))
+        if not TIMESTAMP.match(stamp_):
+            problems.append("log entry %s's Timestamp is not a UTC time as a stamp writes one: %s" % (entry, stamp_))
+        elif stamp_ < last:
+            problems.append("log entry %s's Timestamp is earlier than the one before it: %s" % (entry, stamp_))
+        else:
+            last = stamp_
+        problems += ["log entry %s: %s" % (entry, p) for p in entry_problems(kind, [(k, v.strip()) for k, v in fields[2:]], values, counts, kinds)]
+    return problems
+
+
+def check_retired(body):
+    """-> problems with a Retired Phrases section: a Records field, and each record its type's fields in order, those
+    it requires present, no two sharing a Phrase."""
+    phrases = records(body)
+    if phrases is None:
+        return ["%s has no Records field" % RETIRED]
+    if not phrases:
+        return ["%s holds no record" % RETIRED]
+    fields, required, declared = retired_type()
+    if not fields:
+        return [p for _, p in declared]
+    problems, seen = [], set()
+    for record in phrases:
+        keys = [k for k, _ in record]
+        if [k for k in fields if k in keys] != keys or not set(required) <= set(keys):
+            problems.append("a retired phrase's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
+            continue
+        phrase = record[0][1].strip()
+        if phrase.lower() in seen:
+            problems.append("two retired phrases share the Phrase " + phrase)
+        seen.add(phrase.lower())
+    return problems
+
+
 def steer_table_problems(root):
-    """-> problems with the Steering Decision, Design Goal and Design Plan Step types' declarations, which this tooling
-    reads their records' fields from."""
-    return steer_type(root)[2] + goal_type(root)[1] + step_type(root)[1]
+    """-> problems with the Steering Decision, Design Goal, Design Plan Step, Design Log Entry and Retired Phrase
+    types' declarations, which this tooling reads their records' fields from."""
+    return steer_type(root)[2] + goal_type(root)[1] + step_type(root)[1] + log_type(root)[3] + retired_type(root)[2]
 
 
 def check_form(design):
@@ -365,19 +501,20 @@ def check_form(design):
         if not unknown and not all(re.fullmatch(r"`[^`]+`", p.strip()) for p in (target.split(";") if target else [""])):
             problems.append((name, "Target is not paths in backticks separated by semicolons: " + target))
         validated = values.get("Validated", "")
-        if validated.lower() != "none" and not STAMP.match(validated):
-            problems.append((name, "Validated is neither none nor a stamp: " + validated))
+        if validated.lower() not in ("none", BY_HAND) and not STAMP.match(validated):
+            problems.append((name, "Validated is neither none, %s nor a stamp: %s" % (BY_HAND, validated)))
+        elif validated == BY_HAND:
+            pass
         elif values.get("Status") == "approved" and not STAMP.match(validated):
             problems.append((name, "approved, but no validation review has stamped it"))
         elif values.get("Status") == "approved" and validated.split(" ")[1] != content_hash(text):
             problems.append((name, "approved, but edited since its validation review stamped it"))
         elif values.get("Status") in ("applying", "complete") and not STAMP.match(validated):
             problems.append((name, values["Status"] + ", but no validation review stamped it"))
-        for p in re.split(r"(?m)^(?=\*\*\S)", section(text, "The Builder's Passes") or ""):
-            if REVIEW.match(p) and not REVIEW_FORM.match(p):
-                problems.append((name, "a review's lead-in is not written as the form sets it, Adversarial review, Post-apply review or Audit: " + p[:40].strip()))
-            if REVIEW.match(p) and not RAN_ON.search(p):
-                problems.append((name, "a review's pass names no model and reasoning effort, as on {model} at {effort} effort or on {model} as the agent allows: " + p[:60].strip()))
+        for p in check_log(section(text, LOG)) if section(text, LOG) is not None else []:
+            problems.append((name, p))
+        for p in check_retired(section(text, RETIRED)) if section(text, RETIRED) is not None else []:
+            problems.append((name, p))
         want = [s for s in SECTIONS if (s in sections or (s not in OPTIONAL and (s not in UNTIL_FINISHED or values.get("Status") not in FINISHED))) and (s != IMPACT or values.get("Kind") == "canon-specs")]
         if sections != want:
             problems.append((name, "its sections are %s, not %s" % (", ".join(sections), ", ".join(want))))
@@ -764,9 +901,204 @@ def stamp_validation(value):
     if not n:
         print("== stamp-validation\nno Validated field to stamp\n")
         return 1
-    design.write_bytes((new.replace("\n", "\r\n") if "\r\n" in raw else new).encode("utf-8"))
+    write_design(design, raw, new)
     print("== stamp-validation\n" + re.search(r"^\*\*Validated:\*\*.*$", new, re.M).group(0) + "\n")
     return 0
+
+
+def write_design(design, raw, new):
+    """Write a design's new text, keeping the line endings its file had."""
+    design.write_bytes((new.replace("\n", "\r\n") if "\r\n" in raw else new).encode("utf-8"))
+
+
+# @canon-spec specs/methodology/working-files.md § Design Log Entry
+def append_entry(value):
+    """--append-entry DESIGN KIND [FIELD=VALUE ...]: appends an entry to the design's log, its count among its kind and
+    the UTC time it is appended, refusing one out of its type; -> 0, 1 where it is refused, 2 for a usage error."""
+    if len(value) < 2:
+        sys.stderr.write("--append-entry takes a design document, a kind and the kind's fields as FIELD=VALUE\n")
+        return 2
+    design = design_file(value[0])
+    if design is None:
+        return 2
+    kind, pairs = value[1], value[2:]
+    if any("=" not in p for p in pairs):
+        sys.stderr.write("--append-entry: each field is given as FIELD=VALUE\n")
+        return 2
+    fields = [tuple(s.strip() for s in p.split("=", 1)) for p in pairs]
+    values, counts, kinds, declared = log_type()
+    problems = [p for _, p in declared] + (entry_problems(kind, fields, values, counts, kinds) if kinds else [])
+    if problems:
+        return report("append-entry, not appended", [(design.stem, p) for p in problems])
+    raw = design.read_bytes().decode("utf-8")
+    text = raw.replace("\r\n", "\n")
+    body = section(text, LOG)
+    count = 1 + len(re.findall(r"^- \*\*Entry:\*\* %s-\d+\s*$" % re.escape(kind), body or "", re.M))
+    # a check's entry, one holding a Model, names its report, which stands before the entry does
+    report_file = design.parents[2] / "tmp" / design.parent.name / ("%s-%s-%d.md" % (design.stem, kind, count))
+    if "Model" in kinds[kind] and not report_file.is_file():
+        return report("append-entry, not appended", [(design.stem, "a check's entry whose report does not yet exist: "
+                                                      + report_file.relative_to(design.parents[3]).as_posix())])
+    now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    block = "\n".join(["- **Entry:** %s-%d" % (kind, count), "  **Timestamp:** " + now] + ["  **%s:** %s" % f for f in fields])
+    if body is not None and not re.search(r"^\*\*Records:\*\*\s*$", body, re.M):
+        # a section copied from the form holds its placeholder alone, which the first entry replaces
+        m = re.search(r"^## %s\s*$" % re.escape(LOG), text, re.M)
+        text = text[:m.start()] + text[m.end() + len(body):].lstrip("\n")
+        body = None
+    if body is None:
+        # the section stands where the form puts it, before the sections that follow it
+        after = SECTIONS[SECTIONS.index(LOG) + 1:]
+        m = next((m for m in (re.search(r"^## %s\s*$" % re.escape(s), text, re.M) for s in after) if m), None)
+        at = m.start() if m else len(text.rstrip("\n")) + 1
+        new = text[:at] + "## %s\n\n**Records:**\n\n%s\n\n" % (LOG, block) + text[at:]
+    else:
+        m = re.search(r"^## %s\s*$" % re.escape(LOG), text, re.M)
+        end = m.end() + len(body)
+        new = text[:m.end()] + body.rstrip("\n") + "\n\n" + block + "\n" + ("\n" if end < len(text) else "") + text[end:]
+    write_design(design, raw, new)
+    print("== append-entry\n" + block + "\n")
+    return 0
+
+
+def retired_phrases(text):
+    """-> each of a design's retired phrases as (phrase, replacement, [(path, section or None)] it stays right in)."""
+    out = []
+    for record in records(section(text, RETIRED)) or []:
+        f = dict((k, v.strip()) for k, v in record)
+        stays = "" if f.get("Stays Right", "none").lower() == "none" else f["Stays Right"]
+        out.append((f.get("Phrase", ""), f.get("Replacement", ""), places(stays)))
+    return out
+
+
+# @canon-spec specs/methodology/working-files.md § Design Log Entry
+# @canon-spec specs/methodology/working-files.md § Retired Phrase
+def places(value):
+    """-> [(path, section or None)] for a Places or a Stays Right value: places separated by semicolons, each a path,
+    its section after it, written as `path` § Section, as the citation `path § Section`, or bare."""
+    out = []
+    for p in value.split(";"):
+        p = p.strip().replace("`", "")
+        if p:
+            path, _, sect = p.partition("§")
+            out.append((path.strip(), sect.strip() or None))
+    return out
+
+
+def phrase_lines(path, phrases):
+    """-> (line number, line, phrase, replacement) for each line of a file holding a retired phrase as whole words,
+    regardless of case, outside the places it stays right."""
+    try:
+        text = read(Path(path)).replace("\r\n", "\n")
+    except (OSError, UnicodeDecodeError):
+        return []
+    out, stack = [], []
+    for i, line in enumerate(text.split("\n"), 1):
+        h = re.match(r"^(#{2,6})\s+(.*?)\s*$", line)
+        if h:
+            depth = len(h.group(1)) - 2
+            stack = stack[:depth] + [h.group(2)]
+        lineage = " § ".join(stack)
+        for phrase, replacement, places in phrases:
+            if not re.search(r"(?<![\w-])%s(?![\w-])" % re.escape(phrase), line, re.I):
+                continue
+            if any(p == path and (s is None or lineage == s or lineage.startswith(s + " § ")) for p, s in places):
+                continue
+            out.append((i, line.strip(), phrase, replacement))
+    return out
+
+
+def scope_files(root):
+    """-> the files in Spec of Record's scope, tracked or new, the working files aside."""
+    scope = scope_paths(root)
+    found = subprocess.run(["git", "ls-files", "--cached", "--others", "--exclude-standard", "--"] + scope,
+                           capture_output=True, text=True, encoding="utf-8", cwd=root)
+    paths = found.stdout.split("\n") if found.returncode == 0 else \
+        [s for s in scope if (root / s).is_file()] + \
+        [p.relative_to(root).as_posix() for s in scope if (root / s).is_dir() for p in (root / s).rglob("*") if p.is_file()]
+    return sorted(p for p in paths if p and not is_working_file(p))
+
+
+def show_reach(value):
+    """--show-reach DESIGN: each line in scope holding a retired phrase, those outside the Target marked; -> 0."""
+    design = design_file(value)
+    if design is None:
+        return 2
+    _, fields, _, text = read_design(design)
+    phrases, target = retired_phrases(text), set(re.findall(r"`([^`]+)`", dict(fields).get("Target", "")))
+    print("== show-reach " + design.stem)
+    n = 0
+    for path in scope_files(Path.cwd()):
+        for i, line, phrase, _ in phrase_lines(path, phrases):
+            n += 1
+            print("%s:%d%s  [%s]  %s" % (path, i, "" if path in target else "  (outside the Target)", phrase, line[:160]))
+    print("%d line%s\n" % (n, "" if n == 1 else "s"))
+    return 0
+
+
+def check_retired_wording(value):
+    """--check-retired-wording DESIGN: each line of the Target's files holding a retired phrase, with its
+    replacement; -> 1 where any stands."""
+    design = design_file(value)
+    if design is None:
+        return 2
+    _, fields, _, text = read_design(design)
+    phrases = retired_phrases(text)
+    problems = [(path, "line %d holds %s, retired for %s: %s" % (i, phrase, replacement, line[:160]))
+                for path in re.findall(r"`([^`]+)`", dict(fields).get("Target", ""))
+                for i, line, phrase, replacement in phrase_lines(path, phrases)]
+    return report("check-retired-wording " + design.stem, problems)
+
+
+def logged_places(text, kind):
+    """-> the paths a design's log entries of one kind name in their Places."""
+    out = set()
+    for record in records(section(text, LOG)) or []:
+        f = dict(record)
+        if f.get("Entry", "").startswith(kind + "-"):
+            out |= {path for path, _ in places(f.get("Places", ""))}
+    return out
+
+
+def check_changed_files(value):
+    """--check-changed-files DESIGN: each file changed against the last commit, a new untracked one among them,
+    outside the working files and the Target, a user's edit or a direct edit the log names marked; -> 1 where one
+    stands that no entry names."""
+    design = design_file(value)
+    if design is None:
+        return 2
+    _, fields, _, text = read_design(design)
+    try:
+        found = subprocess.run(["git", "status", "--porcelain=v1", "-uall", "-z"], capture_output=True, text=True, encoding="utf-8")
+    except FileNotFoundError:
+        found = None
+    if found is None or found.returncode:
+        print("== check-changed-files %s\nno version control, so the files changed cannot be listed\n" % design.stem)
+        return 0
+    paths, parts = [], found.stdout.split("\0")
+    i = 0
+    while i < len(parts):
+        entry = parts[i]
+        if len(entry) > 3:
+            paths.append(entry[3:])
+            if entry[0] in "RC":
+                i += 1  # a rename's or a copy's source follows it
+        i += 1
+    target = set(re.findall(r"`([^`]+)`", dict(fields).get("Target", "")))
+    users, directs = logged_places(text, "user-edit"), logged_places(text, "direct-edit")
+    problems, marked = [], []
+    for path in sorted(set(paths)):
+        if is_working_file(path) or path in target:
+            continue
+        if path in users:
+            marked.append((path, "changed outside the Target, the user's edit"))
+        elif path in directs:
+            marked.append((path, "changed outside the Target, a direct edit"))
+        else:
+            problems.append((path, "changed outside the Target, and no entry of the log names it"))
+    for path, note in marked:
+        print("%s\n  %s" % (path, note))
+    return report("check-changed-files " + design.stem, problems)
 
 
 REFACTOR_AND_REFINE_PATHS = ("specs", ".ai/skills")  # the canon's specs and skills, and the application's specs
@@ -1009,6 +1341,14 @@ FLAGS = (
      "print a design document's stamped hash, its hash now, and whether it is validated, stale or never stamped"),
     ("--stamp-validation", "DESIGN", stamp_validation,
      "run the validation review on one design document and, if it passes, write its validation stamp; the builder runs it at validating on the way to the user's approval"),
+    ("--append-entry", "DESIGN KIND [FIELD=VALUE ...]", append_entry,
+     "append an entry to a design document's log, its count among its kind and the UTC time it is appended, refusing a kind, a field or a value out of the Design Log Entry type; the builder appends every entry through it"),
+    ("--show-reach", "DESIGN", show_reach,
+     "list each line in Spec of Record's scope holding a phrase the design's Retired Phrases record, outside its Stays Right, marking those outside the Target; the builder runs it at drafting"),
+    ("--check-retired-wording", "DESIGN", check_retired_wording,
+     "report each line of the Target's files holding a retired phrase outside its Stays Right, with its replacement; the builder runs it at its self-review before the post-apply review"),
+    ("--check-changed-files", "DESIGN", check_changed_files,
+     "list each file changed against the last commit outside the working files that the Target does not name, marking the user's edits and the direct edits the log names; the builder runs it at its self-review before the post-apply review"),
     ("--refresh-links", "ROOT", refresh_links,
      "write and refresh the link every citation in a file a person reads on GitHub carries, README.md, the files under docs/ and every spec but specs/AGENTS.md; the apply runs it once the text its steps call for is written; reads the repository holding the current directory unless given a root"),
     ("--check-constructs", "DESIGN_OR_FILE", check_constructs,
@@ -1028,6 +1368,8 @@ def main(argv, plans=PLANS):
             parser.add_argument(flag, metavar=metavar, nargs="?", const=PLANS, action="append", help=help_text)
         elif flag == "--refresh-links":
             parser.add_argument(flag, metavar=metavar, nargs="?", const=".", action="append", help=help_text)
+        elif flag == "--append-entry":
+            parser.add_argument(flag, metavar="ARG", nargs="+", action="append", help=metavar + ": " + help_text)
         else:
             parser.add_argument(flag, metavar=metavar, action="append", help=help_text)
     args = vars(parser.parse_args(argv[1:]))
