@@ -22,6 +22,7 @@ This file holds the terms Spec of Record gives a meaning of its own. Each is def
 | Construct |  | A structured form, one of a bounded set the methodology approves, in which a rule, a process, an entity's behavior, a repeated entry, a closed set or items of one kind laid out as a table is written rather than in free prose. Not the programming sense. |
 | Core canon |  | The part of the canon apart from the skills and the code they share: the specifications' entry point and the methodology, which state the methodology's rules, and the specifications' overview, which describes them. The skills carry the methodology out. Not the canon as a whole. |
 | Design document |  | A plan describing one change, to the specifications, code, documentation or other files, taken through the Design, Refactor, Refine process, from the problem it solves to the steps whose Objectives its applied work holds. Not a design the product's architecture describes. |
+| Design fix |  | A fix that corrects a structural or logic problem in a design. Not a tactical fix, nor a design flaw, the fault such a fix may correct. |
 | Design flaw |  | A fault in a design's goals or its frame. Not a fault in the steps or the writing carrying them out, an implementation flaw. |
 | Design frame |  | A statement of a change, made by its builder: its scope, the cases the change governs and what tells them apart; its approach, the principle the solution applies; and its outcomes, what a successful solution achieves and how that is judged. Not a frame of a user interface, nor a frame of reference. After Kees Dorst's account of framing in design reasoning, in "Frame Innovation" (2015) and "The core of 'design thinking' and its application", in "Design Studies" (2011). |
 | Design goal |  | A part of the intent of a change, which its user owns: what the change must achieve, and so how much of it is enough. The change's design frame, its reviews' findings and its builder's adjustments are weighed against its goals. Not one of the frame's outcomes, which say what its steps achieve. |
@@ -56,6 +57,8 @@ This file holds the terms Spec of Record gives a meaning of its own. Each is def
 | Record |  | An entry of a record type, written in the Record Form: an entry written repeatedly, or a member of a closed set a spec defines. Not data the product stores and changes while it runs. |
 | Record section |  | A section holding the records of one record type. |
 | Refactor and Refine cycle | RR cycle | The Refactor and Refine of Design, Refactor, Refine, run over specifications that have landed, their state at a baseline commit standing as the design: a change to their structure and wording that leaves what they state. Not the Refactor and Refine within a design still in flight. |
+| Review finding |  | An issue a review or an audit finds by the criteria it was asked to evaluate the work against. Not a review observation. |
+| Review observation |  | An issue a review or an audit reports that bears on none of the criteria it was asked to evaluate the work against. Not a review finding. |
 | Rube Goldberg machine |  | A mechanism far more elaborate than the task it performs, as the cartoonist's contraptions chain many steps to do something simple: a mechanism, role or safeguard whose complexity no stated need justifies, where a light switch would do. |
 | Self-review |  | A builder's whole check of its own work before a review that follows a change of its own, made as that review would make it. Not the review, which a cold agent makes, finding what a warm reader cannot see. |
 | Spec annotation |  | A citation written in code as a plain comment line of its own, a tag and then the citation, naming a spec, or a section of one, that the code relies on. Not a language's own annotation construct, such as a Java annotation or a C# attribute. |
@@ -63,7 +66,8 @@ This file holds the terms Spec of Record gives a meaning of its own. Each is def
 | Spec of Record scope |  | The set of files Spec of Record governs, and nothing else. |
 | Specification rule |  | A rule governing what the specifications and the code they govern hold, and how they are written. Not a rule a specification states about the product. |
 | Stamp |  | A field's value recording when a check passed and a hash of the content it passed on. Not a version number or a signature. |
-| Steering decision |  | A record of a decision the user made about what a design is: what it solves, decides, includes or leaves out, quoting the user's words, and kept in the design it decides. Not the request that opened the design, nor the user's direction about how the work proceeds, nor a tactical adjustment. |
+| Steering decision |  | A record of a decision the user made about what a design is: what it solves, decides, includes or leaves out, quoting the user's words, and kept in the design it decides. Not the request that opened the design, nor the user's direction about how the work proceeds, nor a tactical fix. |
+| Tactical fix |  | A fix that corrects a localized issue without changing the intended meaning or logic. Not a design fix. |
 | Validation review |  | A check by the design script of whether a plan is a valid document, in its form, its records and the references within it, run before each adversarial round and before a design is approved. Not a review of what the plan says, which the adversarial review reads. |
 | Wiring code |  | Code that connects governed code into a working application, service or system, carrying out no spec of its own. |
 | Working file |  | A file that the work on the specs or their code leaves behind, serving whoever does that work. |
@@ -75,7 +79,7 @@ This file holds the terms Spec of Record gives a meaning of its own. Each is def
 
 **The term.** An entry gives the bare term, without markup or any of its other names. Each term is listed once, and the table is sorted by term.
 
-**The definition.** A definition opens with its genus, the broader kind the term belongs to. The genus is a term of this glossary wherever one fits, so a term builds on the terms it rests on rather than restating them. The definition then states what sets the term apart. A use the term must not be mistaken for opens with `Not`.
+**The definition.** A definition building on a term this glossary defines opens with that term as its genus, the broader kind the term belongs to, so a term builds on the terms it rests on rather than restating them, and then states what sets the term apart. A standalone definition, building on no term defined here, needs no genus. A use the term must not be mistaken for opens with `Not`.
 
 **A borrowed term.** A term defined in one author's or one body's published work, rather than common to many, ends its definition with that work, before its other names, naming it in prose and never citing it: `After {whose account}, in {work}.`
 

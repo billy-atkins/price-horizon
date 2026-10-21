@@ -60,9 +60,19 @@
   **Objectives:**
   - {a state the applied code holds once the step is applied, such as what a unit does or what a test checks}
 
-## The Builder's Passes
+## Retired Phrases
 
-{each pass and each review, as `specs/methodology/working-files.md § A Design Document` has the Builder's Passes hold them}
+{this section only where the design retires wording; then:}
+
+**Records:**
+
+- **Phrase:** {a word or phrase the design stops using in one sense}
+  **Replacement:** {what the design uses instead}
+  **Stays Right:** {the places the phrase stays right, each a path, its section after it; left out where none}
+
+## Design Log Entries
+
+{appended through the design script's `--append-entry` from the design's entry into in-progress on, never written by hand, as `specs/methodology/working-files.md § Design Log Entry` has each entry appended}
 
 ## Out of Scope
 

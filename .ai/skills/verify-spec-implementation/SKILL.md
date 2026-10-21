@@ -46,7 +46,7 @@ The technical specs' `architecture.md` describes the code carrying out the appli
 
 ### Report, and settle as an audit
 
-Write the report to `.ai/tmp/verify-spec-implementation/`, one file per run, clearing an earlier report of the same scope, per `specs/methodology/working-files.md § The Working Files`. Name each finding with its file, its line, what it fails, and the rule or spec it fails. A run in a design changing code's apply reports its findings as any run does. Its report is the builder's, who triages each finding against the design's changes, as `specs/AGENTS.md § Design, Refactor, Refine` has an audit read, and settles it with the user by `specs/methodology/working-files.md § A Design Document § Changes After Approval`.
+Write the report to `.ai/tmp/verify-spec-implementation/`, one file per run, clearing an earlier report of the same scope, per `specs/methodology/working-files.md § The Working Files`. Name each finding with its file, its line, what it fails, and the rule or spec it fails. Report what you noticed beyond the checks you ran as review observations (`specs/methodology/glossary.md`), apart from the findings and uncounted. A run in a design changing code's apply reports its findings as any run does. Its report is the builder's, who triages each finding against the design's changes, as `specs/AGENTS.md § Design, Refactor, Refine` has an audit read, applies the test of `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round`, and settles it with the user by `specs/methodology/working-files.md § A Design Document § Changes After Approval`, bringing each review observation with its triage.
 
 ## The checks
 

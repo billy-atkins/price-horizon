@@ -60,15 +60,25 @@
   **Objectives:**
   - {a state the applied work holds once the step is applied}
 
+## Retired Phrases
+
+{this section only where the design retires wording; then:}
+
+**Records:**
+
+- **Phrase:** {a word or phrase the design stops using in one sense}
+  **Replacement:** {what the design uses instead}
+  **Stays Right:** {the places the phrase stays right, each a path, its section after it; left out where none}
+
 ## Impact on the Application Specs
 
 {this section only in a canon design}
 
 {each application file and section left out of sync, and what the application work must do there, or none found; and how the review was done}
 
-## The Builder's Passes
+## Design Log Entries
 
-{each pass and each review, as `specs/methodology/working-files.md § A Design Document` has the Builder's Passes hold them}
+{appended through the design script's `--append-entry` from the design's entry into in-progress on, never written by hand, as `specs/methodology/working-files.md § Design Log Entry` has each entry appended}
 
 ## Out of Scope
 

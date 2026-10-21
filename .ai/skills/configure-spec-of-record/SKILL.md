@@ -1,6 +1,6 @@
 ---
 name: configure-spec-of-record
-description: Set up the agent in use to carry out what Spec of Record leaves to it, such as running a review at the reasoning effort the user chose. Use when starting to work with the methodology in a checkout, when the agent or the models it offers change, or when a review's pass records that a chosen reasoning effort ran as the agent allows.
+description: Set up the agent in use to carry out what Spec of Record leaves to it, such as running a review at the reasoning effort the user chose. Use when starting to work with the methodology in a checkout, when the agent or the models it offers change, or when a review's entry in a design's log records that a chosen reasoning effort ran as the agent allows.
 ---
 
 # Configuring Spec of Record for an agent
