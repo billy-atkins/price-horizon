@@ -1,8 +1,8 @@
 """FEEL expressions, adopted whole: an expression or a cell's unary tests parsed and given its kind, so a name no fact
 declares, values of two known kinds combined, and a call FEEL's built-in functions do not take are reported.
 
-The audit's child script for expressions (specs/methodology/expressions.md § Expressions § FEEL): constructs.py reads
-a construct's cells and hands it what is written in FEEL. It parses FEEL's whole grammar, gives each expression its
+The construct checks' reading of expressions (specs/methodology/expressions.md § Expressions § FEEL): constructs.py
+reads a construct's cells and hands it what is written in FEEL. It parses FEEL's whole grammar, gives each expression its
 kind where it can be told, and reports only what it can decide; it evaluates nothing.
 """
 import difflib

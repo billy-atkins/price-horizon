@@ -1,4 +1,7 @@
-"""audit-specs' construct checks: what modeling-constructs.md § Constructs lets a script decide.
+"""The construct checks: what modeling-constructs.md § Constructs lets a script decide. audit-specs runs them over
+the specs, and design-specs runs them through --check-constructs, on a design's constructs at drafting and on
+the files an apply wrote, each through run_checks, the one copy (specs/methodology/skills.md § Authoring
+a Skill).
 
 A construct is found by its declaration, a **Construct:** field, and read from the block the
 declaration opens: its fields, then its tables. Each check here decides structure from the files
@@ -334,10 +337,10 @@ def feel(text):
 
 
 NUMBER = re.compile(r'-?(?:\d+(?:\.\d+)?|\.\d+)')
-# a date, a date and time, a time of day and a duration of either kind, the child script's copy
+# a date, a date and time, a time of day and a duration of either kind, expressions.py's copy
 DATE, DATE_TIME, TIME = (expressions.LITERAL[k] for k in ("date", "date and time", "time"))
 YM_DURATION, DT_DURATION = (expressions.LITERAL[k] for k in ("years and months duration", "days and time duration"))
-# a fact's name, as a comparison's or a range's end names one, and a question's, the child script's copies
+# a fact's name, as a comparison's or a range's end names one, and a question's, expressions.py's copies
 FACT_NAME, QUESTION = expressions.NAME, expressions.QUESTION
 
 
@@ -1704,10 +1707,10 @@ def _shown(x, kinds):
 
 # @canon-spec specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact
 # a Facts record's Values written as one citation, of the section holding a closed set, its record section or its keyed Basic Table; and the resolver
-# audit-specs.py sets, (the file's text, the cell) -> the identifying values of the records it cites, or None
+# record_types.py sets, (the file's text, the cell) -> the identifying values of the records it cites, or None
 CITED_SET = re.compile(r'(?P<d>`+)(?!`)(?:(?!(?P=d)(?!`)).)*§(?:(?!(?P=d)(?!`)).)+(?P=d)(?!`)')
 CLOSED_SET = None
-# the title of a file's Facts sections, the Fact type's Plural Name, which audit-specs.py reads from its declaration
+# the title of a file's Facts sections, the Fact type's Plural Name, which record_types.py reads from its declaration
 FACTS_SECTION = None
 # and the resolver of a fact a Decision Table reads from another file, (the table's file, the citation, the fact's
 # name) -> (Type, Values, May Be Absent), or None
@@ -3667,3 +3670,71 @@ def field_table_findings(text, sections):
             found.append(("modeling-constructs.md § " + title, start + h + 1,
                           f"the fields table of § {title} holds {len(rows)} fields, the script's copy {len(copy)}"))
     return found
+
+
+def run_checks(text_of):
+    """The construct checks whole, over the specs' texts by their paths, citations' links stripped ->
+    (findings, warnings, candidates). The setup they read runs fresh first: the record types, facts and closed sets
+    the specs declare, each construct's Reference Key, and the parts a citation names; no state of an earlier call is
+    read. Then each declared construct's structure, file by file, and the checks that read across files. The setup
+    stays in place after the call, for a caller reading the specs further by it."""
+    import record_types
+    from spec_text import lineages, parse_citation, sections, strip_fences, resolve
+
+    for state in (record_types.TYPES, record_types._TEXT_OF, record_types.CONSTRUCT_KEYS, record_types.NAME_CITED):
+        state.clear()
+    found, warned = [], []
+    found += record_types.declared_types(text_of)
+    found += record_types.closed_set_findings(text_of)
+    found += record_types.construct_keys(text_of)
+    # the parts a citation names, read for the Name column's check; the citation's own findings are another rule's
+    lineage = {path: lineages(body) for path, body in text_of.items()}
+    for r, body in text_of.items():
+        for i, line in enumerate(strip_fences(body).split("\n"), 1):
+            for m in CITATION.finditer(line):
+                cite = m.group(1).strip()
+                if " § " not in cite and not cite.startswith("§"):
+                    continue
+                path, target, sel = parse_citation(cite, r)
+                if sel is not None and path in lineage and target in lineage[path]:
+                    record_types.record_citation(sel, path, target, text_of, r, i, [])
+    for r, body in text_of.items():
+        construct_findings(r, strip_fences(body), found, sections(body))
+    # a Name column, present exactly where a part of its table is cited from outside its section
+    name_column_findings(text_of, record_types.NAME_CITED, found, sections, strip_fences)
+    # a submachine state, governed by one machine and left by its exits
+    submachine_findings(text_of, found, sections, strip_fences, CITATION, resolve)
+    # an effect, the Algorithm or the Decision Table a transition runs
+    effect_findings(text_of, found, sections, strip_fences, CITATION, resolve)
+    # the facts an exclusive choice's guard compares a fact with, declared in any file
+    guard_fact_findings(text_of, found, sections, strip_fences)
+    # the word a guard tests a fact for, one of the fact's Values
+    guard_value_findings(text_of, found, sections, strip_fences)
+    # the fact a machine's state is recorded in, its Values holding each state
+    recorded_in_findings(text_of, found, sections, strip_fences, CITATION, resolve)
+    # a configured instance's Held In, and the construct an Extends extends
+    held_in_findings(text_of, found, sections, strip_fences, CITATION, resolve)
+    # what runs an Algorithm, and the facts a run gives
+    algorithm_findings(text_of, found, sections, strip_fences, CITATION, resolve)
+    # each Constraint's rule, when it holds and what keeps it, a rule nothing keeps a warning
+    constraint_findings(text_of, found, warned, sections, strip_fences, CITATION, resolve)
+    # each DAG's tasks' work and what runs it, and two tasks free at once giving one fact or reading what the other gives
+    dag_findings(text_of, found, sections, strip_fences, CITATION, resolve)
+    # each trigger written in FEEL in its form, and a machine's Trigger Classes
+    occurrence_findings(text_of, found, sections, strip_fences, CITATION, resolve)
+    # each copy the checks hold of a table in the specs, held to its home: modeling-constructs.md's fields, columns and
+    # definitions, and expressions.md's FEEL functions, kept words and the canon's functions
+    path = "specs/methodology/modeling-constructs.md"
+    if path in text_of:
+        text = text_of[path]
+        for check in (field_table_findings, column_table_findings, definition_findings):
+            found += [(rule, path, line or 1, msg) for rule, line, msg in check(text, sections(text))]
+    path = "specs/methodology/expressions.md"
+    if path in text_of:
+        text = text_of[path]
+        for check, rule in ((expressions.function_table_findings, "expressions.md § Expressions § FEEL § Its Functions"),
+                            (expressions.keyword_findings, "expressions.md § Expressions § FEEL § Names"),
+                            (expressions.library_table_findings, "expressions.md § Expressions § FEEL § The Canon's Functions")):
+            found += [(rule, path, line or 1, msg) for line, msg in check(text)]
+    candidates = construct_candidates(list(text_of.items()), sections, strip_fences)
+    return found, warned, candidates
