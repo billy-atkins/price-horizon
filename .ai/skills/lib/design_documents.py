@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """The design document tooling the skills writing design documents share: the validation review, which holds a
 design document to its form, drawing only on the document and the canon's declarations of its form, and stamps a
-design that passes; and the builder's tools, which check the headings a proposal cites and a Target against its
-Kind for its self-review, check the workstack, show a validation, write citations' links, and show what a
+design that passes; and the builder's tools, which check the headings a proposal cites, a Target against its
+Kind and the constructs a design or a file states, through the construct checks in constructs.py, for its
+self-review, check the workstack, show a validation, write citations' links, and show what a
 Refactor and Refine cycle changed.
 
 A design document must hold the form working-files.md sets, and the workstack its lineage draws must hold
@@ -23,15 +24,10 @@ import sys
 from pathlib import Path
 
 import citation_links
+import constructs
+from spec_text import REGISTRY, lineages, read, registry, sections, skill_dirs, spec_texts, strip_fences
 
 
-# @canon-spec specs/methodology/sourcing-and-citation.md § Writing a Citation § A Citation's Link
-def read(path):
-    """-> a file's text with each citation's link stripped, so a citation is read as an author writes it."""
-    return citation_links.strip(Path(path).read_text(encoding="utf-8"))
-
-
-REGISTRY = "specs/methodology/skills.md"
 # @canon-spec specs/methodology/working-files.md § A Design Document § The Kinds of Change
 KINDS = ("canon-specs", "application-specs", "code", "documentation", "other")
 KIND_LIST = ", ".join(KINDS[:-1]) + " or " + KINDS[-1]
@@ -416,10 +412,10 @@ def check_form(design):
 
 # @canon-spec specs/methodology/working-files.md § A Design Document § The Kinds of Change
 def kind_of(path, skills):
-    """canon-specs, application-specs, or None for any other file."""
+    """canon-specs, application-specs, or None for any other file; skills, the registered skills' directories and lib."""
     if path in ("specs/AGENTS.md", "specs/architecture.md") or path.startswith("specs/methodology/"):
         return "canon-specs"
-    if any(path.startswith(".ai/skills/" + n + "/") for n in skills + ["lib"]):
+    if any(path.startswith(".ai/skills/" + n + "/") for n in skills):
         return "canon-specs"
     if path.startswith("specs/application/"):
         return "application-specs"
@@ -437,10 +433,9 @@ def is_working_file(path):
 
 def check_kind(design, root):
     """-> (1, [(file name, problem)]) where one design document's Target strays from its Kind."""
-    reg = root / REGISTRY
-    skills = re.findall(r"^\| `([a-z0-9-]+)` \|", read(reg), re.M) if reg.exists() else []
-    if not skills:
+    if not registry(root)[0]:
         return 0, [(REGISTRY, "no registered skills read, so a skill's files cannot be classified")]
+    skills = skill_dirs(root)
     problems, designs = [], [read_design(design)]
     for title, fields, _, _ in designs:
         fields = dict(fields)
@@ -589,32 +584,6 @@ def check_stack(folder):
 # citation and is not checked here; see .ai/skills/design-specs/SKILL.md, Verifying a proposal. Its span opens with one backtick or more and closes
 # on a run of as many, a run of another length inside it literal, as GitHub Flavored Markdown has a code span.
 CITATION = re.compile(r'(?<!`)(?P<d>`+)(?!`)(?P<path>[\w./-]+\.md)\s+§\s+(?P<target>(?:[^`]|(?!(?P=d)(?!`))`+)+?)(?<!`)(?P=d)(?!`)')
-
-
-def lineages(text):
-    """-> set of '§'-joined ancestor paths, one per heading.
-
-    A level-1 heading is the file's own title rather than a section, so a lineage
-    starts at level 2. Fenced blocks are blanked first: a heading shown inside an
-    example is an illustration, not a section anything may cite.
-    """
-    live, inside = [], False
-    for line in text.split("\n"):
-        if line.startswith("```"):
-            inside = not inside
-            live.append("")
-        else:
-            live.append("" if inside else line)
-
-    out, stack = set(), []
-    for m in re.finditer(r'^(#{1,6})\s+(.*?)\s*$', "\n".join(live), re.M):
-        lvl, title = len(m.group(1)), m.group(2)
-        if lvl == 1:
-            continue
-        depth = lvl - 2
-        stack = stack[:depth] + [None] * max(0, depth - len(stack)) + [title]
-        out.add(" § ".join(t for t in stack if t))
-    return out
 
 
 def resolve(path, root):
@@ -871,6 +840,158 @@ def refresh_links(value):
     return 0
 
 
+# @canon-spec specs/methodology/working-files.md § Design Plan Step
+# the constructs the drafting check reads whole, the ones a construct's own block decides
+WHOLE = ("Decision Table", "State Machine")
+OPENING_CITATION = re.compile(r"^\s*- `([^`§]+?) § ([^`]+)`[:.,]?\s*(.*)$")
+LEFT_TO_THE_APPLY = ("left to the apply's self-review and the audit: a part a step changes, an Algorithm, a DAG or a "
+                     "Constraint, and what a change brings in another file")
+
+
+def repo_root():
+    found = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    return Path(found.stdout.strip()) if found.returncode == 0 else Path.cwd()
+
+
+def objectives_stating_constructs(text):
+    """-> [(step, design line of the Objective, its lines)] for each Objective of a Design Plan Step holding a
+    **Construct:** field declaring one of WHOLE, its lines as written, the Objective's own and those indented under it."""
+    lines, out = text.split("\n"), []
+    start = next((i for i, l in enumerate(lines) if re.match(r"^## Design Plan Steps\s*$", l)), None)
+    if start is None:
+        return out
+    step, i = None, start + 1
+    while i < len(lines) and not lines[i].startswith("## "):
+        m = re.match(r"^- \*\*Name:\*\* (.+?)\s*$", lines[i])
+        if m:
+            step = m.group(1)
+        if step and re.match(r"^  - ", lines[i]):
+            j = i + 1
+            while j < len(lines) and (lines[j].startswith("    ") or not lines[j].strip()) and not lines[j].startswith("## "):
+                j += 1
+            item = lines[i:j]
+            if any(l.strip().startswith("**Construct:**") and any(w in l for w in WHOLE) for l in item):
+                out.append((step, i + 1, item))
+            i = j
+            continue
+        i += 1
+    return out
+
+
+def kept_changes(root, design_text):
+    """-> the paths the checkout holds changed against the last commit, where the design is not applying, so its
+    reading is the last commit's, as working-files.md § A Design Document § The States It Moves Through § A Send-back
+    has a reading made while kept changes stand; else none."""
+    if re.search(r"^\*\*Status:\*\* applying\s*$", design_text, re.M):
+        return []
+    changed = subprocess.run(["git", "diff", "--name-only", "HEAD"], capture_output=True, text=True, cwd=root)
+    added = subprocess.run(["git", "ls-files", "--others", "--exclude-standard"], capture_output=True, text=True, cwd=root)
+    return [p for run in (changed, added) if run.returncode == 0 for p in run.stdout.split()]
+
+
+def at_last_commit(root, text_of, paths):
+    for p in paths:
+        if not p.endswith(".md"):
+            continue
+        shown = subprocess.run(["git", "show", "HEAD:" + p], capture_output=True, text=True, encoding="utf-8", cwd=root)
+        if shown.returncode == 0:
+            text_of[p] = citation_links.strip(shown.stdout)
+        else:
+            text_of.pop(p, None)
+    return text_of
+
+
+def construct_block(item):
+    """-> (path, lineage, the section's text) from an Objective's lines: its opening citation names the place, the rest
+    of its first line opens the section as its description, and the lines under it are dedented as they will stand."""
+    m = OPENING_CITATION.match(item[0])
+    if not m:
+        return None
+    body = [l for l in item[1:]]
+    indent = min((len(l) - len(l.lstrip()) for l in body if l.strip()), default=0)
+    return m.group(1).strip(), m.group(2).strip(), [m.group(3).strip(), ""] + [l[indent:] for l in body]
+
+
+def in_place(file_text, lineage, block):
+    """-> (the file's text with the section holding block, the 0-based line block opens at): the named section's own
+    text is replaced where it stands; a section the step adds opens at the end of its deepest ancestor there, or of
+    the file, under each ancestor not there; a file it adds is empty."""
+    parts = lineage.split(" § ")
+    lines = file_text.split("\n") if file_text else ["# (a file the step adds)"]
+    found = sections(file_text) if file_text else {}
+    if lineage in found:
+        h, end = found[lineage]
+        return "\n".join(lines[:h + 1] + [""] + block + [""] + lines[end:]), h + 2
+    k = len(parts) - 1
+    while k and " § ".join(parts[:k]) not in found:
+        k -= 1
+    at = len(lines)
+    if k:
+        # the ancestor's whole subtree ends at the next heading of its level or above, fences aside
+        h, inside = found[" § ".join(parts[:k])][0], False
+        for n in range(h + 1, len(lines)):
+            if lines[n].startswith("```"):
+                inside = not inside
+            elif not inside and re.match(r"^#{1,%d} " % (k + 1), lines[n]):
+                at = n
+                break
+    opened = [l for d in range(k, len(parts)) for l in ("", "#" * (d + 2) + " " + parts[d], "")]
+    return "\n".join(lines[:at] + opened + block + [""] + lines[at:]), at + len(opened)
+
+
+def check_constructs(value):
+    """--check-constructs: the construct checks a design's or a file's constructs take, read as the audit reads them;
+    -> 1 where a finding is reported, else 0."""
+    root, target = repo_root(), Path(value).resolve()
+    try:
+        rel = target.relative_to(root).as_posix()
+    except ValueError:
+        rel = None
+    if not target.is_file() or rel is None:
+        sys.stderr.write("no file in the repository: %s\n" % value)
+        return 2
+    text_of = spec_texts(root)
+    is_design = rel.startswith(PLANS.rstrip("/") + "/")
+    if not is_design and rel not in text_of:
+        sys.stderr.write("neither a design in %s nor a file in scope: %s\n" % (PLANS, value))
+        return 2
+    print("== check-constructs " + rel)
+    findings, candidates = [], []
+    if is_design:
+        design = read(target)
+        text_of = at_last_commit(root, text_of, kept_changes(root, design))
+        for step, at, item in objectives_stating_constructs(design):
+            placed = construct_block(item)
+            if not placed:
+                findings.append((step, at, "working-files.md § Design Plan Step",
+                                 "an Objective stating a construct whole opens with no citation of its section"))
+                continue
+            path, lineage, block = placed
+            file_text, opens = in_place(text_of.get(path, ""), lineage, block)
+            span = range(opens, opens + len(block))
+            # the whole run, the cross-file checks among it, with the construct in its file; kept to its own lines
+            found, _, cands = constructs.run_checks(dict(text_of, **{path: file_text}))
+            at_line = lambda line: at + max(line - 1 - opens - 1, 0)
+            findings += [(step, at_line(line), rule, msg) for rule, p, line, msg in found if p == path and line - 1 in span]
+            candidates += [(step, at_line(line), name, context) for p, line, name, context in cands
+                           if p == path and line - 1 in span]
+        for step, line, rule, msg in findings:
+            print("%s:%d  [%s]  %s\n  %s" % (rel, line, step, rule, msg))
+        for step, line, name, context in candidates:
+            print("candidate %s:%d  [%s]  %s\n  %s" % (rel, line, step, name, context))
+    else:
+        found, _, cands = constructs.run_checks(text_of)
+        findings = [(rule, line, msg) for rule, path, line, msg in found if path == rel]
+        candidates = [(line, name, context) for path, line, name, context in cands if path == rel]
+        for rule, line, msg in sorted(findings, key=lambda f: f[1]):
+            print("%s:%d  %s\n  %s" % (rel, line, rule, msg))
+        for line, name, context in candidates:
+            print("candidate %s:%d  [%s]\n  %s" % (rel, line, name, context))
+    print("%d finding%s, %d candidate%s; %s\n" % (len(findings), "" if len(findings) == 1 else "s", len(candidates),
+                                                  "" if len(candidates) == 1 else "s", LEFT_TO_THE_APPLY))
+    return 1 if findings else 0
+
+
 FLAGS = (
     ("--check-cited-headings", "PROPOSAL", check_cited_headings,
      "confirm every cross-file citation in the proposal points to a heading that exists"),
@@ -890,6 +1011,8 @@ FLAGS = (
      "run the validation review on one design document and, if it passes, write its validation stamp; the builder runs it at validating on the way to the user's approval"),
     ("--refresh-links", "ROOT", refresh_links,
      "write and refresh the link every citation in a file a person reads on GitHub carries, README.md, the files under docs/ and every spec but specs/AGENTS.md; the apply runs it once the text its steps call for is written; reads the repository holding the current directory unless given a root"),
+    ("--check-constructs", "DESIGN_OR_FILE", check_constructs,
+     "run the construct checks: on a design, a path in the skill's plans folder, each Decision Table or State Machine an Objective states whole, read in the section its opening citation names; on a spec file, the file's constructs as the audit checks them; candidates are listed apart; design-specs' builder runs it at drafting and on the applied files at its self-review, a code design stating no construct"),
     ("--show-refactor-and-refine-of-existing-specs", "BASELINE", show_refactor_and_refine_of_existing_specs,
      "show what a Refactor and Refine cycle over existing specs changed since the baseline commit, for a reader to trace: lines now repeated, lost and new, each with the files holding it; decides nothing; run from the repository's root on a tree with the cycle's changes applied"),
 )

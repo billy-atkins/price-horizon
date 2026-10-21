@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.dont_write_bytecode = True  # no cache beside the shared code, untracked in the checkout
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "lib"))
-from design_documents import lineages  # noqa: E402
+from spec_text import lineages  # noqa: E402
 
 STACK = "specs/application/technical/stack.md"
 # @canon-spec specs/methodology/code.md § Citing the Specs From Code

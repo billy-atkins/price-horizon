@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """implement-specs' entry script: the design document tooling in .ai/skills/lib/design_documents.py,
 reading the design documents that change code, under .ai/plans/implement-specs/. Its actions
-are in its --help."""
+are in its --help; --check-constructs among them is design-specs' to run, a code design stating no
+construct."""
 
 import sys
 from pathlib import Path
