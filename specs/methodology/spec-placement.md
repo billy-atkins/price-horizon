@@ -80,7 +80,7 @@ Every directory under `specs/` organizes its files by altitude. New content belo
 
 An overview fails in opposite ways, and each has the same fix. One that accumulates full detail has stopped being an overview. One that thins into a table of citations cannot be understood without opening the files it points at. In either case, write the overview so it stands alone. Move genuine step-by-step or field-level detail into a file of its own, and repath every citation that pointed at the old location in the same pass.
 
-A directory's own mapping table, where it has one, is the exception that proves the rule: a deliberately citation-heavy traceability artifact is legitimate *beside* an overview that stands on its own, not *instead* of one.
+A directory's own mapping table, where it has one, is the one exception: a deliberately citation-heavy traceability artifact is legitimate *beside* an overview that stands on its own, not *instead* of one.
 
 **Where a diagram goes.** Set at any altitude by [`specs/methodology/modeling-constructs.md § Diagrams`](/specs/methodology/modeling-constructs.md#diagrams).
 

@@ -50,7 +50,7 @@ Write the report to `.ai/tmp/verify-spec-implementation/`, one file per run, cle
 
 ## The checks
 
-Each check names the rule it enforces (`specs/methodology/scope.md § Rules and Skills`).
+Each check names the section it enforces (`specs/methodology/scope.md § Rules and Skills`).
 
 **Reference Key:** Check
 

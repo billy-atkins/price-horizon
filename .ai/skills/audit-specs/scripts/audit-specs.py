@@ -51,9 +51,9 @@ DIAGRAM_LABEL = re.compile(r'\[[^\]]*\]|\([^)]*\)|\{[^}]*\}|"[^"]*"|\|[^|]*\|')
 AUDIT_SKILL = ".ai/skills/audit-specs/SKILL.md"
 CODE_CHECKS = ".ai/skills/verify-spec-implementation/SKILL.md"  # names the check enforcing each section of code.md
 COVERAGE_RULE = "scope.md § Rules and Skills"
-# The tables in the audit skill naming what reads or carries out each rule section:
-# (section heading, rule column header)
-COVERAGE_TABLES = (("The audits", "Enforces"), ("Operating rules carried out by a step", "Operating Rule"))
+# The tables in the audit skill naming what reads or carries out each section stating rules:
+# (section heading, the column naming the sections)
+COVERAGE_TABLES = (("The audits", "Enforces"), ("Operating rules carried out by a step", "Section"))
 DIAGRAMS_RULE = "modeling-constructs.md § Diagrams"
 IMAGE = re.compile(r"!\[[^\]]*\][(\[]|<img\b", re.I)
 WORKING_FILES = "specs/methodology/working-files.md"
@@ -889,9 +889,9 @@ def workflow_citations(root):
 
 def coverage_findings(root):
     """Every section of specs/AGENTS.md and of the methodology's files, its overview aside, is
-    named, itself or through a section it sits under, in the rule column of one of the audit
-    skill's coverage tables, or, for a section of code.md, in the verify skill's table of checks;
-    and each operating rule is cited, itself or through a section it
+    named, itself or through a section it sits under, in the column naming the sections in one of
+    the audit skill's coverage tables, or, for a section of code.md, in the verify skill's table of checks;
+    and each section stating operating rules is cited, itself or through a section it
     sits under, by a step of a registered skill's Workflow, which is where its step is found."""
     sk = root / AUDIT_SKILL
     if not sk.exists():
@@ -923,7 +923,7 @@ def coverage_findings(root):
     for path, target in sorted(operating):
         if not any(p == path and (s == target or target.startswith(s + " § ")) for p, s in cited):
             found.append((COVERAGE_RULE, AUDIT_SKILL, 0,
-                          f"no registered skill's Workflow step cites the operating rule {path} § {target}"))
+                          f"no registered skill's Workflow step cites the section stating operating rules {path} § {target}"))
     for f in [root / SPECS_AGENTS] + sorted((root / "specs/methodology").glob("*.md")):
         rel = f.relative_to(root).as_posix()
         if not f.exists() or f.name in ("architecture.md", "index.md"):
