@@ -21,9 +21,9 @@ Running the procedure, rather than recalling the rules, puts each rule in mind a
 
 **Reference Key:** Doing This
 
-**Required:** The Rule Is Here
+**Required:** The Rules Are Here
 
-| Doing This | The Rule Is Here |
+| Doing This | The Rules Are Here |
 |---|---|
 | Finding which files Spec of Record governs, and how to find your way through them | `specs/methodology/scope.md § What Spec of Record Governs`, `specs/methodology/scope.md § Progressive Disclosure` |
 | Meeting a term Spec of Record gives a meaning of its own | `specs/methodology/glossary.md` |
@@ -44,6 +44,7 @@ Running the procedure, rather than recalling the rules, puts each rule in mind a
 | Writing or updating acceptance scenarios | `specs/methodology/acceptance-scenarios.md` |
 | Removing drafting residue and hedged framing, or explaining a trade-off | `specs/methodology/spec-style.md § What a Finished Spec Reads Like`, `specs/methodology/spec-style.md § Trade-offs Are Not Journey Language` |
 | Writing prose its primary reader understands on the first read | `specs/methodology/spec-style.md § Clear Prose` |
+| Writing a sentence that states a rule | `specs/methodology/sourcing-and-citation.md § One Home Per Fact § One Rule to a Sentence` |
 | Writing a number, a count, or a reference to an item | `specs/methodology/spec-style.md § Ordinals and Counts` |
 | Keeping a materialized view, an `architecture.md` or a diagram, in sync with its sources, or a product spec aligned with its technical counterpart | `specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync § Materialized Views`, `specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync § Product and Technical Counterparts`, `specs/methodology/spec-placement.md § What an Overview Describes` |
 | Adding, changing, or re-checking a diagram | `specs/methodology/modeling-constructs.md § Diagrams`, then `.ai/skills/author-mermaid-diagram/` |
