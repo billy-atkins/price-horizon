@@ -188,6 +188,8 @@ A lead-in is written in sentence case, as a requirement of style. Its first word
 
 A lead-in introducing the block beneath it (a list, a table or paragraphs) stands on a line of its own. Otherwise the text it introduces follows it on its line.
 
+A lead-in at a rule's home names what it labels. It states no rule.
+
 A lead-in's words are the author's own, defined by no form, so nothing looks one up by name, and nothing cites one ([`specs/methodology/sourcing-and-citation.md § Writing a Citation`](/specs/methodology/sourcing-and-citation.md#writing-a-citation)).
 
 ## Emphasis
