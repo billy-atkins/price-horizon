@@ -79,7 +79,7 @@ Worked examples teach applying the canon's forms, as [`specs/methodology/spec-st
 
 The glossary is the one methodology file loaded ahead of need. An agent reads it with [`specs/AGENTS.md`](/specs/AGENTS.md) before any step, since the agent cannot know a word is one of the glossary's terms without having read the glossary.
 
-An agent reads what it loads from a directory in the order that the directory's `index.md` lists, a parent directory before the directories under it. That order is the one the directory's authors set ([`specs/methodology/spec-placement.md § Where a File Goes`](/specs/methodology/spec-placement.md#where-a-file-goes)). Progressive disclosure governs when to read, not how much. Whatever is loaded is read in full, never skimmed, and read fresh rather than recalled ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)). A task whose unit is a whole directory, an audit among them, loads the whole directory.
+An agent reads what it loads from a directory in the order that the directory's `index.md` lists, a parent directory before the directories under it. That order is the one the directory's authors set ([`specs/methodology/spec-placement.md § Where a File Goes`](/specs/methodology/spec-placement.md#where-a-file-goes)). Progressive disclosure governs when to read, not how much. Whatever is loaded is read in full, never skimmed, and read fresh rather than recalled ([`specs/AGENTS.md § Design, Refactor, Refine § Reading Fresh`](/specs/AGENTS.md#reading-fresh)). A task whose unit is a whole directory, an audit among them, loads the whole directory.
 
 ## The Methodology Governs Itself
 

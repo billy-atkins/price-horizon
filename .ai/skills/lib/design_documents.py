@@ -533,7 +533,7 @@ def check_form(design):
             problems.append((name, p))
         if goals is not None and goals.strip() == NOT_YET_STATED and values.get("Status") in ("approved", "applying", "complete"):
             problems.append((name, values["Status"] + ", but its design goals are not yet stated"))
-        # specs/AGENTS.md § Design, Refactor, Refine: the frame and the steps cite the goals they rest on by Names the
+        # specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame and specs/methodology/working-files.md § Design Plan Step: the frame and the steps cite the goals they rest on by Names the
         # design holds
         held = set(re.findall(r"^- \*\*Name:\*\* (.+?)\s*$", goals or "", re.M))
         steps = section(text, "Design Plan Steps")

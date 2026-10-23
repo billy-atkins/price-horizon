@@ -5,7 +5,7 @@ description: Check that code truthfully carries out the application specs govern
 
 # Verifying the code against its specs
 
-This skill is to code what `audit-specs` is to the specs. It is the independent check that runs once the builder's self-review is done, never the builder reading its own work. This skill reads. It does not run the project's tests, which a project runs as its own pipeline sets. A run is the skill's full run over every code root, the same whether or not a design came before it, and it names no design, as `specs/AGENTS.md § Design, Refactor, Refine` has an audit.
+This skill is to code what `audit-specs` is to the specs. It is the independent check that runs once the builder's self-review is done, never the builder reading its own work. This skill reads. It does not run the project's tests, which a project runs as its own pipeline sets. A run is the skill's full run over every code root, the same whether or not a design came before it, and it names no design, as `specs/AGENTS.md § Design, Refactor, Refine § An Audit` has an audit.
 
 ## Workflow
 
@@ -38,7 +38,7 @@ Where the script's findings show existing annotations out of sync with the specs
 
 For each annotated unit, read the sections it cites. Judge whether the unit carries them out, or checks them as a test does, no more and no less, per `specs/methodology/code.md § Governed Code and Wiring Code` and `specs/methodology/code.md § Tests`. Judge too whether the unit's annotations sit where `specs/methodology/code.md § Citing the Specs From Code` sets: as narrow as the unit, and never in a documentation comment, as `specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code` has it. The script cannot judge where they sit.
 
-For each file the script lists as citing no spec, judge whether it is wiring or governed code missing its annotations. A file in a format with no comments is never governed code, and is judged as `specs/methodology/code.md § Governed Code and Wiring Code` sets. For each section the script lists as cited by no code, judge whether it states something code must carry out, and so is not yet implemented, or something no code carries out, as an overview does. Read the code for American English, per `specs/methodology/code.md § Changing Code`, and report each breach you find, as `specs/AGENTS.md § Design, Refactor, Refine` has an audit report a rule reaching only what a change writes.
+For each file the script lists as citing no spec, judge whether it is wiring or governed code missing its annotations. A file in a format with no comments is never governed code, and is judged as `specs/methodology/code.md § Governed Code and Wiring Code` sets. For each section the script lists as cited by no code, judge whether it states something code must carry out, and so is not yet implemented, or something no code carries out, as an overview does. Read the code for American English, per `specs/methodology/code.md § Changing Code`, and report each breach you find, as `specs/AGENTS.md § Design, Refactor, Refine § An Audit` has an audit report a rule reaching only what a change writes.
 
 ### Read the technical overview against the code
 
@@ -46,7 +46,7 @@ The technical specs' `architecture.md` describes the code carrying out the appli
 
 ### Report, and settle as an audit
 
-Write the report to `.ai/tmp/verify-spec-implementation/`, one file per run, clearing an earlier report of the same scope, per `specs/methodology/working-files.md § The Working Files`. Name each finding with its file, its line, what it fails, and the rule or spec it fails. Report what you noticed beyond the checks you ran as review observations (`specs/methodology/glossary.md`), apart from the findings and uncounted. A run in a design changing code's apply reports its findings as any run does. Its report is the builder's, who triages each finding against the design's changes, as `specs/AGENTS.md § Design, Refactor, Refine` has an audit read, applies the test of `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round`, and settles it with the user by `specs/methodology/working-files.md § A Design Document § Changes After Approval`, bringing each review observation with its triage.
+Write the report to `.ai/tmp/verify-spec-implementation/`, one file per run, clearing an earlier report of the same scope, per `specs/methodology/working-files.md § The Working Files`. Name each finding with its file, its line, what it fails, and the rule or spec it fails. Report what you noticed beyond the checks you ran as review observations (`specs/methodology/glossary.md`), apart from the findings and uncounted. A run in a design changing code's apply reports its findings as any run does. Its report is the builder's, who triages each finding against the design's changes, as `specs/AGENTS.md § Design, Refactor, Refine § An Audit` has an audit read, applies `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test`, and settles it with the user by `specs/methodology/working-files.md § A Design Document § Changes After Approval`, bringing each review observation with its triage.
 
 ## The checks
 
