@@ -302,7 +302,7 @@ A design's log sits in its record section of this type, a record type ([`specs/m
 | Design Flaws | no | where its kind gives it | | text | the count of design flaws the check found, a whole number |
 | Implementation Flaws | no | where its kind gives it | | text | the count of implementation flaws the check found, a whole number |
 | Nits | no | where its kind gives it | | text | the count of nits the check found, a whole number |
-| Dropped | no | where its kind gives it | | text | the count of findings dropped as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round`](/specs/AGENTS.md#settling-a-round) has a finding dropped, a whole number |
+| Dropped | no | where its kind gives it | | text | the count of findings dropped as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test`](/specs/AGENTS.md#the-test) has a finding dropped, a whole number |
 | Led To | no | where its kind gives it | | text | the state the work went into as the check ended, by its settling or by whatever moved the work past it |
 | Reason | no | where its kind gives it | | text | why the design entered in-progress, one of the values of [`specs/methodology/design-workflow.md § The Order of a Design's Work § Facts [Name: entry reason]`](/specs/methodology/design-workflow.md#facts) |
 | Approval | no | where its kind gives it | | "approved", "approved and apply" | the user's approval of the plan |
