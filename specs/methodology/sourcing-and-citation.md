@@ -16,13 +16,16 @@ Before adding a paragraph that states a general rule, check whether that rule al
 
 ### One Rule to a Sentence
 
-A sentence stating a rule at the rule's home states part of at most one rule, a rule as [`specs/methodology/glossary.md`](/specs/methodology/glossary.md) defines it. A change to one rule then edits no sentence stating another. Each sentence in a table cell or a list item is held to this rule. A list item read with the sentence introducing its list, and a table cell read with its column's heading, are each a sentence, and so is each further sentence within one. A sentence holding several rules is split as [`specs/methodology/spec-style.md § Clear Prose`](/specs/methodology/spec-style.md#clear-prose) directs, its rules counted as [`specs/methodology/modeling-constructs.md § When to Use Which`](/specs/methodology/modeling-constructs.md#when-to-use-which) counts them.
+A sentence stating a rule at the rule's home states part of at most one rule, a rule as [`specs/methodology/glossary.md`](/specs/methodology/glossary.md) defines it. A change to one rule then edits no sentence stating another. A table cell and a list item are each a sentence, judged on its own, and so is each further sentence within one. A clause applying another section's rule, with its citation, is not a second rule. A reason is no rule. A sentence a careful reader could count either way meets the rule. A sentence holding several rules is split as [`specs/methodology/spec-style.md § Clear Prose`](/specs/methodology/spec-style.md#clear-prose) directs, its rules counted as [`specs/methodology/modeling-constructs.md § When to Use Which`](/specs/methodology/modeling-constructs.md#when-to-use-which) counts them.
 
-**Examples.** Each sentence is judged by the questions it answers:
+**Examples.** Each is judged by the questions it answers.
 
 - "An approved claim is paid where its receipt is attached, and held otherwise." is one rule. It answers what becomes of an approved claim.
-- "An approved claim is paid within ten days, by bank transfer, to the claimant's account." is one rule. Its timing, its means and its payee are parts of one answer to how an approved claim is paid.
 - "An approved claim is paid where its receipt is attached. Where its receipt is missing, the claim is held." is one rule in two sentences.
+- "An approved claim is paid within ten days, by bank transfer, to the claimant's account." is three rules. They answer when, how and to whom it is paid. Written one rule to an item, it reads:
+  - "An approved claim is paid within ten days."
+  - "An approved claim is paid by bank transfer."
+  - "An approved claim is paid to the claimant's account."
 - "An approved claim is paid where its receipt is attached and held otherwise, and its receipt is kept for seven years." is two rules. It answers what becomes of an approved claim and how long a receipt is kept. Split, it reads: "An approved claim is paid where its receipt is attached, and held otherwise. Its receipt is kept for seven years."
 
 ## A Definition and Its Instances
