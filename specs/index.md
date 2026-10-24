@@ -1,6 +1,10 @@
-# PriceHorizon: Specifications
+# Spec of Record: Specifications
 
-| Path | Description |
+**Reference Key:** File
+
+**Required:** Description
+
+| File | Description |
 |---|---|
 | `AGENTS.md` | The entry point to Spec of Record: the skills each change and each check is sent to, the rules that reach every author, and an index of rules to find mid-step. |
 | `architecture.md` | An overview of the specifications as a whole: their layers, the entry point, and what the methodology and the application each hold. |
