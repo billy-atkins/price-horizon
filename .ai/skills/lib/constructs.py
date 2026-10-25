@@ -645,8 +645,8 @@ def declarations(body, sections, problems=None):
     """-> [(line, construct, fields, tables, lineage)] for each **Construct:** field in live text, the declaration,
     the fields it sets and the Table Name opening each of its tables read as one block of fields through the one reader
     (modeling-constructs.md § Fields), a list a field holds given as its items one to a line. A field the construct
-    sets standing beneath a Table Name, where only a Table Name opens a table, is appended to `problems` as
-    (0-based line, message) where a list is given."""
+    sets standing beneath a Table Name, where only a Table Name opens a table (modeling-constructs.md § Defining
+    Constructs § Declaring a Construct), is appended to `problems` as (0-based line, message) where a list is given."""
     import record_types
     lines = body.split("\n")
     secs = sorted(sections.items(), key=lambda x: x[1][0])
@@ -716,7 +716,7 @@ def construct_findings(r, body, found, sections):
     beneath = []
     decls = declarations(body, sections, beneath)
     for ln, msg in beneath:
-        found.append((FIELDS_RULE, r, ln + 1, msg))
+        found.append((DECLARING, r, ln + 1, msg))
     records = fact_records(body, sections)
     facts = facts_of(records)
     for ln, msg in fact_record_findings(records):

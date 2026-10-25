@@ -1218,7 +1218,7 @@ def repo_root():
 def objectives_stating_constructs(text):
     """-> [(step, design line of the Objective, its lines)] for each Objective of a Design Plan Step holding a
     **Construct:** field declaring one of WHOLE, its lines as written: the Objective item's own lines, ending where
-    modeling-constructs.md § Fields has a list item end, as the one reader reads it."""
+    spec-style.md § Markdown has a list item end, as the one reader reads it."""
     lines, out = text.split("\n"), []
     start = next((i for i, l in enumerate(lines) if re.match(r"^## Design Plan Steps\s*$", l)), None)
     if start is None:

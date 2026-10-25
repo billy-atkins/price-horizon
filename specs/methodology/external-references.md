@@ -39,7 +39,7 @@
     **URL:** `https://github.com/github/cmark-gfm/blob/0.29.0.gfm.13/test/spec.txt` \
     **Access:** free \
     **Relation:** adopts \
-    **Covers:** its blocks and inlines, its tables among them, and the forms the canon narrows them to: a list item's continuation line aligned with the item's text, a record's list item marked by a hyphen and one space, a field's hard line break written as a backslash with one space before it, and a field's list with its items two spaces beyond its key
+    **Covers:** its blocks and inlines, its tables among them, and the forms the canon narrows them to: a record's list item marked by a hyphen and one space, a field's hard line break written as a backslash with one space before it, and a field's list with its items two spaces beyond its key
 
   - **Name:** Gherkin \
     **Title:** Gherkin, Cucumber \

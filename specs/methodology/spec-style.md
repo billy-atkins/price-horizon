@@ -166,9 +166,9 @@ Numbers that carry value stay. Algorithm tables keep their numbered steps, and r
 
 ## Markdown
 
-Each Markdown file in scope is written in GitHub Flavored Markdown ([`specs/methodology/external-references.md § External References [Name: GFM]`](/specs/methodology/external-references.md#external-references)). [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) sets a field's form. [`§ Bold Lead-ins`](#bold-lead-ins), [`§ Emphasis`](#emphasis), [`§ Literal Text`](#literal-text) and [`§ Blank Lines`](#blank-lines) set the forms of a bold lead-in, emphasis, literal text and a blank line. A line continuing a list item is indented to the item's text ([`§ Markdown [GFM Elements.GFM: lazy continuation line]`](#markdown)).
+Each Markdown file in scope is written in GitHub Flavored Markdown ([`specs/methodology/external-references.md § External References [Name: GFM]`](/specs/methodology/external-references.md#external-references)). [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) sets a field's form. [`§ Bold Lead-ins`](#bold-lead-ins), [`§ Emphasis`](#emphasis), [`§ Literal Text`](#literal-text) and [`§ Blank Lines`](#blank-lines) set the forms of a bold lead-in, emphasis, literal text and a blank line. A line continuing a list item is indented to the item's text ([`§ Markdown [GFM Elements.GFM: lazy continuation line]`](#markdown)). A list item ends before the first line that is not blank and is indented less than its text. A fenced block whose info string is `markdown` holds a file of its own. Each check reading the block reads that file from the line directly beneath the opening fence to the line directly above the closing one. Toward what stands outside it, the block is one code block.
 
-**What the mapping means.** The canon writes GFM's blocks as GFM does, naming a few its own way where a form of the canon's is one of them. It writes one of them otherwise, a list item's continuation line, as [`§ Markdown [GFM Elements.GFM: lazy continuation line]`](#markdown) has it. GFM Elements maps each, as [`specs/methodology/sourcing-and-citation.md § External Reference § A Mapping onto a Standard`](/specs/methodology/sourcing-and-citation.md#a-mapping-onto-a-standard) has a mapping written, so a reader finds the standard's term for each form the canon names and the reason for each departure:
+**What the mapping means.** The canon writes GFM's blocks as GFM does. Where a form of the canon's is one of GFM's elements, as each paragraph of a block of fields is GFM's paragraph, the canon names the element its own way. It writes one element otherwise: a list item's continuation line, as [`§ Markdown [GFM Elements.GFM: lazy continuation line]`](#markdown) has it. GFM Elements maps each element the canon names its own way, and the one it writes otherwise, as [`specs/methodology/sourcing-and-citation.md § External Reference § A Mapping onto a Standard`](/specs/methodology/sourcing-and-citation.md#a-mapping-onto-a-standard) has a mapping written, so a reader finds the standard's term for each form and the reason for the departure:
 
 **Table Name:** GFM Elements \
 **Reference Key:** GFM \
@@ -183,7 +183,18 @@ Each Markdown file in scope is written in GitHub Flavored Markdown ([`specs/meth
 
 ## Blank Lines
 
-Items of one kind stand together, in the order they are read, and a blank line separates groups that differ, so a reader sees a file's shape at a glance and chooses which group to read in detail. A code style groups like statements the same way. Each line of a file opens or continues one of these elements: a heading; a field, a line opening a field's key, as [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) has one; a record, a list item opening a field's key; a list item, any other; a table; a code block, fenced or indented; a thematic break; front matter; and a paragraph, any other text, a lead-in among it. The element above ends a list item the element below stands outside where [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) has the item end before the element below, as a nested record's last field ends its item before the outer record's next field, and a record's last field ends its item before the next record. GFM needs a blank line between two paragraphs, and before a paragraph's line, a field's among them, that follows a table's last row or the last line of a list item it stands outside, each of which the row for groups that differ gives. Where a blank line falls:
+Items of one kind stand together, in the order they are read, and a blank line separates groups that differ, so a reader sees a file's shape at a glance and chooses which group to read in detail. A code style groups like statements the same way. Each line of a file opens or continues one of these elements:
+- a heading;
+- a field: a line opening a field's key, as [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) has one;
+- a record: a list item opening a field's key;
+- a list item: any other;
+- a table;
+- a code block, fenced or indented;
+- a thematic break;
+- front matter;
+- a paragraph: any other text, a lead-in among it.
+
+The table's condition Ends a list item? is true where the element above is a list item's last line and the element below stands outside that item, as [`§ Markdown`](#markdown) has a list item end. A nested record's last field ends its item before the outer record's next field, and a record's last field ends its item before the next record. The table's row for groups that differ gives each blank line GFM needs. Where a blank line falls:
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
 **Hit Policy:** First \
@@ -198,9 +209,9 @@ Items of one kind stand together, in the order they are read, and a blank line s
 | "a field", "a record" | a field | false | false | one block's fields, a paragraph whose hard line breaks render each field on a line of its own |
 | "a field", "a record" | "a list item", "a record" | false | false | a field's list, of plain items or of records, directly beneath its key |
 | "a paragraph", "a list item" | a list item | - | false | a list beneath the sentence or the lead-in introducing it, and the items of one plain list |
-| - | - | - | true | groups that differ, records one after another and a field after a list or after a nested record among them; where no blank line stands, GFM joins two paragraphs, reads a paragraph's line after a list item as continuing it and adds a row to a table |
+| - | - | - | true | groups that differ, records one after another and a field after a list or after a nested record among them. Where no blank line stands, GFM joins two paragraphs, reads a paragraph's line after a list item as continuing it and adds a row to a table |
 
-A blank line missing where the table gives true, or standing where it gives false, is reported. A fenced block whose info string is `markdown` is one code block toward what stands outside it, and the Markdown it holds is read as a file of its own, its first line directly beneath the opening fence and its last directly above the closing one. Any other code block is one element.
+A blank line missing where the table gives true, or standing where it gives false, is reported. A fenced block whose info string is `markdown` is read as [`§ Markdown`](#markdown) has it, so it is one element toward the lines around it. Any other code block is one element.
 
 ## Bold Lead-ins
 

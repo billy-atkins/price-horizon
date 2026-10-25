@@ -49,7 +49,7 @@ When `--show-workstack` lists a design to revise (`§ Verifying a proposal`), fi
 
 ### Record each steer and apply it
 
-Record each steer the user gives the design, a decision about what the design is rather than about how the work proceeds, in the design's Steering Decisions when it is given, per `specs/methodology/working-files.md § Steering Decision`. Quote the user's words rather than paraphrasing them, because a paraphrase drifts toward what the builder meant. A reviewer reading the paraphrase as background then checks fidelity to a decision the user never made. Set the steer's Type as `specs/methodology/working-files.md § Steering Decision` has it.
+Record each steer the user gives the design, a decision about what the design is rather than about how the work proceeds, in the design's Steering Decisions when it is given, per `specs/methodology/working-files.md § Steering Decision`. Quote the user's words rather than paraphrasing them, because a paraphrase drifts toward what the builder meant. A reviewer reading the paraphrase as background then checks fidelity to a decision the user never made. Set the steer's Type as `specs/methodology/working-files.md § Steering Decision § A Steer's Type` has it.
 
 Confirm a steer changing the goals or the frame with the user first, stating what it would change, as `specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame` has it. Record any other steer as given. Then revise the design to apply the steer before the work goes on, rerunning `§ Workflow § Fork on the kind of specification` through `§ Workflow § Verify mechanically` for whatever the steer changes. The steering decisions are the history of how the design was shaped. A design lagging them leaves its reviewers reading a decision the design does not yet carry out.
 
@@ -235,7 +235,7 @@ When you consider a change and reject it, say so and why, in the design's Out of
 
 `--check-design-form` checks a design document against `specs/methodology/working-files.md § A Design Document`, `specs/methodology/working-files.md § Design Goal`, `specs/methodology/working-files.md § Design Plan Step`, `specs/methodology/working-files.md § Design Log Entry`, `specs/methodology/working-files.md § Retired Phrase` and `specs/methodology/working-files.md § Steering Decision`, and its layout against `specs/methodology/modeling-constructs.md § Fields` and `specs/methodology/spec-style.md § Blank Lines`. It checks:
 - its heading, its fields in order, a Name that is a slug and its file's name, a Status that is a state, and a Target of paths;
-- each block of fields and each list a field holds as `specs/methodology/modeling-constructs.md § Fields` has them, by the one reader's checks, and each blank line placed as `specs/methodology/spec-style.md § Blank Lines` has it, by the layout check;
+- each block of fields and each list a field holds, by the checks `specs/methodology/modeling-constructs.md § Fields` gives a block of fields, and each blank line, by the check `specs/methodology/spec-style.md § Blank Lines` gives a blank line;
 - its sections in order, a canon design's Impact on the Application Specs among them and no other design's;
 - its Design Goals' records against the Design Goal type its declaration gives, each Name a slug used once, and each citation of a goal in its design frame naming one;
 - its design frame's headings in order and, once it is approved, neither its goals nor a part of its frame reading `Not yet stated.`, nor its steps `Not yet drafted.`;

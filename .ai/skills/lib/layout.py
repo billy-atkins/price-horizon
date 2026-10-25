@@ -1,8 +1,10 @@
-"""The layout check: each line of a Markdown file read as the element it opens or continues, and each blank line
-held to specs/methodology/spec-style.md § Blank Lines, whose Decision Table the check reads from the canon and holds no
-copy of. The audit-specs and design-specs scripts run it through this one copy (specs/methodology/skills.md § Authoring
-a Skill). A fenced block whose info string is `markdown` is one code block toward what stands outside it, and the
-Markdown it holds is read as a file of its own."""
+"""The check of where a blank line falls: each line of a Markdown file read as the element it opens or continues,
+and each blank line held to the Decision Table specs/methodology/spec-style.md § Blank Lines states, read from the
+canon. The element names the module holds are a copy of the table's Input Values, checked against them as the table
+is read. The audit-specs script, the design-specs script and implement-specs' script, through check_form, run the
+check through this one copy (specs/methodology/skills.md § Authoring a Skill). A fenced block whose info string is
+`markdown` is read as spec-style.md § Markdown has it, one code block toward what stands outside it and a file of its
+own within."""
 import re
 from pathlib import Path
 
@@ -14,7 +16,8 @@ RULE = "spec-style.md § Blank Lines"
 HOME = "specs/methodology/spec-style.md"
 SECTION = "Blank Lines"
 
-# the elements a line opens or continues, as § Blank Lines names them
+# @canon-spec specs/methodology/spec-style.md § Blank Lines
+# the elements a line opens or continues, a copy of the Input Values the table gives, compared with them in rules()
 FRONT_MATTER = "front matter"
 HEADING = "a heading"
 PARAGRAPH = "a paragraph"
@@ -24,6 +27,7 @@ LIST_ITEM = "a list item"
 TABLE = "a table"
 CODE_BLOCK = "a code block"
 THEMATIC_BREAK = "a thematic break"
+ELEMENTS = (FRONT_MATTER, HEADING, PARAGRAPH, FIELD, RECORD, LIST_ITEM, TABLE, CODE_BLOCK, THEMATIC_BREAK)
 
 # GFM's blocks as the canon meets them: a fence, a list marker, a thematic break, an ATX heading
 FENCE = re.compile(r"^(`{3,}|~{3,})(.*)$")
@@ -49,8 +53,8 @@ def _indent(line):
 
 def elements(text):
     """-> [Line or None] for each line of text, None for a blank line: the element each line opens or continues, read as
-    GFM reads blocks and as modeling-constructs.md § Fields has a list item end before the first line that is not blank
-    and is indented less than its text."""
+    GFM reads blocks and as spec-style.md § Markdown has a list item end before the first line that is not blank and is
+    indented less than its text."""
     lines = text.replace("\r\n", "\n").split("\n")
     out, stack, fence, front = [], [], None, None
     prev = None  # the last non-blank line's reading, where its element may continue onto the next line
@@ -82,7 +86,7 @@ def elements(text):
             prev = None
             continue
         holder_before = stack[-1] if stack else None
-        # a line that is not blank and is indented less than an item's text ends the item
+        # a line that is not blank and is indented less than an item's text ends the item (spec-style.md § Markdown)
         while stack and indent < stack[-1]:
             stack.pop()
         container = stack[-1] if stack else 0
@@ -195,6 +199,16 @@ def rules(root):
             if conditions and outcome and all(c in header for c in conditions):
                 rows = [dict(zip(header, cells)) for _, cells in tables[0]["rows"] if len(cells) == len(header)]
                 table = (rows, conditions, outcome)
+            # the element names this module holds, compared with the Input Values the table gives, so a renamed
+            # element fails where the names stand
+            given = set()
+            for item in values.get("Input Values", "").split("\n"):
+                quoted = constructs.quoted_values(item.split(":", 1)[1].strip()) if ":" in item else None
+                given.update(quoted or ())
+            for name in sorted(set(ELEMENTS) - given):
+                problems.append((RULE, HOME, 0, f"an element name the module holds that the table's Input Values do not give: {name}"))
+            for name in sorted(given - set(ELEMENTS)):
+                problems.append((RULE, HOME, 0, f"an element the table's Input Values give that the module lacks: {name}"))
             break
     if table is None:
         problems.append((RULE, HOME, 0, "the layout check reads no Decision Table of where a blank line falls in spec-style.md § Blank Lines"))
