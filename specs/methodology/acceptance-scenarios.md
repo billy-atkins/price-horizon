@@ -2,8 +2,7 @@
 
 A product capability's spec gets acceptance scenarios in Gherkin form ([`specs/methodology/external-references.md § External References [Name: Gherkin]`](/specs/methodology/external-references.md#external-references)). The scenarios sit inside that capability's own section, never in a separate scenarios file. This applies to every product capability with its own section in a product spec file, whether or not it already has a scenario block.
 
-**Reference Key:** Rule
-
+**Reference Key:** Rule \
 **Required:** Form
 
 | Rule | Form |
@@ -29,8 +28,7 @@ A capability's own section is the only source for its scenarios. Another file's 
 
 The scenarios a capability's own section owes:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
 **Conditions:** Write one scenario for
 
 | Write one scenario for | Proving |

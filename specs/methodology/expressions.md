@@ -2,8 +2,7 @@
 
 How an expression is written wherever a construct computes or tests a value, so that an author and a reader need neither memory of the language nor a network to write or read one. Each construct that writes expressions writes them in FEEL:
 
-**Reference Key:** Construct
-
+**Reference Key:** Construct \
 **Required:** Writes
 
 | Construct | Writes |
@@ -21,10 +20,8 @@ How an expression is written wherever a construct computes or tests a value, so 
 
 FEEL is the Friendly Enough Expression Language, DMN's expression language (DMN 10.1), and the canon adopts it whole. The canon's departures from it, each mapped onto the element of DMN it departs from, as [`specs/methodology/sourcing-and-citation.md § External Reference § A Mapping onto a Standard`](/specs/methodology/sourcing-and-citation.md#a-mapping-onto-a-standard) has a mapping written:
 
-**Table Name:** DMN Elements
-
-**Reference Key:** DMN
-
+**Table Name:** DMN Elements \
+**Reference Key:** DMN \
 **Required:** Section, Treatment
 
 | DMN | Section | Treatment | Departs For | Why |
@@ -39,8 +36,7 @@ FEEL is the Friendly Enough Expression Language, DMN's expression language (DMN 
 
 Each value is of one type, and the types never overlap (DMN 10.3.2.1, 10.3.2.3):
 
-**Reference Key:** Type
-
+**Reference Key:** Type \
 **Required:** Written, What It Holds
 
 | Type | Written | What It Holds |
@@ -70,8 +66,7 @@ A name is in scope where the construct declares it, such as a fact, a Facts reco
 
 An expression is one of these, listed from the loosest to the tightest, so `a + b * c` multiplies first and `a = b + c` adds first (DMN 10.3.1.2, grammar rules 2, 4 and 44 to 52, and the precedence stated beneath them):
 
-**Reference Key:** Form
-
+**Reference Key:** Form \
 **Required:** Written, Gives
 
 | Form | Written | Gives |
@@ -94,7 +89,6 @@ A comment is `//` to the line's end or `/*` to `*/` (DMN 10.3.1.2).
 #### Unary Tests
 
 A unary test is a test of one value, which that value meets or not, written without the value. It is what a Decision Table's condition cell, an Input Values item and a Facts record's Values hold where they cite no closed set ([`specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact`](/specs/methodology/modeling-constructs.md#fact)). A unary test is one of these (DMN 10.3.1.2, grammar rules 7, 8, 13 to 16; Table 55):
-
 - `-`, met by any value;
 - a comparison and an end, `< 10`, `>= date("2024-01-01")`, `= base rate`, `!= "Gold"`;
 - a range, `[1..10)`, its ends values or expressions of one type;
@@ -106,8 +100,7 @@ A unary test is a test of one value, which that value meets or not, written with
 
 `and`, `or` and `not` take `true`, `false` and anything else. They give `null` only where the answer turns on a value that is not a boolean. The table holds with `a` and `b` in either order (DMN 10.3.2.4, Tables 50 and 51):
 
-**Reference Key:** `a`, `b`
-
+**Reference Key:** `a`, `b` \
 **Required:** `a and b`, `a or b`
 
 | `a` | `b` | `a and b` | `a or b` |
@@ -126,13 +119,11 @@ A unary test is a test of one value, which that value meets or not, written with
 Numbers add, subtract, multiply and divide exactly to 34 significant digits. A division by zero, or a result too large or too small to hold, gives `null`. `decimal` and the rounding functions of [`§ Expressions § FEEL § Its Functions`](#its-functions) give a number the decimal places they are asked for (DMN Tables 57, 59, 60 and 76). Two strings added are joined, the first then the second (DMN Table 57).
 
 **A system's own arithmetic.** FEEL's numbers hold 34 significant digits, rounded to the nearest with a tie to the even neighbor, as [`§ Expressions § FEEL § Its Values`](#its-values) states. This is IEEE 754's decimal128 (DMN 10.3.2.3.1; [`specs/methodology/external-references.md § External References [Name: IEEE 754]`](/specs/methodology/external-references.md#external-references)). A system that computes otherwise is specified by what follows. What follows departs from DMN, which fixes FEEL's context, by letting a construct state another ([`§ Expressions § FEEL [DMN Elements.DMN: number]`](#feel)):
-
 - **A precision and a rounding mode.** A construct whose section gives the fields states the significant digits its system holds each operation's result to, and the mode it rounds by. Each operation's result is then rounded, by the mode's function, to the decimal places that many significant digits leave. An operation is each arithmetic operator applied, and each step a function aggregating numbers takes: `sum` adds and `product` multiplies its items one by one in their order, each result rounded.
 - **Decimal places.** A value written to a fact whose Facts record states its decimal places ([`specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact`](/specs/methodology/modeling-constructs.md#fact)) is rounded to them by the writing construct's rounding mode, or half even where the construct states none. It is the same idea as a SQL column's scale in `DECIMAL(p, s)`. A Decision Table's outcome is among the values written. DMN's ItemDefinition rounds nothing, so this too departs from DMN ([`§ Expressions § FEEL [DMN Elements.DMN: ItemDefinition]`](#feel)). A part of a fact holds no decimal places of its own, so money a step computes by multiplying or dividing is written to a fact holding them before a part takes it; a sum or difference of money already held to them, or money a function gives, needs none.
 - **The modes.** Each mode is named for the function DMN gives it (DMN Table 76), and rounds the value as that function rounds it:
 
-**Reference Key:** Mode
-
+**Reference Key:** Mode \
 **Required:** Rounds As, A Tie Or Any Value Between Neighbors
 
 | Mode | Rounds As | A Tie Or Any Value Between Neighbors |
@@ -147,8 +138,7 @@ Numbers add, subtract, multiply and divide exactly to 34 significant digits. A d
 
 Dates, times and durations combine as this table has it, every other pairing giving `null` (DMN Tables 57 and 59):
 
-**Reference Key:** `a`, `b`
-
+**Reference Key:** `a`, `b` \
 **Required:** Gives
 
 | `a` | `b` | Gives |
@@ -163,7 +153,6 @@ Dates, times and durations combine as this table has it, every other pairing giv
 Each addition pins against its own result, so a pinned day stays pinned: `@"2024-01-31" + @"P1M" + @"P1M"` is `@"2024-03-29"`. A series of dates a month apart that adds each month's multiple to its first date, `start + @"P1M" * i`, is pinned against that first date alone, and a series kept on each month's last day takes each month's, `last day of month(start + @"P1M" * i)` ([`§ Expressions § FEEL § The Canon's Functions § Time`](#time)). Each is shown in `specs/methodology/examples/time/calendar/`.
 
 A path names the parts of these values (DMN Tables 65 to 67):
-
 - a date: `year`, `month`, `day` and `weekday`, with Monday `1`;
 - a time: `hour`, `minute`, `second`, `time offset` and `timezone`;
 - a date and time: the parts of a date and those of a time;
@@ -183,8 +172,7 @@ A type in `instance of` or a function's parameter is a type's name from [`§ Exp
 
 This table holds every function FEEL builds in. A function is called by its name and its arguments in parentheses, given by place or by its parameters' names as this table gives them. A parameter marked `?` is given or left out, and one marked `…` is given any number of times. A function taking no parameter is written `()`, its empty parameter list. A number giving a place, as `position` does, is a whole number counting from `1` at the start or `-1` at the end. A function whose signatures differ in their parameters' names is given a row for each (DMN 10.3.4):
 
-**Reference Key:** Function, Takes
-
+**Reference Key:** Function, Takes \
 **Required:** Gives, Does
 
 | Function | Takes | Gives | Does |
@@ -308,8 +296,7 @@ The canon's functions on dates, beside DMN's temporal functions, its group for t
 
 **Its functions.** Each row's Takes gives each parameter its type as FEEL names one, and its Values the values a parameter is held to where they are closed:
 
-**Reference Key:** Function
-
+**Reference Key:** Function \
 **Required:** Takes, Gives, Values, Does, Body
 
 | Function | Takes | Gives | Values | Does | Body |

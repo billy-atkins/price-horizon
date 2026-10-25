@@ -7,8 +7,7 @@ A nightly pricing run, written whole as a file would hold it. Two extracts are f
 
 The nightly pricing run: prices and costs extracted, margins checked and reviewed, then loaded and reported.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § DAG`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § DAG` \
 **Runs When:** the nightly pricing run, at 02:00 on each business date, a missed run caught up on the next and a late run taken when it comes
 
 | Task | Work | Depends On | Guard | Timeout | Tolerated |
@@ -26,15 +25,12 @@ Review flagged is the pricing analyst's: each flagged margin is confirmed or cor
 
 The night's valid prices, taken from the price feed.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm` \
 **Inputs:**
-
-- price feed
+  - price feed
 
 **Output:**
-
-- prices
+  - prices
 
 **Runs When:** `§ Nightly Pricing`
 
@@ -47,15 +43,12 @@ The night's valid prices, taken from the price feed.
 
 The night's valid costs, taken from the cost feed.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm` \
 **Inputs:**
-
-- cost feed
+  - cost feed
 
 **Output:**
-
-- costs
+  - costs
 
 **Runs When:** `§ Nightly Pricing`
 
@@ -68,17 +61,14 @@ The night's valid costs, taken from the cost feed.
 
 Each sku's margin, flagged where it falls below the floor.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm` \
 **Inputs:**
-
-- prices
-- costs
-- floor
+  - prices
+  - costs
+  - floor
 
 **Output:**
-
-- margins
+  - margins
 
 **Runs When:** `§ Nightly Pricing`
 
@@ -91,15 +81,12 @@ Each sku's margin, flagged where it falls below the floor.
 
 The load of the reviewed margins, giving how many were written.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm` \
 **Inputs:**
-
-- margins
+  - margins
 
 **Output:**
-
-- loaded
+  - loaded
 
 **Runs When:** `§ Nightly Pricing`
 
@@ -112,16 +99,13 @@ The load of the reviewed margins, giving how many were written.
 
 The run's report of what it loaded for the business date.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm` \
 **Inputs:**
-
-- loaded
-- business date
+  - loaded
+  - business date
 
 **Output:**
-
-- report
+  - report
 
 **Runs When:** `§ Nightly Pricing`
 
@@ -133,41 +117,40 @@ The run's report of what it loaded for the business date.
 ## Facts
 
 **Records:**
+  - **Name:** business date \
+    **Type:** date \
+    **Means:** the date the run prices, the business date the nightly run is launched for, in the trading desk's zone
 
-- **Name:** business date
-  **Type:** date
-  **Means:** the date the run prices, the business date the nightly run is launched for, in the trading desk's zone
+  - **Name:** price feed \
+    **Type:** list<context<sku: string, price: number, valid?: boolean>> \
+    **Means:** the night's prices as the feed delivers them
 
-- **Name:** price feed
-  **Type:** list<context<sku: string, price: number, valid?: boolean>>
-  **Means:** the night's prices as the feed delivers them
+  - **Name:** cost feed \
+    **Type:** list<context<sku: string, cost: number, valid?: boolean>> \
+    **Means:** the night's costs as the feed delivers them
 
-- **Name:** cost feed
-  **Type:** list<context<sku: string, cost: number, valid?: boolean>>
-  **Means:** the night's costs as the feed delivers them
+  - **Name:** prices \
+    **Type:** list<context<sku: string, price: number>> \
+    **Means:** the valid prices
 
-- **Name:** prices
-  **Type:** list<context<sku: string, price: number>>
-  **Means:** the valid prices
+  - **Name:** costs \
+    **Type:** list<context<sku: string, cost: number>> \
+    **Means:** the valid costs
 
-- **Name:** costs
-  **Type:** list<context<sku: string, cost: number>>
-  **Means:** the valid costs
+  - **Name:** floor \
+    **Type:** number \
+    **Means:** the margin below which a sku is flagged
 
-- **Name:** floor
-  **Type:** number
-  **Means:** the margin below which a sku is flagged
+  - **Name:** margins \
+    **Type:** list<context<sku: string, margin: number, flagged?: boolean>> \
+    **Means:** each sku's margin, flagged where it is below the floor, as the review left it
 
-- **Name:** margins
-  **Type:** list<context<sku: string, margin: number, flagged?: boolean>>
-  **Means:** each sku's margin, flagged where it is below the floor, as the review left it
+  - **Name:** loaded \
+    **Type:** number \
+    **May Be Absent:** Yes \
+    **Means:** how many margins the load wrote, absent where the load failed
 
-- **Name:** loaded
-  **Type:** number
-  **May Be Absent:** Yes
-  **Means:** how many margins the load wrote, absent where the load failed
-
-- **Name:** report
-  **Type:** context<loaded: number, for: date>
-  **Means:** the run's report, what it loaded and the business date it priced
+  - **Name:** report \
+    **Type:** context<loaded: number, for: date> \
+    **Means:** the run's report, what it loaded and the business date it priced
 ```

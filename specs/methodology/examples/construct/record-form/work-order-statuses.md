@@ -7,10 +7,8 @@ A work order's statuses, a closed set a product spec defines, a fact taking its 
 
 A status a work order can hold, the set the product owner settles before, and apart from, the workflows that move a work order between them, each with the code integrations exchange for it. Its records sit in this spec.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`
-
-**Plural Name:** Work Order Statuses
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Work Order Statuses \
 **Reference Key:** Name
 
 | Field | Unique | Required | Default Value | Values | Holds |
@@ -23,45 +21,41 @@ A status a work order can hold, the set the product owner settles before, and ap
 ## Work Order Statuses
 
 **Records:**
+  - **Name:** Open \
+    **Description:** raised, not yet given to a technician \
+    **Code:** WO-OPEN
 
-- **Name:** Open
-  **Description:** raised, not yet given to a technician
-  **Code:** WO-OPEN
+  - **Name:** Assigned \
+    **Description:** given to a technician to carry out \
+    **Code:** WO-ASGN
 
-- **Name:** Assigned
-  **Description:** given to a technician to carry out
-  **Code:** WO-ASGN
+  - **Name:** On Hold \
+    **Description:** paused awaiting parts, retired, no workflow giving it any longer \
+    **Is Active:** No \
+    **Code:** WO-HOLD
 
-- **Name:** On Hold
-  **Description:** paused awaiting parts, retired, no workflow giving it any longer
-  **Is Active:** No
-  **Code:** WO-HOLD
+  - **Name:** Completed \
+    **Description:** carried out and signed off \
+    **Code:** WO-DONE
 
-- **Name:** Completed
-  **Description:** carried out and signed off
-  **Code:** WO-DONE
-
-- **Name:** Canceled
-  **Description:** withdrawn before it was carried out
-  **Code:** WO-CANC
+  - **Name:** Canceled \
+    **Description:** withdrawn before it was carried out \
+    **Code:** WO-CANC
 
 ## Facts
 
 **Records:**
-
-- **Name:** work order status
-  **Type:** string
-  **Values:** `§ Work Order Statuses`
-  **Means:** the status a work order holds
+  - **Name:** work order status \
+    **Type:** string \
+    **Values:** `§ Work Order Statuses` \
+    **Means:** the status a work order holds
 
 ## Work Order
 
 The workflow of a work order raised through the portal.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
-
-**Recorded In:** work order status: `§ Facts [Name: work order status]`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine` \
+**Recorded In:** work order status: `§ Facts [Name: work order status]` \
 **Table Name:** States
 
 | State | Description | Initial | Terminal |

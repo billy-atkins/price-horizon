@@ -1,7 +1,6 @@
 # Spec of Record: State Machines, Worked Examples
 
-**Reference Key:** File
-
+**Reference Key:** File \
 **Required:** Description
 
 | File | Description |

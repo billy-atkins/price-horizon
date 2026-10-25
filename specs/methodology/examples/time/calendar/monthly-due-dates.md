@@ -7,18 +7,15 @@ A loan's monthly due dates by three rules, written whole as a file would hold it
 
 A loan's installments' due dates, a month apart, by each of the rules a lender may hold.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm` \
 **Inputs:**
-
-- first due date
-- term
+  - first due date
+  - term
 
 **Output:**
-
-- chained due dates
-- anchored due dates
-- month-end due dates
+  - chained due dates
+  - anchored due dates
+  - month-end due dates
 
 **Runs When:** the loan is disbursed
 
@@ -32,26 +29,25 @@ A loan's installments' due dates, a month apart, by each of the rules a lender m
 ## Facts
 
 **Records:**
+  - **Name:** first due date \
+    **Type:** date \
+    **Means:** the first installment's due date
 
-- **Name:** first due date
-  **Type:** date
-  **Means:** the first installment's due date
+  - **Name:** term \
+    **Type:** number \
+    **Means:** how many installments the loan has
 
-- **Name:** term
-  **Type:** number
-  **Means:** how many installments the loan has
+  - **Name:** chained due dates \
+    **Type:** list<date> \
+    **Means:** each installment's due date, a month after the one before
 
-- **Name:** chained due dates
-  **Type:** list<date>
-  **Means:** each installment's due date, a month after the one before
+  - **Name:** anchored due dates \
+    **Type:** list<date> \
+    **Means:** each installment's due date, on the first due date's day of its month, or its month's last day where the month lacks that day
 
-- **Name:** anchored due dates
-  **Type:** list<date>
-  **Means:** each installment's due date, on the first due date's day of its month, or its month's last day where the month lacks that day
-
-- **Name:** month-end due dates
-  **Type:** list<date>
-  **Means:** each installment's due date, its month's last day
+  - **Name:** month-end due dates \
+    **Type:** list<date> \
+    **Means:** each installment's due date, its month's last day
 ```
 
 The dates each rule gives over a term of 4:

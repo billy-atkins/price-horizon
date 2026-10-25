@@ -19,7 +19,6 @@ Before adding a paragraph that states a general rule, check whether that rule al
 A sentence stating a rule at the rule's home states part of at most one rule, a rule as [`specs/methodology/glossary.md`](/specs/methodology/glossary.md) defines it. A change to one rule then edits no sentence stating another. A table cell and a list item are each a sentence, judged on its own, and so is each further sentence within one. A clause applying another section's rule, with its citation, is not a second rule. A reason is no rule. A sentence a careful reader could count either way meets the rule. A sentence holding several rules is split as [`specs/methodology/spec-style.md § Clear Prose`](/specs/methodology/spec-style.md#clear-prose) directs, its rules counted as [`specs/methodology/modeling-constructs.md § When to Use Which`](/specs/methodology/modeling-constructs.md#when-to-use-which) counts them.
 
 **Examples.** Each is judged by the questions it answers.
-
 - "An approved claim is paid where its receipt is attached, and held otherwise." is one rule. It answers what becomes of an approved claim.
 - "An approved claim is paid where its receipt is attached. Where its receipt is missing, the claim is held." is one rule in two sentences.
 - "An approved claim is paid within ten days, by bank transfer, to the claimant's account." is three rules. They answer when, how and to whom it is paid. Written one rule to an item, it reads:
@@ -56,12 +55,9 @@ A citation pointing down a layer sends the reader somewhere for a specific purpo
 
 What a citation may name depends on where it is written. Each row its source matches grants what that row lists:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
-**Order:** any
-
-**Hit Policy:** Collect
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Order:** any \
+**Hit Policy:** Collect \
 **Conditions:** From
 
 | From | May cite |
@@ -86,8 +82,7 @@ An application spec cites no methodology spec, and neither [`specs/AGENTS.md`](/
 
 A heading's title is a stable slug for whatever the section covers, not prose to be refined later. Every citation depends on that exact text. A title chosen well the first time keeps a citation from ever needing to change. If a title does change, every citation naming it is updated in the same edit. A citation left naming the old title is broken until it is updated.
 
-**Reference Key:** Rule
-
+**Reference Key:** Rule \
 **Required:** Form
 
 | Rule | Form |
@@ -140,12 +135,9 @@ A direction holds only while nothing moves. Reorder steps, insert a section or m
 
 Whether a wording is a direction:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
-**Hit Policy:** First
-
-**Conditions:** Wording
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Hit Policy:** First \
+**Conditions:** Wording \
 **Annotations:** Why, Such As
 
 | Wording | A direction | Why | Such As |
@@ -160,7 +152,6 @@ A sentence introducing the block under it says what the block is for, never wher
 ### Citing From Code
 
 Code names a spec it relies on with a spec annotation. A spec annotation is a plain comment on a line of its own, in the comment syntax of the code's language, and never a documentation comment. It holds a tag, a space, and a citation. The citation takes the form [`§ Writing a Citation`](#writing-a-citation) gives for a section in another file or for a whole file. It drops the backticks a citation takes in a spec, since the tag marks where the citation begins and the line marks where it ends. Each tag has a rule of its own saying what carries the tag, and [`§ Which Citations Are Allowed`](#which-citations-are-allowed) says what each tag may cite:
-
 - `@app-spec`, in the code the application specs govern, as [`specs/methodology/code.md § Citing the Specs From Code`](/specs/methodology/code.md#citing-the-specs-from-code) has it;
 - `@canon-spec`, in a registered skill's scripts and the code the skills share, as [`specs/methodology/skills.md § Authoring a Skill`](/specs/methodology/skills.md#authoring-a-skill) has it.
 
@@ -187,8 +178,7 @@ A citation in a file a person reads on GitHub is also a link the reader can foll
 
 The citation identifies, and the link navigates. GitHub addresses a heading by a flat anchor, which loses the heading's lineage. So the citation stays the exact reference, and the link reaches the closest place GitHub can address. Where the two disagree, the citation is right.
 
-**Reference Key:** Citation
-
+**Reference Key:** Citation \
 **Required:** Link Target
 
 | Citation | Link Target |
@@ -215,10 +205,8 @@ The canon adopts an outside standard where an agent or a software engineer alrea
 
 External Reference is a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)), whose records give these fields, in this order:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`
-
-**Plural Name:** External References
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** External References \
 **Reference Key:** Name
 
 | Field | Unique | Required | Default Value | Values | Holds |
@@ -235,10 +223,8 @@ External Reference is a record type ([`specs/methodology/modeling-constructs.md 
 
 A need a form meets takes a standard's form before one of the canon's own, as [`specs/methodology/modeling-constructs.md § Purpose`](/specs/methodology/modeling-constructs.md#purpose) has the constructs lean on the industry's standards. A standard fits a need where its form states what the need decides. The field a need comes from is the domain whose engineers meet it, as scheduling is for a job's run. A product's convention counts where the product is widely used in that field and its documentation publishes the convention, its record pinning a release and linking to that release's documentation. Of several that fit on one row, the one most used in the field is taken. A standard whose form cannot state what the need decides does not fit, however widely used: cron's five fields name no month's last day, so a schedule needing one takes RFC 5545's recurrence rule:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
-**Hit Policy:** First
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Hit Policy:** First \
 **Conditions:** a registered standard fits?, a published standard fits?, a product's convention fits?
 
 | a registered standard fits? | a published standard fits? | a product's convention fits? | Form |
@@ -256,7 +242,7 @@ A need whose parts fit different standards takes each part's form by its own row
 
 **Its Relation.** A standard's record says once, by its Relation field, how the canon relies on the standard as a whole, as [`§ External Reference`](#external-reference) defines the field. Under either Relation, each departure is a row of its mapping.
 
-**Its table.** A mapping is one table, in the section whose rule adopts or maps onto the standard, after that section's prose on what the mapping means. A standard several sections depart from has a table in each, each mapping that section's forms. The table maps each element the section's forms write otherwise than the standard does; an element the canon writes the same takes a row where the canon names it its own way, so a reader finds the standard's term for it. Its Table Name is the standard's Name and the word `Elements`, as `UML Elements`. Its Reference Key is the standard's Name, and its Required is `Section, Treatment`. Its columns, in this order:
+**Its table.** A mapping is one table, in the section whose rule adopts or maps onto the standard, after that section's prose on what the mapping means. A standard several sections depart from has a table in each, each mapping that section's forms. A section standing before [`specs/methodology/modeling-constructs.md § Constructs § Basic Table`](/specs/methodology/modeling-constructs.md#basic-table), and so holding no Basic Table, has its rows held in the table of the section whose rule adopts the standard for the whole canon, and cites them, as [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) cites GFM Elements. The table maps each element the section's forms write otherwise than the standard does; an element the canon writes the same takes a row where the canon names it its own way, so a reader finds the standard's term for it. Its Table Name is the standard's Name and the word `Elements`, as `UML Elements`. Its Reference Key is the standard's Name, and its Required is `Section, Treatment`. Its columns, in this order:
 
 | Column | Holds |
 |---|---|

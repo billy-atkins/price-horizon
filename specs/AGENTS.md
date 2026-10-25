@@ -9,7 +9,6 @@ This file is the entry point to Spec of Record for these specs. Read it before a
 **Keeping specs in sync.** What a change reaches beyond the facts it edits is kept in sync with those facts, as `specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync` has it. What it reaches is each materialized view of the facts (`specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync § Materialized Views`), and the counterpart that draws their subject from the other perspective (`specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync § Product and Technical Counterparts`).
 
 Every change a design makes is one of the kinds that `specs/methodology/working-files.md § A Design Document § The Kinds of Change` defines: a change to the canon's specs, to the application specs, to code, to the documentation, or to another file. A working file is of no kind of change, and is changed as `specs/methodology/working-files.md § The Working Files` has it. `specs/methodology/working-files.md § A Design Document` also sets when a change's design document declares its kind, and how a change that needs two kinds is split. Each change goes to the skill for its work. The skills for the specs serve every kind of spec alike, and each skill forks on the kind where the work differs:
-
 - **Changing a spec, or another file in scope but code.** `.ai/skills/design-specs/`. Its Workflow gives each rule it applies a point-of-use citation, and forks into the reference for the change's kind.
 - **Checking a spec, or such a file.** `.ai/skills/audit-specs/`. Its Workflow forks on the kind of each file it audits, and a run reads the audits of the kinds it is given, as `specs/methodology/design-workflow.md § A Design's Reviews` sets. The skill that writes a plan checks the plan (`specs/methodology/scope.md § Rules and Skills`).
 - **Designing and writing code.** `.ai/skills/implement-specs/`.
@@ -19,8 +18,7 @@ Before doing by hand a kind of work that a registered skill covers, read that sk
 
 Running the procedure, rather than recalling the rules, puts each rule in mind at the step it governs (`specs/methodology/sourcing-and-citation.md § One Home Per Fact`). This section's index finds a rule mid-step, whatever the work. The index routes. It stands in for no step of a procedure.
 
-**Reference Key:** Doing This
-
+**Reference Key:** Doing This \
 **Required:** The Rules Are Here
 
 | Doing This | The Rules Are Here |
@@ -40,7 +38,7 @@ Running the procedure, rather than recalling the rules, puts each rule in mind a
 | Describing a rule, a process, or an entity's behavior | `specs/methodology/modeling-constructs.md` |
 | Writing an expression a construct computes or tests | `specs/methodology/expressions.md` |
 | Recording a decision the specs rely on but have not made | `specs/methodology/spec-placement.md § Open Question` |
-| Writing a field, a bold lead-in, emphasis, literal text, a table of items of one kind, or an entry of a repeated kind or a closed set's members | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § When to Use Which § A Table's Construct`, `specs/methodology/modeling-constructs.md § Constructs § Basic Table`, `specs/methodology/spec-style.md § Bold Lead-ins`, `specs/methodology/spec-style.md § Emphasis`, `specs/methodology/spec-style.md § Literal Text`, `specs/methodology/modeling-constructs.md § Constructs § Record Form` |
+| Writing a field, a bold lead-in, emphasis, literal text, a blank line, a table of items of one kind, or an entry of a repeated kind or a closed set's members | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § When to Use Which § A Table's Construct`, `specs/methodology/modeling-constructs.md § Constructs § Basic Table`, `specs/methodology/spec-style.md § Bold Lead-ins`, `specs/methodology/spec-style.md § Emphasis`, `specs/methodology/spec-style.md § Literal Text`, `specs/methodology/spec-style.md § Blank Lines`, `specs/methodology/modeling-constructs.md § Constructs § Record Form` |
 | Writing or updating acceptance scenarios | `specs/methodology/acceptance-scenarios.md` |
 | Removing drafting residue and hedged framing, or explaining a trade-off | `specs/methodology/spec-style.md § What a Finished Spec Reads Like`, `specs/methodology/spec-style.md § Trade-offs Are Not Journey Language` |
 | Writing prose its primary reader understands on the first read | `specs/methodology/spec-style.md § Clear Prose` |
@@ -78,14 +76,11 @@ The frame's scope, the cases the change governs, is the actual scope of the chan
 
 This test asks whether the goals and the frame name a mechanism the steps change. Such a mechanism has states or routes, and the design alters its states, its routes or the facts deciding them, either in a step stating its rows or in keeping its text in sync. A rule written as prose that routes is such a mechanism. A mechanism whose wording alone the design keeps in sync, its decisions standing, is not. The builder asks the test at the trace, as `§ Design, Refactor, Refine § Measure Twice, Cut Once` has it, and at settling, as `§ Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Group` has it. The self-review report, or the round's settlement, holds the table's outcome for each mechanism or decision the test is asked of. The user triages a design flaw the table finds, as `§ Design, Refactor, Refine § Converging, or Not § A Design Flaw` has one triaged. Where the trace finds that the goals and the frame miss a mechanism, that design flaw is a call that blocks the adversarial round. It goes to the user when it arises, before that round, as `§ Design, Refactor, Refine § Who Decides` has such a call asked.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
-**Hit Policy:** First
-
-**Conditions:** Asked at, Findings drawn again?, On a mechanism the steps change?, A goal sentence stating the mechanism's change?, The mechanism's deciding facts in the Scope?, An Outcome testing the mechanism?
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Hit Policy:** First \
+**Conditions:** Asked at, Findings drawn again?, On a mechanism the steps change?, A goal sentence stating the mechanism's change?, The mechanism's deciding facts in the Scope?, An Outcome testing the mechanism? \
 **Input Values:**
-- Asked at: "the trace", "settling"
+  - Asked at: "the trace", "settling"
 
 | Asked at | Findings drawn again? | On a mechanism the steps change? | A goal sentence stating the mechanism's change? | The mechanism's deciding facts in the Scope? | An Outcome testing the mechanism? | The goals and the frame |
 |---|---|---|---|---|---|---|
@@ -109,7 +104,6 @@ Once Refactor has converged, make the elegance of what is built plain, and make 
 ### Measure Twice, Cut Once
 
 The builder and its reviewers pull against each other, as a software engineer and a quality assurance engineer do. The builder aims to hand a review nothing to find. The reviewer, in the adversarial review, the post-apply review and an audit alike, aims to find what the builder missed. That tension makes the work good. It holds only while the builder does its part, because quality comes from the builder's own passes, and the reviewers are a second set of eyes, never the first check. Fast and sloppy is slow, because each finding a reviewer makes sends the work back through the builder's process and can cost another review. Methodical and correct is fast. So the builder:
-
 - takes the steps through Design, Refactor, Refine before validation, and again whenever a step changes, a steer's change among them, before the validation that precedes the next adversarial round; at the apply, it takes what it writes through them;
 - zooms out to find how far the rule the change touches reaches, every other place stating the fact a fix changes among it. It zooms out before it states a step's outcome, again before it writes at the apply, and before it makes a fix in settling a round, whether to a step or to text it wrote. Reading more costs only time and tokens, while reading too little costs the specs and what is built from them. It zooms out:
   - around: the parent of the section holding the change, whole, the section's siblings among it. Where the section is a top-level section, or the change sits in a file's text before its first section, it reads that section or that text, with the sections on either side of it;
@@ -159,7 +153,6 @@ In an adversarial review, a nit (`specs/methodology/glossary.md`) is the builder
 #### The Runs
 
 Every round of the adversarial review that the user's approval did not end, and every round of the post-apply review, is settled at its causes, whatever it finds, as `§ Design, Refactor, Refine § Settling a Round § The Round at Its Causes` has it. The builder counts each run apart, and counts a round's design flaws by the user's triage:
-
 - three adversarial rounds in a row that each found a design flaw mean the design is not converging, its goals or frame wrong past what its rounds can mend;
 - five adversarial rounds in a row that each found an implementation flaw mean its steps are not converging;
 - five post-apply rounds in a row that each found an implementation flaw lying in the writing mean its writing is not converging;
@@ -187,7 +180,6 @@ A call the canon gives the user stays the user's, and is settled as its home set
 ### What the User Is Shown
 
 The builder shows the user each thing the user approves with its summary, so what the user sees rests on no builder's choice:
-
 - the plan, at its approval: what changed since the user last saw it and why, each change from the builder's self-review or from a review, how the builder settled the findings, and the findings each reviewer dropped with the reviewer's reasons;
 - the applied result, at the user's review: what the applied work does, each round's counts by mark, the findings each reviewer dropped with the reviewer's reasons, how each finding was settled, and the checks the builder ran;
 - the settled audit, before the commit: what the audit found and how each finding was settled, in the files or handed on.
@@ -198,8 +190,7 @@ This table sets the checks a design goes through: who makes each check, what it 
 
 No review, whether the adversarial review, the post-apply review or a handed-off judgment, reads a working file but the design it is given, its own report and each report the design's log entries name (`specs/methodology/working-files.md § Design Log Entry`). So another design document and `.ai/follow-ups.md` lie outside its reading. Keeping a design in sync with them is the builder's, checked by its self-review as the self-review's row has it. A review sweeps the files in Spec of Record's scope or in the design's Target, the working files aside, as its task needs, and what an audit reads is its own row's.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
 **Conditions:** Check
 
 | Check | Who makes it | What it reads | What it leaves to another |
@@ -233,7 +224,6 @@ A reviewer's dropped findings, with its reasons, show where its first reading wa
 #### The Test
 
 The builder addresses a review finding only where the review's own criteria, as its row of `§ Design, Refactor, Refine § Who Checks What` states them, need it addressed, or where the user asked for it. Every review holds what it reads to the canon's rules, as the design's goals and frame may change them. Its own criteria add to them. A finding is needed only where it shows what goes wrong in the work if it is left. A finding that the work breaks a rule of the canon is always needed. Any other finding is needed where what goes wrong is one of:
-
 - the goals or the frame are wrong, as `§ Design, Refactor, Refine § Converging, or Not § A Design Flaw` has a design flaw;
 - the work contradicts itself, its goals or the canon;
 - an Objective cannot be confirmed;

@@ -2,8 +2,7 @@
 
 Spec of Record governs files by kind. For each kind, the table gives what it holds and what names its files:
 
-**Reference Key:** Kind
-
+**Reference Key:** Kind \
 **Required:** Holds, Named By
 
 | Kind | Holds | Named By |
@@ -55,7 +54,6 @@ specs/
 ```
 
 The tree:
-
 - names the methodology's files, since they hold the rules every task depends on, and describes none of them;
 - stops at `product/` and `technical/`, whose files grow with the product;
 - leaves the working files to [`specs/methodology/working-files.md § The Working Files`](/specs/methodology/working-files.md#the-working-files), which names them;
@@ -66,7 +64,6 @@ A directory's `index.md` says what each of the directory's files covers ([`specs
 ## Progressive Disclosure
 
 An agent loads what its current step needs, when the step needs it, descending only as far as the step requires:
-
 - from [`specs/AGENTS.md`](/specs/AGENTS.md), which sends a change to the procedure that governs it,
 - to that procedure's step and the reference it forks to,
 - to a directory's `index.md`,
@@ -84,7 +81,6 @@ An agent reads what it loads from a directory in the order that the directory's 
 ## The Methodology Governs Itself
 
 The methodology is held to the rules it states:
-
 - it has an `index.md`, and an `architecture.md` summarizing it;
 - a rule that is a lookup is authored as a Decision Table ([`specs/methodology/modeling-constructs.md § Constructs § Decision Table`](/specs/methodology/modeling-constructs.md#decision-table));
 - its files meet the style rules they set.
@@ -100,7 +96,6 @@ The instructions in Spec of Record's scope, both `AGENTS.md` files and each regi
 **The test.** Would anything new still make sense to an agent from a different vendor, or to a person reading it directly?
 
 **The one exception.** Anything written for one tool is allowed, and only because it carries no content:
-
 - an opt-in helper outside the methodology's scope, named for the tool it serves, may wire that tool up to the agnostic content;
 - an agent setting itself up may write what it needs to carry out a choice the methodology leaves to it ([`specs/methodology/skills.md § Setting Up an Agent`](/specs/methodology/skills.md#setting-up-an-agent)).
 
@@ -110,7 +105,7 @@ Whatever either writes is kept out of version control and outside the scope. Not
 
 The methodology's files state rules. They do not sequence the work, record what goes wrong while following it, check whether a result conforms, or teach the craft a rule assumes. The skills that [`specs/methodology/skills.md`](/specs/methodology/skills.md) registers do those things, and a cold agent needs them to follow the methodology in practice. [`specs/AGENTS.md`](/specs/AGENTS.md) states rules too, and sequences the work through the Design, Refactor, Refine process. The methodology's files and [`specs/AGENTS.md`](/specs/AGENTS.md), with the specifications' overview, make up the core canon ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)). The skills, with the code they share, are the rest of the canon. No skill is a rule's home. Where a skill and a rule disagree, the rule governs, and the skill is what needs correcting.
 
-A rule without a check is a suggestion, so every rule of Spec of Record is enforced. A rule added or changed takes its check with it, in the same change. [`specs/methodology/spec-style.md § Clear Prose`](/specs/methodology/spec-style.md#clear-prose), as it reaches the working files, stands without a check. The user holds the working files to it in reading them, since an audit of files that never last would cost more than it finds.
+A rule without a check is a suggestion, so every rule of Spec of Record is enforced. A rule added or changed takes its check with it, in the same change. [`specs/methodology/spec-style.md § Clear Prose`](/specs/methodology/spec-style.md#clear-prose), as it reaches the working files, stands without a check. The user holds the working files to it in reading them, since an audit of files that never last would cost more than it finds. [`specs/methodology/spec-style.md § Blank Lines`](/specs/methodology/spec-style.md#blank-lines), and the layout [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) gives a block of fields, stand without a check as they reach the skills' own output and the plans no validation reads, a design once complete or abandoned and a plan other than a design document. Each such file is read by the work it was written for, so an audit of them would cost more than it finds.
 
 **A specification rule.** It is checked against the files it governs by one of the audit skill's reading audits. A rule of [`specs/methodology/code.md`](/specs/methodology/code.md) is checked instead by a check of `.ai/skills/verify-spec-implementation/` that reads the code. Either skill's script first decides whatever the files alone settle. The script never decides a judgment, since a check that cannot decide gives a confident false clear. A script that lists places for a reading audit to look decides nothing.
 

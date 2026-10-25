@@ -7,8 +7,7 @@ An installment of a loan from due to paid or written off, written whole as a fil
 
 An installment of a loan, from due to paid or written off.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine` \
 **Table Name:** States
 
 | State | Description | Initial | Terminal |
@@ -34,15 +33,12 @@ An installment of a loan, from due to paid or written off.
 
 The business date an installment goes to collection, recorded as it goes.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm` \
 **Inputs:**
-
-- business date
+  - business date
 
 **Output:**
-
-- collection began
+  - collection began
 
 **Runs When:** `§ Installment`
 
@@ -54,28 +50,27 @@ The business date an installment goes to collection, recorded as it goes.
 ## Facts
 
 **Records:**
+  - **Name:** balance \
+    **Type:** number \
+    **Unit:** USD \
+    **Means:** what is still owed on the installment
 
-- **Name:** balance
-  **Type:** number
-  **Unit:** USD
-  **Means:** what is still owed on the installment
+  - **Name:** due date \
+    **Type:** date \
+    **Means:** the installment's due date
 
-- **Name:** due date
-  **Type:** date
-  **Means:** the installment's due date
+  - **Name:** business date \
+    **Type:** date \
+    **Means:** the business date the lender's close of business last closed, a clock its job advances, in New York
 
-- **Name:** business date
-  **Type:** date
-  **Means:** the business date the lender's close of business last closed, a clock its job advances, in New York
+  - **Name:** trading calendar \
+    **Type:** context<weekend: list<number>, holidays: list<date>> \
+    **Means:** the lender's business days, its weekend Saturday and Sunday and its holidays the bank holidays it keeps
 
-- **Name:** trading calendar
-  **Type:** context<weekend: list<number>, holidays: list<date>>
-  **Means:** the lender's business days, its weekend Saturday and Sunday and its holidays the bank holidays it keeps
-
-- **Name:** collection began
-  **Type:** date
-  **May Be Absent:** Yes
-  **Means:** the business date the installment went to collection
+  - **Name:** collection began \
+    **Type:** date \
+    **May Be Absent:** Yes \
+    **Means:** the business date the installment went to collection
 ```
 
 The fall overdue reads the wall clock at 17:00 in New York, a date and time in that zone, where the due date alone would stand for its midnight UTC. The 30 days are counted from entering overdue. The write-off counts business days from entering collection, so the move to collection records its business date by its effect, and the write-off is a condition on the business date, taken the moment that clock reaches the 60th business day after it. A payment clearing the balance pays the installment from any state it is owed in.

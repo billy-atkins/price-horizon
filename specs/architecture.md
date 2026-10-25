@@ -17,7 +17,6 @@ specs/
 ```
 
 At the top of `specs/` sits [`specs/AGENTS.md`](/specs/AGENTS.md), Spec of Record's entry point. It holds:
-
 - the kinds a change can be, and the skills every change and every check is sent to, each forking on whether the canon or the application specs are touched, and the skills designing, writing and checking code;
 - where to find a rule mid-step;
 - the rules reaching every author: how work is designed, reviewed and approved, who makes each check, how each round of an adversarial review is settled at the causes of its findings, and how what a change reaches is kept in sync with it.

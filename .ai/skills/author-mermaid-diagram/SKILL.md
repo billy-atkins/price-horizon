@@ -39,8 +39,7 @@ Look for the failures the source cannot show you: whether the reading order matc
 
 Every one of these is invisible in the source and obvious on render.
 
-**Reference Key:** Symptom
-
+**Reference Key:** Symptom \
 **Required:** Cause, Fix
 
 | Symptom | Cause | Fix |
@@ -98,7 +97,6 @@ The check: if you deleted the edges between a set of nodes and lost nothing, the
 ## A new diagram changes the existing ones
 
 Once a document set has more than one diagram, the diagrams are read as a family. A convention that shifts between them misleads a reader who has just learned it. Check a new diagram against every existing one for:
-
 - **A concept drawn two ways.** The same cross-cutting thing was drawn with directed arrows in one diagram and undirected links in another. That told a reader it flowed *into* the pipeline in one place and *out of* it in another. Pick the grammar that matches what the prose claims. Then fix the other diagram in the same pass rather than leaving the pair inconsistent.
 - **A color that means two things.** Green, established as "finished successfully" in one diagram and then reused for an intermediate output in another, teaches the reader something false the second time.
 - **One thing under several names.** A start node called "Order placed", "An order", and "A customer order" across diagrams is as many concepts to a reader who does not already know they are one.

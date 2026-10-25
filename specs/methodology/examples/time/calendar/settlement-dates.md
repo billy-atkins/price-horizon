@@ -7,18 +7,15 @@ A trade's settlement date and a coupon's payment date, written whole as a file w
 
 A trade's settlement date and its coupon's payment date.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm` \
 **Inputs:**
-
-- trade date
-- coupon date
-- trading calendar
+  - trade date
+  - coupon date
+  - trading calendar
 
 **Output:**
-
-- settlement date
-- payment date
+  - settlement date
+  - payment date
 
 **Runs When:** a trade is booked
 
@@ -31,26 +28,25 @@ A trade's settlement date and its coupon's payment date.
 ## Facts
 
 **Records:**
+  - **Name:** trade date \
+    **Type:** date \
+    **Means:** the date the trade was made
 
-- **Name:** trade date
-  **Type:** date
-  **Means:** the date the trade was made
+  - **Name:** coupon date \
+    **Type:** date \
+    **Means:** the date the coupon falls due by its schedule, before any move to a business day
 
-- **Name:** coupon date
-  **Type:** date
-  **Means:** the date the coupon falls due by its schedule, before any move to a business day
+  - **Name:** trading calendar \
+    **Type:** context<weekend: list<number>, holidays: list<date>> \
+    **Means:** the market's business days, its weekend Saturday and Sunday, `[6, 7]`, and its holidays the market's
 
-- **Name:** trading calendar
-  **Type:** context<weekend: list<number>, holidays: list<date>>
-  **Means:** the market's business days, its weekend Saturday and Sunday, `[6, 7]`, and its holidays the market's
+  - **Name:** settlement date \
+    **Type:** date \
+    **Means:** the date the trade settles
 
-- **Name:** settlement date
-  **Type:** date
-  **Means:** the date the trade settles
-
-- **Name:** payment date
-  **Type:** date
-  **Means:** the date the coupon is paid
+  - **Name:** payment date \
+    **Type:** date \
+    **Means:** the date the coupon is paid
 ```
 
 The dates each step gives, the calendar's holidays December 25 and 26, 2024:
