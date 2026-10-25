@@ -1,6 +1,6 @@
 ## Employees
 
-An Employee type whose optional Direct Reports field holds a list of Employee records, the records of an Employees section nesting three levels deep as a tree, each employee written once, beneath their manager, written whole as a file would hold it:
+An Employee type whose optional Direct Reports field holds a list of Employee records, the records of an Employees section nesting as a tree, each employee written once, beneath their manager, written whole as a file would hold it:
 
 ```markdown
 ## Employee
@@ -42,4 +42,4 @@ An employee of the depot and, where they manage others, the employees reporting 
         **Role:** dispatcher
 ```
 
-The Direct Reports field cites the Employee type's own definition after `a list of`, so the type holds itself, and its records nest as a tree, as the Record Form's Held by value paragraph has a type hold itself. The tree ends where a record leaves Direct Reports absent, as the forklift operator's, the loader's and the dispatcher's do, since the field is not required. Each employee is written once, held by value inside their manager's record and never shared with another record. The depot manager's record is the one item the Employees section's Records holds, so a citation names that record alone, by its Employee Number, and reaches a report's record through it.
+The Direct Reports field cites the Employee type's own definition after `a list of`, so the type holds itself, and its records nest as a tree, as [`specs/methodology/modeling-constructs.md § Constructs § Record Form § Held by Value`](/specs/methodology/modeling-constructs.md#held-by-value) has a type hold itself. The tree ends where a record leaves Direct Reports absent, as the forklift operator's, the loader's and the dispatcher's do, since the field is not required. Each employee is written once, held by value inside their manager's record and never shared with another record. The depot manager's record is the one item the Employees section's Records holds, so a citation names that record alone, by its Employee Number, and reaches a report's record through it.

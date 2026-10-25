@@ -336,8 +336,6 @@ A design's Steering Decisions record only the user's steers, the decisions a ste
 
 **Each steer is recorded when it is given.** The design is then revised to apply the steer before its work goes on, so the design carries how it was formed and never lags a steer it records. A steer changing the goals or the frame is confirmed with the user, as [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame) has it. It is carried into the goals or the frame, its case reaching the Scope, the Approach and the Outcomes. Any other steer, such as one choosing wording a step quotes as its outcome or a name in code, is recorded as given. The record tells the adversarial review the user chose it. Where the steer differs from another choice only by preference, it stands. Where it breaks a rule, the review raises it as a finding pressing on the steer. The builder presents the conflict to the user with a wording or a name that follows the rule, and the user chooses either ([`§ Steering Decision § Revisiting a Steer`](#revisiting-a-steer)). Only the user revises a steer, by a later one. The record is history. A later steer revising what an earlier one decided is recorded after it, and its Decision says which steer it revises. The earlier one stays as it was given. The design follows the later one, whatever the Type of either, so the records, read in order, show how the design was shaped. A question the user leaves unanswered is asked again, never read as agreed. The adversarial review reads the steers as background, checking fidelity to them rather than reopening them ([`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review)). The request that opened the design is its Source. The design's log records each check and event of its work, never a steer, so each steer is recorded once.
 
-**A steer's Type.** A steer is a selection where the user only selects one of the options the builder offered, a literal selection. Every other steer is a perspective, whatever its form, such as emphasis, a negative remark, a nudge or a strong direction for the design. Selecting an option is easier than sharing a perspective, and a perspective originates with the user.
-
 A design's steering decisions sit in its record section of this type, a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
@@ -348,9 +346,13 @@ A design's steering decisions sit in its record section of this type, a record t
 |---|---|---|---|---|---|
 | Name | yes | yes | | text | a short name for what was decided |
 | Prompted By | no | yes | | text | what the steer answered: a question, proposal or account the builder gave, with the options it offered where it offered any, a review's finding named by its ID, or the user's own initiative |
-| Type | no | yes | | "selection", "perspective" | a selection or a perspective, as this section's paragraph A steer's Type has it |
+| Type | no | yes | | "selection", "perspective" | a selection or a perspective, as [`§ Steering Decision § A Steer's Type`](#a-steers-type) has it |
 | Steer | no | yes | | text | the user's own words, quoted |
 | Decision | no | yes | | text | the essence of what the steer decided, in a sentence or two |
+
+### A Steer's Type
+
+A steer is a selection where the user only selects one of the options the builder offered, a literal selection. Every other steer is a perspective, whatever its form, such as emphasis, a negative remark, a nudge or a strong direction for the design. Selecting an option is easier than sharing a perspective, and a perspective originates with the user.
 
 ### Telling a Steer Apart
 

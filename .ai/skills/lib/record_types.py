@@ -3,8 +3,9 @@ citation names: what the construct checks read before they run, read here once f
 (specs/methodology/skills.md § Authoring a Skill). declared_types fills TYPES; the checks then read it.
 
 The one reader of a block of fields is here too: every script reads where a block of fields, a field's value, a field's
-list, a record and a nested record begin and end through read_block and read_item, as modeling-constructs.md § Fields
-states them once."""
+list and a record begin and end through read_block and read_item, as modeling-constructs.md § Fields states them. Where
+a list item ends is spec-style.md § Markdown's rule, read here for a record's item and, by the same rule, by the element reader
+of layout.py for the check of spec-style.md § Blank Lines."""
 import re
 
 import constructs
@@ -37,10 +38,6 @@ LAST_TOP_LEVEL = ("specs/methodology/spec-placement.md § Open Question",)
 
 FIELD_LINE = constructs.FIELD  # the form written once, in constructs.py
 
-
-# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Construct
-# a Values cell holding a list of records of a cited type: `a list of` and the citation of the type's definition
-LIST_OF = re.compile(r"^a list of (?P<cite>`[^`]+`)$")
 
 
 # ---------------------------------------------------------------- the one reader of a block of fields
@@ -95,8 +92,8 @@ def _own_line(lines, i, end, problems, consumed):
 def read_item(lines, i, end=None, problems=None, consumed=None):
     """-> an item of a field's list opening at line i: {"line", "indent", "text_indent", "lines", "text", "fields"},
     its fields read as a block where it opens a field's key, a record, and None where it is a plain item, whose text
-    is its first line's content. The item ends before the first line that is not blank and is indented less than its
-    text (modeling-constructs.md § Fields)."""
+    is its first line's content. The item ends where spec-style.md § Markdown has a list item end, before the first line that is
+    not blank and is indented less than its text."""
     end = len(lines) if end is None else end
     problems = [] if problems is None else problems
     raw = lines[i]
@@ -137,7 +134,7 @@ def read_block(lines, i, indent, end=None, problems=None, consumed=None, first=F
     line i, a line opening a field's key, or a record's first line where `first` is given: each field's key, its value
     running to the next line opening a field's key or to the block's end, each line between continuing it, without the
     space and the backslash ending a line, and the list beneath a key, its items at the key's indentation or beyond,
-    each item ending before the first line that is not blank and is indented less than its text. A list or a table
+    each item ending as spec-style.md § Markdown has a list item end. A list or a table
     ends the block's paragraph, and a field opening the next paragraph is the block's. -> ([field], the line after the
     block), each field {"key", "value", "line", "lines", "items", "inline"}; the reader's checks are appended to
     `problems` as (rule, 0-based line, message), and the lines read to `consumed`."""
@@ -350,8 +347,8 @@ def _resolve_types(raw, out, report=True):
 
         def holds(field, cell, spec=spec):
             # a citation of a record type's definition, alone or after `a list of`, names the section declaring a type
-            m = LIST_OF.match(cell.strip())
-            cite = m["cite"] if m else cell.strip()
+            m = constructs.LIST_OF_CITATION.match(cell.strip())  # the one pattern, in constructs.py
+            cite = m.group(1) if m else cell.strip()
             if not CITATION.fullmatch(cite) or "[" in cite:
                 return None
             origin = spec["origin"].get(field, spec["declared"][0])
