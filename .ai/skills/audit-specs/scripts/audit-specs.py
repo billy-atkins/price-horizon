@@ -24,10 +24,12 @@ from pathlib import Path, PurePosixPath
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "lib"))
 import citation_links  # noqa: E402
 import constructs  # noqa: E402
+import layout  # noqa: E402
 from record_types import (  # noqa: E402
     CONSTRUCT_KEYS, FACT_HOME, FIELD_KEYS, FIELD_LINE, KEY_VALUE, LAST_TOP_LEVEL, NAME_CITED, RECORD_FORM,
-    TYPES, _TEXT_OF, basic_tables, cited_value_findings, closed_set, closed_set_findings, construct_keys,
-    declared_types, derive, parse_records, part_citation, read_fact, record_citation, row_citation, type_of)
+    TYPES, _TEXT_OF, basic_tables, block_findings, block_path, cited_value_findings, closed_set, closed_set_findings,
+    _indent, construct_keys, declared_types, derive, opens_key, parse_records, part_citation, read_block, read_fact,
+    record_citation, row_citation, type_of, value_of)
 from spec_text import (  # noqa: E402
     HEADING, REGISTRY, REGISTRY_RULE, SCOPE_HOME, headings, lineages, md_files, parse_citation, read, registry, resolve, scope_paths,
     sections, skill_dirs, strip_fences)
@@ -147,83 +149,131 @@ def unnamed_record_sections(r, body):
     field whose title is the Plural Name of no type whose records may sit there."""
     live = strip_fences(body).split("\n")
     return {lineage for lineage, (h, end) in sections(body).items()
-            if not type_of(lineage.split(" § ")[-1], r) and "**Records:**" in live[h + 1:end]}
+            if not type_of(lineage.split(" § ")[-1], r) and any(_records_key(l) for l in live[h + 1:end])}
+
+
+def _records_key(line):
+    f = opens_key(line)
+    return f is not None and f["key"] == "Records" and not f["indent"]
 
 
 def record_findings(r, body, found):
-    """Each record section in a file: its shape, its type's fields, and its placement."""
+    """Each record section in a file: its shape, its type's fields, and its placement, each nested record checked
+    against the type its field cites; a fenced block whose info string is `markdown` is read as the Markdown it holds,
+    its record sections checked against the types the block declares and the canon's."""
+    _record_findings(r, body, found, r, 0)
+    for start, _, inner in layout.markdown_blocks(body):
+        _record_findings(block_path(r, start), inner, found, r, start + 1)
+
+
+def _record_findings(host, body, found, r, offset):
+    """The record sections of `body`, read by the path `host`, a fenced block's own among them, each finding reported
+    in file `r` at the body's line plus `offset`."""
     lines = body.split("\n")
     live = strip_fences(body).split("\n")
-    for lineage in unnamed_record_sections(r, body):
-        found.append((RECORD_FORM, r, sections(body)[lineage][0] + 1, f"a record section titled with no declared type's Plural Name: {lineage.split(' § ')[-1]}"))
+
+    def at(i):
+        return i + 1 + offset
+    for lineage in unnamed_record_sections(host, body):
+        found.append((RECORD_FORM, r, at(sections(body)[lineage][0]), f"a record section titled with no declared type's Plural Name: {lineage.split(' § ')[-1]}"))
     for lineage in sections(body):
         title = lineage.split(" § ")[-1]
-        spec = type_of(title, r)
-        if not spec or spec["home"] == f"{r} § {lineage}":
+        spec = type_of(title, host)
+        if not spec or spec["home"] == f"{host} § {lineage}":
             continue  # no type's, or its type's own definition, titled with its Plural Name and reported at the declaration
-        # the section fields its type declares, before its Records, each a paragraph at the left margin
-        given = [(mm["key"], (mm["value"] or "").strip(), i) for i in range(sections(body)[lineage][0] + 1, sections(body)[lineage][1])
-                 for mm in [FIELD_LINE.match(live[i])] if mm and not mm["indent"] and not mm["marker"] and mm["key"] in spec["section_fields"]]
-        for i in range(sections(body)[lineage][0] + 1, sections(body)[lineage][1]):
-            mm = FIELD_LINE.match(live[i])
-            if live[i].strip() == "**Records:**":
+        h, end = sections(body)[lineage]
+        # the section fields its type declares, before its Records, read from the section's block through the one
+        # reader (modeling-constructs.md § Fields)
+        first = next((i for i in range(h + 1, end) if opens_key(live[i]) and not opens_key(live[i])["indent"]), None)
+        block = read_block(live, first, 0, end)[0] if first is not None else []
+        given = [(f["key"], (value_of(f) if isinstance(value_of(f), str) else "").strip(), f["line"])
+                 for f in block if f["key"] in spec["section_fields"]]
+        for i in range(h + 1, end):
+            mm = opens_key(live[i])
+            if _records_key(live[i]):
                 break
-            if mm and not mm["indent"] and not mm["marker"] and mm["key"] in FIELD_KEYS and mm["key"] not in spec["section_fields"] + ["Diagrams", "Records"]:
-                found.append((spec["home"], r, i + 1, f"a section field its type does not declare: {mm['key']}"))
+            if mm and not mm["indent"] and mm["key"] in FIELD_KEYS and mm["key"] not in spec["section_fields"] + ["Diagrams", "Records"]:
+                found.append((spec["home"], r, at(i), f"a section field its type does not declare: {mm['key']}"))
         keys = [k for k, _, _ in given]
         if keys != [f for f in spec["section_fields"] if f in keys]:
-            found.append((spec["home"], r, sections(body)[lineage][0] + 1, f"a record section's section fields are {keys}, not in the order {spec['section_fields']}"))
+            found.append((spec["home"], r, at(h), f"a record section's section fields are {keys}, not in the order {spec['section_fields']}"))
         for f in spec["section_required"]:
             if f not in keys:
-                found.append((spec["home"], r, sections(body)[lineage][0] + 1, f"a record section without the section field its type requires: {f}"))
+                found.append((spec["home"], r, at(h), f"a record section without the section field its type requires: {f}"))
         for k, v, i in given:
             if spec["section_defaults"].get(k) == v:
-                found.append((spec["home"], r, i + 1, f"the {k} field written at its default value, {v}"))
+                found.append((spec["home"], r, at(i), f"the {k} field written at its default value, {v}"))
             if k in spec["section_values"] and v not in spec["section_values"][k]:
-                found.append((spec["home"], r, i + 1, f"the {k} field holds a value its type does not allow: {v}"))
-        home = spec["home"]
-        h, end = sections(body)[lineage]
+                found.append((spec["home"], r, at(i), f"the {k} field holds a value its type does not allow: {v}"))
         if spec["last_top_level"] and (" § " in lineage or end != len(lines)):
-            found.append((home, r, h + 1, f"the {title} section is not its file's last top-level section"))
+            found.append((spec["home"], r, at(h), f"the {title} section is not its file's last top-level section"))
         records, problems = parse_records(body, lineage, spec["section_fields"])
-        for rule, at, msg in problems:
-            found.append((rule, r, at + 1, msg))
-        names, given = set(), set()
-        for rec in records:
-            keys = [key for key, _, _ in rec]
-            at = rec[0][2] + 1
-            if keys != [f for f in spec["fields"] if f in keys] or any(k not in spec["fields"] for k in keys):
-                found.append((home, r, at, f"a record's fields are {keys}, not {spec['fields']} in that order"))
+        for rule, i, msg in problems:
+            found.append((rule, r, at(i), msg))
+        _check_records(records, spec, host, r, at, found, f"the {title} section")
+
+
+def _check_records(records, spec, host, r, at, found, scope):
+    """modeling-constructs.md § Constructs § Record Form: each record of one collection, a record section's own items
+    or the records one field holds, against its type: its fields, their order, its required fields, its values, its
+    identifying values and its unique fields, and each field holding records checked against the type it cites in
+    turn."""
+    home, names, given = spec["home"], set(), set()
+    for rec in records:
+        line = at(rec[0][2])
+        if rec[0][0] is None:
+            found.append((home, r, line, f"an item of {scope} that is no record of its type, opening with no field"))
+            continue
+        keys = [key for key, _, _ in rec]
+        if keys[0] not in spec["fields"]:
+            found.append((home, r, line, f"an item of {scope} that is no record of its type, opening with no field its type gives: {keys[0]}"))
+            continue
+        if keys != [f for f in spec["fields"] if f in keys] or any(k not in spec["fields"] for k in keys):
+            found.append((home, r, line, f"a record's fields are {keys}, not {spec['fields']} in that order"))
+            continue
+        missing = [f for f in spec["required"] if f not in keys]
+        if missing:
+            found.append((home, r, line, f"a record without the field its type requires: {', '.join(missing)}"))
+            continue
+        values = {key: value for key, value, _ in rec}
+        for key, value in values.items():
+            if key in spec["holds"]:
+                held, many = spec["holds"][key]
+                if not isinstance(value, list):
+                    found.append((home, r, line, f"a field holding records whose value is no list of records: {key}"))
+                    continue
+                if not many and len(value) > 1:
+                    found.append((home, r, line, f"a field holding one record holding more than one item: {key}"))
+                held_spec = type_of(held, host)
+                if held_spec:
+                    _check_records(value, held_spec, host, r, at, found, f"the {key} field")
                 continue
-            missing = [f for f in spec["required"] if f not in keys]
-            if missing:
-                found.append((home, r, at, f"a record without the field its type requires: {', '.join(missing)}"))
+            if isinstance(value, list):
+                found.append((home, r, line, f"the {key} field holds records where its Values hold none"))
                 continue
-            values = {key: value for key, value, _ in rec}
-            for key, value in values.items():
-                if spec["defaults"].get(key) == value:
-                    found.append((home, r, at, f"the {key} field written at its default value, {value}"))
-            for key, value in values.items():
-                if key in spec["values"] and value not in spec["values"][key]:
-                    found.append((home, r, at, f"the {key} field holds a value its type does not allow: {value}"))
-                # resolved in the file declaring the field, where its citation is written
-                origin = spec.get("origin", {}).get(key)
-                members = closed_set(strip_fences(_TEXT_OF[origin]), spec["cited"][key]) if key in spec["cited"] and origin else None
-                if members is not None and value not in members:
-                    found.append((home, r, at, f"the {key} field holds a value its closed set does not: {value}"))
-            for key in spec["identifying"]:
-                if not values[key]:
-                    found.append((RECORD_FORM, r, at, f"an identifying value left blank: {key}"))
-            ident = tuple(values[key] for key in spec["identifying"])
-            if ident in names:
-                found.append((RECORD_FORM, r, at, f"two records share their identifying values: {ident}"))
-            names.add(ident)
-            for key in [f for f in spec["unique"] if [f] != spec["identifying"]]:
-                if values.get(key) and (key, values[key]) in given:
-                    found.append((RECORD_FORM, r, at, f"two records share a value of {key}, a field unique on its own: {values[key]}"))
-                given.add((key, values.get(key)))
-            if spec["home"] in IMPACTS_CITED and "Impacts" in values and not CITATION.search(values["Impacts"]):
-                found.append((home, r, at, "a record's Impacts carries no section citation"))
+            if spec["defaults"].get(key) == value:
+                found.append((home, r, line, f"the {key} field written at its default value, {value}"))
+            if key in spec["values"] and value not in spec["values"][key]:
+                found.append((home, r, line, f"the {key} field holds a value its type does not allow: {value}"))
+            # resolved in the file declaring the field, where its citation is written
+            origin = spec.get("origin", {}).get(key)
+            members = closed_set(strip_fences(_TEXT_OF[origin]), spec["cited"][key], origin) if key in spec["cited"] and origin in _TEXT_OF else None
+            if members is not None and value not in members:
+                found.append((home, r, line, f"the {key} field holds a value its closed set does not: {value}"))
+        for key in spec["identifying"]:
+            if not values.get(key):
+                found.append((RECORD_FORM, r, line, f"an identifying value left blank: {key}"))
+        ident = tuple(str(values.get(key, "")) for key in spec["identifying"])
+        if ident in names:
+            found.append((RECORD_FORM, r, line, f"two records of {scope} share their identifying values: {ident}"))
+        names.add(ident)
+        for key in [f for f in spec["unique"] if [f] != spec["identifying"]]:
+            if values.get(key) and (key, str(values[key])) in given:
+                found.append((RECORD_FORM, r, line, f"two records of {scope} share a value of {key}, a field unique on its own: {values[key]}"))
+            given.add((key, str(values.get(key))))
+        if spec["home"] in IMPACTS_CITED and "Impacts" in values and not CITATION.search(str(values["Impacts"])):
+            found.append((home, r, line, "a record's Impacts carries no section citation"))
+
 
 
 def environment_findings(r, body, found):
@@ -241,7 +291,8 @@ def environment_findings(r, body, found):
         if lineage.count(" § ") != depth:
             continue
         j = next((j for j in range(h + 1, end) if lines[j].strip()), None)
-        mm = re.fullmatch(r"\*\*Kind:\*\* (\S+)", lines[j].strip()) if j is not None else None
+        f = opens_key(lines[j]) if j is not None else None
+        mm = re.fullmatch(r"(\S+)", (f["value"] or "").strip()) if f and f["key"] == "Kind" and not f["indent"] else None
         if not mm or mm.group(1) not in KINDS or (j + 1 < end and lines[j + 1].strip()):
             found.append((rule, r, h + 1, "an environment does not open with a Kind field, on a line of its own, of local, integration, shared or production"))
             continue
@@ -291,15 +342,28 @@ def header_findings(r, body, found):
 
 
 def field_findings(r, body, found):
-    """modeling-constructs.md § Fields: each field's key is one a form declares, it sits
-    where that form places it, and a key at the left margin follows a blank line."""
+    """modeling-constructs.md § Fields: each field's key is one a form declares, and it sits where that form places it,
+    a record's fields, a nested record's among them, placed by the one reader through the type its field cites."""
     raw = body.split("\n")
     live = strip_fences(body).split("\n")
     secs = sorted(sections(body).items(), key=lambda x: x[1][0])
     unnamed = unnamed_record_sections(r, body)
+    # the lines the reader places as a record's fields, in a record section of a known type, at any depth
+    placed = set()
+    for lineage in sections(body):
+        spec = type_of(lineage.split(" § ")[-1], r)
+        if spec and spec["home"] != f"{r} § {lineage}":
+            records, _ = parse_records(body, lineage, spec["section_fields"])
+            todo = list(records)
+            while todo:
+                rec = todo.pop()
+                for key, value, i in rec:
+                    placed.add(i)
+                    if isinstance(value, list):
+                        todo += value
     for i, line in enumerate(live):
         mm = FIELD_LINE.match(line)
-        if not mm:
+        if not mm or i in placed:
             continue
         indent, dash, key = mm["indent"], mm["marker"], mm["key"]
         owner = [(lin, s) for lin, s in secs if s[0] < i < s[1]]
@@ -324,16 +388,13 @@ def field_findings(r, body, found):
         elif place == "environment":
             ok = r == ENVIRONMENTS and not indent and not dash
         elif place == "construct":
-            # modeling-constructs.md § Defining Constructs § Declaring a Construct: a paragraph of its own
+            # modeling-constructs.md § Defining Constructs § Declaring a Construct: a field of the construct's block
             ok = not indent and not dash
         else:
             ok = spec is not None and key in spec["fields"] and bool(indent or dash)
         if not ok:
             found.append((FIELDS, r, i + 1, f"the {key} field outside the place its form gives it"))
-        # Record Form: a blank line precedes each section field, at the left margin, or
-        # Markdown renders it inside the line above; a record's own fields are stacked
-        if spec and not indent and not dash and i > 0 and raw[i - 1].strip():
-            found.append((RECORD_FORM, r, i + 1, f"the {key} field directly after a non-blank line"))
+
 
 
 def basic_findings(r, body, found):
@@ -422,7 +483,8 @@ def basic_findings(r, body, found):
 
 
 def diagram_findings(r, body, text_of, known, lineage, found):
-    """modeling-constructs.md § Diagrams: each diagram's form, and its sources citing it back."""
+    """modeling-constructs.md § Diagrams: each diagram's form, its Caption and Sources a block of fields read through the
+    one reader, and its sources citing it back."""
     rule = "modeling-constructs.md § Diagrams"
     lines, secs = body.split("\n"), sections(body)
     for m in re.finditer(r'^```mermaid\s*$', body, re.M):
@@ -440,32 +502,34 @@ def diagram_findings(r, body, text_of, known, lineage, found):
             continue
         close = next((i for i in range(start + 1, end) if lines[i].startswith("```")), None)
         rest = [(i, l) for i, l in rest if close is not None and i > close]
-        if not rest or not rest[0][1].startswith("**Caption:** "):
+        first = opens_key(rest[0][1]) if rest else None
+        if not first or first["key"] != "Caption" or first["indent"]:
             found.append((rule, r, start + 1, "a diagram not followed by its **Caption:**"))
             continue
-        caption = []
-        while rest and not rest[0][1].startswith("**Sources:**"):
-            caption.append(rest.pop(0))
-        if rest and rest[0][0] == caption[-1][0] + 1:
-            found.append((rule, r, rest[0][0] + 1, "a diagram's **Sources:** is not separated from its caption by a blank line"))
-        if any(CITATION.search(l) or WHOLE_FILE.search(l) for _, l in caption):
-            found.append((rule, r, caption[0][0] + 1, "a diagram's caption carries a citation"))
-        if len({i for i, _ in caption}) != caption[-1][0] - caption[0][0] + 1:
-            found.append((rule, r, caption[0][0] + 1, "a diagram's caption is not a single paragraph"))
-        if not rest or rest[0][1].strip() != "**Sources:**":
-            found.append((rule, r, start + 1, "a diagram's caption not followed by **Sources:** on its own line"))
+        stop = rest[-1][0] + 1
+        fields, after = read_block(lines, rest[0][0], 0, stop)
+        keys = [f["key"] for f in fields]
+        caption = fields[0]
+        if any(CITATION.search(l) or WHOLE_FILE.search(l) for l in [lines[i] for i in caption["lines"]]):
+            found.append((rule, r, caption["line"] + 1, "a diagram's caption carries a citation"))
+        if "Sources" not in keys:
+            found.append((rule, r, start + 1, "a diagram's caption not followed by its **Sources:**"))
             continue
-        items = rest[1:]
+        sources = fields[keys.index("Sources")]
+        if keys != ["Caption", "Sources"] or any(i for i in range(after, stop) if lines[i].strip()):
+            found.append((rule, r, start + 1, "a diagram's section holds something other than its diagram, its Caption and its Sources"))
+        if sources["inline"]:
+            found.append((rule, r, sources["line"] + 1, "a diagram's Sources written on its key's line, not beneath it"))
         cites = []
-        for i, l in items:
-            mm = re.fullmatch(r'-\s+`([^`]+)`', l.strip())
+        for it in sources["items"] or []:
+            mm = re.fullmatch(r'`([^`]+)`', it["text"] or "") if it["fields"] is None else None
             if not mm:
-                found.append((rule, r, i + 1, "a diagram's section holds something other than one citation per Sources bullet"))
+                found.append((rule, r, it["line"] + 1, "a diagram's section holds something other than one citation per Sources bullet"))
                 continue
             if "§" not in mm.group(1):
-                found.append((rule, r, i + 1, f"a Sources bullet is not a section citation: {mm.group(1)}"))
+                found.append((rule, r, it["line"] + 1, f"a Sources bullet is not a section citation: {mm.group(1)}"))
                 continue
-            cites.append((i, mm.group(1)))
+            cites.append((it["line"], mm.group(1)))
         if not cites:
             found.append((rule, r, start + 1, "a diagram's Sources list is empty"))
         if [c for _, c in cites] != sorted(c for _, c in cites):
@@ -483,13 +547,12 @@ def diagram_findings(r, body, text_of, known, lineage, found):
             own = strip_fences("\n".join(src[sh + 1:se])).split("\n")
             if type_of(target.split(" § ")[-1], path):
                 # a record section, or a record, cites its diagrams in its Diagrams field only
-                start = next((k for k, l in enumerate(own) if l.strip() == "**Diagrams:**"), None)
+                k = next((k for k, l in enumerate(own) if opens_key(l) and opens_key(l)["key"] == "Diagrams"), None)
                 field = []
-                if start is not None:
-                    for l in own[start + 1:]:
-                        if FIELD_LINE.match(l):
-                            break
-                        field.append(l)
+                if k is not None:
+                    # the Diagrams field's list, read through the one reader (modeling-constructs.md § Fields)
+                    fields, _ = read_block(own, k, _indent(own[k]), len(own))
+                    field = (value_of(fields[0]) or "").split("\n") if fields else []
                 own = field
             for l in own:
                 for cm in CITATION.finditer(l):
@@ -497,6 +560,7 @@ def diagram_findings(r, body, text_of, known, lineage, found):
                         back = True
             if not back:
                 found.append((rule, r, i + 1, f"source does not cite the diagram back: {c}"))
+
 
 
 def layer_of(rel):
@@ -552,7 +616,8 @@ def mapping_rule_findings(root):
             if line.startswith("|"):
                 continue
             after = next((l for l in lines[n:] if l.strip()), "")
-            opens = re.match(r"\*\*Table Name:\*\* (.+) Elements$", after)
+            f = opens_key(after)
+            opens = re.match(r"(.+) Elements$", (f["value"] or "").strip()) if f and f["key"] == "Table Name" else None
             for sentence in re.split(r"(?<=\.)\s+(?=[A-Z`])", line):
                 # a sentence opening a mapping, ending at a colon before the mapping's table, names no departure of its own
                 for m in named.finditer(sentence):
@@ -599,7 +664,12 @@ def check(root, warned=None):
     text_of = {rel[f]: text[f] for f in files}
     # the registered standards' Names, a mapping's first header naming one
     register = root / "specs/methodology/external-references.md"
-    STANDARDS.update(re.findall(r"^- \*\*Name:\*\* (.+?)\s*$", read(register), re.M) if register.exists() else [])
+    STANDARDS.update(m["value"].strip() for l in (read(register).split("\n") if register.exists() else [])
+                     for m in [FIELD_LINE.match(l)] if m and m["marker"] and m["key"] == "Name" and m["value"])
+    # spec-style.md § Blank Lines and modeling-constructs.md § Fields: the layout check and the reader's checks of a
+    # block, over every file in scope, the rule's table read from the canon once
+    blank_lines, table_problems = layout.rules(root)
+    found += table_problems
     # modeling-constructs.md § Constructs: the construct checks whole, the record types, facts and Reference Keys they
     # read set up first and left in place, the citation checks reading them
     construct_found, construct_warned, _ = constructs.run_checks(text_of)
@@ -610,14 +680,17 @@ def check(root, warned=None):
         r, body = rel[f], text[f]
         live = strip_fences(body)
         src_layer = layer_of(r)
+        found += [(rule, r, line, msg) for rule, line, msg in layout.findings(body, blank_lines)]
+        found += [(rule, r, line, msg) for rule, line, msg in block_findings(body)]
+        code = layout.code_lines(live)
 
         # Fenced blocks are stripped: a citation shown inside an example is an
         # illustration, not a dependency, and linting one produces a finding
         # nobody can act on.
         for i, line in enumerate(live.split("\n"), 1):
-            # spec-style.md § Literal Text: a code span opens and closes with one backtick; a line indented
-            # four spaces or a tab is an indented code block, literal as a fenced one is
-            if "``" in constructs.CITATION.sub(lambda m: "" if _span_fits(m) else m.group(0), line) and not line.startswith(("    ", "\t")):
+            # spec-style.md § Literal Text: a code span opens and closes with one backtick; a line the layout
+            # reading gives an indented code block is literal as a fenced one is
+            if "``" in constructs.CITATION.sub(lambda m: "" if _span_fits(m) else m.group(0), line) and (i - 1) not in code:
                 found.append((LITERAL_TEXT, r, i, "a run of backticks, where literal text opens and closes with one"))
             # a code span is literal text, so markup inside one is never bold or italic
             prose = constructs.CODE_SPAN.sub(lambda m: "x" * len(m.group(0)), line)
@@ -1083,7 +1156,7 @@ def clear_prose(root):
 
 def voice_table_findings(root):
     """-> a finding for each table VOICE_TABLES names that spec-style.md § Clear Prose does not hold."""
-    held = set(re.findall(r"^\*\*Table Name:\*\* (.+?)\s*$", clear_prose(root), re.M))
+    held = {m["value"].strip() for l in clear_prose(root).split("\n") for m in [opens_key(l)] if m and m["key"] == "Table Name" and m["value"]}
     return [("spec-style.md § Clear Prose", STYLE_RULE_FILE, 0,
              f"no table named {t}, which the script reads its words from") for t in VOICE_TABLES if t not in held]
 
@@ -1094,9 +1167,9 @@ def voice_terms(root):
     body = clear_prose(root)
     terms, table = [], None
     for line in body.split("\n"):
-        m = re.match(r"^\*\*Table Name:\*\* (.+)$", line)
-        if m:
-            table = m.group(1).strip()
+        m = opens_key(line)
+        if m and m["key"] == "Table Name":
+            table = (m["value"] or "").strip()
         elif table in VOICE_TABLES and line.startswith("|") and not TABLE_RULE.match(line):
             cell = line.strip().strip("|").split("|")[0].strip()
             if cell != "Term":
@@ -1708,16 +1781,34 @@ def main(argv):
     parser.add_argument("--detail", action="store_true",
                         help="with --list-candidates, list every word and construction Clear Prose has a reader test, "
                              "rather than their count for each file")
+    parser.add_argument("--check-layout", nargs="+", metavar="FILE",
+                        help="run the layout check and the reader's checks of a block over the given Markdown files alone, "
+                             "as the Working-file form audit runs them over .ai/follow-ups.md; exits 1 on any finding")
     parser.add_argument("--root", metavar="DIR", default=".",
                         help="the project root the scope is read from; the current directory unless given")
     args = parser.parse_args(argv[1:])
-    if not (args.check_scope or args.list_candidates):
+    if not (args.check_scope or args.list_candidates or args.check_layout):
         parser.print_usage(sys.stderr)
         return 2
     root = Path(args.root).resolve()
     if not (root / "specs").is_dir():
         parser.error(f"--root {args.root} holds no specs/ directory")
     status = 0
+
+    if args.check_layout:
+        table, found = layout.rules(root)
+        for value in args.check_layout:
+            path = Path(value)
+            if not path.is_file():
+                parser.error(f"--check-layout names no file: {value}")
+            body = read(path)
+            rel = path.resolve().relative_to(root).as_posix() if path.resolve().is_relative_to(root) else value
+            found += [(rule, rel, line, msg) for rule, line, msg in layout.findings(body, table) + block_findings(body)]
+        for rule, path, line, msg in sorted(found):
+            print(f"{path}:{line}  {rule}\n  {msg}")
+        n = len(found)
+        print(f"\n{n} finding{'' if n == 1 else 's'} over {len(args.check_layout)} file{'' if len(args.check_layout) == 1 else 's'}")
+        status = 1 if n else 0
 
     if args.check_scope:
         warned = []

@@ -7,16 +7,13 @@ A schedule's installments, a payment settling one, written whole as a file would
 
 A payment received, settled against its installment up to what is due.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm` \
 **Inputs:**
-
-- installment
-- payment
+  - installment
+  - payment
 
 **Output:**
-
-- installment
+  - installment
 
 **Runs When:** a payment is received
 
@@ -40,24 +37,23 @@ What holds of a schedule's installments as payments settle them.
 ## Facts
 
 **Records:**
+  - **Name:** installments \
+    **Type:** list<context<due: number, paid: number>> \
+    **Means:** the schedule's installments, each with what it is due and what has been paid of it
 
-- **Name:** installments
-  **Type:** list<context<due: number, paid: number>>
-  **Means:** the schedule's installments, each with what it is due and what has been paid of it
+  - **Name:** installment \
+    **Type:** context<due: number, paid: number> \
+    **Means:** the installment a payment settles
 
-- **Name:** installment
-  **Type:** context<due: number, paid: number>
-  **Means:** the installment a payment settles
+  - **Name:** payment \
+    **Type:** number \
+    **Means:** the amount received
 
-- **Name:** payment
-  **Type:** number
-  **Means:** the amount received
+  - **Name:** paid before \
+    **Type:** number \
+    **Means:** what the installment had paid as the settlement began
 
-- **Name:** paid before
-  **Type:** number
-  **Means:** what the installment had paid as the settlement began
-
-- **Name:** schedule
-  **Type:** context<total paid: number>
-  **Means:** the schedule, with the total its nightly job writes
+  - **Name:** schedule \
+    **Type:** context<total paid: number> \
+    **Means:** the schedule, with the total its nightly job writes
 ```

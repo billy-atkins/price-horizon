@@ -26,6 +26,8 @@ from pathlib import Path
 
 import citation_links
 import constructs
+import layout
+import record_types
 from spec_text import REGISTRY, lineages, read, registry, scope_paths, sections, skill_dirs, spec_texts, strip_fences
 
 
@@ -107,7 +109,7 @@ def declared_type(home, plural, root=None, key="Name"):
     body, path = declaration(home, root)
     if body is None:
         return [], [(path, "no file declares the %s type" % title)]
-    lines = [l.strip() for l in body.split("\n")]
+    lines = [re.sub(r"\s*\\$", "", l).strip() for l in body.split("\n")]
     problems = [] if "**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`" in lines \
         else ["no Record Form declares the %s type" % title]
     if "**Plural Name:** " + plural not in lines:
@@ -171,32 +173,54 @@ def retired_type(root=None):
     return tuple(row[0] for row in rows), tuple(row[0] for row in rows if len(row) > 2 and row[2] == "yes"), problems
 
 
-# a record's own fields: the first opening its list item, the rest indented two spaces
-RECORD_FIELD = re.compile(r"^(?:- |  )\*\*([A-Z][A-Za-z ]*):\*\* ?(.*)$", re.M)
+# a record's own fields, a design's header and every field's value are read through the one reader of a block of
+# fields, record_types.read_block, wherever the form indents them (modeling-constructs.md § Fields)
+
+
+def records_read(body):
+    """-> the items of a section's Records field as the one reader gives them, wherever the form indents the key, or
+    None where the section has no Records field (modeling-constructs.md § Fields)."""
+    if body is None:
+        return None
+    lines = body.split("\n")
+    i = next((i for i, l in enumerate(lines) if record_types.opens_key(l) and record_types.opens_key(l)["key"] == "Records"), None)
+    if i is None:
+        return None
+    fields, _ = record_types.read_block(lines, i, record_types._indent(lines[i]), len(lines))
+    field = next((f for f in fields if f["key"] == "Records"), None)
+    return list(field["items"] or []) if field is not None else None
 
 
 def records(body):
-    """-> each record of a record section as [(field, value)], or None where it has no Records field."""
-    if body is None or not re.search(r"^\*\*Records:\*\*\s*$", body, re.M):
+    """-> each record of a record section as [(field, value)], or None where it has no Records field; an item opening
+    no field is a record of no fields."""
+    items = records_read(body)
+    if items is None:
         return None
-    return [RECORD_FIELD.findall("- " + item) for item in re.split(r"^- ", body.split("**Records:**", 1)[1], flags=re.M)[1:]]
+    return [[(f["key"], str(record_types.value_of(f))) for f in it["fields"]] if it["fields"] is not None else [] for it in items]
+
+
 # @canon-spec specs/methodology/working-files.md § A Design Document § The States It Moves Through
 STATES = ("not-started", "in-progress", "approved", "applying", "complete", "abandoned")
 # @canon-spec specs/methodology/working-files.md § A Design Document § The States It Moves Through
 # the states its Trigger Classes table makes a design finish in
 FINISHED = ("complete", "abandoned")
-# A field's value runs to the next line opening with a field's key, or to a blank line.
 KEY = r"\*\*([A-Z][A-Za-z ]*):\*\*"
-ROOT_FIELD = re.compile(r"^" + KEY + r" ?(.*?)(?=\n[ \t-]*\*\*[A-Z][A-Za-z ]*:\*\*|\n\s*\n|\Z)", re.M | re.S)
 
 
 def read_design(f):
     """-> (file name, [(key, value)], [level-two heading], text) for one design document;
-    its fields are read from the Design Document section, before its first level-two heading."""
+    its fields are read from the Design Document section, before its first level-two heading, as one block of fields
+    through the one reader."""
     text = read(f).replace("\r\n", "\n")
-    head = text.split("\n## ", 1)[0]
-    fields = [(k, " ".join(v.split())) for k, v in ROOT_FIELD.findall(head)]
+    head = text.split("\n## ", 1)[0].split("\n")
+    i = next((i for i, l in enumerate(head) if record_types.opens_key(l) and not record_types._indent(l)), None)
+    fields = []
+    if i is not None:
+        block, _ = record_types.read_block(head, i, 0, len(head))
+        fields = [(f["key"], " ".join(str(record_types.value_of(f)).split())) for f in block]
     return f.stem, fields, re.findall(r"^## (.+?)\s*$", text, re.M), text
+
 
 
 def is_design(f):
@@ -288,22 +312,22 @@ def frame_parts(text):
 def check_steers(body):
     """-> problems with a Steering Decisions section: a Records field, and each record its
     type's fields in order, its Type one of the field's values, no two sharing a Name."""
-    if not re.search(r"^\*\*Records:\*\*\s*$", body, re.M):
+    items = records_read(body)
+    if items is None:
         return ["Steering Decisions has no Records field"]
-    items = re.split(r"^- ", body.split("**Records:**", 1)[1], flags=re.M)[1:]
     if not items:
         return ["Steering Decisions holds no record"]
     problems, seen = [], set()
     fields, types, declared = steer_type()
     if not fields:
         return [p for _, p in declared] or ["the Steering Decision type declares no fields"]
-    for item in items:
-        keys = re.findall(r"^[ \t]*" + KEY, item, re.M)
+    for it in items:
+        keys = [f["key"] for f in it["fields"] or []]
         if keys != list(fields):
             problems.append("a steering decision's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
             continue
-        name = re.match(KEY + r" ?(.*)", item).group(2).strip()
-        type_ = re.search(r"^[ \t]*\*\*Type:\*\* ?(.*)$", item, re.M).group(1).strip()
+        values = {f["key"]: str(record_types.value_of(f)).strip() for f in it["fields"]}
+        name, type_ = values["Name"], values.get("Type", "")
         if type_ not in types:
             problems.append("steering decision %s has a Type that is not one of %s: %s" % (name, ", ".join(types), type_))
         if name in seen:
@@ -312,26 +336,27 @@ def check_steers(body):
     return problems
 
 
+
 def check_goals(body):
     """-> problems with a Design Goals section: `Not yet stated.`, or a Records field and each record its type's
     fields in order, its Name a slug, no two sharing a Name."""
     if body.strip() == NOT_YET_STATED:
         return []
-    if not re.search(r"^\*\*Records:\*\*\s*$", body, re.M):
+    items = records_read(body)
+    if items is None:
         return ["Design Goals has no Records field"]
-    items = re.split(r"^- ", body.split("**Records:**", 1)[1], flags=re.M)[1:]
     if not items:
         return ["Design Goals holds no record"]
     fields, declared = goal_type()
     if not fields:
         return [p for _, p in declared] or ["the Design Goal type declares no fields"]
     problems, seen = [], set()
-    for item in items:
-        keys = re.findall(r"^[ \t]*" + KEY, item, re.M)
+    for it in items:
+        keys = [f["key"] for f in it["fields"] or []]
         if keys != list(fields):
             problems.append("a design goal's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
             continue
-        name = re.match(KEY + r" ?(.*)", item).group(2).strip()
+        name = str(record_types.value_of(it["fields"][0])).strip()
         # working-files.md § Design Goal: a Name in kebab-case, as a design document's Name is
         if kebab(name) != name:
             problems.append("a design goal's Name is not in kebab-case: " + name)
@@ -341,10 +366,6 @@ def check_goals(body):
     return problems
 
 
-# a record's own fields: the first opening its list item, the rest indented two spaces, so a record nested in an
-# Objective, indented further, holds fields of its own
-STEP_KEY = re.compile(r"^(?:- |  )" + KEY, re.M)
-
 
 def check_steps(body):
     """-> problems with a Design Plan Steps section: `Not yet drafted.`, or a Records field and each record its type's
@@ -352,39 +373,39 @@ def check_steps(body):
     goal, which check_form holds to the goals the design holds, and each step a step cites one the section holds."""
     if body.strip() == NOT_YET_DRAFTED:
         return []
-    if not re.search(r"^\*\*Records:\*\*\s*$", body, re.M):
+    items = records_read(body)
+    if items is None:
         return ["Design Plan Steps has no Records field"]
-    items = re.split(r"^- ", body.split("**Records:**", 1)[1], flags=re.M)[1:]
     if not items:
         return ["Design Plan Steps holds no record"]
     fields, declared = step_type()
     if not fields:
         return [p for _, p in declared] or ["the Design Plan Step type declares no fields"]
     problems, seen = [], set()
-    for item in items:
-        item = "- " + item
-        keys = STEP_KEY.findall(item)
+    for it in items:
+        keys = [f["key"] for f in it["fields"] or []]
         if keys != list(fields):
             problems.append("a design plan step's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
             continue
-        name = re.match(r"- " + KEY + r" ?(.*)", item).group(2).strip()
+        name = str(record_types.value_of(it["fields"][0])).strip()
         # working-files.md § Design Plan Step: a Name in kebab-case, as a design document's Name is
         if kebab(name) != name:
             problems.append("a design plan step's Name is not in kebab-case: " + name)
         if name in seen:
             problems.append("two design plan steps share the Name " + name)
         seen.add(name)
-        # the last field, Objectives, a list: what follows its key is list items
-        last = item.split("**%s:**" % fields[-1], 1)[1]
-        if last.split("\n", 1)[0].strip() or not re.search(r"^[ \t]+- ", last, re.M):
+        # the last field, Objectives, a list: its key on a line of its own and its items beneath
+        last = it["fields"][-1]
+        if last["inline"] or not last["items"]:
             problems.append("design plan step %s's %s is not a list" % (name, fields[-1]))
-        why = re.search(r"^  \*\*Why:\*\* ?(.*?)(?=^  \*\*|\Z)", item, re.M | re.S)
-        cited = re.findall(r"`§ Design Goals \[Name: ([^\]]+)\]`", why.group(1) if why else "")
+        why = next((f for f in it["fields"] if f["key"] == "Why"), None)
+        cited = re.findall(r"`§ Design Goals \[Name: ([^\]]+)\]`", str(record_types.value_of(why)) if why else "")
         if not cited:
             problems.append("design plan step %s's Why cites no goal" % name)
     for step in sorted({c.strip() for c in re.findall(r"`§ Design Plan Steps \[Name: ([^\]]+)\]`", body)} - seen - {"…"}):
         problems.append("a citation of a step the design does not hold: " + step)
     return problems
+
 
 
 def entry_problems(kind, fields, values, counts, kinds):
@@ -535,7 +556,7 @@ def check_form(design):
             problems.append((name, values["Status"] + ", but its design goals are not yet stated"))
         # specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame and specs/methodology/working-files.md § Design Plan Step: the frame and the steps cite the goals they rest on by Names the
         # design holds
-        held = set(re.findall(r"^- \*\*Name:\*\* (.+?)\s*$", goals or "", re.M))
+        held = {dict(rec).get("Name", "").strip() for rec in records(goals) or []}
         steps = section(text, "Design Plan Steps")
         cites = re.findall(r"`§ Design Goals \[Name: ([^\]]+)\]`", (section(text, "The Design Frame") or "") + (steps or ""))
         for cited in sorted({c.strip() for c in cites} - held - {"…"}):
@@ -544,6 +565,12 @@ def check_form(design):
             problems.append((name, p))
         if steps is not None and steps.strip() == NOT_YET_DRAFTED and values.get("Status") in ("approved", "applying", "complete"):
             problems.append((name, values["Status"] + ", but its steps are not yet drafted"))
+        # modeling-constructs.md § Fields and spec-style.md § Blank Lines: the design's layout, each block of fields and
+        # each list a field holds by the reader's checks, and each blank line by the layout check
+        base = Path(design).resolve().parents[3]
+        table, table_problems = layout.rules(base if (base / layout.HOME).is_file() else repo_root())
+        problems += [(name, msg) for _, _, _, msg in table_problems]
+        problems += [(name, "line %d: %s" % (line, msg)) for _, line, msg in layout.findings(text, table) + record_types.block_findings(text)]
     return len(designs), problems
 
 
@@ -897,7 +924,7 @@ def stamp_validation(value):
         report("stamp-validation, not stamped", problems)
         return 1
     raw = design.read_bytes().decode("utf-8")
-    new, n = re.subn(r"^\*\*Validated:\*\*.*$", lambda m: "**Validated:** " + stamp(text), text, count=1, flags=re.M)
+    new, n = re.subn(r"^\*\*Validated:\*\*.*$", lambda m: "**Validated:** " + stamp(text) + (" \\" if m.group(0).rstrip().endswith("\\") else ""), text, count=1, flags=re.M)
     if not n:
         print("== stamp-validation\nno Validated field to stamp\n")
         return 1
@@ -933,14 +960,17 @@ def append_entry(value):
     raw = design.read_bytes().decode("utf-8")
     text = raw.replace("\r\n", "\n")
     body = section(text, LOG)
-    count = 1 + len(re.findall(r"^- \*\*Entry:\*\* %s-\d+\s*$" % re.escape(kind), body or "", re.M))
+    count = 1 + len(re.findall(r"^\s*- \*\*Entry:\*\* %s-\d+(?: \\)?\s*$" % re.escape(kind), body or "", re.M))
     # a check's entry, one holding a Model, names its report, which stands before the entry does
     report_file = design.parents[2] / "tmp" / design.parent.name / ("%s-%s-%d.md" % (design.stem, kind, count))
     if "Model" in kinds[kind] and not report_file.is_file():
         return report("append-entry, not appended", [(design.stem, "a check's entry whose report does not yet exist: "
                                                       + report_file.relative_to(design.parents[3]).as_posix())])
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    block = "\n".join(["- **Entry:** %s-%d" % (kind, count), "  **Timestamp:** " + now] + ["  **%s:** %s" % f for f in fields])
+    # modeling-constructs.md § Fields: the entry a record, an item two spaces beyond its key, each line a line opening
+    # a field's key follows ending with a space and a backslash
+    own = ["- **Entry:** %s-%d" % (kind, count), "  **Timestamp:** " + now] + ["  **%s:** %s" % f for f in fields]
+    block = "\n".join("  " + l + (" \\" if n < len(own) - 1 else "") for n, l in enumerate(own))
     if body is not None and not re.search(r"^\*\*Records:\*\*\s*$", body, re.M):
         # a section copied from the form holds its placeholder alone, which the first entry replaces
         m = re.search(r"^## %s\s*$" % re.escape(LOG), text, re.M)
@@ -951,7 +981,7 @@ def append_entry(value):
         after = SECTIONS[SECTIONS.index(LOG) + 1:]
         m = next((m for m in (re.search(r"^## %s\s*$" % re.escape(s), text, re.M) for s in after) if m), None)
         at = m.start() if m else len(text.rstrip("\n")) + 1
-        new = text[:at] + "## %s\n\n**Records:**\n\n%s\n\n" % (LOG, block) + text[at:]
+        new = text[:at] + "## %s\n\n**Records:**\n%s\n\n" % (LOG, block) + text[at:]
     else:
         m = re.search(r"^## %s\s*$" % re.escape(LOG), text, re.M)
         end = m.end() + len(body)
@@ -1108,7 +1138,7 @@ def refactor_and_refine_lines(text):
     """-> the lines of text a Refactor and Refine cycle carries, blank lines and bare markup set
     aside, and a heading read without its level, since a move raises or lowers it."""
     # a table's separator row, a code fence or a front matter fence carries no text of its own
-    return [re.sub(r"^#+ ", "", l).strip() for l in text.replace("\r\n", "\n").split("\n")
+    return [re.sub(r"\s*\\$", "", re.sub(r"^#+ ", "", l).strip()).strip() for l in text.replace("\r\n", "\n").split("\n")
             if l.strip() and not re.fullmatch(r"[|:\- ]+|```\w*", l.strip())]
 
 
@@ -1187,34 +1217,32 @@ def repo_root():
 
 def objectives_stating_constructs(text):
     """-> [(step, design line of the Objective, its lines)] for each Objective of a Design Plan Step holding a
-    **Construct:** field declaring one of WHOLE, its lines as written, the Objective's own and those indented under it."""
+    **Construct:** field declaring one of WHOLE, its lines as written: the Objective item's own lines, ending where
+    modeling-constructs.md § Fields has a list item end, as the one reader reads it."""
     lines, out = text.split("\n"), []
     start = next((i for i, l in enumerate(lines) if re.match(r"^## Design Plan Steps\s*$", l)), None)
     if start is None:
         return out
-    step, i = None, start + 1
-    while i < len(lines) and not lines[i].startswith("## "):
-        m = re.match(r"^- \*\*Name:\*\* (.+?)\s*$", lines[i])
-        if m:
-            step = m.group(1)
-        if step and re.match(r"^  - ", lines[i]):
-            j = i + 1
-            while j < len(lines) and (lines[j].startswith("    ") or not lines[j].strip()) and not lines[j].startswith("## "):
-                j += 1
-            item = lines[i:j]
-            if any(l.strip().startswith("**Construct:**") and any(w in l for w in WHOLE) for l in item):
-                out.append((step, i + 1, item))
-            i = j
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+    for step in records_read("\n".join(lines[start:end])) or []:
+        if step["fields"] is None:
             continue
-        i += 1
+        name = str(record_types.value_of(step["fields"][0])).strip()
+        objectives = next((f for f in step["fields"] if f["key"] == "Objectives"), None)
+        for it in (objectives["items"] if objectives else None) or []:
+            at = start + it["line"]
+            item = [lines[start + n] for n in it["lines"]]
+            if any(l.strip().startswith("**Construct:**") and any(w in l for w in WHOLE) for l in item):
+                out.append((name, at + 1, item))
     return out
+
 
 
 def kept_changes(root, design_text):
     """-> the paths the checkout holds changed against the last commit, where the design is not applying, so its
     reading is the last commit's, as working-files.md § A Design Document § The States It Moves Through § A Send-back
     has a reading made while kept changes stand; else none."""
-    if re.search(r"^\*\*Status:\*\* applying\s*$", design_text, re.M):
+    if re.search(r"^\*\*Status:\*\* applying(?: \\)?\s*$", design_text, re.M):
         return []
     changed = subprocess.run(["git", "diff", "--name-only", "HEAD"], capture_output=True, text=True, cwd=root)
     added = subprocess.run(["git", "ls-files", "--others", "--exclude-standard"], capture_output=True, text=True, cwd=root)

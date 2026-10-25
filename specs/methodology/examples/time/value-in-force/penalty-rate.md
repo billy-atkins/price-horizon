@@ -7,18 +7,15 @@ A penalty rate that changes from a date on, and the penalty accrued over a perio
 
 The penalty an overdue balance accrues over a period, each day at the penalty rate in force that day.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm` \
 **Inputs:**
-
-- balance
-- period start
-- period end
-- penalty rate
+  - balance
+  - period start
+  - period end
+  - penalty rate
 
 **Output:**
-
-- period penalty
+  - period penalty
 
 **Runs When:** a period is closed
 
@@ -30,34 +27,33 @@ The penalty an overdue balance accrues over a period, each day at the penalty ra
 ## Facts
 
 **Records:**
+  - **Name:** balance \
+    **Type:** number \
+    **Unit:** USD \
+    **Means:** the overdue balance, unchanged over the period
 
-- **Name:** balance
-  **Type:** number
-  **Unit:** USD
-  **Means:** the overdue balance, unchanged over the period
+  - **Name:** period start \
+    **Type:** date \
+    **Means:** the period's first day
 
-- **Name:** period start
-  **Type:** date
-  **Means:** the period's first day
+  - **Name:** period end \
+    **Type:** date \
+    **Means:** the day after the period's last day
 
-- **Name:** period end
-  **Type:** date
-  **Means:** the day after the period's last day
+  - **Name:** penalty rates \
+    **Type:** list<context<from: date, rate: number>> \
+    **Means:** each yearly penalty rate and the date it took force from, in the order of those dates
 
-- **Name:** penalty rates
-  **Type:** list<context<from: date, rate: number>>
-  **Means:** each yearly penalty rate and the date it took force from, in the order of those dates
+  - **Name:** penalty rate \
+    **Type:** function<date> -> number \
+    **Derivation:** function(day) penalty rates[from <= day][-1].rate \
+    **Means:** the yearly penalty rate in force on a day
 
-- **Name:** penalty rate
-  **Type:** function<date> -> number
-  **Derivation:** function(day) penalty rates[from <= day][-1].rate
-  **Means:** the yearly penalty rate in force on a day
-
-- **Name:** period penalty
-  **Type:** number
-  **Unit:** USD
-  **Decimal Places:** 2
-  **Means:** the penalty the period accrues
+  - **Name:** period penalty \
+    **Type:** number \
+    **Unit:** USD \
+    **Decimal Places:** 2 \
+    **Means:** the penalty the period accrues
 ```
 
 From a balance of 1,000.00 over a period from `@"2024-03-01"` to `@"2024-04-01"`, the rate 7.3% to March 15 and 10.95% from March 16:

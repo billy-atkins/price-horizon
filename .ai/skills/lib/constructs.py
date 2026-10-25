@@ -25,6 +25,7 @@ HOME = "specs/methodology/modeling-constructs.md"
 PART_IDENTIFIER = f"{KEYED} § Part Identifier"
 
 DEFINING = "modeling-constructs.md § Defining Constructs"
+FIELDS_RULE = "modeling-constructs.md § Fields"
 INHERITANCE = f"{DEFINING} § Inheritance"
 MODIFIERS = f"{DEFINING} § Modifiers"
 INTERFACES = f"{DEFINING} § Interfaces and Members"
@@ -221,8 +222,9 @@ NAMEABLE = {"State Machine": {1}, "Decision Table": {0}, "Constraint": {0}}
 
 # @canon-spec specs/methodology/modeling-constructs.md § Fields
 # a field: a line opening with its key in bold, the colon inside the bold, then a space and its value or nothing;
-# a list marker and indentation before the key are no part of it; the one copy, which audit-specs.py reads too
-FIELD = re.compile(r'^(?P<indent>\s*)(?P<marker>-\s+)?\*\*(?P<key>[^*`]+?):\*\*(?: (?P<value>.*)|$)')
+# a list marker and indentation before the key are no part of it, nor are the space and the backslash ending its
+# line, a field's end; the one copy, which audit-specs.py and record_types.py read too
+FIELD = re.compile(r'^(?P<indent>\s*)(?P<marker>-\s+)?\*\*(?P<key>[^*`]+?):\*\*(?: (?P<value>.*?))?(?P<end> \\)?$')
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
 # a jump as the form writes it, and the parser reading every jump: the phrase in any letters and the step number
 # after it, ending at a space, a punctuation mark or the text's end
@@ -639,12 +641,16 @@ def construct_named(value):
 TABLE_OPENERS = ("Table Name", "Reference Key", "Required")
 
 
-def declarations(body, sections):
-    """-> [(line, construct, fields, tables, lineage)] for each **Construct:** field in live text,
-    and the findings of the declaration's own form."""
+def declarations(body, sections, problems=None):
+    """-> [(line, construct, fields, tables, lineage)] for each **Construct:** field in live text, the declaration,
+    the fields it sets and the Table Name opening each of its tables read as one block of fields through the one reader
+    (modeling-constructs.md § Fields), a list a field holds given as its items one to a line. A field the construct
+    sets standing beneath a Table Name, where only a Table Name opens a table, is appended to `problems` as
+    (0-based line, message) where a list is given."""
+    import record_types
     lines = body.split("\n")
     secs = sorted(sections.items(), key=lambda x: x[1][0])
-    out, problems = [], []
+    out = []
     for i, line in enumerate(lines):
         m = _margin_field(line)
         if not m or m["key"] != "Construct":
@@ -652,37 +658,47 @@ def declarations(body, sections):
         name = construct_named(m["value"] or "")[0]
         owner = [lin for lin, (h, end) in secs if h < i < end]
         lineage = owner[-1] if owner else ""
-        fields, tables, table, j, named = [], [], None, i + 1, None
+        fields, tables, named, j = [], [], None, i
         while j < len(lines):
-            l = lines[j]
-            f = _margin_field(l)
-            if f and f["key"] == "Table Name":
-                # § Constructs § Tabular Construct: a table's name opens it, before its first table or between its tables
-                named = (f["value"] or "").strip()
-            elif l.startswith("|"):
-                if table is None:
-                    table = {"header": _keyed(_cells(l), name), "written": _cells(l), "rows": [], "line": j + 1, "name": named}
-                    named = None
-                    tables.append(table)
-                elif not _rule_row(l):
-                    table["rows"].append((j + 1, _cells(l)))
-            elif not l.strip():
-                table = None
-                # the block ends with the last table its form gives; a table beside it is no part of it
-                if name in FORMS and len(tables) == len(FORMS[name]):
-                    break
-                # a record type's block ends with its table of record fields
-                if name == "Record Form" and tables and tables[-1]["header"] == RECORD_FIELDS:
-                    break
-            elif f and not tables:
-                fields.append((j + 1, f["key"], (f["value"] or "").strip()))
-            elif l.startswith("- ") and fields and not tables:
-                # a field whose value is a list: its items sit beneath its key
-                ln, k, v = fields[-1]
-                fields[-1] = (ln, k, (v + "\n" if v else "") + l[2:].strip())
-            else:
+            # the block's fields, a Table Name among them, read to the next table or the block's end
+            read, j = record_types.read_block(lines, j, 0, len(lines))
+            for f in read:
+                value = record_types.value_of(f)
+                if f["line"] == i:
+                    continue  # the Construct field itself
+                if f["key"] == "Table Name":
+                    # § Constructs § Tabular Construct: a table's name opens it, before its first table or between its tables
+                    named = value.strip()
+                elif not tables and named is None:
+                    fields.append((f["line"] + 1, f["key"], value.strip()))
+                elif problems is not None:
+                    problems.append((f["line"], f"a {f['key']} field standing beneath a Table Name, where only a Table Name opens a table"))
+            k = j
+            while k < len(lines) and not lines[k].strip():
+                k += 1
+            if k >= len(lines) or not lines[k].startswith("|"):
                 break
-            j += 1
+            table = {"header": _keyed(_cells(lines[k]), name), "written": _cells(lines[k]), "rows": [], "line": k + 1, "name": named}
+            named = None
+            tables.append(table)
+            k += 1
+            while k < len(lines) and lines[k].startswith("|"):
+                if not _rule_row(lines[k]):
+                    table["rows"].append((k + 1, _cells(lines[k])))
+                k += 1
+            j = k
+            # the block ends with the last table its form gives; a table beside it is no part of it
+            if name in FORMS and len(tables) == len(FORMS[name]):
+                break
+            # a record type's block ends with its table of record fields
+            if name == "Record Form" and tables[-1]["header"] == RECORD_FIELDS:
+                break
+            k = j
+            while k < len(lines) and not lines[k].strip():
+                k += 1
+            if k >= len(lines) or not (_margin_field(lines[k]) and _margin_field(lines[k])["key"] == "Table Name"):
+                break
+            j = k
         # § Constructs § State Machine: a machine's Trigger Classes table, wherever its section holds one after its
         # Transitions table, held as that table's, so the machine's tables stay the two its form gives
         if name == "State Machine" and len(tables) == 2:
@@ -697,7 +713,10 @@ def declarations(body, sections):
 def construct_findings(r, body, found, sections):
     """modeling-constructs.md § Constructs: each declared construct checked for what its form
     lets a script decide. `body` is the file's live text, its fences stripped."""
-    decls = declarations(body, sections)
+    beneath = []
+    decls = declarations(body, sections, beneath)
+    for ln, msg in beneath:
+        found.append((FIELDS_RULE, r, ln + 1, msg))
     records = fact_records(body, sections)
     facts = facts_of(records)
     for ln, msg in fact_record_findings(records):
@@ -866,20 +885,15 @@ def extends(fields):
 
 
 def _paragraphs(r, lines, line, fields, found):
-    """§ Defining Constructs § Declaring a Construct: the Construct field and each field it sets open a paragraph of
-    their own, a field whose value is a list its key on a line of its own and its items beneath."""
-    for ln, key, value in [(line, "Construct", "")] + fields:
+    """§ Defining Constructs § Declaring a Construct: the Construct field and the fields it sets are one block of
+    fields (§ Fields), a field whose value is a list its key on a line of its own and its items beneath."""
+    for ln, key, value in fields:
         i = ln - 1
         inline = (FIELD.match(lines[i])["value"] or "").strip()
-        j = i + 1
-        if not inline and key != "Construct":
-            while j < len(lines) and lines[j].startswith("- "):
-                j += 1
-        if i > 0 and lines[i - 1].strip() or j < len(lines) and lines[j].strip():
-            found.append((DECLARING, r, ln, f"the {key} field not a paragraph of its own"))
-        elif key in LIST_FIELDS and inline and not (key in ("Inputs", "Output") and inline == "none"):
+        items = value.count("\n") + 1 if value and not inline else 0
+        if key in LIST_FIELDS and inline and not (key in ("Inputs", "Output") and inline == "none"):
             found.append((DECLARING, r, ln, f"the {key} field's list written on its key's line, not beneath it"))
-        elif key == "Default Output" and not inline and j - i - 1 < 2:
+        elif key == "Default Output" and not inline and items < 2:
             # one outcome column takes a value on the key's line; several, an item for each
             found.append((DECLARING, r, ln, "a Default Output written beneath its key with fewer than two items"))
 
@@ -1718,18 +1732,17 @@ READ_FACT = None
 
 
 def fact_records(body, sections):
-    """Each record of a file's Facts sections -> [(line, name, {field: value})], a Values citing a closed set read as
-    the quoted list of its members."""
-    lines, out = body.split(chr(10)), []
+    """Each record of a file's Facts sections, read through parse_records, the one reader -> [(line, name,
+    {field: value})], a Values citing a closed set read as the quoted list of its members."""
+    import record_types
+    out = []
     for lineage, (h, end) in sections.items():
         if lineage.rsplit(" § ", 1)[-1] != FACTS_SECTION:
             continue
-        for i in range(h, end):
-            f = FIELD.match(lines[i])  # a record's fields, its first after a list marker, the rest indented
-            if f and f["key"] == "Name" and f["marker"]:
-                out.append((i + 1, (f["value"] or "").strip(), {}))
-            elif f and out and out[-1][0] > h:
-                out[-1][2][f["key"]] = (f["value"] or "").strip()
+        records, _ = record_types.parse_records(body, lineage)
+        for rec in records:
+            values = {k: v for k, v, _ in rec if k is not None and isinstance(v, str)}
+            out.append((rec[0][2] + 1, values.get("Name", ""), {k: v for k, v in values.items() if k != "Name"}))
     for _, _, d in out:
         members = CLOSED_SET(body, d["Values"]) if CLOSED_SET and CITED_SET.fullmatch(d.get("Values", "")) else None
         if members is not None:
@@ -3470,11 +3483,17 @@ def _settled(fields, table, facts=None):
 
 # ---------------------------------------------------------------- the fields table, held to its home
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Construct
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
+# a Values cell holding a list of records of a cited type: `a list of` and the citation of the type's definition
+LIST_OF_CITATION = re.compile(r"^a list of (`[^`]+`)$")
+
+
 def values_form(cell):
-    """Whether a Values cell takes one of its forms: a quoted list, a citation of the section listing the values, or
-    text."""
-    return cell == "text" or bool(QUOTED_LIST.fullmatch(cell)) or bool(CITATION.fullmatch(cell))
+    """Whether a Values cell takes one of its forms: a quoted list, a citation of the section listing the values or of
+    a record type's definition, `a list of` and that citation, or text."""
+    m = LIST_OF_CITATION.fullmatch(cell)
+    return cell == "text" or bool(QUOTED_LIST.fullmatch(cell)) or bool(CITATION.fullmatch(cell)) or bool(m and CITATION.fullmatch(m.group(1)))
 
 
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Tabular Construct
@@ -3538,6 +3557,7 @@ def definition_findings(text, sections):
     and the interfaces they extend among them, and set by no definition it extends; and every concrete definition
     implementing an interface giving each member Specified By Definition, and none giving one Specified By Instance; every
     interface after Construct. -> [(rule, line, message)]"""
+    import record_types
     lines, out, defs, order = text.split("\n"), [], {}, {}
     cite = re.compile(r"^`§ Constructs § ([^`§]+)`$")
     members = {m for ms in MEMBERS.values() for m in ms}
@@ -3562,13 +3582,15 @@ def definition_findings(text, sections):
                 value = (f["value"] or "").strip()
                 if key == "Modifier":
                     d["Modifier"] = value
-                elif key in ("Extends", "Implements") and value:
-                    d[key].append(value)
+                elif key in ("Extends", "Implements"):
+                    # the field's value, or the list beneath its key, read through the one reader (§ Fields)
+                    read, _ = record_types.read_block(lines, k, 0, end)
+                    held = record_types.value_of(read[0]) if read else value
+                    d[key] += [v.strip() for v in str(held).split("\n") if v.strip()]
                 elif key in members:
                     d["sets"].add(key)
                 continue
-            if key in ("Extends", "Implements") and l.startswith("- "):
-                d[key].append(l[2:].strip())
+            if key in ("Extends", "Implements") and l.lstrip().startswith("- "):
                 continue
             if l.strip():
                 key = None

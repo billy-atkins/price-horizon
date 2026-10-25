@@ -1,7 +1,6 @@
 ## Product or Technical
 
-**Reference Key:** Spec
-
+**Reference Key:** Spec \
 **Required:** Covers
 
 | Spec | Covers |
@@ -23,8 +22,7 @@ The two drawings also divide the building differently. An architect organizes by
 
 **Different renderings, not two levels of detail.** A construct modeling one fact may render differently on each side:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
 **Conditions:** Construct
 
 | Construct | Product spec | Technical spec |
@@ -51,7 +49,6 @@ The agent instructions and the skills have no persona, since their primary reade
 **The software engineer, for technical specs and the code carrying them out.** Someone who spent years as a principal engineer, battle-tested in production. They know the ideal design is a mirage and realistic greatness is the goal. They weigh each trade-off for what it buys now and for the foundation it lays for where the application is going. They grow the technical architecture deliberately, never by drift.
 
 **A persona shapes the work, never its decisions.** Decisions about the thing being specified are the user's:
-
 - what the product does, who may do it and what it promises;
 - how it is made true;
 - what the methodology's rules are.
@@ -62,8 +59,7 @@ Each persona proposes and challenges them, and leaves them to the user.
 
 Every directory under `specs/` organizes its files by altitude. New content belongs at the altitude that matches what it is.
 
-**Reference Key:** Altitude
-
+**Reference Key:** Altitude \
 **Required:** File, Holds
 
 | Altitude | File | Holds |
@@ -88,10 +84,8 @@ A directory's own mapping table, where it has one, is the one exception: a delib
 
 An overview describes its directory, every directory beneath it, and what this table names for its directory ([`§ Index, Architecture, Detail`](#index-architecture-detail)). It is kept in sync with all it describes ([`specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync § Materialized Views`](/specs/methodology/sourcing-and-citation.md#materialized-views)):
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
-**Conditions:** Directory
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Directory \
 **Default Output:** nothing beyond its directory
 
 | Directory | Describes beyond it |
@@ -107,8 +101,7 @@ An overview describes its directory, every directory beneath it, and what this t
 
 **When a subject earns its own file, and when a directory earns a subfolder.** A subject area here means a product capability domain on the product side and a service on the technical side. The test is the same for both:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
 **Conditions:** Does the subject area decompose into sub-parts each substantial enough to carry its own promise and its own scenarios independently of the others?
 
 | Does the subject area decompose into sub-parts each substantial enough to carry its own promise and its own scenarios independently of the others? | Placement |
@@ -121,7 +114,6 @@ A subject area that does not decompose so stays one cohesive mechanism, however 
 A sub-topic that still needs another sub-topic's context to make sense is a heading inside the file of the one whose context it needs. A cross-cutting subject area, one used by more than one other and owned by none, sits at the directory's root, never inside another's subfolder. The table decides whether it is a subfolder of its own or a loose file.
 
 **Why a domain earns a folder.** A folder of files, one per sub-part, serves better than one file:
-
 - each file loads only when a step needs it ([`specs/methodology/scope.md § Progressive Disclosure`](/specs/methodology/scope.md#progressive-disclosure));
 - a change to one sub-part leaves the others' files untouched, and edits to separate files rarely meet in version control;
 - a reader takes in one sub-part at a time, and work on the domain's code reads the sub-parts it needs.
@@ -142,8 +134,7 @@ Before writing or extending a product spec, ask what a product owner, or a sales
 
 The capability domain new product content belongs to decides which file it goes in. Read the product specs' `architecture.md` first. It gives each domain a section of its own, which describes what the domain covers and closes with the files that serve it. Its sections are therefore the domains the specs recognize. Then find the content's home:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
 **Conditions:** Extends a listed domain?, Grows what one of its files holds?
 
 | Extends a listed domain? | Grows what one of its files holds? | Its home |
@@ -176,8 +167,7 @@ The block holds a list of file paths from the project root, written exactly as t
 
 This is a label, not a citation. It names files, never headings, and is never wrapped in the backtick-and-`§` form a citation uses.
 
-**Reference Key:** State
-
+**Reference Key:** State \
 **Required:** Meaning
 
 | State | Meaning |
@@ -198,12 +188,10 @@ This is a label, not a citation. It names files, never headings, and is never wr
 For a domain that decomposes into sub-parts, a product module is a folder directly under `specs/application/product/`. For a domain that is one cohesive mechanism, it is a single file in that directory's root ([`§ Where a File Goes`](#where-a-file-goes)). A module also holds each root file named in its domain's account in the product specs' `architecture.md`.
 
 A change to a module's code reads:
-
 - the module's product specs;
 - the technical files they name in their `technical-specs` front matter ([`§ Naming the Technical Files Behind a Capability`](#naming-the-technical-files-behind-a-capability)): a file only this module names is read whole, and a file several modules name is read at the sections this module's code needs.
 
 Every module also reads what no module owns:
-
 - the product specs' own `index.md` and `architecture.md`, and any vision or overview of the product;
 - each root file the product specs' `architecture.md` names as held by no domain;
 - the technical specs' `architecture.md`;
@@ -231,7 +219,6 @@ The technical specs hold one stack file, `stack.md` at their root. It says what 
 Each path is written from the project root, in backticks. A code root is never the project root itself, and never sits under another code root. So the specs and the working files stay outside the application's code, and no file is the code of two parts. The code roots, less what is excluded, name the application's code ([`specs/methodology/scope.md § What Spec of Record Governs`](/specs/methodology/scope.md#what-spec-of-record-governs)), so a check on code knows where to look, and a file outside them is no concern of [`specs/methodology/code.md`](/specs/methodology/code.md)'s rules.
 
 **What the parts rely on.** The table of what the parts rely on is headed Technology, Kind and Purpose. It has one row for each technology the parts use in every environment, beyond the parts' own code, and each row says what the system uses the technology for:
-
 - each database, with the purpose it serves, the core application's data or reporting, say;
 - each cache, such as Redis or Memcached;
 - each queue or stream;
@@ -245,10 +232,8 @@ The technical specs hold one environments file, `environments.md`, at their root
 
 Each environment's section opens with a required `**Kind:**` field ([`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields)), whose value is one of a closed set, so what this section asks of an environment follows from its role, never from its name:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
-**Conditions:** Kind
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Kind \
 **Annotations:** Holds
 
 | Kind | What it owes | Holds |
@@ -261,7 +246,6 @@ Each environment's section opens with a required `**Kind:**` field ([`specs/meth
 Exactly one environment is local.
 
 After its Kind, each environment's section gives, as bold lead-ins in this order:
-
 - what it is for and who uses it;
 - where it runs;
 - what differs from the stack: each technology the environment uses in place of, or beside, one the stack names, with its purpose;
@@ -277,10 +261,8 @@ As it works, the agent writing code runs the targeted form of a test task on the
 
 An open question is recorded in the specs whose area it applies to: methodology, product or technical. Within those specs, it is recorded in the file whose scope covers everything the question impacts. That file must be able to cite every section the question's Impacts names ([`specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`](/specs/methodology/sourcing-and-citation.md#which-citations-are-allowed)). Open Question is a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)), and a file's open questions sit in its record section of this type. That record section is the file's last top-level section, so a reader finds them all in one place, after the settled content they qualify:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`
-
-**Plural Name:** Open Questions
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Open Questions \
 **Reference Key:** Name
 
 | Field | Unique | Required | Default Value | Values | Holds |

@@ -16,8 +16,10 @@ from pathlib import Path
 LINKED_ROOTS = ("specs", "docs")
 LINKED_FILES = ("README.md",)
 UNLINKED_NAMES = ("AGENTS.md",)
-# a field whose value declares what a definition or an instance is, rather than sending a reader to text
-UNLINKED_FIELDS = re.compile(r"^\s*(?:- )?\*\*(?:Construct|Extends|Implements):\*\*")
+# a field whose value declares what a definition or an instance is, rather than sending a reader to text: its key's
+# line, its value ending at the space and the backslash that end a field's line; the list beneath its key is read
+# through the one reader (modeling-constructs.md § Fields)
+UNLINKED_FIELDS = re.compile(r"^\s*\*\*(?:Construct|Extends|Implements):\*\*(?: (?P<value>.*?))?(?: \\)?$")
 SPAN = re.compile(r"(?<!`)(`+)(?!`)(.+?)(?<!`)\1(?!`)")
 LINKED = re.compile(r"\[(?P<span>(?P<d>`+)[^\n]+?(?P=d))\]\((?P<target>[/#][^)\s]*)\)")
 SECTION = re.compile(r"^(?:(?P<path>[\w./-]+\.md)\s+)?§\s+(?P<lineage>.+?)(?:\s+\[[^\]]*\])?$")
@@ -174,16 +176,20 @@ def refresh(text, host, resolver):
     """-> the text with each citation a reader sees carrying the link its citation resolves to, a link that no longer
     resolves removed, a fenced block, the front matter, a heading and a Construct, an Extends or an Implements
     field's value left alone."""
+    from record_types import _indent, read_block  # the one reader of a block of fields (modeling-constructs.md § Fields)
     lines = strip(text).split("\n")
     live = live_lines("\n".join(lines))
-    held = False  # within a Construct, an Extends or an Implements field whose value is a list beneath its key
+    skip = set()  # the lines of a Construct, an Extends or an Implements field's list, each left as written
     for i, line in enumerate(lines):
-        if UNLINKED_FIELDS.match(line):
-            held = line.rstrip().endswith(":**")
+        if i in skip:
             continue
-        if held and re.match(r"^\s*- ", line):
+        m = UNLINKED_FIELDS.match(line)
+        if m:
+            if not (m["value"] or "").strip():
+                fields, after = read_block(lines, i, _indent(line), len(lines))
+                until = fields[1]["line"] if len(fields) > 1 else after
+                skip.update(range(i + 1, until))
             continue
-        held = False
         if not live[i] or line.lstrip().startswith("#"):
             continue
 

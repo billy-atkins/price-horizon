@@ -21,7 +21,6 @@ These are the steps a change to the canon owes beyond the Workflow of `.ai/skill
 **Draw no example from the application specs.** Within `.ai/skills/design-specs/SKILL.md § Workflow § Write the text in the form the rules give it`, follow the rule `specs/methodology/spec-style.md § Clear Prose` gives on an example in the canon.
 
 **Keep the methodology's own files in sync.** Within `.ai/skills/design-specs/SKILL.md § Workflow § State each step as its outcome`, name in the step's What and in the Target each of these that restates what the step changes. Within `.ai/skills/design-specs/SKILL.md § Workflow § Synchronize whatever restates what you changed`, keep them in sync:
-
 - the methodology's `architecture.md` and `specs/architecture.md`, per `specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync § Materialized Views`;
 - `index.md`, per `specs/methodology/spec-placement.md § Where a File Goes`;
 - the tree `specs/methodology/scope.md § The Shape of the Scope` draws;

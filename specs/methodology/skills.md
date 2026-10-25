@@ -2,8 +2,7 @@
 
 A skill is part of Spec of Record when it is registered here, and only then. A skill under `.ai/skills/` that is not registered is outside the methodology. A skill is registered when its subject is the methodology's rules or a craft they govern, not because it is useful while specs are written. Registering one is a deliberate decision, made here first, as extending the set of constructs is ([`specs/methodology/modeling-constructs.md § Purpose`](/specs/methodology/modeling-constructs.md#purpose)). A skill's `SKILL.md` states what the skill does, and this table never describes it. The table names only the homes of the rules each skill serves.
 
-**Reference Key:** Skill
-
+**Reference Key:** Skill \
 **Required:** The Rules It Serves
 
 | Skill | The Rules It Serves |
@@ -36,7 +35,6 @@ A skill captures a procedure this repo has already worked out, so the next agent
 **Instructions only some paths need go in a `references/` child directory.** Each path has a file of its own, read at the step that forks to it, so a path that does not need the instructions never loads them. Where a skill forks on the kind of specification, its references for the kinds are `references/app-specs.md` and `references/canon-specs.md`.
 
 **A form template a step fills goes in `references/` too.** The form template is a file of its own, named for the form it holds, with `-form-template` ending the name before its extension: `design-document-form-template.md`. A reader listing `references/` then tells a form template from instructions without opening it. The form template is read at the step that fills it, so the form is copied rather than recalled. It holds the form's parts in order, each with a placeholder, a token in braces:
-
 - for a value, the token says what kind of value replaces it, `{a few words}`, and the braces are replaced along with the token;
 - for a section kept only in some cases, the token says when the section is kept, and is removed with its braces once the section is kept.
 
@@ -45,7 +43,6 @@ The form template leaves the rule setting the form to that rule's home.
 **A skill's scratch space, and its plans, are directories of its own among the working files.** They take the form [`specs/methodology/working-files.md § The Working Files`](/specs/methodology/working-files.md#the-working-files) gives them.
 
 **A script's actions are flags named verb-target.** A flag is named as a skill is: `--check-design-form`, `--show-workstack`. An agent then reads what a run does from the flag alone. The target says what the action acts on, and the verb what kind of action it is:
-
 - a check reports what is wrong;
 - a show describes a state;
 - a verb changing a file, such as stamp, says that it does.

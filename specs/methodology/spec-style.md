@@ -4,8 +4,7 @@ A finished spec describes a destination. The conversation that produced it stays
 
 Content that only makes sense to someone present for the discussion that produced it does not belong in a spec, however useful it was to sort out at the time.
 
-**Reference Key:** Pattern
-
+**Reference Key:** Pattern \
 **Required:** Example, Instead
 
 | Pattern | Example | Instead |
@@ -20,7 +19,6 @@ Content that only makes sense to someone present for the discussion that produce
 [`§ What a Finished Spec Reads Like`](#what-a-finished-spec-reads-like) is not a rule against explaining trade-offs. A genuine engineering trade-off belongs in the spec with its reasoning, because it teaches a reader how to make the same kind of call correctly in a new situation.
 
 **The test.** A comparison passes when either holds:
-
 - it states a timeless design principle a cold reader can apply elsewhere;
 - it is drawn against something the reader has a live, document-supported reason to ask about: an alternative the reader could plausibly have arrived at alone, whether or not an author once did.
 
@@ -32,8 +30,7 @@ Choosing a star schema over a snowflake schema passes: the reasoning transfers t
 
 Clear prose is measured by the effort it costs its primary reader. The shorter passage is not always the clearer one. Each kind of file this section reaches is written for a primary reader, without failing its secondary one:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
 **Conditions:** Files
 
 | Files | Primary reader | Secondary reader | Can Assume |
@@ -61,8 +58,7 @@ A software engineer designs the agent instructions and the skills, deciding what
 
 **Keep what carries the reader.** A word that carries meaning, or carries the reader from one idea to the next, stays. Prose cut too far fails as surely as prose padded out. Minified code is shorter than its source and unreadable, because minifying removes what a reader uses and a machine does not need:
 
-**Reference Key:** Minified Code Removes
-
+**Reference Key:** Minified Code Removes \
 **Required:** Too-terse Prose Drops, Instead
 
 | Minified Code Removes | Too-terse Prose Drops | Instead |
@@ -92,10 +88,8 @@ A software engineer designs the agent instructions and the skills, deciding what
 
 **Words kept only for their value.** A word or phrase stays only where it is natural and adds real value to its sentence. An emphasis word goes when deleting it does not change the meaning. "Fundamentally, this is really about deliberately creating a more robust and scalable engineering organization" becomes "This requires building an engineering organization that can scale": with the emphasis and the vague claims gone, what the sentence asks for is plain. No term in the Emphasis Words and Generic Terms tables is banned. None has a stock replacement either, because a stock word soon becomes the next overused term. Each table names a term and why it tends to go wrong. The author finds the right words for the sentence, often none.
 
-**Table Name:** Emphasis Words
-
-**Reference Key:** Term
-
+**Table Name:** Emphasis Words \
+**Reference Key:** Term \
 **Required:** Why
 
 | Term | Why |
@@ -116,10 +110,8 @@ A software engineer designs the agent instructions and the skills, deciding what
 | fundamentally | makes an observation sound more profound than it is |
 | basically | introduces a simplified explanation |
 
-**Table Name:** Generic Terms
-
-**Reference Key:** Term
-
+**Table Name:** Generic Terms \
+**Reference Key:** Term \
 **Required:** Why
 
 | Term | Why |
@@ -149,7 +141,6 @@ A software engineer designs the agent instructions and the skills, deciding what
 | the key takeaway | a formulaic summary |
 
 **Patterns of machine-written prose.** Each is read for and removed, since each spends the reader's attention on cadence instead of content:
-
 - a slogan closing a paragraph, a point already made restated in a form no reader can apply, as "Two copies of a rule are not redundancy; they are a defect waiting to happen";
 - a matching triplet listed for its cadence where one item is meant, as "fast, reliable and scalable" for a service only ever said to be fast;
 - stacked abstractions where a concrete noun would do, as "an enablement of cross-team alignment" for "the teams agree on the schema".
@@ -167,7 +158,6 @@ A software engineer designs the agent instructions and the skills, deciding what
 ## Ordinals and Counts
 
 Avoid numbers that add nothing a reader cannot already see but create friction when the set changes. A number restating a list's order or its size goes stale silently the moment an item is added or moved, and so does everything that refers to it. Say what things are, what they mean, or cite where they are. Whoever needs a count can count them when they do the work.
-
 - Nothing is numbered: not a heading, a bold lead-in, or a list item.
 - Nothing refers to an item by its position, by number or by word ("step 5", "the second", "the latter"). Refer to it by its name.
 - Nothing says how many things a list or the repo holds. Name them, describe them, or cite them.
@@ -176,7 +166,41 @@ Numbers that carry value stay. Algorithm tables keep their numbered steps, and r
 
 ## Markdown
 
-Each Markdown file in scope is written in GitHub Flavored Markdown ([`specs/methodology/external-references.md § External References [Name: GFM]`](/specs/methodology/external-references.md#external-references)). [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) sets a field's form. [`§ Bold Lead-ins`](#bold-lead-ins), [`§ Emphasis`](#emphasis) and [`§ Literal Text`](#literal-text) set the forms of a bold lead-in, emphasis and literal text.
+Each Markdown file in scope is written in GitHub Flavored Markdown ([`specs/methodology/external-references.md § External References [Name: GFM]`](/specs/methodology/external-references.md#external-references)). [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) sets a field's form. [`§ Bold Lead-ins`](#bold-lead-ins), [`§ Emphasis`](#emphasis), [`§ Literal Text`](#literal-text) and [`§ Blank Lines`](#blank-lines) set the forms of a bold lead-in, emphasis, literal text and a blank line. A line continuing a list item is indented to the item's text ([`§ Markdown [GFM Elements.GFM: lazy continuation line]`](#markdown)).
+
+**What the mapping means.** The canon writes GFM's blocks as GFM does, naming a few its own way where a form of the canon's is one of them. It writes one of them otherwise, a list item's continuation line, as [`§ Markdown [GFM Elements.GFM: lazy continuation line]`](#markdown) has it. GFM Elements maps each, as [`specs/methodology/sourcing-and-citation.md § External Reference § A Mapping onto a Standard`](/specs/methodology/sourcing-and-citation.md#a-mapping-onto-a-standard) has a mapping written, so a reader finds the standard's term for each form the canon names and the reason for each departure:
+
+**Table Name:** GFM Elements \
+**Reference Key:** GFM \
+**Required:** Section, Treatment
+
+| GFM | Section | Treatment | Departs For | Why |
+|---|---|---|---|---|
+| paragraph | 4.8 | the same, a block of fields' paragraph | | |
+| hard line break | 6.12 | the same, a field's end, written as a backslash, a space before it | | |
+| list item | 5.2 | the same, a record, a list item opening a field's key | | |
+| lazy continuation line | 5.2 | not written, a line continuing a list item indented to the item's text | the canon's form | a reader and a script tell where an item ends by its indentation alone |
+
+## Blank Lines
+
+Items of one kind stand together, in the order they are read, and a blank line separates groups that differ, so a reader sees a file's shape at a glance and chooses which group to read in detail. A code style groups like statements the same way. Each line of a file opens or continues one of these elements: a heading; a field, a line opening a field's key, as [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) has one; a record, a list item opening a field's key; a list item, any other; a table; a code block, fenced or indented; a thematic break; front matter; and a paragraph, any other text, a lead-in among it. The element above ends a list item the element below stands outside where [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) has the item end before the element below, as a nested record's last field ends its item before the outer record's next field, and a record's last field ends its item before the next record. GFM needs a blank line between two paragraphs, and before a paragraph's line, a field's among them, that follows a table's last row or the last line of a list item it stands outside, each of which the row for groups that differ gives. Where a blank line falls:
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Hit Policy:** First \
+**Conditions:** The element above, The element below, Ends a list item? \
+**Annotations:** Why \
+**Input Values:**
+  - The element above: "front matter", "a heading", "a paragraph", "a field", "a record", "a list item", "a table", "a code block", "a thematic break"
+  - The element below: "a heading", "a paragraph", "a field", "a record", "a list item", "a table", "a code block", "a thematic break"
+
+| The element above | The element below | Ends a list item? | A blank line between? | Why |
+|---|---|---|---|---|
+| "a field", "a record" | a field | false | false | one block's fields, a paragraph whose hard line breaks render each field on a line of its own |
+| "a field", "a record" | "a list item", "a record" | false | false | a field's list, of plain items or of records, directly beneath its key |
+| "a paragraph", "a list item" | a list item | - | false | a list beneath the sentence or the lead-in introducing it, and the items of one plain list |
+| - | - | - | true | groups that differ, records one after another and a field after a list or after a nested record among them; where no blank line stands, GFM joins two paragraphs, reads a paragraph's line after a list item as continuing it and adds a row to a table |
+
+A blank line missing where the table gives true, or standing where it gives false, is reported. A fenced block whose info string is `markdown` is one code block toward what stands outside it, and the Markdown it holds is read as a file of its own, its first line directly beneath the opening fence and its last directly above the closing one. Any other code block is one element.
 
 ## Bold Lead-ins
 

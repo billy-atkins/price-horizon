@@ -29,7 +29,7 @@ In Spec of Record, why a system behaves as it does is as important as what it do
 
 In software design, DRY, short for "Don't Repeat Yourself", keeps each piece of knowledge in one place. Andrew Hunt and David Thomas, in "The Pragmatic Programmer", define it as every piece of knowledge having a single, unambiguous, authoritative representation within a system. A change is then made once, no copy can drift from another, and a reader always finds the authoritative version. Spec of Record applies DRY to specifications. Every rule and definition is stated once, in its home. Everything relying on it cites that home down to the section, with a point-of-use citation placed where the rule is applied. A change then lands in one place, and every place depending on it can be found through its citations. Diagrams and overviews restate their sources the way a materialized view restates its tables. They are kept in sync whenever a source changes, and they are never the source of what they restate.
 
-Where prose would hide a gap, the specifications use constructs. A rule decided by one fact, with at most two outcomes, stays prose. Anything more takes one of an approved set of constructs, drawn from standards an engineer or an agent already knows: the DecisionTable of DMN, the Decision Model and Notation standard, and UML's StateMachine, Activity and Constraint. Every expression is written in FEEL, DMN's expression language. Prose can describe anything, and nothing can check it for what it leaves out. The audit script parses FEEL's whole grammar, so a rule that tests a value nothing defines, or compares a date with a price, is caught before anyone reads it.
+Where prose would hide a gap, the specifications use constructs. A rule decided by one fact, with at most two outcomes, stays prose. Anything more takes one of an approved set of constructs, drawn from standards an engineer or an agent already knows: the DecisionTable of DMN, the Decision Model and Notation standard, and UML's StateMachine, Activity and Constraint. An entry written again and again, an open question say, is a record of a declared record type, a schema its records conform to, as a JSON object conforms to its JSON Schema. A type is declared once and reused. A field may hold one record or a list of records of another type, or of its own as a tree, as an employee's direct reports are employees, written as Markdown's nested lists, and each record is checked against its own type. Each field stands on a line of its own in GitHub's rendered view as in the raw text, and blank lines separate groups that differ, as a code style groups like statements, so a reader browsing the specifications on GitHub sees each field apart and a file's shape at a glance. Every expression is written in FEEL, DMN's expression language. Prose can describe anything, and nothing can check it for what it leaves out. The audit script parses FEEL's whole grammar, so a rule that tests a value nothing defines, or compares a date with a price, is caught before anyone reads it.
 
 Every rule has a check. A script checks whatever programming logic alone can decide, since a script is deterministic and spends no tokens. An independent AI agent makes the checks that require judgment. A rule that leaves no trace in the files, such as reading a file fresh before editing it, is a named step of the skill that applies it.
 
@@ -97,7 +97,6 @@ Every directory under `specs/` holds an `index.md` listing what it holds. An ove
 Each part is written for its reader. The product specifications are written for a product owner, and the technical specifications for a software engineer. The methodology specifications are written for a practitioner: a software engineer designing a project's specifications. The agent instructions and the skills are written for an AI agent arriving with no context but what it reads, and any agent can follow them.
 
 The skills under `.ai/skills/` carry the methodology out. Each is a set of instructions any AI agent can follow, with scripts wherever programming logic alone can decide, and each records the failures that motivated it:
-
 - `design-specs` takes a change to any set of specifications, the methodology's or an application's, through the Design, Refactor, Refine process as a design document, and runs Refactor and Refine cycles over specifications that have already landed.
 - `audit-specs` checks the specifications, the agent instructions, the skills and this README against every rule that governs them. Its script clears what programming logic can decide, and a reading audit judges the rest, from an overview that has fallen behind its files to a rule stated twice.
 - `implement-specs` designs the code for one product module from its specifications, takes that design through the same reviews as a change to the specifications, and then writes the code, its tests and the wiring between them.
@@ -128,11 +127,13 @@ After that comes reverse engineering specifications from existing code, so a tea
 Optional, for Claude Code users. The skills live in `.ai/skills/` so any agent can read them. These scripts link that directory to `.claude/skills/` so Claude Code loads them natively. Each is safe to re-run, and the link is gitignored.
 
 Windows, using a directory junction:
+
 ```
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-claude-skills.ps1
 ```
 
 Mac or Linux, using a symbolic link:
+
 ```
 sh scripts/setup-claude-skills.sh
 ```

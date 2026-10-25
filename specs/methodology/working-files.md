@@ -4,8 +4,7 @@ A working file is never committed, since no reader of the specs needs it. Which 
 
 The builder changes a working file as the section holding its form has it, never by a design's step: a design document by the skill writing it, and a follow-up once the user approves its text ([`§ A Follow-up`](#a-follow-up)). Where a design changes a working file's form, the builder brings the existing working files to it the same way. A working file is of no kind of change, so no design's Target names one.
 
-**Reference Key:** File
-
+**Reference Key:** File \
 **Required:** Holds
 
 | File | Holds |
@@ -24,8 +23,7 @@ An open question about what is specified is recorded in a spec, per [`specs/meth
 
 Each design document is a file of its own, one per change taken through the Design, Refactor, Refine process ([`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)). `.ai/skills/design-specs/` writes each design changing the specs under `.ai/plans/design-specs/`, and `.ai/skills/implement-specs/` writes each design changing code under `.ai/plans/implement-specs/`. Both take this form. A design changing code differs only where [`§ A Design Document § A Design Changing Code`](#a-design-changing-code) sets. A design document is the plan for its change, the plan [`specs/methodology/glossary.md`](/specs/methodology/glossary.md) defines: its goals, its frame and its steps are what the user's first approval covers, and the text or code its apply writes is not. Each skill's steps and script hold a design to this form. The script reaches the design document tooling the two skills share. No audit reads a design ([`specs/methodology/design-workflow.md § A Design's Reviews`](/specs/methodology/design-workflow.md#a-designs-reviews)). A design opens with a level-one heading, `Design Document`, whose section holds the design's fields ([`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields)). The design's sections follow as level-two headings. A design holds these parts, in this order:
 
-**Reference Key:** Part
-
+**Reference Key:** Part \
 **Required:** Form, Required, Holds
 
 | Part | Form | Required | Default Value | Holds |
@@ -60,13 +58,12 @@ Each design document is a file of its own, one per change taken through the Desi
 
 **The record's checks.** Before each adversarial round and before the user's approval, the validation review checks that the design document is a valid document. The validation review is the design script of the skill writing the design. It checks the document's structure alone, drawing only on the document and the canon's declarations of its form, never what the document says, and reads no file besides those. How the builder applied the user's steers, and whether the design is right, are the adversarial review's to read ([`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review)). The steers are that review's account of how the design was shaped. The checks:
 
-**Reference Key:** Check
-
+**Reference Key:** Check \
 **Required:** What The Record Holds, Why
 
 | Check | What The Record Holds | Why |
 |---|---|---|
-| Form | its heading, its fields and its sections in the order and the form this section's table gives them, and, by the time it is validated, no goal, no part of its frame and no step section reading `Not yet stated.` or `Not yet drafted.` | a reader and a script find each part where the form puts it |
+| Form | its heading, its fields and its sections in the order and the form this section's table gives them, each block of fields and each list a field holds as [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) has them, each blank line placed as [`specs/methodology/spec-style.md § Blank Lines`](/specs/methodology/spec-style.md#blank-lines) has it, and, by the time it is validated, no goal, no part of its frame and no step section reading `Not yet stated.` or `Not yet drafted.` | a reader and a script find each part where the form puts it |
 | Records | its design goals, its steering decisions, its design plan steps and each other record section, each record holding the fields its type declares, a Type among the values it declares, and each Name used once; each design log entry's count counting its kind from 1 in the order the entries stand, and each Timestamp no earlier than the one before it | a record out of its form is one no script can read |
 | References | each goal its frame or a step's Why cites one the design holds, and each step a step cites one the design holds | a reference to nothing leads a reader, and the work, nowhere |
 
@@ -79,7 +76,6 @@ Whether the design's citations of other files resolve, and its Target against it
 **A change needing both kinds is split.** The change's canon design reviews the application specs for what the change leaves out of sync there. It records that in its Impact on the Application Specs, and edits none of the application specs. That application work goes to the application design the canon design was spawned from, where there is one. Otherwise it is spawned or logged as this section's spawning paragraph has it. The canon and application designs may be worked in concert. A design changing the specs that leaves code out of sync edits none of the code either. It records the code it leaves out of sync in its Out of Scope, and that work goes to a design changing code, spawned or logged the same way. What an audit in the canon design's apply finds in the application specs is settled by [`§ A Design Document § Changes After Approval`](#changes-after-approval). What that table hands on is application work too. It is added to what the canon design's review handed on, or handed on the same way, so the canon design completes without editing the application specs. Where the application work finds the canon design wrong, the canon design takes the change while it is in-progress or approved, the user reopening an approved one. For any other canon change the application work needs, the application design spawns a canon design, which blocks it. A change to the canon design once that design is applying or complete is such a change too. Where the application design is approved, the user reopens it before the canon design is spawned. An application design already applying keeps to what was approved. The canon change is then spawned or logged without blocking it, as the user decides.
 
 **Applying and committing.** A design's apply begins only as [`§ A Design Document § The States It Moves Through`](#the-states-it-moves-through) lets the design move into applying. The user's approval of the plan authorizes the builder to write within the design's Target, no edit asking its own approval. A design's changes are:
-
 - the writing its steps reach, within its Target;
 - each direct edit a `direct-edit` entry of its log names, in a file the Target could name by its Kind;
 - each edit of the user's a `user-edit` entry names, wherever it lies outside a working file, since the user confirmed it intended ([`§ Design Log Entry`](#design-log-entry), [`§ Steering Decision § Telling a Steer Apart`](#telling-a-steer-apart)).
@@ -90,8 +86,7 @@ Every change the design makes is one of them. The design's changes are committed
 
 What each kind bounds a change to:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
 **Conditions:** Kind
 
 | Kind | Bounds the change to |
@@ -107,7 +102,6 @@ Every file a design's Target names is of its declared kind, or is a file of `doc
 ### Changes After Approval
 
 Once the user approves the plan, a passage outside the Target that the apply leaves false is a tactical fix ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)) where a rewording that restates what the steps decide makes it true. Otherwise it is a finding lying in the plan, as [`§ A Design Document`](#a-design-document)'s paragraph on applying and committing bounds a design's changes. A finding the post-apply review makes within the Target lies in the plan or in the writing, as [`specs/AGENTS.md § Design, Refactor, Refine § The Post-Apply Review`](/specs/AGENTS.md#the-post-apply-review) has the review settled, and one outside the Target is settled by this table, as an audit's is. The builder triages and marks an audit's findings, as [`specs/AGENTS.md § Design, Refactor, Refine § An Audit`](/specs/AGENTS.md#an-audit) has an audit read. Before the table, the builder applies [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test`](/specs/AGENTS.md#the-test) to each finding this table would settle, and records each finding the test drops in its triage. Each finding the test keeps is presented to the user and settled by the questions that sort it, asked in order:
-
 - **Caused by the design?** The builder's triage answers it, and a post-apply review's finding outside the Target is triaged as an audit's is. A finding in a passage the design left as it stood answers false.
 - **Judged wrong by the user?** The user's judgment as the finding is presented.
 - **In a file the design's Kind lets it change?** A canon design's finding in the application specs, and a code design's in the specs, answer false.
@@ -116,10 +110,8 @@ Once the user approves the plan, a passage outside the Target that the apply lea
 
 So a tactical fix never sends a design back, no design edits a file its Kind does not let it change, and no row sends a tactical fix the user declines back to the writing or into the plan:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
-**Hit Policy:** First
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Hit Policy:** First \
 **Conditions:** Caused by the design?, Judged wrong by the user?, In a file the design's Kind lets it change?, A tactical fix?, Lying in the plan?
 
 | Caused by the design? | Judged wrong by the user? | In a file the design's Kind lets it change? | A tactical fix? | Lying in the plan? | Settles |
@@ -134,19 +126,16 @@ So a tactical fix never sends a design back, no design edits a file its Kind doe
 ### Uncommitted Changes
 
 What becomes of each change uncommitted in a design's checkout at each event of its work, by what the change is, sorted by its answers to the questions:
-
 - **Written by the builder?** Whether the builder wrote the change, in this apply or in one a send-back kept.
 - **Reached by a step?** Whether a step of the plan as it now stands reaches it, the steps' writing within the Target.
 - **Logged?** Whether a `direct-edit` or a `user-edit` entry names it ([`§ Design Log Entry`](#design-log-entry)).
 
 So the steps' writing, a logged direct edit and a logged user's edit are the design's changes, as [`§ A Design Document`](#a-design-document)'s paragraph on applying and committing has them. The builder's writing that no step reaches and no entry logs is none of them. At the writing state, the builder removes it, so none of it is left at the commit. A change the builder did not write that no entry logs is confirmed with the user, as [`§ Steering Decision § Telling a Steer Apart`](#telling-a-steer-apart) has an edit of the user's confirmed:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
-**Conditions:** Written by the builder?, Reached by a step?, Logged?, Event
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Written by the builder?, Reached by a step?, Logged?, Event \
 **Input Values:**
-- Event: "a send-back", "entering applying", "the writing", "the commit", "an abandonment"
+  - Event: "a send-back", "entering applying", "the writing", "the commit", "an abandonment"
 
 | Written by the builder? | Reached by a step? | Logged? | Event | What Becomes Of It |
 |---|---|---|---|---|
@@ -170,8 +159,7 @@ So the steps' writing, a logged direct edit and a logged user's edit are the des
 
 The states a design document's Status moves through, and what moves it from one to the next:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine` \
 **Table Name:** States
 
 | State | Description | Initial | Terminal |
@@ -217,8 +205,7 @@ The kept changes hold their checkout as an apply's changes do. The design enters
 
 A design changing code starts from applied specs, or from the specs as a design its Depends On names leaves them, rather than from a problem in them. It designs the code and the tests that bring the specs to life. It takes the form [`§ A Design Document`](#a-design-document) sets, the Design, Refactor, Refine process, the validation review, the adversarial review, the stamp and the post-apply review, as a design changing the specs does. It differs only where code does. Its parts differ so:
 
-**Reference Key:** Part
-
+**Reference Key:** Part \
 **Required:** In A Design Changing Code
 
 | Part | In A Design Changing Code |
@@ -239,10 +226,8 @@ A design's goals ([`specs/methodology/glossary.md`](/specs/methodology/glossary.
 
 A design's goals sit in its record section of this type, a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`
-
-**Plural Name:** Design Goals
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Design Goals \
 **Reference Key:** Name
 
 | Field | Unique | Required | Default Value | Values | Holds |
@@ -258,10 +243,8 @@ Each step of a design's plan states what it changes and the state the applied wo
 
 A design's steps sit in its record section of this type, a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`
-
-**Plural Name:** Design Plan Steps
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Design Plan Steps \
 **Reference Key:** Name
 
 | Field | Unique | Required | Default Value | Values | Holds |
@@ -280,17 +263,14 @@ A design's log records each check of its work and each event of its workflow, an
 **What a check counts.** Each count counts what its check found, by the mark each holds once settled ([`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not`](/specs/AGENTS.md#converging-or-not)). A finding dropped is counted in Dropped alone, and a review observation ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)) in none. The builder marks what its own Design, Refactor, Refine pass, self-review and handed-off judgment found as a review's findings are marked, and appends each entry with the model and effort it ran on.
 
 **A check's report.** A check's entry names its report, `{design}-{entry}.md`, in the folder of `.ai/tmp/` of the skill writing the design ([`§ The Working Files`](#the-working-files)). The report is one of:
-
 - a review's report, with the builder's settlement added;
 - a report of the builder's Design, Refactor, Refine pass, of its self-review or of its handed-off judgment, holding what it found and how each was settled, its traces and tests among them;
 - the builder's triage of an audit.
 
 A design's log sits in its record section of this type, a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`
-
-**Plural Name:** Design Log Entries
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Design Log Entries \
 **Reference Key:** Entry
 
 | Field | Unique | Required | Default Value | Values | Holds |
@@ -311,8 +291,7 @@ A design's log sits in its record section of this type, a record type ([`specs/m
 
 The kinds of entry, each with the fields it gives beside Entry and Timestamp, and when it is appended:
 
-**Reference Key:** Kind
-
+**Reference Key:** Kind \
 **Required:** Fields, Appended
 
 | Kind | Fields | Appended |
@@ -339,10 +318,8 @@ A design retiring wording records it, so the builder's tools, not a rereading, f
 
 A design's retired wording sits in its record section of this type, a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`
-
-**Plural Name:** Retired Phrases
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Retired Phrases \
 **Reference Key:** Phrase
 
 | Field | Unique | Required | Default Value | Values | Holds |
@@ -363,10 +340,8 @@ A design's Steering Decisions record only the user's steers, the decisions a ste
 
 A design's steering decisions sit in its record section of this type, a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`
-
-**Plural Name:** Steering Decisions
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Steering Decisions \
 **Reference Key:** Name
 
 | Field | Unique | Required | Default Value | Values | Holds |
@@ -383,10 +358,8 @@ A design's steering decisions sit in its record section of this type, a record t
 
 During an apply, or while the design is sent back with its changes kept, a steer, direction about the work, feedback on the applied result, a decision about other work and the user's own edit are each recorded by its row. An answer carrying more than one is taken a part at a time:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
-**Conditions:** What the user decides
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** What the user decides \
 **Annotations:** Sounds Like
 
 | What the user decides | Recorded | Tells a reviewer | Sounds Like |
@@ -401,8 +374,7 @@ During an apply, or while the design is sent back with its changes kept, a steer
 
 A decision about other work is recorded where that work is held, so whoever takes the work up finds it in the files rather than in one agent's memory. A decision about more than one design is recorded in each. What becomes of the decision, by where the work is held:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
 **Conditions:** Where the work is held
 
 | Where the work is held | The decision |
@@ -419,7 +391,6 @@ A design's path is not straight. Working toward an elegant solution takes loops,
 ## A Stamp
 
 A stamp lets a later reader tell whether content has changed since a check passed on it, so nothing has to be cleared by hand. It is written as a UTC timestamp and a content hash separated by a space, `2026-09-29T14:05:12Z sha256:3f9a0c1b2d4e5f60`:
-
 - **The timestamp.** A date and time as RFC 3339 writes one ([`specs/methodology/external-references.md § External References [Name: RFC 3339]`](/specs/methodology/external-references.md#external-references)), in UTC, to the second, ending in `Z`, as `YYYY-MM-DDThh:mm:ssZ`, so stamps written on different machines compare without a time zone.
 - **The content hash.** SHA-256 of the file's text, encoded as UTF-8 with line-feed line endings, after dropping the lines that hold the fields and the sections the form leaves out. It is written as `sha256:` followed by the digest's first sixteen hexadecimal characters, lowercase. The hash detects a change, and is not meant to resist tampering.
 
@@ -428,15 +399,13 @@ The form a stamp is used in names the field holding the stamp and the fields the
 ## A Follow-up
 
 A follow-up records work on the specs, the code or the working files that should be done and is not yet, with enough context for someone arriving cold to take it up. It is kept until the work is done, however many changes pass in between, so nothing that should be worked is lost. A follow-up is written, or amended, only once the user approves its text, shown first. `.ai/follow-ups.md` opens with a short header naming what the file holds and citing this file. The follow-ups follow that header. Each follow-up sits under a priority heading:
-
 - `## High`, the work to take up next;
 - `## Medium`, which waits until High is settled;
 - or `## Low`, worth doing once nothing more pressing is open.
 
 Each follow-up holds these parts, in this order:
 
-**Reference Key:** Part
-
+**Reference Key:** Part \
 **Required:** Form, Required, Holds
 
 | Part | Form | Required | Default Value | Holds |
@@ -447,8 +416,7 @@ Each follow-up holds these parts, in this order:
 | Location | a `**Location:**` field | yes | | the file, section or files it concerns |
 | Body | prose | yes | | the work, the context needed to take it up, and, where known, what found it, naming the design that handed the work on where one did |
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine` \
 **Table Name:** States
 
 | State | Description | Initial | Terminal |

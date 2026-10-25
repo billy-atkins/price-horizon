@@ -2,8 +2,7 @@
 
 This file holds the terms Spec of Record gives a meaning of its own. Each is defined here once and nowhere else: a file using a term states its rules about the term, never a second definition. This file also states what earns a term its entry, how an entry is written, and where an abbreviation may be used.
 
-**Reference Key:** Term
-
+**Reference Key:** Term \
 **Required:** Definition
 
 | Term | Abbreviation | Definition |
@@ -12,6 +11,7 @@ This file holds the terms Spec of Record gives a meaning of its own. Each is def
 | Altitude |  | The level of a file, or of its content, within its directory, from the navigation that names what the directory holds down to the detail that states it. |
 | App-spec annotation |  | A spec annotation in governed code, naming a spec, or a section of one, that the code carries out or, as a test, checks. |
 | Basic Table |  | The construct a table is where no `**Construct:**` field declares one: items of one kind in rows, each column one of their fields. Not a table in a construct's block, which that construct's definition governs. |
+| Block of fields |  | The fields one form gives together, as a construct's declaration sets its fields or a record gives its own. Not a construct's block, its declaration with its fields and its tables, nor a block of GFM's. |
 | Builder |  | The person or agent who does a piece of work and takes it through the Design, Refactor, Refine process. |
 | Canon |  | The part of the Spec of Record scope that states and applies the methodology's rules: the specifications' entry point and their overview, the methodology, and the skills the methodology registers, each skill the specification of a procedure, with the code their scripts share. Not a product's specifications, and not a canonical form or version. |
 | Canon-spec annotation |  | A spec annotation in a registered skill's script, or the code the skills share, naming the area of the methodology's own specifications that a copy the script holds takes its values from. |
@@ -93,6 +93,5 @@ This file holds the terms Spec of Record gives a meaning of its own. Each is def
 An abbreviation outside the house may be used in any specification or instruction, since the agents and engineers reading it already know its meaning. An abbreviation inside the house is used in none of them. They spell its term out instead, because an agent reads every word of a rule as part of the rule, and may misread a short form only the house knows. The short form is for people talking to an agent, since the agent can ask them what one means.
 
 **Where one is recorded.** Each inside-the-house abbreviation is recorded once, beside its term's definition, which is how it is known to be one:
-
 - the methodology's, in its glossary entry's Abbreviation column;
 - the application's, where the application specs define its term, at that term's altitude, written `(abbreviated X)` directly after the term.

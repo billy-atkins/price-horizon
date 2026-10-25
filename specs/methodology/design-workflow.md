@@ -6,8 +6,7 @@ Two State Machines set the order a design's work takes, and what moves it back. 
 
 A design enters its work by the reason its Status entered in-progress. Its change leads back to another adversarial review wherever needs review? or needs reframing? holds and the user's approval has not ended its review ([`§ The Order of a Design's Work § Facts`](#facts)). A design its Depends On names finishing is a class of occurrences. This machine's Trigger Classes table cites the section that lists its members.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine` \
 **Table Name:** States
 
 | State | Description | Initial | Terminal |
@@ -76,8 +75,7 @@ A design enters its work by the reason its Status entered in-progress. Its chang
 
 A design's apply begins only as [`specs/methodology/working-files.md § A Design Document § The States It Moves Through`](/specs/methodology/working-files.md#the-states-it-moves-through) lets a design enter applying, and it ends applied or sent back. The order the apply takes:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine` \
 **Table Name:** States
 
 | State | Description | Initial | Terminal |
@@ -135,93 +133,91 @@ A design's apply begins only as [`specs/methodology/working-files.md § A Design
 ### Facts
 
 **Records:**
+  - **Name:** entry reason \
+    **Type:** string \
+    **Values:** "taken up", "reopened", "a dependency moved back", "a dependency finished", "sent back" \
+    **Means:** why the design last entered in-progress, the move its Status took: taken up, reopened by the user, a design its Depends On names moving back to in-progress, one finishing, or its apply sending it back
 
-- **Name:** entry reason
-  **Type:** string
-  **Values:** "taken up", "reopened", "a dependency moved back", "a dependency finished", "sent back"
-  **Means:** why the design last entered in-progress, the move its Status took: taken up, reopened by the user, a design its Depends On names moving back to in-progress, one finishing, or its apply sending it back
+  - **Name:** consecutive design flaw rounds \
+    **Type:** number \
+    **Initial Value:** 0 \
+    **Means:** the adversarial rounds in a row of the design's phase, this one among them, each not ended by the user's approval and finding a design flaw the user triaged as one, counted as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has a phase converge; set back to zero by a round finding none and by the design's starting afresh at its frame, a reassessment's or a send-back's
 
-- **Name:** consecutive design flaw rounds
-  **Type:** number
-  **Initial Value:** 0
-  **Means:** the adversarial rounds in a row of the design's phase, this one among them, each not ended by the user's approval and finding a design flaw the user triaged as one, counted as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has a phase converge; set back to zero by a round finding none and by the design's starting afresh at its frame, a reassessment's or a send-back's
+  - **Name:** consecutive implementation flaw rounds \
+    **Type:** number \
+    **Initial Value:** 0 \
+    **Means:** the adversarial rounds in a row of the design's phase, this one among them, each not ended by the user's approval and finding an implementation flaw, a nit the builder judged harmful among them, counted as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has a phase converge; set back to zero by a round finding none and by the design's starting afresh at its frame, a reassessment's or a send-back's
 
-- **Name:** consecutive implementation flaw rounds
-  **Type:** number
-  **Initial Value:** 0
-  **Means:** the adversarial rounds in a row of the design's phase, this one among them, each not ended by the user's approval and finding an implementation flaw, a nit the builder judged harmful among them, counted as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has a phase converge; set back to zero by a round finding none and by the design's starting afresh at its frame, a reassessment's or a send-back's
+  - **Name:** consecutive send-backs \
+    **Type:** number \
+    **Initial Value:** 0 \
+    **Means:** the applies of the design in a row, this one among them, each ending sent back; set back to zero as an apply reaches awaiting the commit or applied; set back to zero too by a reassessment, of the send-backs or of the apply, that decides other than "go on", the apply it sends back not counted
 
-- **Name:** consecutive send-backs
-  **Type:** number
-  **Initial Value:** 0
-  **Means:** the applies of the design in a row, this one among them, each ending sent back; set back to zero as an apply reaches awaiting the commit or applied; set back to zero too by a reassessment, of the send-backs or of the apply, that decides other than "go on", the apply it sends back not counted
+  - **Name:** consecutive post-apply flaw rounds \
+    **Type:** number \
+    **Initial Value:** 0 \
+    **Means:** the post-apply rounds in a row of the apply, this one among them, each finding an implementation flaw lying in the writing; set back to zero by a round finding none and as an apply begins
 
-- **Name:** consecutive post-apply flaw rounds
-  **Type:** number
-  **Initial Value:** 0
-  **Means:** the post-apply rounds in a row of the apply, this one among them, each finding an implementation flaw lying in the writing; set back to zero by a round finding none and as an apply begins
+  - **Name:** consecutive rework audits \
+    **Type:** number \
+    **Initial Value:** 0 \
+    **Means:** the audits in a row of the apply, this one among them, each sending a finding back to writing; set back to zero by an audit sending none and as an apply begins
 
-- **Name:** consecutive rework audits
-  **Type:** number
-  **Initial Value:** 0
-  **Means:** the audits in a row of the apply, this one among them, each sending a finding back to writing; set back to zero by an audit sending none and as an apply begins
+  - **Name:** reassessment \
+    **Type:** string \
+    **Values:** "rescope", "split", "a different approach", "go on" \
+    **Means:** what the user decided at a reassessment, as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has one; a design abandoned leaves by [`specs/methodology/working-files.md § A Design Document § The States It Moves Through`](/specs/methodology/working-files.md#the-states-it-moves-through) instead
 
-- **Name:** reassessment
-  **Type:** string
-  **Values:** "rescope", "split", "a different approach", "go on"
-  **Means:** what the user decided at a reassessment, as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has one; a design abandoned leaves by [`specs/methodology/working-files.md § A Design Document § The States It Moves Through`](/specs/methodology/working-files.md#the-states-it-moves-through) instead
+  - **Name:** needs review? \
+    **Type:** boolean \
+    **Means:** whether the design takes another adversarial round before the user's approval: the last round it settled found a design flaw the user triaged as one or an implementation flaw, or its goals, its frame or its steps have moved since that round began, or it has settled none since it was last framed, or the user asked for another round ([`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review), [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame))
 
-- **Name:** needs review?
-  **Type:** boolean
-  **Means:** whether the design takes another adversarial round before the user's approval: the last round it settled found a design flaw the user triaged as one or an implementation flaw, or its goals, its frame or its steps have moved since that round began, or it has settled none since it was last framed, or the user asked for another round ([`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review), [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame))
+  - **Name:** needs reframing? \
+    **Type:** boolean \
+    **Means:** whether a steer the design took in changed its goals or its frame and the user has not yet approved the change, so they go back to the user for approval, the frame re-evaluated against goals that changed ([`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame))
 
-- **Name:** needs reframing?
-  **Type:** boolean
-  **Means:** whether a steer the design took in changed its goals or its frame and the user has not yet approved the change, so they go back to the user for approval, the frame re-evaluated against goals that changed ([`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame))
+  - **Name:** review ended by approval? \
+    **Type:** boolean \
+    **Initial Value:** false \
+    **Means:** whether the user's approval of the plan, given before its adversarial review ended, ended it ([`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review § The Plan's Approval`](/specs/AGENTS.md#the-plans-approval)). The approval sets it in any state of the design's work. No transition fires on it but the reassessments', and each state finishes its own work first. It is set back to false only where the design is sent back, a reassessment starts it afresh or the user asks for another round. So a change after the approval keeps it, a reopen or a dependency's move among them, even one changing the goals or the frame, and the design comes back to the user
 
-- **Name:** review ended by approval?
-  **Type:** boolean
-  **Initial Value:** false
-  **Means:** whether the user's approval of the plan, given before its adversarial review ended, ended it ([`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review § The Plan's Approval`](/specs/AGENTS.md#the-plans-approval)). The approval sets it in any state of the design's work. No transition fires on it but the reassessments', and each state finishes its own work first. It is set back to false only where the design is sent back, a reassessment starts it afresh or the user asks for another round. So a change after the approval keeps it, a reopen or a dependency's move among them, even one changing the goals or the frame, and the design comes back to the user
+  - **Name:** plan approved? \
+    **Type:** boolean \
+    **Initial Value:** false \
+    **Means:** whether the user's approval of the plan, given in any state of its work, covers the plan as it stands ([`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review § The Plan's Approval`](/specs/AGENTS.md#the-plans-approval)). It is set back to false by a change after the approval to the design's goals, its frame or its steps, and by the design's entering in-progress again. After such a change, the design comes back to the user to approve again
 
-- **Name:** plan approved?
-  **Type:** boolean
-  **Initial Value:** false
-  **Means:** whether the user's approval of the plan, given in any state of its work, covers the plan as it stands ([`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review § The Plan's Approval`](/specs/AGENTS.md#the-plans-approval)). It is set back to false by a change after the approval to the design's goals, its frame or its steps, and by the design's entering in-progress again. After such a change, the design comes back to the user to approve again
+  - **Name:** fix changes the plan? \
+    **Type:** boolean \
+    **Means:** whether fixing a problem the validation review reports changes the design's goals, its frame or a step, and not only the record around them
 
-- **Name:** fix changes the plan?
-  **Type:** boolean
-  **Means:** whether fixing a problem the validation review reports changes the design's goals, its frame or a step, and not only the record around them
+  - **Name:** depends on ready? \
+    **Type:** boolean \
+    **Means:** whether each design its Depends On names is approved or applying
 
-- **Name:** depends on ready?
-  **Type:** boolean
-  **Means:** whether each design its Depends On names is approved or applying
+  - **Name:** plan finding? \
+    **Type:** boolean \
+    **Initial Value:** false \
+    **Means:** whether the post-apply round or the audit just settled holds a finding lying in the plan, as [`specs/methodology/working-files.md § A Design Document § Changes After Approval`](/specs/methodology/working-files.md#changes-after-approval) has one; set by the settling state, and set back as that state is left
 
-- **Name:** plan finding?
-  **Type:** boolean
-  **Initial Value:** false
-  **Means:** whether the post-apply round or the audit just settled holds a finding lying in the plan, as [`specs/methodology/working-files.md § A Design Document § Changes After Approval`](/specs/methodology/working-files.md#changes-after-approval) has one; set by the settling state, and set back as that state is left
+  - **Name:** writing flaw? \
+    **Type:** boolean \
+    **Initial Value:** false \
+    **Means:** whether the post-apply round just settled found an implementation flaw lying in the writing; set by settling the post-apply round, and set back as it is left
 
-- **Name:** writing flaw?
-  **Type:** boolean
-  **Initial Value:** false
-  **Means:** whether the post-apply round just settled found an implementation flaw lying in the writing; set by settling the post-apply round, and set back as it is left
+  - **Name:** audit rework? \
+    **Type:** boolean \
+    **Initial Value:** false \
+    **Means:** whether a finding of the audit just settled, one the design caused, goes back to writing, as [`specs/methodology/working-files.md § A Design Document § Changes After Approval`](/specs/methodology/working-files.md#changes-after-approval) has it; set by settling the audit, and set back as it is left
 
-- **Name:** audit rework?
-  **Type:** boolean
-  **Initial Value:** false
-  **Means:** whether a finding of the audit just settled, one the design caused, goes back to writing, as [`specs/methodology/working-files.md § A Design Document § Changes After Approval`](/specs/methodology/working-files.md#changes-after-approval) has it; set by settling the audit, and set back as it is left
-
-- **Name:** version control?
-  **Type:** boolean
-  **Means:** whether the project keeps its files under version control
+  - **Name:** version control? \
+    **Type:** boolean \
+    **Means:** whether the project keeps its files under version control
 
 ## A Design's Reviews
 
 A design's Kind sizes its reviews and its audit. The effort they take grows with what a flaw in the design would cost. A design whose Target names files of more than one Kind takes the highest effort among them. The kinds of the files its Target names pick its audit, each file's kind as [`specs/methodology/working-files.md § A Design Document § The Kinds of Change`](/specs/methodology/working-files.md#the-kinds-of-change) defines it. Where they include `code`, the audit is `.ai/skills/verify-spec-implementation/`'s full run. Where they include any other kind, it is an `.ai/skills/audit-specs/` run given those kinds as the skill's `--kind`, which reads only the audits, and the files, of those kinds. A design whose Target names both runs both. A run given `canon-specs` reads every audit but the audit of the working files' form, over the files of every kind but `code`, since a change to the canon can leave any such file in breach of it, the application specs among them. A run the user starts with no kind is the full run, every audit over the skill's complete scope, the audit of the working files' form among them. No audit a design's apply runs reads a working file. The effort each Kind gives is a review's default ([`specs/AGENTS.md § Design, Refactor, Refine § Each Review's Model and Effort`](/specs/AGENTS.md#each-reviews-model-and-effort)):
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
 **Conditions:** Kind
 
 | Kind | Effort |
@@ -255,8 +251,7 @@ An audit takes no brief. Whoever starts one, the user or the builder in a design
 
 A review's reasoning effort is the level the user chose ([`specs/AGENTS.md § Design, Refactor, Refine § Each Review's Model and Effort`](/specs/AGENTS.md#each-reviews-model-and-effort)). The level is applied in the way the agent in use can apply it. The builder offers only a level the agent in use can apply. Where the agent in use can apply none, the review runs as the agent allows. How a level is applied:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
 **Conditions:** How the agent applies a level, definition set up?
 
 | How the agent applies a level | definition set up? | Applied |

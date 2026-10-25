@@ -7,8 +7,7 @@ A parcel's journey from draft to sent or voided, written whole as a file would h
 
 The journey of a parcel from a basket's draft to the carrier, or to being voided with its purchase or once held past its hold limit.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine` \
 **Table Name:** States
 
 | State | Description | Initial | Terminal |
@@ -43,13 +42,10 @@ The journey of a parcel from a basket's draft to the carrier, or to being voided
 
 The moment a parcel leaves for the carrier, recorded as it is sent.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
-
-**Inputs:** none
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm` \
+**Inputs:** none \
 **Output:**
-
-- sent at
+  - sent at
 
 **Runs When:** `§ Parcel`
 
@@ -61,19 +57,18 @@ The moment a parcel leaves for the carrier, recorded as it is sent.
 ## Facts
 
 **Records:**
+  - **Name:** on hold? \
+    **Type:** boolean \
+    **Means:** whether the buyer's address failed its check, so the parcel waits for a warehouse clerk
 
-- **Name:** on hold?
-  **Type:** boolean
-  **Means:** whether the buyer's address failed its check, so the parcel waits for a warehouse clerk
+  - **Name:** sent at \
+    **Type:** date and time \
+    **May Be Absent:** Yes \
+    **Means:** when the parcel was handed to the carrier
 
-- **Name:** sent at
-  **Type:** date and time
-  **May Be Absent:** Yes
-  **Means:** when the parcel was handed to the carrier
-
-- **Name:** hold limit
-  **Type:** days and time duration
-  **Means:** how long a parcel may stay held before it is voided
+  - **Name:** hold limit \
+    **Type:** days and time duration \
+    **Means:** how long a parcel may stay held before it is voided
 ```
 
 When a warehouse clerk sends a packed parcel, the two transitions from packed are an exclusive choice. Their guards are a question and its negation over a fact the file declares. They never both hold. Both moves to sent run Send Stamp as their effect, and Send Stamp's Runs When cites the machine. A voided purchase ends a parcel whether it is a draft, packed or held, with a row for each From. A buyer canceling and a payment refunded each void the purchase, so the trigger is their class, its members its Trigger Classes table's rows. A held parcel's hold limit is counted from its entering held, and the parcel is voided once it passes.

@@ -22,7 +22,6 @@ Read the code roots the technical specs' `stack.md` names, per `specs/methodolog
 ### Run the script first
 
 `scripts/verify-spec-implementation.py --check-annotations` reports each annotation in the code roots that does not follow `specs/methodology/code.md § Citing the Specs From Code`, or the form `specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code` gives it:
-
 - a malformed line;
 - a citation naming no section or file that exists;
 - a citation of anything but a product or technical spec;
@@ -52,8 +51,7 @@ Write the report to `.ai/tmp/verify-spec-implementation/`, one file per run, cle
 
 Each check names the section it enforces (`specs/methodology/scope.md § Rules and Skills`).
 
-**Reference Key:** Check
-
+**Reference Key:** Check \
 **Required:** How, Enforces
 
 | Check | How | Enforces |
