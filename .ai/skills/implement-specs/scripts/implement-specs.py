@@ -2,7 +2,8 @@
 """implement-specs' entry script: the design document tooling in .ai/skills/lib/design_documents.py,
 reading the design documents that change code, under .ai/plans/implement-specs/. Its actions
 are in its --help; --check-constructs among them is design-specs' to run, a code design stating no
-construct."""
+construct; --check-work runs the script checks of the code and of the specs in .ai/skills/lib/code_checks.py and
+spec_checks.py over the code a design changing it writes."""
 
 import sys
 from pathlib import Path

@@ -2,16 +2,184 @@
 their lineages, where a citation resolves, and which files are in scope, by the skills registry, and their texts.
 audit-specs, design-specs, implement-specs and verify-spec-implementation read a spec through it, each reading this
 one copy (specs/methodology/skills.md § Authoring a Skill)."""
+import fnmatch
 import re
-from pathlib import Path
+import subprocess
+from pathlib import Path, PurePosixPath
 
 import citation_links
+
+
+class CommitTree:
+    """A commit's files read through git in memory, a path of the tree as pathlib.Path gives one: the one reader a check
+    reads a tree through, the working tree being a pathlib.Path, so every check runs over either tree and writes no
+    file. A file's text is read as the working tree's is, its line endings made newlines."""
+
+    def __init__(self, repo, commit="HEAD", rel="", store=None):
+        self.repo, self.commit, self.rel = Path(repo), commit, rel
+        if store is None:
+            out = subprocess.run(["git", "ls-tree", "-r", "-z", commit], cwd=repo, capture_output=True, check=True).stdout
+            files = {}
+            for entry in out.decode("utf-8").split("\0"):
+                if entry:
+                    meta, path = entry.split("\t", 1)
+                    if meta.split()[1] == "blob":
+                        files[path] = meta.split()[2]
+            dirs = {""} | {p.rsplit("/", 1)[0] for f in files for p in [f] if "/" in f}
+            dirs |= {d.rsplit("/", i)[0] for d in list(dirs) for i in range(1, d.count("/") + 1)}
+            store = {"files": files, "dirs": dirs, "blobs": {}}
+        self.store = store
+
+    def _at(self, rel):
+        return CommitTree(self.repo, self.commit, rel, self.store)
+
+    def __truediv__(self, other):
+        rel = posix_join(self.rel, str(other).replace("\\", "/"))
+        return self._at(rel)
+
+    def joinpath(self, *others):
+        node = self
+        for other in others:
+            node = node / other
+        return node
+
+    @property
+    def name(self):
+        return PurePosixPath(self.rel).name
+
+    @property
+    def stem(self):
+        return PurePosixPath(self.rel).stem
+
+    @property
+    def suffix(self):
+        return PurePosixPath(self.rel).suffix
+
+    @property
+    def parts(self):
+        return PurePosixPath(self.rel).parts
+
+    @property
+    def parent(self):
+        return self._at(self.rel.rsplit("/", 1)[0] if "/" in self.rel else "")
+
+    def as_posix(self):
+        return self.rel
+
+    def __str__(self):
+        return f"{self.commit}:{self.rel}"
+
+    __repr__ = __str__
+
+    def __eq__(self, other):
+        return isinstance(other, CommitTree) and (self.commit, self.rel) == (other.commit, other.rel)
+
+    def __hash__(self):
+        return hash((self.commit, self.rel))
+
+    def __lt__(self, other):
+        return self.rel < other.rel
+
+    def resolve(self):
+        return self
+
+    def relative_to(self, other):
+        base = other.rel if isinstance(other, CommitTree) else str(other)
+        return PurePosixPath(self.rel).relative_to(base or ".")
+
+    def is_relative_to(self, other):
+        base = other.rel if isinstance(other, CommitTree) else str(other)
+        return not base or self.rel == base or self.rel.startswith(base + "/")
+
+    def is_file(self):
+        return self.rel in self.store["files"]
+
+    def is_dir(self):
+        return self.rel in self.store["dirs"]
+
+    def exists(self):
+        return self.is_file() or self.is_dir()
+
+    def _below(self):
+        """Every file and directory under this one, as paths from the tree's root."""
+        prefix = self.rel + "/" if self.rel else ""
+        return sorted(p for p in self.store["files"].keys() | self.store["dirs"] if p and p.startswith(prefix))
+
+    def iterdir(self):
+        prefix = self.rel + "/" if self.rel else ""
+        return [self._at(p) for p in self._below() if "/" not in p[len(prefix):]]
+
+    def glob(self, pattern):
+        prefix, steps = (self.rel + "/" if self.rel else ""), pattern.split("/")
+        return [self._at(p) for p in self._below() if len(p[len(prefix):].split("/")) == len(steps)
+                and all(fnmatch.fnmatchcase(s, g) for s, g in zip(p[len(prefix):].split("/"), steps))]
+
+    def rglob(self, pattern):
+        return [self._at(p) for p in self._below() if fnmatch.fnmatchcase(p.rsplit("/", 1)[-1], pattern)]
+
+    def read_bytes(self):
+        if not self.is_file():
+            raise FileNotFoundError(str(self))
+        blobs = self.store["blobs"]
+        if not blobs:
+            # every blob read in one call, as a check reads most of the tree
+            shas = sorted(set(self.store["files"].values()))
+            out = subprocess.run(["git", "cat-file", "--batch"], cwd=self.repo, input="\n".join(shas).encode() + b"\n",
+                                 capture_output=True, check=True).stdout
+            at = 0
+            while at < len(out):
+                end = out.index(b"\n", at)
+                sha, _, size = out[at:end].decode().split(" ")
+                start = end + 1
+                blobs[sha] = out[start:start + int(size)]
+                at = start + int(size) + 1
+        return blobs[self.store["files"][self.rel]]
+
+    def read_text(self, encoding="utf-8"):
+        return self.read_bytes().decode(encoding).replace("\r\n", "\n").replace("\r", "\n")
+
+    def tracked(self):
+        """-> every file the commit holds, the tracked set a check of the working tree reads from git ls-files."""
+        return set(self.store["files"])
+
+
+def posix_join(base, rel):
+    """-> rel joined to base, a path from the tree's root, '.' and '..' folded."""
+    out = [p for p in base.split("/") if p]
+    for part in rel.split("/"):
+        if part in ("", "."):
+            continue
+        if part == "..":
+            out = out[:-1]
+        else:
+            out.append(part)
+    return "/".join(out)
+
+
+def tracked(root, others=False):
+    """-> the set of files version control tracks under root, as paths from it, and with others the untracked files
+    git does not ignore too, or None where root is under no version control: the commit's own files, for a commit's
+    tree."""
+    if isinstance(root, CommitTree):
+        return root.tracked()
+    command = ["git", "ls-files"] + (["--cached", "--others", "--exclude-standard"] if others else [])
+    try:
+        out = subprocess.run(command, cwd=root, capture_output=True, text=True, check=True).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return set(out.split("\n")) - {""}
+
+
+def as_root(root):
+    """-> the tree a check reads: a CommitTree as it is, anything else the working tree at that path."""
+    return root if isinstance(root, CommitTree) else Path(root).resolve()
 
 
 # @canon-spec specs/methodology/sourcing-and-citation.md § Writing a Citation § A Citation's Link
 def read(path):
     """-> a file's text with each citation's link stripped, so every check reads the citation as written."""
-    return citation_links.strip(Path(path).read_text(encoding="utf-8"))
+    path = path if isinstance(path, CommitTree) else Path(path)
+    return citation_links.strip(path.read_text(encoding="utf-8"))
 
 
 HEADING = re.compile(r'^(#{1,6})\s+(.*?)\s*$', re.M)
@@ -175,5 +343,5 @@ def md_files(root):
 
 def spec_texts(root):
     """-> {path from the root: text, citations' links stripped} for every Markdown file in scope."""
-    root = Path(root)
+    root = root if isinstance(root, CommitTree) else Path(root)
     return {f.relative_to(root).as_posix(): read(f) for f in md_files(root)}

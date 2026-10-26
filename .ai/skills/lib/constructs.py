@@ -223,7 +223,7 @@ NAMEABLE = {"State Machine": {1}, "Decision Table": {0}, "Constraint": {0}}
 # @canon-spec specs/methodology/modeling-constructs.md § Fields
 # a field: a line opening with its key in bold, the colon inside the bold, then a space and its value or nothing;
 # a list marker and indentation before the key are no part of it, nor are the space and the backslash ending its
-# line, a field's end; the one copy, which audit-specs.py and record_types.py read too
+# line, a field's end; the one copy, which spec_checks.py and record_types.py read too
 FIELD = re.compile(r'^(?P<indent>\s*)(?P<marker>-\s+)?\*\*(?P<key>[^*`]+?):\*\*(?: (?P<value>.*?))?(?P<end> \\)?$')
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
 # a jump as the form writes it, and the parser reading every jump: the phrase in any letters and the step number
@@ -280,7 +280,7 @@ LABEL_WORD = re.compile(f"^{LABEL}$")
 
 # @canon-spec specs/methodology/spec-style.md § Literal Text
 # literal text: a code span, one backtick to the next, literal text holding no backtick; the one reading of a
-# span, which audit-specs.py reads too
+# span, which spec_checks.py reads too
 CODE_SPAN = re.compile(r'`(?P<text>[^`]+)`')
 
 
@@ -3043,7 +3043,7 @@ def algorithm_findings(text_of, found, sections, strip_fences, citation, resolve
 
 # @canon-spec specs/methodology/sourcing-and-citation.md § Writing a Citation
 # a citation: a section token and a title in one backtick span, after a file's path where it cites another file,
-# never the token alone; the one copy of the form, which audit-specs.py reads as its own and an Enforced By names
+# never the token alone; the one copy of the form, which spec_checks.py reads as its own and an Enforced By names
 # what enforces its rule by
 class _Citations:
     """sourcing-and-citation.md § Writing a Citation: a citation in its code span, opened by one backtick, or by one more
