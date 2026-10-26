@@ -4,21 +4,24 @@ design document to its form, drawing only on the document and the canon's declar
 design that passes; and the builder's tools, which append a design's log entries, check the headings a proposal
 cites, a Target against its Kind and the constructs a design or a file states, through the construct checks in
 constructs.py, for its self-review, show and check the wording a design retires, list the files changed outside
-its Target, check the workstack, show a validation, write citations' links, and show what a
+its Target, check the work against the specs' and the code's script checks in spec_checks.py and code_checks.py, check
+the workstack, show a validation, write citations' links, and show what a
 Refactor and Refine cycle changed.
 
 A design document must hold the form working-files.md sets, and the workstack its lineage draws must hold
 together. Its actions are flags per specs/methodology/skills.md § Authoring a Skill. The exit status is 0 when
 every check passes, 1 when one finds a problem, and 2 for a usage error.
 
-Standard library only, git aside, which --show-refactor-and-refine-of-existing-specs reads through, and run by
+Standard library only, git aside, which --show-refactor-and-refine-of-existing-specs and --check-work read through, and run by
 no agent directly: each skill writing design documents calls main from its own entry script with its own plans
 folder, per specs/methodology/skills.md § Authoring a Skill.
 """
 
 import argparse
+import collections
 import datetime
 import hashlib
+import json
 import re
 import subprocess
 import sys
@@ -29,6 +32,7 @@ import constructs
 import layout
 import record_types
 from spec_text import REGISTRY, lineages, read, registry, scope_paths, sections, skill_dirs, spec_texts, strip_fences
+from spec_text import resolve as resolve_citation
 
 
 # @canon-spec specs/methodology/working-files.md § A Design Document § The Kinds of Change
@@ -1211,7 +1215,10 @@ LEFT_TO_THE_APPLY = ("left to the apply's self-review and the audit: a part a st
 
 
 def repo_root():
-    found = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    try:
+        found = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    except FileNotFoundError:  # no git on the machine
+        return Path.cwd()
     return Path(found.stdout.strip()) if found.returncode == 0 else Path.cwd()
 
 
@@ -1352,6 +1359,284 @@ def check_constructs(value):
     return 1 if findings else 0
 
 
+# the shared modules --check-work runs, the specs' and the code's script checks and candidate lists
+WORK_MODULES = ("spec_checks", "code_checks")
+# Runs the shared checks over one tree in a process of their own, so no state a module keeps reaches the other tree's
+# run, and prints them as JSON: the working tree with the checks as they stand, or a commit read through git in memory
+# with the checks as they stood in it, or as they stand where it holds none of WORK_MODULES. It writes no file.
+WORK_RUN = r'''
+import importlib.abc, importlib.util, json, subprocess, sys
+sys.dont_write_bytecode = True
+repo, commit, lib = sys.argv[1], sys.argv[2], sys.argv[3]
+if lib == "commit":
+    listed = subprocess.run(["git", "ls-tree", commit, ".ai/skills/lib/"], cwd=repo, capture_output=True, check=True)
+    entries = [l.split(None, 3) for l in listed.stdout.decode("utf-8").splitlines()]
+    sources = {e[3].rsplit("/", 1)[1][:-3]: subprocess.run(["git", "cat-file", "blob", e[2]], cwd=repo,
+               capture_output=True, check=True).stdout.decode("utf-8") for e in entries if e[3].endswith(".py")}
+
+    class Commit(importlib.abc.MetaPathFinder, importlib.abc.Loader):
+        def find_spec(self, name, path, target=None):
+            return importlib.util.spec_from_loader(name, self) if path is None and name in sources else None
+
+        def create_module(self, spec):
+            return None
+
+        def exec_module(self, module):
+            module.__file__ = commit + ":.ai/skills/lib/" + module.__name__ + ".py"
+            exec(compile(sources[module.__name__], module.__file__, "exec"), module.__dict__)
+    sys.meta_path.insert(0, Commit())
+else:
+    sys.path.insert(0, lib)
+from pathlib import Path
+import code_checks, spec_checks, spec_text
+tree = Path(repo) if commit == "-" else spec_text.CommitTree(repo, commit)
+groups = [(h, [list(c) for c in rows]) for h, rows, _ in spec_checks.candidate_groups(tree)]
+json.dump({"findings": [list(f) for f in spec_checks.check(tree)],
+           "code": [[code_checks.rule_of(f)] + list(f) for f in code_checks.check_annotations(tree)],
+           "candidates": groups,
+           "code_candidates": [list(c) for c in code_checks.list_candidates(tree)]}, sys.stdout)
+'''
+
+
+def last_commit(root):
+    """-> the last commit's hash, or None where the project has no version control or no commit yet."""
+    try:
+        found = subprocess.run(["git", "rev-parse", "--verify", "-q", "HEAD"], capture_output=True, text=True, cwd=root)
+    except FileNotFoundError:
+        return None
+    return found.stdout.strip() if found.returncode == 0 and found.stdout.strip() else None
+
+
+def checks_over(root, commit):
+    """-> the shared checks' findings, candidates and code candidates over the working tree, commit None, or over a
+    commit, each tree by the checks as they stood in it, or as they stand where the commit holds none of the modules."""
+    lib = str(Path(__file__).resolve().parent)
+    if commit:
+        held = subprocess.run(["git", "ls-tree", "--name-only", commit, ".ai/skills/lib/"], capture_output=True,
+                              text=True, cwd=root).stdout.split()
+        if all(".ai/skills/lib/%s.py" % m in held for m in WORK_MODULES):
+            lib = "commit"
+    run = subprocess.run([sys.executable, "-c", WORK_RUN, str(root), commit or "-", lib], capture_output=True,
+                         cwd=root)
+    if run.returncode:
+        raise RuntimeError("the checks over %s failed:\n%s" % (commit or "the working tree",
+                                                                run.stderr.decode("utf-8", "replace")))
+    return json.loads(run.stdout.decode("utf-8"))
+
+
+def work_changes(root, commit):
+    """-> ({path: the lines the change added or changed, a deletion marking the line it stands before},
+    {path: the lines the diff added alone}) for each file changed against the commit, a new untracked one among them,
+    the working files aside."""
+    status = subprocess.run(["git", "status", "--porcelain=v1", "-uall", "-z"], capture_output=True, text=True,
+                            encoding="utf-8", cwd=root).stdout.split("\0")
+    paths, i = [], 0
+    while i < len(status):
+        entry = status[i]
+        if len(entry) > 3:
+            paths.append(entry[3:])
+            if entry[0] in "RC":
+                i += 1  # a rename's or a copy's source follows it
+        i += 1
+    out, added = {}, {}
+    for path in sorted(set(paths)):
+        if is_working_file(path) or not (root / path).is_file():
+            continue
+        diff = subprocess.run(["git", "diff", "-U0", "--no-color", commit, "--", path], capture_output=True,
+                              text=True, encoding="utf-8", errors="replace", cwd=root).stdout
+        length = len((root / path).read_text(encoding="utf-8", errors="replace").split("\n"))
+        lines, wrote = set(), set()
+        for m in re.finditer(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@", diff, re.M):
+            start, count = int(m.group(1)), int(m.group(2) or 1)
+            wrote |= set(range(start, start + count))
+            # git gives a deletion the line before it, and the deletion stands before the line after
+            lines |= set(range(start, start + count)) if count else {min(start + 1, length)}
+        if not diff:  # a file git does not yet track: every line is the change's
+            lines = wrote = set(range(1, length + 1))
+        out[path], added[path] = lines, wrote
+    return out, added
+
+
+def whole_section(secs, lineage):
+    """-> the 0-based lines of a section with every section within it."""
+    start, end = secs[lineage]
+    for other, (_, e) in secs.items():
+        if other.startswith(lineage + " § "):
+            end = max(end, e)
+    return set(range(start, end))
+
+
+def around_and_up(text, line):
+    """-> (the 0-based lines read around and up from a 1-based line, the lineages read around and up), as
+    specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once has the builder zoom out."""
+    secs = sections(text)
+    at = line - 1
+    holding = next((l for l, (s, e) in secs.items() if s <= at < e), None)
+    tops = sorted((s, l) for l, (s, _) in secs.items() if " § " not in l)
+    first = tops[0][0] if tops else len(text.split("\n"))
+    lines, names = set(range(0, first)), set()  # a file's text before its first section, read up from every line
+    if holding is None or " § " not in holding:
+        place = [l for _, l in tops].index(holding) if holding in [l for _, l in tops] else -1
+        near = [l for n, (_, l) in enumerate(tops) if abs(n - place) <= 1] if place >= 0 else [l for _, l in tops[:1]]
+    else:
+        near = [holding.rsplit(" § ", 1)[0]]
+    for lineage in near:
+        lines |= whole_section(secs, lineage)
+        names |= {l for l in secs if l == lineage or l.startswith(lineage + " § ")}
+    parts = (holding or "").split(" § ")
+    for depth in range(1, len(parts)):
+        ancestor = " § ".join(parts[:depth])
+        if ancestor in secs:
+            names.add(ancestor)
+            lines |= set(range(*secs[ancestor]))
+    return lines, names
+
+
+CITED_SPAN = re.compile(r"`([^`]*?(?:§|\.md)[^`]*)`")
+
+
+def markdown_reach(text_of, changes):
+    """-> {path: 0-based lines} the builder zooms out to from each line a change wrote in a Markdown file in scope:
+    around, up, and across, each passage citing what it read around, an ancestor or the file whole, read around and
+    up in turn."""
+    reach, read_names = {}, {}
+    for path, lines in changes.items():
+        if path not in text_of:
+            continue
+        for line in lines:
+            got, names = around_and_up(text_of[path], line)
+            reach.setdefault(path, set()).update(got)
+            read_names.setdefault(path, set()).update(names)
+    for host, text in text_of.items():
+        for n, line in enumerate(strip_fences(text).split("\n"), 1):
+            for m in CITED_SPAN.finditer(line):
+                cited, lineage = resolve_citation(m.group(1), host)
+                if cited in read_names and (lineage in read_names[cited] or not lineage):
+                    got, _ = around_and_up(text, n)
+                    reach.setdefault(host, set()).update(got)
+    return reach
+
+
+def script_units(text):
+    """-> [(first line, last line, name, names it calls)] for each function and class of a Python script, and each
+    statement outside them, 1-based."""
+    import ast
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return [(1, len(text.split("\n")), None, set())]
+    out = []
+
+    def calls(node):
+        return {c.func.id if isinstance(c.func, ast.Name) else c.func.attr for c in ast.walk(node)
+                if isinstance(c, ast.Call) and isinstance(c.func, (ast.Name, ast.Attribute))}
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            out.append((node.lineno, node.end_lineno, node.name, calls(node)))
+    for node in tree.body:
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            out.append((node.lineno, node.end_lineno, None, calls(node)))
+    return out
+
+
+def script_reach(root, changes):
+    """-> {path: 1-based lines} of the reach in a script: the unit holding each change, the units it calls and the
+    units calling it, as specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once gives it; a script not
+    in Python read whole."""
+    scripts = {p: (root / p).read_text(encoding="utf-8", errors="replace") for s in scope_paths(root)
+               for p in ([s] if (root / s).is_file() else
+                         [f.relative_to(root).as_posix() for f in (root / s).rglob("*") if f.is_file()]
+                         if (root / s).is_dir() else [])
+               if p.endswith((".py", ".ps1", ".sh"))}
+    units = {p: script_units(t) for p, t in scripts.items() if p.endswith(".py")}
+    reach = {}
+    for path, lines in changes.items():
+        if path not in scripts:
+            continue
+        if path not in units:
+            reach.setdefault(path, set()).update(range(1, len(scripts[path].split("\n")) + 1))
+            continue
+        for line in lines:
+            holding = [u for u in units[path] if u[0] <= line <= u[1]]
+            if not holding:
+                continue
+            first, last, name, called = min(holding, key=lambda u: u[1] - u[0])
+            reach.setdefault(path, set()).update(range(first, last + 1))
+            for other, its in units.items():
+                for f, l, n, c in its:
+                    if (n and n in called) or (name and name in c):
+                        reach.setdefault(other, set()).update(range(f, l + 1))
+    return reach
+
+
+def check_work(value):
+    """--check-work DESIGN: the specs' and the code's script checks over the work, the files changed against the last
+    commit: each finding new against it, by the checks as they stood in each tree, and each candidate in the reach the
+    builder zooms out to; -> 1 where a finding is reported."""
+    design = design_file(value)
+    if design is None:
+        return 2
+    root = repo_root()
+    commit = last_commit(root)
+    now = checks_over(root, None)
+    found = [tuple(f) for f in now["findings"]] + [tuple(f) for f in now["code"]]
+    print("== check-work " + design.stem)
+    if commit is None:
+        reported, candidates = found, [(h, [tuple(c) for c in rows]) for h, rows in now["candidates"]]
+        code_candidates = [tuple(c) for c in now["code_candidates"]]
+        heading = ("no version control, so no last commit was read: %d finding%s the scope holds, each to read against "
+                   "the builder's own account of the files it changed")
+        changes = None
+    else:
+        then = checks_over(root, commit)
+        changes, added_lines = work_changes(root, commit)
+        before = collections.Counter((r, p, m) for r, p, _, m in
+                                     [tuple(f) for f in then["findings"]] + [tuple(f) for f in then["code"]])
+        reported = []
+        by_key = {}
+        for f in found:
+            by_key.setdefault((f[0], f[1], f[3]), []).append(f)
+        for key, now_found in by_key.items():
+            # matched by rule, file and message, its repeats counted, never by its line; a matched finding on a line
+            # the change added is reported too, the change having rewritten what holds it
+            added = [f for f in now_found if f[2] and f[2] in added_lines.get(f[1], ())]
+            others = sorted((f for f in now_found if f not in added), key=lambda f: f[2])
+            new = max(0, len(now_found) - before[key])
+            reported += added + others[:max(0, new - len(added))]
+        text_of = {p: t for p, t in spec_texts(root).items()}
+        reach = {p: {n + 1 for n in lines} for p, lines in markdown_reach(text_of, changes).items()}
+        for p, lines in script_reach(root, changes).items():
+            reach.setdefault(p, set()).update(lines)
+        candidates = [(h, [tuple(c) for c in rows if c[0] in reach and (not c[1] or c[1] in reach[c[0]])])
+                      for h, rows in now["candidates"]]
+        before_code = {(c[0], c[2]) for c in then["code_candidates"]}
+        code_candidates = [tuple(c) for c in now["code_candidates"] if c[0] in changes or (c[0], c[2]) not in before_code]
+        heading = "%d finding%s new against the last commit, over " + "%d changed file%s" % (
+            len(changes), "" if len(changes) == 1 else "s")
+    by_rule = {}
+    for rule, path, line, msg in reported:
+        by_rule.setdefault(rule, []).append((path, line, msg))
+    for rule in sorted(by_rule):
+        print("\n%s" % rule)
+        for path, line, msg in sorted(by_rule[rule]):
+            print("  %s\n    %s" % ("%s:%s" % (path, line) if line else path, msg))
+    print("\n" + heading % (len(reported), "" if len(reported) == 1 else "s"))
+    listed = [(h, rows) for h, rows in candidates if rows]
+    if code_candidates:
+        listed.append(("Candidates for verify-spec-implementation's reading, on a file the change added or changed or "
+                       "new against the last commit: places to read, not findings",
+                       [(p, n, "", what) for p, n, what in code_candidates]))
+    if listed:
+        print("\nCandidates %s, never findings" % ("in the reach the builder zooms out to" if changes is not None
+                                                   else "over the whole scope"))
+    for h, rows in listed:
+        print("\n" + h)
+        for path, line, name, context in sorted(rows):
+            print("  %s:%s%s\n    %s" % (path, line, "  [%s]" % name if name else "", context))
+    print()
+    return 1 if reported else 0
+
+
 FLAGS = (
     ("--check-cited-headings", "PROPOSAL", check_cited_headings,
      "confirm every cross-file citation in the proposal points to a heading that exists"),
@@ -1377,6 +1662,8 @@ FLAGS = (
      "report each line of the Target's files holding a retired phrase outside its Stays Right, with its replacement; the builder runs it at its self-review before the post-apply review"),
     ("--check-changed-files", "DESIGN", check_changed_files,
      "list each file changed against the last commit outside the working files that the Target does not name, marking the user's edits and the direct edits the log names; the builder runs it at its self-review before the post-apply review"),
+    ("--check-work", "DESIGN", check_work,
+     "run the specs' and the code's script checks over the design's work, the files changed against the last commit, whatever they touch: each finding the scope holds now that it did not hold then, each tree by the checks as they stood in it, matched by its rule, its file and its message, its repeats counted, a matched finding on a line the change added reported too; then, apart, each candidate in the reach the builder zooms out to from what the change wrote; with no version control, every finding the scope holds; writes no file; the builder runs it at its self-review, and the post-apply review runs it"),
     ("--refresh-links", "ROOT", refresh_links,
      "write and refresh the link every citation in a file a person reads on GitHub carries, README.md, the files under docs/ and every spec but specs/AGENTS.md; the apply runs it once the text its steps call for is written; reads the repository holding the current directory unless given a root"),
     ("--check-constructs", "DESIGN_OR_FILE", check_constructs,

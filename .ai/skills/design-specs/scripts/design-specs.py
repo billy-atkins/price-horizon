@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """design-specs' entry script: the design document tooling in .ai/skills/lib/design_documents.py,
 reading the design documents that change the specs, under .ai/plans/design-specs/, and the construct
-checks in .ai/skills/lib/constructs.py, which its --check-constructs runs on a design or a file.
+checks in .ai/skills/lib/constructs.py, which its --check-constructs runs on a design or a file, and the script
+checks of the specs and of the code in .ai/skills/lib/spec_checks.py and code_checks.py, which its --check-work runs
+over a design's work.
 Its actions are in its --help."""
 
 import sys

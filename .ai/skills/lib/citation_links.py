@@ -7,7 +7,6 @@ punctuation dropped and its spaces made hyphens, a title met again numbered by i
 file. The citation is resolved to its one heading first, so the anchor reaches that heading even where titles repeat.
 """
 import re
-import subprocess
 from pathlib import Path
 
 # @canon-spec specs/methodology/sourcing-and-citation.md § Writing a Citation § A Citation's Link
@@ -88,15 +87,11 @@ class Resolver:
     """Resolves a citation's span, in the file holding it, to the link it carries, reading each file once."""
 
     def __init__(self, root):
+        from spec_text import tracked  # the one reader of a tree, the working tree's or a commit's
         self.root, self.cache = root, {}
         # a link reaches only a file GitHub serves, one version control tracks; where the files are under none, as in a
         # scratch copy, every file is taken as served
-        try:
-            out = subprocess.run(["git", "ls-files", "--cached", "--others", "--exclude-standard"], cwd=root,
-                                 capture_output=True, text=True, check=True).stdout
-            self.tracked = set(out.split("\n")) - {""} or None
-        except (OSError, subprocess.CalledProcessError):
-            self.tracked = None
+        self.tracked = tracked(root, others=True) or None
 
     def served(self, rel):
         """-> whether GitHub serves the file: one version control tracks, never an index.md, which nothing cites."""

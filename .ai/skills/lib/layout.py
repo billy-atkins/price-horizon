@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 
 import constructs
-from spec_text import sections, strip_fences
+from spec_text import as_root, sections, strip_fences
 
 # @canon-spec specs/methodology/spec-style.md § Blank Lines
 RULE = "spec-style.md § Blank Lines"
@@ -179,7 +179,7 @@ _RULES = {}
 def rules(root):
     """-> (the rows of the Decision Table § Blank Lines states, each {column: cell}, its conditions and its outcome
     column, or None, and the problems with reading it), read from the canon under root once."""
-    root = Path(root).resolve()
+    root = as_root(root)
     if root in _RULES:
         return _RULES[root]
     home = root / HOME
