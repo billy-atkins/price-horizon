@@ -174,6 +174,10 @@ def _record_findings(host, body, found, r, offset):
         if not spec or spec["home"] == f"{host} § {lineage}":
             continue  # no type's, or its type's own definition, titled with its Plural Name and reported at the declaration
         h, end = sections(body)[lineage]
+        if spec.get("abstract"):
+            # modeling-constructs.md § Constructs § Record Form: an abstract type holds no records of its own
+            found.append((RECORD_FORM, r, at(h), f"a record section titled with an abstract type's Plural Name: {title}"))
+            continue
         # the section fields its type declares, before its Records, read from the section's block through the one
         # reader (modeling-constructs.md § Fields)
         first = next((i for i in range(h + 1, end) if opens_key(live[i]) and not opens_key(live[i])["indent"]), None)
@@ -861,6 +865,7 @@ def check(root, warned=None):
             found.append(("spec-placement.md § Where a File Goes", rel_d + "/index.md", 0, f"a row names {extra}, which is not here"))
 
     found += canon_spec_findings(root)
+    found += script_check_carried_out_findings(root)
     found += mapping_rule_findings(root)
     found += example_pointer_findings(root)
     found += scope_findings(root)
@@ -953,8 +958,10 @@ def coverage_findings(root):
     """Every section of specs/AGENTS.md and of the methodology's files, its overview aside, is
     named, itself or through a section it sits under, in the column naming the sections in one of
     the audit skill's coverage tables, or, for a section of code.md, in the verify skill's table of checks;
-    and each section stating operating rules is cited, itself or through a section it
-    sits under, by a step of a registered skill's Workflow, which is where its step is found."""
+    or is named by a record section of checks standing directly under it, which names no section under
+    that one; and each section stating operating rules is cited, itself or through a section it
+    sits under, by a step of a registered skill's Workflow, which is where its step is found. A record
+    section of checks holds records and no rule, so none is reported."""
     sk = root / AUDIT_SKILL
     if not sk.exists():
         return [(COVERAGE_RULE, AUDIT_SKILL, 0, "the audit skill is missing, so no rule's check is named")]
@@ -990,8 +997,13 @@ def coverage_findings(root):
         rel = f.relative_to(root).as_posix()
         if not f.exists() or f.name in ("architecture.md", "index.md"):
             continue
-        for lin in sections(read(f)):
+        lins = sections(read(f))
+        # checks.md § Check: a check's records stand under the section stating the rule it enforces
+        records = {lin for lin in lins if (type_of(lin.split(" § ")[-1], rel) or {}).get("home") in CHECK_HOMES}
+        for lin in lins:
             parts = lin.split(" § ")
+            if lin in records or any(r.rpartition(" § ")[0] == lin for r in records):
+                continue
             if not any((rel, " § ".join(parts[:k])) in named for k in range(1, len(parts) + 1)):
                 found.append((COVERAGE_RULE, rel, 0, f"no check or step names § {lin}"))
     return found
@@ -1474,39 +1486,93 @@ CANON_SPEC = re.compile(r"#.*" + CANON_SPEC_TAG + r"\b")
 CANON_SPEC_FORM = re.compile(r"^\s*# " + CANON_SPEC_TAG + r" (\S.*?)\s*$")
 
 
-def canon_spec_findings(root):
-    """Each canon-spec annotation in a registered skill's scripts or the code the skills share: in its
-    form, citing `specs/AGENTS.md` or a methodology file, or a section of one, that exists, and each
-    run of them on consecutive lines sorted in plain character order."""
+def canon_spec_annotations(root):
+    """Each line of a registered skill's scripts or the code the skills share naming the canon-spec tag ->
+    [(the skill's directory name, the script's path, its 1-based line, the line)], in the files' order and their lines'."""
     out = []
     for name in skill_dirs(root):
         for f in sorted((root / ".ai/skills" / name).rglob("*")):
             if f.suffix not in SCRIPT_SUFFIXES or "__pycache__" in f.parts:
                 continue
             rel = f.relative_to(root).as_posix()
+            out += [(name, rel, i, line) for i, line in enumerate(read(f).split("\n"), 1) if CANON_SPEC.search(line)]
+    return out
+
+
+def canon_spec_findings(root):
+    """Each canon-spec annotation in a registered skill's scripts or the code the skills share: in its
+    form, citing `specs/AGENTS.md` or a methodology file, or a section of one, that exists, a part it cites
+    being a check's record, matching one record, and each run of them on consecutive lines sorted in plain character order."""
+    out, run = [], []
+    annotations = canon_spec_annotations(root)
+    for k, (_, rel, i, line) in enumerate(annotations):
+        m = CANON_SPEC_FORM.match(line)
+        if not m:
+            out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation not in its form: " + line.strip()))
+        else:
+            cite = m.group(1)
+            run.append((i, cite))
+            path, lineage, sel = parse_citation(cite, rel)
+            target = root / path
+            if not (path == SPECS_AGENTS or path.startswith("specs/methodology/")) or not path.endswith(".md"):
+                out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation citing neither specs/AGENTS.md nor a methodology spec: " + cite))
+            elif path.endswith("/index.md"):
+                out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation citing an index.md, never a citation target: " + cite))
+            elif not target.is_file():
+                out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation naming no file: " + path))
+            elif lineage and lineage not in sections(read(target)):
+                out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation naming no heading: " + cite))
+            elif sel is not None:
+                # sourcing-and-citation.md § Which Citations Are Allowed: of the records, a check's alone
+                if (type_of(lineage.split(" § ")[-1], path) or {}).get("home") not in CHECK_HOMES:
+                    out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation citing a part of a section that is no check's record: " + cite))
+                else:
+                    # skills.md § Authoring a Skill: a unit carrying out a check cites the check's record
+                    record_citation(sel, path, lineage, {path: read(target)}, rel, i, out)
+        # a run ends where the next annotation is not on the next line of the same script
+        following = annotations[k + 1] if k + 1 < len(annotations) else None
+        if not following or following[1] != rel or following[2] != i + 1:
+            if run and [c for _, c in run] != sorted(c for _, c in run):
+                out.append((CITING_FROM_CODE, rel, run[0][0], "canon-spec annotations not sorted in plain character order"))
             run = []
-            for i, line in enumerate(read(f).split("\n") + [""], 1):
-                if not CANON_SPEC.search(line):
-                    if run and [c for _, c in run] != sorted(c for _, c in run):
-                        out.append((CITING_FROM_CODE, rel, run[0][0], "canon-spec annotations not sorted in plain character order"))
-                    run = []
-                    continue
-                m = CANON_SPEC_FORM.match(line)
-                if not m:
-                    out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation not in its form: " + line.strip()))
-                    continue
-                cite = m.group(1)
-                run.append((i, cite))
-                path, _, lineage = cite.partition(" § ")
-                target = root / path
-                if not (path == SPECS_AGENTS or path.startswith("specs/methodology/")) or not path.endswith(".md"):
-                    out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation citing neither specs/AGENTS.md nor a methodology spec: " + cite))
-                elif path.endswith("/index.md"):
-                    out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation citing an index.md, never a citation target: " + cite))
-                elif not target.is_file():
-                    out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation naming no file: " + path))
-                elif lineage and lineage not in sections(read(target)):
-                    out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation naming no heading: " + cite))
+    return out
+
+
+# checks.md § Script Check: the home of the type whose records are a skill's script checks
+SCRIPT_CHECK_HOME = "specs/methodology/checks.md § Script Check"
+# checks.md § Check: the homes of the two types a check's record takes
+CHECK_HOMES = (SCRIPT_CHECK_HOME, "specs/methodology/checks.md § Semantic Check")
+# skills.md § Authoring a Skill: the record of the check this script carries out over the Script Check records
+SCRIPT_CHECK_CARRIED_OUT = "skills.md § Authoring a Skill § Script Checks [Name: script-check-carried-out]"
+
+
+# @canon-spec specs/methodology/skills.md § Authoring a Skill § Script Checks [Name: script-check-carried-out]
+def script_check_carried_out_findings(root):
+    """Each Script Check record standing in the specs, a record in a fenced block aside, cited by a canon-spec
+    annotation in the scripts of a skill its Carried Out By names, or in the code the skills share."""
+    cited = {}
+    for name, _, _, line in canon_spec_annotations(root):
+        m = CANON_SPEC_FORM.match(line)
+        if m:
+            cited.setdefault(m.group(1), set()).add(name)
+    out = []
+    for f in md_files(root):
+        rel = f.relative_to(root).as_posix()
+        if not rel.startswith("specs/"):
+            continue
+        body = read(f)
+        for lineage, (h, _) in sections(body).items():
+            spec = type_of(lineage.split(" § ")[-1], rel)
+            if not spec or spec["home"] != SCRIPT_CHECK_HOME:
+                continue
+            records, _ = parse_records(body, lineage, spec["section_fields"])
+            for rec in records:
+                values = dict((k, v) for k, v, _ in rec)
+                named = str(values.get("Name", "")).strip()
+                skills = set(re.findall(r"`\.ai/skills/([^`/]+)/`", str(values.get("Carried Out By", ""))))
+                if not cited.get(f"{rel} § {lineage} [Name: {named}]", set()) & (skills | {"lib"}):
+                    line = next((ln for k, _, ln in rec if k == "Name"), h) + 1
+                    out.append((SCRIPT_CHECK_CARRIED_OUT, rel, line, f"a script check no canon-spec annotation cites in the scripts of a skill carrying it out, or in the code the skills share: {named}"))
     return out
 
 

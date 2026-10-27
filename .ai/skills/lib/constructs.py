@@ -107,6 +107,7 @@ FIELD_TABLES = {
     # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
     "Constructs § Record Form": (
         ("Plural Name", "yes", "", "text"),
+        ("Modifier", "no", "none", '"Abstract"'),
         ("Reference Key", "where it extends no type", "", "text"),
     ),
     # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Tabular Construct
@@ -167,6 +168,16 @@ def field_rule(name, key):
             return "modeling-constructs.md § " + title
     return FIELD_RULE[key]
 FIELD_VALUES = {f: v for rows in FIELD_TABLES.values() for f, _, _, v in rows}
+
+
+def field_values(name, key):
+    """The Values cell of a construct's field: the construct's own where it declares the field, as a record type's Modifier, else the shared."""
+    for title, rows in FIELD_TABLES.items():
+        if title.endswith("§ " + name):
+            for f, _, _, v in rows:
+                if f == key:
+                    return v
+    return FIELD_VALUES.get(key, "text")
 DEFAULTS = {f: d for f, _, _, d in FIELD_TABLE if d}
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
@@ -738,7 +749,8 @@ def construct_findings(r, body, found, sections):
     for i, l in enumerate(lines, 1):
         f = _margin_field(l)
         in_definition = any(h < i - 1 < end for h, end in definitions)
-        if f and f["key"] in DEFINITION_FIELDS and not in_definition:
+        # a record type's declaration gives a Modifier of its own (§ Constructs § Record Form), read with its block's fields
+        if f and f["key"] in DEFINITION_FIELDS and not in_definition and not (f["key"] == "Modifier" and i in owned):
             found.append((DEFINING, r, i, f"a {f['key']} field outside a construct's definition"))
             continue
         if f and f["key"] in ("Extends",) + DEFINITION_FIELDS and in_definition:
@@ -773,7 +785,8 @@ def construct_findings(r, body, found, sections):
         if not any(l.strip() and not l.lstrip().startswith(("#", "|", "```")) and not FIELD.match(l) for l in lines[h + 1:line - 1]):
             found.append((DECLARED_RULE, r, line, f"{_a(name)} whose section opens with no description before its Construct field"))
         _fields(r, line, name, fields, found)
-        if not tables:
+        # § Constructs § Record Form: a type extending another may leave out its table of record fields, and so hold none
+        if not tables and not (name == "Record Form" and extends(fields)):
             found.append((DECLARING, r, line, f"{_a(name)} declared with no table"))
             continue
         if name == "Record Form":
@@ -838,10 +851,12 @@ def _record_type(r, line, fields, tables, found):
     """§ Constructs § Record Form: a record type's tables, a table of its section fields where it declares any, then
     its table of record fields, each row a field named once, its Default Value empty where it is required (§ Fields),
     its Values in one of its forms, its Unique yes or no, and a Reference Key, its own or its base's, naming fields it
-    gives and requires, a one-field key's field marked Unique, an extending type declaring none of its own."""
+    gives and requires, a one-field key's field marked Unique, an extending type declaring none of its own; its table
+    of record fields left out only by a type extending another, its records holding its base's fields alone."""
     rule = f"{RULE} § Record Form"
     heads = [t["header"] for t in tables]
-    if heads not in ([RECORD_FIELDS], [SECTION_FIELDS, RECORD_FIELDS]):
+    allowed = ([RECORD_FIELDS], [SECTION_FIELDS, RECORD_FIELDS]) + (([], [SECTION_FIELDS]) if extends(fields) else ())
+    if heads not in allowed:
         found.append((rule, r, line, f"a record type's tables headed {heads}, not {RECORD_FIELDS} after any table of its section fields headed {SECTION_FIELDS}"))
         return
     for table in tables:
@@ -864,8 +879,9 @@ def _record_type(r, line, fields, tables, found):
                 found.append((CONSTRUCT, r, ln, f"a cell holding no value: ['Holds']"))
     # its Reference Key, of fields its own table gives and requires; a key reaching its base's is the declaring script's
     key = [k.strip() for k in dict((k, v) for _, k, v in fields).get("Reference Key", "").split(",") if k.strip()]
-    own = {row[0]: row[2] for _, row in tables[-1]["rows"] if len(row) == len(RECORD_FIELDS)}
-    unique = {row[0]: row[1] for _, row in tables[-1]["rows"] if len(row) == len(RECORD_FIELDS)}
+    rec = [row for t in tables if t["header"] == RECORD_FIELDS for _, row in t["rows"] if len(row) == len(RECORD_FIELDS)]
+    own = {row[0]: row[2] for row in rec}
+    unique = {row[0]: row[1] for row in rec}
     if key and extends(fields):
         found.append((rule, r, line, "a Reference Key on a type extending another, which takes its base's"))
     if len(key) == 1 and unique.get(key[0]) == "no":
@@ -913,7 +929,7 @@ def _fields(r, line, name, fields, found):
     for ln, key, value in fields:
         if key in DEFAULTS and value == DEFAULTS[key]:
             found.append((field_rule(name, key), r, ln, f"the {key} field written at its default value, {value}"))
-        listed = quoted_values(FIELD_VALUES.get(key, "text"))
+        listed = quoted_values(field_values(name, key))
         if listed is not None and value not in listed:
             found.append((field_rule(name, key), r, ln, f"the {key} field holds a value its definition does not allow: {value}"))
     values = dict((k, v) for _, k, v in fields)
