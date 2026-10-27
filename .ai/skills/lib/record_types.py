@@ -305,11 +305,13 @@ def _raw_type(r, line, fields, tables, lineage, reach):
     rec = [t for t in tables if t["header"] == constructs.RECORD_FIELDS]
     sec = [t for t in tables if t["header"] == constructs.SECTION_FIELDS]
     home = f"{r} § {lineage}"
-    return {"table": tuple(tuple(row[:5]) for _, row in rec[0]["rows"] if len(row) == 6),
+    return {"table": tuple(tuple(row[:5]) for _, row in rec[0]["rows"] if len(row) == 6) if rec else (),
             "key": [k.strip() for k in values.get("Reference Key", "").split(",") if k.strip()],
             "section_table": tuple(tuple(row[:4]) for _, row in sec[0]["rows"] if len(row) == 5) if sec else (),
             "home": home, "last_top_level": home in LAST_TOP_LEVEL, "declared": (r, line),
-            "reach": reach, "extends": values.get("Extends", "none")}
+            "reach": reach, "extends": values.get("Extends", "none"),
+            # modeling-constructs.md § Constructs § Record Form: an abstract type, a base holding no records of its own
+            "abstract": values.get("Modifier", "none").strip() == "Abstract"}
 
 
 def _resolve_types(raw, out, report=True):
@@ -354,8 +356,16 @@ def _resolve_types(raw, out, report=True):
             origin = spec["origin"].get(field, spec["declared"][0])
             target = " § ".join(resolve(CITATION.findall(cite)[0], origin))
             held = by_home.get(target)
+            # an abstract type holds no records, so no field cites its definition
+            if held and raw[held]["abstract"] and report:
+                out.append((RECORD_FORM, *spec["declared"], f"a field citing an abstract type's definition: {field}"))
             return (held, m is not None) if held else None
         done[p] = derive(spec, holds)
+    # an abstract type is a base, so a type extends it
+    bases = {base_of(p) for p in raw}
+    for p, spec in raw.items():
+        if spec["abstract"] and p not in bases and report:
+            out.append((RECORD_FORM, *spec["declared"], f"an abstract type no type extends: {p}"))
     return done
 
 
@@ -376,7 +386,8 @@ def declared_types(text_of):
             values = dict((k, v) for _, k, v in fields)
             plural = values.get("Plural Name", "").strip()
             rec = [t for t in tables if t["header"] == constructs.RECORD_FIELDS]
-            if name != "Record Form" or not plural or not rec:
+            # a type extending another may declare no table of record fields, its records holding its base's fields alone
+            if name != "Record Form" or not plural or not rec and not constructs.extends(fields):
                 continue  # its form is the construct check's to report
             title = lineage.split(" § ")[-1]
             if re.match(r"(?:A|An) ", title) or title == plural:
@@ -404,7 +415,8 @@ def declared_types(text_of):
             for line, name, fields, tables, lineage in constructs.declarations(strip_fences(inner), sections(inner)):
                 values = dict((k, v) for _, k, v in fields)
                 plural = values.get("Plural Name", "").strip()
-                if name != "Record Form" or not plural or not [t for t in tables if t["header"] == constructs.RECORD_FIELDS] or plural in block_raw:
+                rec = [t for t in tables if t["header"] == constructs.RECORD_FIELDS]
+                if name != "Record Form" or not plural or not rec and not constructs.extends(fields) or plural in block_raw:
                     continue
                 block_raw[plural] = _raw_type(path, line, fields, tables, lineage, path)
             if block_raw:
