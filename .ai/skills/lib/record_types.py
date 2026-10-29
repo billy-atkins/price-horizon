@@ -476,15 +476,18 @@ def closed_set(body, cell, host=None):
 
 
 def read_fact(host, cite, name):
-    """modeling-constructs.md § Constructs § Decision Table: the Facts record a Reads item cites, in its file or another,
-    -> (Type, Values, May Be Absent), or None where it cites none."""
+    """modeling-constructs.md § Constructs § Decision Table: the fact a Reads item cites, in its file or another, as a
+    Decision Table takes it, untyped where its record breaks the Fact's Checks -> (Type, Values, May Be Absent), or
+    None where it cites none."""
     path, target = resolve(cite, host)
     text = _TEXT_OF.get(path)
     if text is None or target not in sections(text):
         return None
-    for _, n, d in constructs.fact_records(strip_fences(text), {target: sections(text)[target]}):
+    body, secs = strip_fences(text), sections(text)
+    for _, n, d in constructs.fact_records(body, {target: secs[target]}):
         if n == name:
-            return constructs.facts_of([(0, n, d)])[n]
+            # its record judged with its file's Facts records, as its file's own check judges it
+            return constructs.checked_facts(constructs.fact_records(body, secs)).get(n)
     return None
 
 

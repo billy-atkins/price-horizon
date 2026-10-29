@@ -138,21 +138,17 @@ A fact's name is words separated by single spaces. Each word opens with a letter
 
 **Worked examples.** Facts sections written whole, as a file would hold them, are in `specs/methodology/examples/construct/fact/`.
 
-**Checks.** A Facts record is reported where:
-- its name is no fact's name, or, a boolean fact's, asks no question;
-- its name opens with a word FEEL keeps;
-- its Values are empty;
-- its Values are written plain;
-- its Values are neither a citation nor in a form of FEEL's unary tests;
-- its Values name a fact;
+**Checks.** A Facts record is reported where any of these hold. Its other fields are judged against its Type only once its Type is a type FEEL names, as DMN reads an item definition's type before what constrains it (DMN 7.3.3):
+- its name is no fact's name, the rule on a word FEEL keeps aside, or, a boolean fact's, asks no question, the canon's narrowing of the names FEEL takes (DMN 10.3.1.2);
+- its name opens with a word FEEL keeps (DMN 10.3.1.4);
+- its Values, its Initial Value or its Derivation is in no form FEEL gives it, or holds a call, an operator or a range's ends given what it does not take: its Values neither a citation nor FEEL's unary tests, read by FEEL's grammar alone, its Initial Value no expression, and its Derivation no function (DMN 7.3.2, 10.3.1.2, 10.3.2.7, 10.3.2.13.1, 10.3.2.13.5, 10.3.2.15);
+- its Values, its Initial Value or its Derivation names what its context does not hold: a fact nothing declares, or, in its Values, whose context holds no fact, any fact (DMN 10.3.2.11, 7.3.3);
 - its Values cite a section that is neither a record section of a type identifying its records by one field nor a Basic Table keyed by one column;
 - its Values cite a record section or a Basic Table on a fact whose Type is not `string`;
-- its Type is no type FEEL names;
+- its Type is no type FEEL names (DMN 7.3.3, 10.3.1.2);
 - its Decimal Places is neither a whole number nor a fact its file declares;
 - its Decimal Places sits on a fact that is neither a number nor a function giving one;
 - its Derivation sits on a fact that is no function;
-- its Derivation is in no form of a FEEL function;
-- its Initial Value is in no form FEEL has;
 - its Initial Value is of another kind than its Type.
 
 ## Constructs
@@ -392,45 +388,37 @@ Under Rule order, Output order or a Collect that does not aggregate, a table tak
 
 **Name.** A Decision Table is named for what it decides, `Intake Route`.
 
-**Checks.** An instance is reported for:
-- a cell in no form FEEL or its departure for a cell ([`specs/methodology/expressions.md § Expressions § FEEL [DMN Elements.DMN: string literal]`](/specs/methodology/expressions.md#feel)) has;
-- a value tested after `=`;
-- a condition column testing values of more than one kind;
-- an expression or a cell in no form FEEL has;
-- an expression or a cell naming what no fact, binding or function names;
-- an expression or a cell combining values of two kinds;
-- an expression or a cell reaching by a path a part a value does not hold;
-- an expression or a cell calling a function neither FEEL builds in nor the canon's functions hold, or giving one a number of arguments none of its signatures takes;
-- a minus before what is neither a number nor a duration;
-- a filter testing neither a yes or no nor a place;
-- an `@` value in no form;
-- a question's outcome other than `true`, `false` or `null`;
-- a condition's header neither a fact's name nor a computation;
-- an annotation's header that is no field label;
-- a cell, a computed header or a computed outcome naming a fact nothing declares;
-- a cell, a computed header or a computed outcome combining values of two kinds;
-- a cell ending at a fact of another kind than its column;
-- a Reads item that is no fact's name, a colon and a citation;
-- a Computed field naming no outcome column;
-- a condition column of a table of two or more rows holding one and the same cell in every row, `-`, or one test where it takes one row's outcome and gives no Default Output, a configured instance's aside;
-- a cell testing another kind than its fact's Type;
-- a cell testing `null` where its fact may not be absent;
-- an Input Values item given for a fact a Facts record declares;
-- an Input Values item empty;
-- an Input Values item written plain;
-- an Input Values item in no form of FEEL's unary tests;
-- an Input Values item naming a fact;
-- a cell outside its column's values;
-- where it takes one row's outcome and gives no Default Output, a case no row matches;
-- a First table falling through by a Default Output;
-- a row that gives no case its outcome;
-- an outcome cell outside a Computed column written as a test or a list;
-- a case two rows match where it is Unique;
-- two rows a case matches giving different outcomes where it is Any;
-- an outcome missing from its Output Values where it is Priority or Output order;
-- an aggregating Collect's outcome other than one column;
-- an aggregating Collect, a count aside, whose outcome is not of numbers;
-- and a case two rows match whose outcomes cannot both be carried out where it is Rule order, Output order or a Collect that does not aggregate.
+**Checks.** An instance is reported for each of these. They stand in the groups DMN reads a decision table in, its clauses, its FEEL, its entries and its rules, since a rule matches by its entries (DMN 8.1). Each group's items judge only a table that breaks no rule read before it, so a breach is reported where it is caused, not as what it causes in a later group. The items of its rules on which rows a case matches judge only a table whose every condition column tells one case from another. A Facts record gives its fact's column its Type and its values only where it breaks no item of [`§ Defining Constructs § Declaring a Construct § Fact`](#fact)'s Checks:
+- its clauses (DMN 8.3.2):
+  - a condition's header neither a fact's name nor a computation;
+  - an annotation's header that is no field label;
+  - a Reads item that is no fact's name, a colon and a citation;
+  - a Computed field naming no outcome column;
+  - an Input Values item given for a fact a Facts record declares;
+- its FEEL (DMN 10.3):
+  - a cell, a computed header, a computed outcome, a Default Output or an Input Values item in no form FEEL gives its place: a condition cell unary tests, an Input Values item unary tests read by FEEL's grammar alone, and the others expressions, a cell outside a Computed column taking a word written plain instead ([`specs/methodology/expressions.md § Expressions § FEEL [DMN Elements.DMN: string literal]`](/specs/methodology/expressions.md#feel)), and an `@` value's string a date, a time, a date and time or a duration (DMN 8.2.8, 8.2.10, 8.3.2, 10.3.1.2);
+  - a value tested after `=`;
+  - a name its context does not hold, the functions FEEL builds in and the canon's functions among it, an Input Values item's context holding no fact, the canon's narrowing of DMN 7.3.3 (DMN 10.3.2.11);
+  - an operator, or a range's ends, within what a place computes, given values outside its domain, the comparison a test makes against its column's value aside (DMN 10.3.2.7, 10.3.2.15);
+  - an expression or a cell reaching by a path a part a value does not hold;
+  - a call giving a function arguments none of its signatures takes (DMN 10.3.2.13.1, 10.3.2.13.5);
+  - a filter testing neither a yes or no nor a place;
+- its entries (DMN 8.2.8, 8.3.3):
+  - a condition column whose values, or, where it gives none, whose cells, are of more than one kind, the canon's narrowing of DMN 10.3.2.10, since FEEL compares values of two kinds as `null` (DMN 10.3.2.2);
+  - a question's outcome other than `true`, `false` or `null` (DMN 8.3.3);
+  - a cell outside its column's values, for the values its test gives against its column's value, implicitly, after an operator or through `?`: its Input Values, a question's `true` and `false`, its fact's Values, or its fact's Type whole, `null` among them only where its fact may be absent (DMN 8.2.8, 7.3.3);
+  - an outcome cell outside a Computed column, a question's aside, holding other than one value: a word, a number, a date, a date and time, a time, a duration, `true`, `false` or `null`, the canon's narrowing of DMN 8.2.10;
+- its rules (DMN 8.1, 8.2.11, 8.2.12):
+  - a condition column telling no case from another, the canon's narrowing of DMN 8.1: one whose two or more rows each hold `-`, or each hold one and the same test where it takes one row's outcome and gives no Default Output, a configured instance's aside;
+  - where it takes one row's outcome and gives no Default Output, a case no row matches;
+  - a First table falling through by a Default Output;
+  - a row that gives no case its outcome, the canon's narrowing of DMN 8.2.11.1;
+  - a case two rows match where it is Unique;
+  - two rows a case matches giving different outcomes where it is Any;
+  - an outcome missing from its Output Values where it is Priority or Output order;
+  - an aggregating Collect's outcome other than one column;
+  - an aggregating Collect, a count aside, whose outcome is not of numbers;
+  - and a case two rows match whose outcomes cannot both be carried out where it is Rule order, Output order or a Collect that does not aggregate.
 
 #### A Condition's Fact
 
