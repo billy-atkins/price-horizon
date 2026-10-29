@@ -616,10 +616,6 @@ def _escape(pools, rows, absent=None):
     return walk(0, frozenset(range(len(rows))), [])
 
 
-# an outcome cell written as a condition's test would be: any value, a negation, a comparison, a range
-TEST_FORM = re.compile(r'-$|not\(|(?:<=|>=|<|>|=)\s*\S|[\[\(][^\]\)]*\.\.|null\s*,')
-
-
 def _ranked(value):
     """An Output Values field -> {header: [values, highest priority first]}, or None where an item
     is not a header, a colon and a quoted list."""
@@ -729,7 +725,7 @@ def construct_findings(r, body, found, sections):
     for ln, msg in beneath:
         found.append((DECLARING, r, ln + 1, msg))
     records = fact_records(body, sections)
-    facts = facts_of(records)
+    facts, table_facts = facts_of(records), checked_facts(records)
     for ln, msg in fact_record_findings(records):
         found.append((f"{DECLARING} § Fact", r, ln, msg))
     lines = body.split(chr(10))
@@ -844,7 +840,7 @@ def construct_findings(r, body, found, sections):
         if extends(fields):
             continue
         {"State Machine": _machine, "Decision Table": _decision_table,
-         "DAG": _dag}[name](r, line, name, fields, tables, found, facts)
+         "DAG": _dag}[name](r, line, name, fields, tables, found, table_facts if name == "Decision Table" else facts)
 
 
 def _record_type(r, line, fields, tables, found):
@@ -1771,41 +1767,58 @@ def facts_of(records):
     return {n: (d.get("Type", ""), d.get("Values", "none"), d.get("May Be Absent", "No")) for _, n, d in records}
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
+def checked_facts(records):
+    """The facts a file's Facts records declare, as a Decision Table takes them: a record with no Type, or breaking
+    an item of § Defining Constructs § Declaring a Construct § Fact's Checks, gives its fact no Type and no values,
+    `null` not among them, the fact still declared, so the record's own report is the one
+    -> {name: (Type, Values, May Be Absent)}."""
+    broken = {ln for ln, _ in fact_record_findings(records)} | {ln for ln, _, d in records if not d.get("Type")}
+    facts = facts_of(records)
+    return {n: ("", "none", "No") if ln in broken else facts[n] for ln, n, _ in records}
+
+
 def fact_record_findings(records):
-    """§ Defining Constructs § Declaring a Construct § Fact: a record whose name is no fact's name, or a boolean fact's
-    asking no question, and Values naming a fact -> [(line, message)]."""
+    """§ Defining Constructs § Declaring a Construct § Fact: each item of its Checks a record breaks, each breach
+    once, its other fields judged against its Type only once its Type is a type FEEL names -> [(line, message)]."""
     out = []
     for line, name, d in records:
-        if d.get("Type") == "boolean" and not QUESTION.fullmatch(name):
-            out.append((line, f"a boolean fact whose name asks no question: {name}"))
-        elif d.get("Type") != "boolean" and not FACT_NAME.fullmatch(name):
-            out.append((line, f"a Facts record's name that is no fact's name: {name}"))
-        if d.get("Type") and d["Type"] not in TYPE_KINDS:
+        typed = bool(d.get("Type"))
+        if typed and d["Type"] not in TYPE_KINDS:
             try:
                 expressions.parse_type(d["Type"])
             except expressions.FeelError as e:
+                typed = False
                 out.append((line, f"a Facts record's Type that is no type FEEL names: {name}: {e}"))
+        if not typed:
+            if not _is_name(name):
+                out.append((line, f"a Facts record's name that is neither a fact's name nor a question: {name}"))
+        elif d.get("Type") == "boolean" and not QUESTION.fullmatch(name):
+            out.append((line, f"a boolean fact whose name asks no question: {name}"))
+        elif d.get("Type") != "boolean" and not FACT_NAME.fullmatch(name):
+            out.append((line, f"a Facts record's name that is no fact's name: {name}"))
         places = d.get("Decimal Places", "none")
         if places != "none" and not (re.fullmatch(r'\d+', places) or places in {n for _, n, _ in records}):
             out.append((line, f"a Facts record's Decimal Places that is neither a whole number nor a fact its file declares: {name}"))
-        if places != "none" and d.get("Type") != "number" and not re.search(r'->\s*number$', d.get("Type", "")):
+        if typed and places != "none" and d.get("Type") != "number" and not re.search(r'->\s*number$', d.get("Type", "")):
             out.append((line, f"a Facts record's Decimal Places on a fact that is neither a number nor a function giving one: {name}"))
+        # judged with the file's facts in scope, a Derivation's parameters bound by the function itself
+        scope = {n: kind_of_type(dd.get("Type", "")) for _, n, dd in records}
         derivation = d.get("Derivation", "none")
-        if derivation != "none" and not d.get("Type", "").startswith("function"):
+        if derivation != "none" and typed and not d.get("Type", "").startswith("function"):
             out.append((line, f"a Facts record's Derivation on a fact that is no function: {name}"))
         elif derivation != "none":
-            # judged with the file's facts in scope, its parameters bound by the function itself
-            kind, problems = expressions.check(derivation, {n: kind_of_type(dd.get("Type", "")) for _, n, dd in records})
-            if not derivation.startswith("function(") or kind != "function":
+            kind, problems = expressions.check(derivation, scope)
+            if not derivation.startswith("function(") or kind != "function" or any(_formless(p) for p in problems):
                 out.append((line, f"a Facts record's Derivation in no form of a FEEL function: {name}"))
-            for problem in problems:
-                out.append((line, f"a Facts record's Derivation: {name}: {problem}"))
+            out += [(line, m) for m in _expression_problems(problems, f"the Facts record {name}'s Derivation")]
         initial = d.get("Initial Value", "none")
         if initial != "none":
-            kind, problems = expressions.check(initial, {n: kind_of_type(dd.get("Type", "")) for _, n, dd in records})
-            for problem in problems:
-                out.append((line, f"a Facts record's Initial Value: {name}: {problem}"))
-            if not problems and _differs(kind, kind_of_type(d.get("Type", ""))):
+            kind, problems = expressions.check(initial, scope)
+            if any(_formless(p) for p in problems):
+                out.append((line, f"a Facts record's Initial Value in no form of a FEEL expression: {name}"))
+            out += [(line, m) for m in _expression_problems(problems, f"the Facts record {name}'s Initial Value")]
+            if typed and not problems and _differs(kind, kind_of_type(d.get("Type", ""))):
                 out.append((line, f"a Facts record's Initial Value of another kind than its Type: {name}"))
         if name.split() and name.split()[0] in expressions.KEYWORDS:
             out.append((line, f"a fact's name opening with a word FEEL keeps: {name}"))
@@ -1815,26 +1828,45 @@ def fact_record_findings(records):
             out.append((line, f"a Facts record's Values citing no record section of a type identifying its records by one field, nor a Basic Table keyed by one column: {name}"))
         else:
             out += [(line, m) for m in _value_list_problems(d.get("Values", "none"), f"the Facts record {name}'s Values")]
-        if d.get("cited") and d.get("Type") != "string":
+        if typed and d.get("cited") and d.get("Type") != "string":
             out.append((line, f"a Facts record's Values citing a closed set on a fact whose Type is not string: {name}"))
     return out
 
 
+def _formless(problem):
+    """Whether a problem expressions.py reports is a form FEEL does not have."""
+    return "in no form" in problem
+
+
+def _unheld(problem):
+    """The name a problem expressions.py reports names outside its context, a fact's or a function's, or None."""
+    m = re.match(r"(?:a name no fact declares|a call of a function FEEL does not build in): (.+)", problem)
+    return m and m.group(1)
+
+
+def _expression_problems(problems, what):
+    """An expression's problems but its form, which its place reports -> [message], a name outside its context
+    worded as one."""
+    return [f"{what} naming what its context does not hold: {_unheld(p)}" if _unheld(p) else f"{p}, in {what}"
+            for p in dict.fromkeys(problems) if not _formless(p)]
+
+
+def _plain(cell):
+    """Whether a cell is a word written plain, the canon's departure for a cell outside a Computed column."""
+    return _tests(cell.strip()) == [("is", cell.strip(), "word")]
+
+
 def _value_list_problems(text, what):
-    """A value list, a Facts record's Values or an Input Values item, as FEEL's unary tests naming no fact -> [message],
-    each problem once: a word written plain, which a list never holds, a name, and any other form FEEL does not have."""
+    """A value list, a Facts record's Values or an Input Values item, as FEEL's unary tests read by FEEL's grammar
+    alone, its context holding no fact -> [message], each problem once: a form they do not have, a name, or a call,
+    an operator or a range's ends given what it does not take."""
     if text == "none":
         return []
     if not text.strip():
-        return [f"{what} empty"]
-    tests = _tests(text.strip())
-    if not QUOTED_LIST.fullmatch(text) and tests == [("is", text.strip(), "word")]:
-        return [f"{what} written plain, which a value list never is: {text}"]
-    out = []
-    for p in dict.fromkeys(expressions.check_tests(text, {})):
-        name = re.match(r"a name no fact declares: (.+)", p)
-        out.append(f"{what} naming a fact: {name.group(1)}" if name else f"{what} in no form FEEL's unary tests have: {p}")
-    return out
+        return [f"{what} in no form FEEL's unary tests have: empty"]
+    problems = list(dict.fromkeys(expressions.check_tests(text, {})))
+    return [f"{what} in no form FEEL's unary tests have: {p}" for p in problems if _formless(p)] \
+        + _expression_problems(problems, what)
 
 
 def _named(value):
@@ -1862,7 +1894,7 @@ def domains_of(header, idx, values, facts):
             _, fvalues, absent = facts[h]
             dom = domains.get(h) or (feel(fvalues) if fvalues != "none" else None)
             if dom and symbolic(dom):
-                dom = None  # Values naming a fact, or in a form the checks do not read, give the column none
+                dom = None  # Values in a form the checks do not read give the column none
             if dom and absent == "Yes":
                 dom = (dom[0], dom[1] + [("null",)])
             if dom:
@@ -1871,6 +1903,9 @@ def domains_of(header, idx, values, facts):
 
 
 def _decision_table(r, line, name, fields, tables, found, facts=None):
+    """§ Constructs § Decision Table's Checks, in the groups DMN reads a decision table in, its clauses, its FEEL,
+    its entries and its rules, each group judging the table only once it breaks no rule read before it, a rule no item
+    names among them."""
     rule = f"{RULE} § Decision Table"
     facts = facts or {}
     table = tables[0]
@@ -1880,6 +1915,9 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
     values = dict((k, v) for _, k, v in fields)
     policy = values.get("Hit Policy", "Unique")
     notes = [] if values.get("Annotations", "none") == "none" else [c.strip() for c in values["Annotations"].split(",")]
+    # its clauses (DMN 8.3.2): the fields and headers declaring its conditions, outcomes, annotations, the facts it
+    # reads and the values its columns give
+    start = len(found)
     if "Conditions" not in values:
         return  # its missing Conditions field is reported with its fields
     conds = [c.strip() for c in values["Conditions"].split(",")]
@@ -1896,15 +1934,6 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
         return
     idx = list(range(off, off + n))
     outs = list(range(off + n, len(header) - m))
-    # § Cells: a condition no row tests, or one every row tests by one value where no Default Output and no
-    # multiple-hit policy catches the cases it excludes, tells no case from another; a configured instance's
-    # columns are its data's
-    if len(table["rows"]) > 1 and values.get("Held In", "none") == "none":
-        single = not multi_hit(policy) and "Default Output" not in values
-        for k in idx:
-            cells = {row[k] for _, row in table["rows"] if len(row) > k}
-            if cells == {"-"} or (len(cells) == 1 and single):
-                found.append((rule, r, table["line"], f"a condition column every row tests alike: {header[k]}"))
     computed = [] if values.get("Computed", "none") == "none" else [c.strip() for c in values["Computed"].split(",")]
     if any(c not in [header[k] for k in outs] for c in computed):
         found.append((rule, r, line, "a Computed field naming a column that is no outcome"))
@@ -1934,9 +1963,17 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
     for k in idx:
         if not computing(header[k]) and not FACT_NAME.fullmatch(header[k]) and not QUESTION.fullmatch(header[k]):
             found.append((rule, r, table["line"], f"a condition's header neither a fact's name nor a computation: {header[k]}"))
-        if computing(header[k]):
-            for p in expressions.check(header[k], feel_kinds)[1]:
-                found.append((rule, r, table["line"], f"{p}, in the computed header {header[k]}"))
+    given = [] if values.get("Input Values", "none") == "none" else values["Input Values"].split("\n")
+    for item in given:
+        h = item.partition(":")[0].strip()
+        if not h:
+            found.append((rule, r, line, f"an Input Values item with no header: {item}"))
+        elif h in facts:
+            found.append((rule, r, line, f"Input Values given for a fact its Facts record declares: {h}"))
+        elif h.endswith("?"):
+            found.append((rule, r, line, f"Input Values given for a question, whose values are true and false: {h}"))
+        elif h not in conds:
+            found.append((rule, r, line, f"Input Values for a column that is no condition: {h}"))
     if "Default Output" in values and values["Default Output"] != DEFAULTS["Default Output"]:
         items = values["Default Output"].split("\n")
         named = [i.partition(":")[0].strip() for i in items]
@@ -1945,100 +1982,105 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
         elif len(outs) > 1 and (sorted(named) != sorted(header[k] for k in outs)
                                 or any(not i.partition(":")[2].strip() for i in items)):
             found.append((rule, r, line, "a Default Output that is not an item for each outcome column, its header, a colon and its value"))
-        # § Values: under First, the outcome where no other row matches is a last row testing nothing
-        if policy == "First":
-            found.append((rule, r, line, "a First table's fall-through written as a Default Output, not a last row testing nothing"))
-    # § Outcomes: a computed column's cells are FEEL over the facts a cell may name, their kinds agreeing
+    if len(found) > start:
+        return
+    # its FEEL (DMN 10.3): each place's form, names, calls and operators, a cell outside a Computed column taking a
+    # word written plain; each place's problems reported once, however often the place breaks one rule
+    def place(ln, problems, where):
+        for p in dict.fromkeys(problems):
+            found.append((rule, r, ln, f"{p}, in {where}"))
+
+    for k in idx:
+        if computing(header[k]):
+            place(table["line"], expressions.check(header[k], feel_kinds)[1], f"the computed header {header[k]}")
     kinds_out = {}
     for ln, row in table["rows"]:
         for k in outs:
             if header[k] in computed:
-                kind, problems = expressions.check(row[k], feel_kinds)
-                kinds_out[(ln, k)] = kind
-                for p in problems:
-                    found.append((rule, r, ln, f"{p}, in the computed outcome {row[k]}"))
+                kinds_out[(ln, k)], problems = expressions.check(row[k], feel_kinds)
+                place(ln, problems, f"the computed outcome {row[k]}")
+            elif not _plain(row[k]):
+                place(ln, expressions.check(row[k], feel_kinds)[1], f"the outcome cell {row[k]}")
+    cells = {}
+    for ln, row in table["rows"]:
+        for k in idx:
+            cells[(ln, k)] = feel(row[k])
+            problems = []
+            for t in cells[(ln, k)][1]:
+                if t[0] == "eqv":
+                    problems.append(f"a value tested after `=`, which a cell writes alone: {t[1]}")
+                if t[0] == "sym":
+                    # a test ending at a fact too, so a range's ends are judged however each is written
+                    problems += expressions.check_tests(t[1], known)
+                    problems += [f"a name no fact declares: {fact}" for fact in t[2] if fact not in known]
+            place(ln, problems, f"the cell {row[k]}")
+    for item in given:
+        h, _, c = item.partition(":")
+        for p in _value_list_problems(c.strip(), f"the Input Values item {h.strip()}"):
+            found.append((rule, r, line, p))
+    if len(found) > start:
+        return
+    # its entries (DMN 8.2.8, 8.3.3): each entry against its clause, an input entry within its column's values, for
+    # the values its test gives against its column's value, and an outcome cell of its output's type and one value
+    domains = {h: d for h, d in domains_of(header, idx, values, facts).items() if not symbolic(d)}
+    for k in idx:
+        h = header[k]
+        ftype, _, absent = facts.get(h, ("", "none", "No"))
+        want = "boolean" if h.endswith("?") else TYPE_KINDS.get(ftype)
+        d = domains.get(h)
+        # a column's values, or, where it gives none, its cells, of one kind
+        kinds = _kind(d) if d else {want} if want else set().union(*[_kind(cells[(ln, k)]) for ln, _ in table["rows"]])
+        if len(kinds) > 1:
+            found.append((rule, r, table["line"], f"a condition column testing values of more than one kind: {h}"))
+        col = next(iter(kinds)) if len(kinds) == 1 else None
+        for ln, _ in table["rows"]:
+            c = cells[(ln, k)]
+            got = _kind(c)
+            ends = [(f, known[f]) for t in c[1] if t[0] == "sym" for f in t[2] if col and known.get(f) and known[f] != col]
+            if d and outside(c, d):
+                found.append((rule, r, ln, f"a cell outside its column's values: {h}"))
+            elif not d and ftype and any(t[0] == "null" for t in c[1]) and absent != "Yes":
+                found.append((rule, r, ln, f"a cell outside its column's values, a null its fact may not hold: {h}"))
+            elif not d and want and got and got != {want}:
+                found.append((rule, r, ln, f"a cell outside its column's values, testing a {', '.join(sorted(got))} where its fact is a {ftype}: {h}"))
+            elif ends:
+                found.append((rule, r, ln, f"a cell outside its column's values, testing a {col} column against a {ends[0][1]} fact: {ends[0][0]}"))
+    for ln, row in table["rows"]:
+        for k in outs:
+            if header[k] in computed:
+                continue
+            if header[k].endswith("?") and row[k] not in ("true", "false", "null"):
+                found.append((rule, r, ln, f"a question's outcome cell neither true, false nor null: {row[k][:20]}"))
+            elif not header[k].endswith("?") and not (_plain(row[k]) or _value(row[k]) or row[k] in ("true", "false", "null")
+                                                      or re.fullmatch(r'"[^"]*"', row[k])):
+                found.append((rule, r, ln, f"an outcome cell holding other than one value: {row[k][:20]}"))
+    if len(found) > start:
+        return
+    # its rules (DMN 8.1, 8.2.11, 8.2.12): how its rows match cases and its hit policy takes them
+    # § Cells: a condition no row tests, or one every row tests by one value where no Default Output and no
+    # multiple-hit policy catches the cases it excludes, tells no case from another; a configured instance's
+    # columns are its data's
+    alike = False
+    if len(table["rows"]) > 1 and values.get("Held In", "none") == "none":
+        single = not multi_hit(policy) and "Default Output" not in values
+        for k in idx:
+            column = {row[k] for _, row in table["rows"] if len(row) > k}
+            if column == {"-"} or (len(column) == 1 and single):
+                alike = True
+                found.append((rule, r, table["line"], f"a condition column telling no case from another: {header[k]}"))
+    # § Values: under First, the outcome where no other row matches is a last row testing nothing
+    if "Default Output" in values and values["Default Output"] != DEFAULTS["Default Output"] and policy == "First":
+        found.append((rule, r, line, "a First table's fall-through written as a Default Output, not a last row testing nothing"))
     # an aggregating Collect: one outcome column, of numbers but for a count
     agg_ok = lambda ln, k, v: kinds_out.get((ln, k)) in ("number", None) if header[k] in computed \
         else (_value(v) or (None, None))[1] == "number"
     if policy.startswith("Collect ") and (len(outs) != 1 or policy != "Collect count"
                                           and any(not agg_ok(ln, outs[0], row[outs[0]]) for ln, row in table["rows"])):
         found.append((rule, r, line, f"a {policy} table whose outcome is not one column{'' if policy == 'Collect count' else ' of numbers'}"))
-    # an outcome cell is never written as a test, which would show a condition declared an outcome
-    for ln, row in table["rows"]:
-        for k in outs:
-            if header[k] not in computed and (TEST_FORM.match(row[k]) or row[k].startswith("[")
-                                              or FORM_OPENING.match(row[k]) and len(_split(row[k])) > 1):
-                found.append((rule, r, ln, f"an outcome cell written as a test: {row[k][:20]}"))
-            elif header[k] not in computed and header[k].endswith("?") and row[k] not in ("true", "false", "null"):
-                found.append((rule, r, ln, f"a question's outcome cell neither true, false nor null: {row[k][:20]}"))
-    cells = {}
-    for ln, row in table["rows"]:
-        for k in idx:
-            cells[(ln, k)] = feel(row[k])
-            if cells[(ln, k)] is None:
-                found.append((rule, r, ln, f"a cell in no form FEEL has: {row[k]}"))
-            else:
-                for t in cells[(ln, k)][1]:
-                    if t[0] == "eqv":
-                        found.append((rule, r, ln, f"a value tested after `=`, which a cell writes alone: {t[1]}"))
-                    if t[0] == "sym" and not t[2]:
-                        for p in expressions.check_tests(t[1], known):
-                            found.append((rule, r, ln, f"{p}, in the cell {row[k]}"))
-                    for fact in (t[2] if t[0] == "sym" else ()):
-                        if fact not in known:
-                            found.append((rule, r, ln, f"a cell naming a fact no condition, Reads item or Facts record declares: {fact}"))
-    if None in cells.values():
-        return
-    if values.get("Input Values", "none") != "none":
-        for item in values["Input Values"].split("\n"):
-            h, _, c = item.partition(":")
-            problems = _value_list_problems(c.strip(), f"the Input Values item {h.strip()}") if h.strip() else [f"an Input Values item with no header: {item}"]
-            for m in problems:
-                found.append((rule, r, line, m))
-            if problems:
-                continue
-            if h.strip() in facts:
-                found.append((rule, r, line, f"Input Values given for a fact its Facts record declares: {h.strip()}"))
-            elif h.strip().endswith("?"):
-                found.append((rule, r, line, f"Input Values given for a question, whose values are true and false: {h.strip()}"))
-    domains = {h: d for h, d in domains_of(header, idx, values, facts).items() if not symbolic(d)}
-    for k in idx:
-        if header[k] not in facts:
-            continue
-        ftype, _, absent = facts[header[k]]
-        want = TYPE_KINDS.get(ftype)
-        for ln, _ in table["rows"]:
-            c = cells[(ln, k)]
-            if any(t[0] == "null" for t in c[1]) and absent != "Yes":
-                found.append((rule, r, ln, f"a null cell for a fact that may not be absent: {header[k]}"))
-            got = _kind(c)
-            if want and got and got != {want}:
-                found.append((rule, r, ln, f"a cell testing a {', '.join(sorted(got))} where its fact is a {ftype}: {header[k]}"))
-    for k in idx:
-        kinds = set().union(*[_kind(cells[(ln, k)]) for ln, _ in table["rows"]],
-                            _kind(domains[header[k]]) if header[k] in domains else set())
-        if len(kinds) > 1:
-            found.append((rule, r, table["line"], f"a condition column testing values of more than one kind: {header[k]}"))
-            return
-        # a cell ending at a fact tests it against a fact of the column's kind
-        col = "boolean" if header[k].endswith("?") else TYPE_KINDS.get(facts[header[k]][0]) if header[k] in facts \
-            else (kinds.pop() if kinds else None)
-        for ln, _ in table["rows"]:
-            for t in cells[(ln, k)][1]:
-                for fact in (t[2] if t[0] == "sym" else ()):
-                    if col and known.get(fact) and known[fact] != col:
-                        found.append((rule, r, ln, f"a cell testing a {col} column against a {known[fact]} fact: {fact}"))
-    for h in domains:
-        if h not in conds:
-            found.append((rule, r, line, f"Input Values for a column that is no condition: {h}"))
     doms = [domains.get(header[k]) for k in idx]
     absent = [bool(d and matches(d, NULL)) or header[k] in facts and facts[header[k]][2] == "Yes"
               for k, d in zip(idx, doms)]
     rows = [(ln, [cells[(ln, k)] for k in idx], [_outcome(row[k]) for k in outs]) for ln, row in table["rows"]]
-    for ln, conds_, _ in rows:
-        for k, c, d in zip(idx, conds_, doms):
-            if d and outside(c, d):
-                found.append((rule, r, ln, f"a cell outside its column's Input Values: {header[k]}"))
     ranked = None
     if "Output Values" in values:
         ranked = _ranked(values["Output Values"])
@@ -2057,6 +2099,8 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
     def rank(ob):
         return tuple(allowed.index(ob[outs.index(header.index(h))]) for h, allowed in ranked.items())
 
+    if alike:
+        return  # which rows a case matches is judged once every condition column tells one case from another
     for a in range(len(rows)):
         for b in range(a + 1, len(rows)):
             (la, ca, oa), (lb, cb, ob) = rows[a], rows[b]
@@ -3356,7 +3400,7 @@ def construct_candidates(files, sections, strip_fences):
         live = strip_fences(body)
         declared = set()
         secs = sections(body)
-        facts = facts_of(fact_records(live, secs))
+        facts = checked_facts(fact_records(live, secs))
         for line, name, fields, tables, lineage in declarations(live, secs):
             declared |= {t["line"] for t in tables}
             if name == "State Machine" and len(tables) == 2 and _choice_against_a_fact(tables[1]):
