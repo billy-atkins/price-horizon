@@ -89,6 +89,14 @@
     **Relation:** adopts \
     **Covers:** American spelling, a word's first spelling where an entry gives two
 
+  - **Name:** Python \
+    **Title:** the Python language and its standard library, the Python Software Foundation \
+    **Version:** 3.13 \
+    **URL:** `https://docs.python.org/3.13/` \
+    **Access:** free \
+    **Relation:** adopts \
+    **Covers:** the language the skills' scripts are written in and its standard libraries
+
   - **Name:** RFC 3339 \
     **Title:** Date and Time on the Internet: Timestamps, the Internet Engineering Task Force \
     **Version:** July 2002, the RFC as published, an RFC's text never changing \

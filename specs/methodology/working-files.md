@@ -2,7 +2,7 @@
 
 A working file is never committed, since no reader of the specs needs it. Which specs may name one is set in [`specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`](/specs/methodology/sourcing-and-citation.md#which-citations-are-allowed). What a working file settles reaches a reader only through the spec it changes. In construction's terms, a design document is a change order, and the specs are the as-built drawings: the plans kept true to what stands, so the next change starts from the building as it is.
 
-The builder changes a working file as the section holding its form has it, never by a design's step: a design document by the skill writing it, and a follow-up once the user approves its text ([`§ A Follow-up`](#a-follow-up)). Where a design changes a working file's form, the builder brings the existing working files to it the same way. A working file is of no kind of change, so no design's Target names one.
+The builder changes a working file as the section holding its form has it, never by a design's step: a design document by the skill writing it, and a follow-up once the user approves its text ([`§ A Follow-up`](#a-follow-up)). Where a design changes a working file's form, its work brings to that form only the working files it writes, the same way. Every other working file is brought to the form as merited once the design is complete, by the work that next takes it up. So no design's work reads another design's working files to bring them to its form, which would fill the builder's context with work that is not its own. A working file is of no kind of change, so no design's Target names one.
 
 **Reference Key:** File \
 **Required:** Holds
@@ -11,7 +11,21 @@ The builder changes a working file as the section holding its form has it, never
 |---|---|
 | `.ai/plans/` | the plans the skills write, a design document among them ([`§ A Design Document`](#a-design-document)) |
 | `.ai/follow-ups.md` | work on the specs, the code or the working files that should be done and is not yet, each as a follow-up ([`§ A Follow-up`](#a-follow-up)) |
-| `.ai/tmp/` | the skills' own output, review and audit reports among it |
+| `.ai/tmp/` | the skills' own output, a design's check reports and an audit run's reports among it |
+
+**A design's folder is `.ai/tmp/<skill-name>/<design>/`.** Every file a design's work leaves under `.ai/tmp/` sits in the design's folder, under the folder of the skill writing the design, so a reader and a script find a design's files by where they sit. A file no design's work writes, such as an audit run's report or a diagram's render, stays where its own skill puts it. A design's folder holds these kinds of file, each where its row has it:
+
+**Reference Key:** Kind \
+**Required:** Sits In
+
+| Kind | Sits In |
+|---|---|
+| report | `reports/<check kind>/`, named `{n}.md` by the kind and the number of the log entry naming it, as `reports/self-review/3.md` for `self-review-3` ([`§ A Check's Report`](#a-checks-report)) |
+| script | `scripts/` |
+| backup | `backups/`: a copy of a file taken before the builder changes it, named for the file it copies and the moment it was taken |
+| scratch | `scratch/`: every other file, a script's input or output and a draft among it |
+
+A report not in the form [`§ A Check's Report`](#a-checks-report) gives whose entry is not yet appended sits in the design's `scratch/`, and its check is run again in the form, the design taken up afresh as the user directs.
 
 **A skill's scratch space is `.ai/tmp/<skill-name>/`.** The skill creates the directory if it is not there. Each skill has a directory of its own, so one skill's output is never mistaken for another's. The directory sits under `.ai/tmp/`, so none of it is ever committed. A skill does not delete its output when it finishes. The output is usually the whole point, and something downstream, an agent or a person, is about to read it. What a skill should clean is its *stale* output: a file left behind from a previous run that no longer corresponds to anything, because a reader has no way to tell such a file from a current one.
 
@@ -260,14 +274,11 @@ A design's steps sit in its record section of this type, a record type ([`specs/
 
 A design's log records each check of its work and each event of its workflow, an entry each. This section declares the log's form alone: what an entry means to a check or a state is stated where that check or state is. An entry holds values alone. Each entry is appended through the design script of the skill writing the design, by its `--append-entry`. The script counts the entry among its kind and stamps it with the UTC time of appending. So the entries stand in the order their events came, and a check holds their order to their timestamps.
 
-**When an entry is appended.** Each entry is appended when the kinds table has it appended, at the skill's step where its event ends, never in a pass after the work. A check's entry is appended by the step running the check, as its settling ends with its report in hand, and the design script's `--append-entry` refuses a check's entry whose report does not yet exist. Where the work moves past a check before its settling ends, whatever moves it, the user's approval, a steer or a send-back among them, the check's entry is appended once its report is in. Its counts are the marks its report gives, its Dropped is 0, and its Led To is the state that move took the design into. So every check that ran has its entry. An approval given in reassessing is a `plan-approval` entry in place of a `reassessment` one.
+**When an entry is appended.** Each entry is appended when the kinds table has it appended, at the skill's step where its event ends, never in a pass after the work. A check's entry is appended by the step running the check, as its settling ends with its report in hand, and the design script's `--append-entry` refuses a check's entry whose report does not stand where this section's paragraph on a check's report has it. Where the work moves past a check before its settling ends, whatever moves it, the user's approval, a steer or a send-back among them, the check's entry is appended once its report is in, its Settlement saying what moved the work past it ([`§ A Check's Report`](#a-checks-report)). Its counts are taken from its report as it stands, as any check's are, and its Led To is the state that move took the design into. So every check that ran has its entry. An approval given in reassessing is a `plan-approval` entry in place of a `reassessment` one.
 
-**What a check counts.** Each count counts what its check found, by the mark each holds once settled ([`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not`](/specs/AGENTS.md#converging-or-not)). A finding dropped is counted in Dropped alone, and a review observation ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)) in none. The builder marks what its own Design, Refactor, Refine pass, self-review and handed-off judgment found as a review's findings are marked, and appends each entry with the model and effort it ran on.
+**What a check counts.** Each count of a check's entry is taken from its report, never given by the builder. Each finding the report holds is counted once, by its last word in the report: the verdict of the settlement settling it where the report holds one, and its own verdict otherwise ([`§ A Check's Report`](#a-checks-report)). Each is counted in the count [`§ A Check's Report § Verdicts`](#verdicts) gives its last word, a reviewer's own drop the builder upholds counted in Dropped. So an entry's counts mean the same whether it was appended as its check's settling ended or before. The builder marks what its own Design, Refactor, Refine pass, self-review and handed-off judgment found as a review's findings are marked, and appends each entry with the model and effort it ran on.
 
-**A check's report.** A check's entry names its report, `{design}-{entry}.md`, in the folder of `.ai/tmp/` of the skill writing the design ([`§ The Working Files`](#the-working-files)). The report is one of:
-- a review's report, with the builder's settlement added;
-- a report of the builder's Design, Refactor, Refine pass, of its self-review or of its handed-off judgment, holding what it found and how each was settled, its traces and tests among them;
-- the builder's triage of an audit.
+**A check's report.** A check's entry names its report, in the design's folder as [`§ The Working Files`](#the-working-files) has it. The report takes the form [`§ A Check's Report`](#a-checks-report) gives it.
 
 A design's log sits in its record section of this type, a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
 
@@ -284,35 +295,493 @@ A design's log sits in its record section of this type, a record type ([`specs/m
 | Design Flaws | no | where its kind gives it | | text | the count of design flaws the check found, a whole number |
 | Implementation Flaws | no | where its kind gives it | | text | the count of implementation flaws the check found, a whole number |
 | Nits | no | where its kind gives it | | text | the count of nits the check found, a whole number |
-| Dropped | no | where its kind gives it | | text | the count of findings dropped as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test`](/specs/AGENTS.md#the-test) has a finding dropped, a whole number |
+| Dropped | no | where its kind gives it | | text | the count of findings its report holds dropped, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test`](/specs/AGENTS.md#the-test) has a finding dropped and this section's paragraph on what a check counts has them counted, a whole number |
 | Led To | no | where its kind gives it | | text | the state the work went into as the check ended, by its settling or by whatever moved the work past it |
 | Reason | no | where its kind gives it | | text | why the design entered in-progress, one of the values of [`specs/methodology/design-workflow.md § The Order of a Design's Work § Facts [Name: entry reason]`](/specs/methodology/design-workflow.md#facts) |
 | Approval | no | where its kind gives it | | "approved", "approved and apply" | the user's approval of the plan |
 | Decision | no | where its kind gives it | | text | what the user decided, one of the values of [`specs/methodology/design-workflow.md § The Order of a Design's Work § Facts [Name: reassessment]`](/specs/methodology/design-workflow.md#facts) |
 | Places | no | where its kind gives it | | text | where the edit lies, each a path, its section after it where the edit lies in one, separated by semicolons |
 
-The kinds of entry, each with the fields it gives beside Entry and Timestamp, and when it is appended:
+The kinds of entry, each with the fields it gives beside Entry and Timestamp, the report it names, and when it is appended:
 
 **Reference Key:** Kind \
-**Required:** Fields, Appended
+**Required:** Fields, Report, Appended
 
-| Kind | Fields | Appended |
+| Kind | Fields | Report | Appended |
+|---|---|---|---|
+| `design-refactor-refine` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped | the builder's own report | as the builder's Design, Refactor, Refine pass ends |
+| `self-review` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped | the builder's own report | as the builder's self-review ends |
+| `handed-off-judgment` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped | the builder's own report | as the settling of a judgment the builder handed off ends; for one settled with a round, right after the round's entry, its settling ending with the round's ([`§ A Check's Report`](#a-checks-report)) |
+| `adversarial-review` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | a review's report | as the round's settling ends |
+| `post-apply-review` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | a review's report | as the round's settling ends |
+| `audit-specs` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | the builder's triage of an audit | as the settling of an `.ai/skills/audit-specs/` run ends |
+| `verify-spec-implementation` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | the builder's triage of an audit | as the settling of a `.ai/skills/verify-spec-implementation/` run ends |
+| `entered` | Reason | none | as the design enters in-progress |
+| `plan-change` | none | none | as the builder's revision of the steps at drafting or changing ends, before its Design, Refactor, Refine pass and its self-review |
+| `plan-approval` | Approval | none | as the user approves the plan |
+| `user-edit` | Places | none | in any state of the apply, or while the design is sent back with its changes kept, as the user confirms the edit intended |
+| `reassessment` | Decision | none | as reassessing ends |
+| `another-round` | none | none | as the user asks for another round |
+| `apply` | none | none | as applying begins |
+| `direct-edit` | Places | none | in any state of the apply, as the direct edit is made |
+
+### Script Checks
+
+**Records:**
+  - **Name:** counts-taken-from-the-report \
+    **Tests:** each count of a check's entry is the count its report gives, each finding counted once by its last word in the report, as this section's paragraph on what a check counts has it \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--append-entry`
+
+## A Check's Report
+
+A check's report records what a check of a design found and how its findings were settled, and what the builder's own work in the check read, searched, traced and asked. So nothing a later step, a later round, a review or a session taking the design up fresh needs lies in one agent's context alone, and the design script checks each record against what it works out from the files. This section is the one home of a report's form. The form reaches every report a design's log entry names. It reaches no audit run's own report, which keeps its own skill's form and folder, and no file a log entry does not name. A report is one of three, the Report its entry's row of [`§ Design Log Entry`](#design-log-entry)'s kinds table gives:
+- a review's report, written by the cold reviewer, the builder adding its settlement;
+- the builder's own report, of its Design, Refactor, Refine pass, its self-review or a judgment it handed off;
+- the builder's triage of an audit, holding each audit finding it settles as a finding of its own.
+
+The three tell who writes a report and which checks read it. Each takes its parts from one table and its records from the same record types. A report holds these parts, in this order, each part's Holds citing the rule whose result it holds. A part not required where it holds nothing is left out with its heading, so a round that found nothing passes. A report holds no summary of its counts, since its log entry takes them from it:
+
+**Reference Key:** Part \
+**Required:** Heading, Required, Holds
+
+| Part | Heading | Required | Holds |
+|---|---|---|---|
+| Title | `# Check's Report`, with the fields Design and Entry | yes | the design, by its Name, and the log entry naming the report |
+| Reading | `## Reading` | yes | what the check read, each file read fresh as [`specs/AGENTS.md § Design, Refactor, Refine § Reading Fresh`](/specs/AGENTS.md#reading-fresh) has it, in a review's passes as [`specs/AGENTS.md § Design, Refactor, Refine § Weighing a Review's Findings`](/specs/AGENTS.md#weighing-a-reviews-findings) orders them |
+| Findings | `## Findings`, a record section of Findings | where the check found anything | each finding, as [`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review), [`specs/AGENTS.md § Design, Refactor, Refine § Weighing a Review's Findings`](/specs/AGENTS.md#weighing-a-reviews-findings) and the audit's settling in [`specs/AGENTS.md § Design, Refactor, Refine § An Audit`](/specs/AGENTS.md#an-audit) have one reported |
+| Searches | `## Searches`, a record section of Searches | where a search was run | each search the builder ran, as [`specs/methodology/sourcing-and-citation.md § One Home Per Fact`](/specs/methodology/sourcing-and-citation.md#one-home-per-fact) has a fact's home sought and [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose`](/specs/AGENTS.md#propose) has a tactical fix made at every place its defect stands, and each search a reviewer ran in redoing the frame's sweep, as [`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review) has it redone |
+| Traces | `## Traces`, a record section of Traces | where the builder traced a mechanism | each trace, as [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once`](/specs/AGENTS.md#measure-twice-cut-once) has a mechanism traced and [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether the Goals and the Frame Name a Mechanism`](/specs/AGENTS.md#whether-the-goals-and-the-frame-name-a-mechanism) has its test asked |
+| Builder Checks | `## Builder Checks`, a record section of Builder Checks | where the builder made a check of its own | each check only the builder makes, as the self-review's row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why`](/specs/AGENTS.md#who-checks-what-and-why) has it recorded |
+| Script Output | `## Script Output`, text | where the report is a self-review's | the output of the design script's checks the self-review runs for its phase, as the self-review's row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why`](/specs/AGENTS.md#who-checks-what-and-why) gives them, written by `--append-entry` |
+| Causes | `## Causes`, a record section of Causes | where the round is one [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes`](/specs/AGENTS.md#the-round-at-its-causes) settles at its causes and a finding it settles, its own or a handed-off judgment's settled with it, takes a mark | the round's causes, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose`](/specs/AGENTS.md#propose) has them stated |
+| Settlement | `## Settlement` | once the report's entry is appended | the earlier reports read and the builder's reading at settling, as [`specs/AGENTS.md § Design, Refactor, Refine § Reading the Earlier Reports`](/specs/AGENTS.md#reading-the-earlier-reports) and [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Group`](/specs/AGENTS.md#group) have them read before grouping, and how each finding was settled, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose`](/specs/AGENTS.md#propose), [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test`](/specs/AGENTS.md#the-test), [`specs/AGENTS.md § Design, Refactor, Refine § Who Decides`](/specs/AGENTS.md#who-decides) and [`§ A Design Document § Changes After Approval`](#changes-after-approval) have it recorded |
+
+**Who writes each part.** The reviewer's part of a review's report is its Title, its Reading, its Findings and the Searches it ran. The builder adds its own Searches after the reviewer's, the Causes and the Settlement, and changes no record the reviewer wrote. The Script Output part is the design script's, and no hand writes it. A reviewer's Search, its key opening with its Reviewer Reading's key and a hyphen, is run again by `--check-report` before the round's change is made, and every other Search by `--append-entry`. A reviewer runs `--check-report` on its report before handing it back, as its row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why`](/specs/AGENTS.md#who-checks-what-and-why) has it, and puts right what it reports. A report handed back out of its form goes back to its reviewer with what the flag reports, or, where the agent in use cannot continue a reviewer, its round is run again with the same brief.
+
+**The Reading and the Settlement.** The Reading holds, where the report is a review's, the field Reviewer Readings, a list of [`§ A Check's Report § Reviewer Reading`](#reviewer-reading) records, one for each reviewer; and the field Reads otherwise, places, `none` where the check read nothing. The Settlement holds these fields, in this order:
+- Earlier Reports, places, `none` where the round's phase holds no report before it;
+- Settling Reads, places, the builder's reading at settling, held where the report is a review's and its round is settled, `none` where no Finding holds a mark;
+- Moved Past, what moved the work past the check, held only where the work moved past it before its settling ended, the report then holding no Causes and no Settlement record;
+- Settlements, a list of [`§ A Check's Report § Settlement`](#settlement) records, held where the report holds a Finding.
+
+**A value holding places.** A field of a report holding places holds them as a list, one place to an item, each a citation, as [`specs/methodology/sourcing-and-citation.md § Writing a Citation`](/specs/methodology/sourcing-and-citation.md#writing-a-citation) writes one, of a file, of a section within one or of a part a keyed instance holds, or, where the field holds one place, that citation alone. One place covers another where it is that place or holds it: a file, each of its sections; a section, each section beneath it; and a part a keyed instance holds, itself alone. Each place is matched as it is cited.
+
+**Over applied work, and a phase's record.** A report lies over applied work where its entry stands after the design's last `apply` entry, with no `entered` entry after that. A phase's record is the reports of its review entries and of each `handed-off-judgment` entry among them. An adversarial review's phase starts after the design's last `reassessment` entry deciding other than go on, or its last `entered` entry whose Reason is sent back, whichever stands later, or at the log's start, and a post-apply review's after the design's last `apply` entry. A self-review follows a round's change where the last review entry of its phase before it, after the design's last `self-review` entry, names a report holding a Proposed Change.
+
+**A judgment settled with a round.** A judgment the builder hands off is settled with a round where its report stands in the design's folder and no entry names it as the round's entry is appended. So a judgment handed off after the phase's last round is settled alone ([`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § After the Last Round`](/specs/AGENTS.md#after-the-last-round)). Each Settlement of its report whose Verdict is a mark cites the round's Cause it lies in, by the round's report and the Cause's key. Its entry is appended right after the round's, as [`§ Design Log Entry`](#design-log-entry)'s kinds table has it.
+
+**What the design script checks.** The design script checks of a report what it works out from the files, and nothing of what a record must cover beyond it. Of every report:
+- it holds the form this section gives and the layout [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) and [`specs/methodology/spec-style.md § Blank Lines`](/specs/methodology/spec-style.md#blank-lines) give;
+- each key it cites names a record a report the design's log names holds;
+- each Finding is settled by exactly one Settlement, but in a report whose Settlement holds Moved Past;
+- each Search's Pattern, run again over its ground, matches only within its Places. A Search's ground is the design document and the files of each kind its Target names, the kinds being those [`§ A Design Document § The Kinds of Change`](#the-kinds-of-change) gives. For `canon-specs`, it takes in every file of Spec of Record's scope but code and the working files, as [`specs/methodology/design-workflow.md § A Design's Reviews`](/specs/methodology/design-workflow.md#a-designs-reviews) has a `canon-specs` audit cover them. For `application-specs`, it takes in the code. A search narrower than that ground cannot show it found every place.
+
+Of a self-review:
+- a Trace of each Decision Table and State Machine a step's Objectives state whole, before the apply, or a section the diff changed holds, at it, naming each of its paths, a Decision Table's rows and a State Machine's transitions each named by its cells;
+- each Builder Check its phase requires, as [`§ A Check's Report § Kinds of Builder Check`](#kinds-of-builder-check) gives it;
+- for one following a round's change, its Reads covering each place a Miss of the phase names;
+- its Script Output, written by `--append-entry`.
+
+Of a round's settlement:
+- its Earlier Reports listing each report of the phase's record before the round;
+- its Settling Reads covering each place the Evidence of a Finding whose Verdict is a mark names;
+- each Cause settling a flaw holding its Misses;
+- each Cause settling a flaw holding its Proposed Change, but where a Settlement naming it gives Lies In the plan or handed on in a post-apply round;
+- a Cause continuing an earlier one holding its Outcome;
+- a Proposed Change that is a tactical fix citing a Search whose Places its own cover.
+
+Of a report whose Settlement holds Moved Past: its Reading, its Findings, and its Settlement's Earlier Reports and Moved Past alone.
+
+**What no check decides.** When a place was read; which facts' homes a pass or a self-review sought, or whether a search was the one a fact needed; whether a finding continues an earlier cause or lands on text an earlier change wrote; what a Builder Check found; and whether a cause or a verdict is right. Each is a judgment, checked for its presence and the keys it cites alone, and the next review's and the user's to read.
+
+**A report not in the form.** A report not in the form keeps the form it was written in, and a check reading the design's earlier reports reads one not in the form as holding no records.
+
+### Reviewer Reading
+
+What one reviewer of a review read, its records in a review's report's Reading, each written by its reviewer:
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Reviewer Readings \
+**Reference Key:** Reviewer
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Reviewer | yes | yes | | text | its key, the name of the reviewer's file |
+| Collecting Reads | no | yes | | text | the places it read collecting its findings, a list as [`§ A Check's Report`](#a-checks-report) has a value holding places written, `none` where it read none |
+| Earlier Reports | no | yes | | text | the earlier reports it read between its passes, a list as [`§ A Check's Report`](#a-checks-report) has a value holding places written, `none` where it read none |
+| Weighing Reads | no | yes | | text | the places it read weighing its findings, a list as [`§ A Check's Report`](#a-checks-report) has a value holding places written, `none` where it read none |
+
+### Finding
+
+A finding a check reports, of any verdict, its records in a report's Findings. A triage's Finding may stand for the audit rows one decision settles, and is counted once:
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Findings \
+**Reference Key:** Finding
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Finding | yes | yes | | text | its key, its reviewer's file's name before it |
+| Verdict | no | yes | | [`§ A Check's Report § Verdicts`](#verdicts) | its writer's word on it |
+| Decision | no | where its Verdict is a mark | | text | the decision of the design it touches, in its writer's words |
+| Affected Parts | no | where its Verdict is a mark and it holds no Broken Rules | | text | the steps and the goals of the design it bears on, and each steer it bears on, a list as [`§ A Check's Report`](#a-checks-report) has a value holding places written |
+| Broken Rules | no | where its Verdict is a mark and it holds no Affected Parts | | text | the rules of the canon it breaks, a list as [`§ A Check's Report`](#a-checks-report) has a value holding places written |
+| Description | no | yes | | text | the finding, or the observation |
+| Evidence | no | where its Verdict is not a review observation | | a list of [`§ A Check's Report § Report Evidence`](#report-evidence) | its evidence |
+| Rationale | no | yes | | text | what goes wrong in the work if it is left, or why it was dropped, set aside, set apart or found not caused |
+| Possible Fix | no | where its Verdict is a mark | | [`§ A Check's Report § Possible Fix`](#possible-fix) | its possible fix, in the form [`specs/AGENTS.md § Design, Refactor, Refine § Weighing a Review's Findings`](/specs/AGENTS.md#weighing-a-reviews-findings) gives it |
+| Lies In | no | where its Verdict is a mark and the report lies over applied work | | [`§ A Check's Report § Where a Finding Lies`](#where-a-finding-lies) | where it lies, as [`specs/AGENTS.md § Design, Refactor, Refine § The Post-Apply Review`](/specs/AGENTS.md#the-post-apply-review) sorts a finding |
+
+### Report Evidence
+
+A piece of a finding's evidence, its records in a Finding's Evidence:
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Report Evidence Items \
+**Reference Key:** Description
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Description | yes | yes | | text | the evidence, the words quoted among it |
+| Places | no | yes | | text | the places it is drawn from, a list as [`§ A Check's Report`](#a-checks-report) has a value holding places written |
+
+### Possible Fix
+
+A finding's possible fix, in one of the two forms [`specs/AGENTS.md § Design, Refactor, Refine § Weighing a Review's Findings`](/specs/AGENTS.md#weighing-a-reviews-findings) gives, its record in a Finding's Possible Fix:
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Possible Fixes \
+**Reference Key:** Kind
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Kind | yes | yes | | [`§ A Check's Report § Kinds of Fix`](#kinds-of-fix) | its form |
+| Fix | no | where its Kind is tactical fix | | text | the tactical fix |
+| Delivers | no | where its Kind is revision | | text | what the revision of its Finding's Decision must deliver |
+
+### Search
+
+A search the builder or a reviewer ran, its records in a report's Searches:
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Searches \
+**Reference Key:** Search
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Search | yes | yes | | text | its key, its reviewer's file's name before it where a reviewer ran it |
+| For | no | yes | | text | the fact whose home it sought, the defect whose every place it found, or the sweep a reviewer redid |
+| Pattern | no | yes | | text | the regular expression it ran, in Python's `re` syntax ([`specs/methodology/external-references.md § External References [Name: Python]`](/specs/methodology/external-references.md#external-references)), its flags written inline |
+| Places | no | yes | | text | the places its matches lie in, a list as [`§ A Check's Report`](#a-checks-report) has a value holding places written, `none` where it matched nothing |
+
+### Trace
+
+A mechanism the builder traced, its records in a report's Traces:
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Traces \
+**Reference Key:** Trace
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Trace | yes | yes | | text | its key |
+| Mechanism | no | yes | | text | the mechanism traced, a construct cited by the step stating it or the section holding it |
+| Outcome | no | where the report is a self-review's before the apply, and no `plan-approval` entry of the phase stands before it but one an `another-round` entry follows | | [`§ A Check's Report § Mechanism Outcomes`](#mechanism-outcomes) | the outcome [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether the Goals and the Frame Name a Mechanism`](/specs/AGENTS.md#whether-the-goals-and-the-frame-name-a-mechanism) gives it |
+| Paths | no | yes | | a list of [`§ A Check's Report § Trace Path`](#trace-path) | each path traced |
+
+### Trace Path
+
+A path of a traced mechanism, its records in a Trace's Paths:
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Trace Paths \
+**Reference Key:** Path
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Path | yes | yes | | text | the path, named by its row's or its transition's cells where the mechanism is a Decision Table or a State Machine, and otherwise by the route it takes |
+| Result | no | yes | | text | what the path does, and whether it does what the design means |
+
+### Builder Check
+
+A check only the builder makes, its records in a report's Builder Checks:
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Builder Checks \
+**Reference Key:** Check
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Check | yes | yes | | text | its key |
+| Kind | no | yes | | [`§ A Check's Report § Kinds of Builder Check`](#kinds-of-builder-check) | which check it is |
+| Places Checked | no | yes | | text | what it was made of, citing the item it is required for where [`§ A Check's Report § Kinds of Builder Check`](#kinds-of-builder-check) requires one for each, a list as [`§ A Check's Report`](#a-checks-report) has a value holding places written |
+| Result | no | yes | | text | what it found, a miss's question with the answer the work gave it |
+
+### Cause
+
+A cause of a round settled at its causes, its records in a report's Causes, each holding its Misses and its Proposed Change. A Cause's Proposed Change is the change the round proposes at it, a round completing a run [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) sets among them. It is made once the round is settled, or, for a round completing a run, once a reassessment decides go on or the user approves the plan in reassessing; a reassessment deciding otherwise leaves it unmade. A Cause holding no Proposed Change, its nits left or a Settlement naming it placing its findings in the plan or handed on, says why in the How Settled of each Settlement naming it. A Cause continuing an earlier round's cites it by that round's report and its key, one place as [`§ A Check's Report`](#a-checks-report) has a value holding places written:
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Causes \
+**Reference Key:** Cause
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Cause | yes | yes | | text | its key |
+| Decision | no | yes | | text | the name the builder gives the concept the findings it settles touch, kept across the phase's rounds |
+| Continues | no | no | none | text | the earlier round's cause it continues |
+| Outcome | no | where Continues is held | | [`§ A Check's Report § Mechanism Outcomes`](#mechanism-outcomes) | the outcome [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether the Goals and the Frame Name a Mechanism`](/specs/AGENTS.md#whether-the-goals-and-the-frame-name-a-mechanism) gives it |
+| Conflicting Steers | no | no | none | text | each steer it presses on, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Weigh the Steers`](/specs/AGENTS.md#weigh-the-steers) has it weighed, a list as [`§ A Check's Report`](#a-checks-report) has a value holding places written |
+| Misses | no | where it settles a design flaw or an implementation flaw | | a list of [`§ A Check's Report § Miss`](#miss) | why the builder's pass and self-review let each flaw through |
+| Proposed Change | no | where it settles a flaw, no Settlement naming it giving Lies In the plan or handed on in a post-apply round | | [`§ A Check's Report § Proposed Change`](#proposed-change) | the change the round proposes at it, a Cause settling only nits holding one where the round fixes them |
+
+### Miss
+
+Why the builder's own pass and self-review let a flaw through, as [`specs/methodology/glossary.md`](/specs/methodology/glossary.md) defines a miss, its records in a Cause's Misses:
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Misses \
+**Reference Key:** Miss
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Miss | yes | yes | | text | its key |
+| Kind | no | yes | | "place not read", "place read stale", "place read in part", "question not asked" | the miss's kind |
+| Place | no | where its Kind is not question not asked | | text | the place missed, one place as [`§ A Check's Report`](#a-checks-report) has a value holding places written |
+| Reads | no | where its Kind is not question not asked | | text | the places the builder then read for it, a list as [`§ A Check's Report`](#a-checks-report) has a value holding places written |
+| Question | no | where its Kind is question not asked | | text | the question not asked |
+| Answer | no | where its Kind is question not asked | | text | the answer the work gave the question, asked before the round's change was proposed |
+
+### Proposed Change
+
+The change a round proposes at a cause, its record in a Cause's Proposed Change:
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Proposed Changes \
+**Reference Key:** Kind
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Kind | yes | yes | | [`§ A Check's Report § Kinds of Fix`](#kinds-of-fix) | the change's kind |
+| Search | no | where its Kind is tactical fix | | text | the search that found every place its defect stands |
+| Reason | no | where its Kind is tactical fix | | text | why its fix is a tactical one |
+| Decision Rewritten | no | where its Kind is revision | | text | the decision it rewrites whole |
+| Places | no | yes | | text | the places it changes, a list as [`§ A Check's Report`](#a-checks-report) has a value holding places written |
+
+### Settlement
+
+How the builder settled one or more findings sharing a verdict, its records in a report's Settlement's Settlements. A Settlement weighing its findings again against an earlier cause cites it by that cause's report and its key, one place as [`§ A Check's Report`](#a-checks-report) has a value holding places written:
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Settlements \
+**Reference Key:** Settlement
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Settlement | yes | yes | | text | its key |
+| Settled Findings | yes | yes | | text | the findings it settles, one or more sharing its other fields, a list, one Finding's key to an item |
+| Verdict | no | yes | | [`§ A Check's Report § Verdicts`](#verdicts) | the builder's last word on them |
+| Lies In | no | where its Verdict is a mark and the report lies over applied work | | [`§ A Check's Report § Where a Finding Lies`](#where-a-finding-lies) | the builder's last word on where they lie, as [`specs/AGENTS.md § Design, Refactor, Refine § The Post-Apply Review`](/specs/AGENTS.md#the-post-apply-review) has the builder settle a finding by where it lies |
+| Cause | no | where the report holds Causes and its Verdict is a mark | | text | the cause they lie in |
+| Weighs Again | no | no | none | text | the earlier cause whose change they are weighed again against, where the builder judges they land on its text |
+| How Settled | no | yes | | text | how they were settled, the user's answer to each call the builder brought among it, and why a verdict differs from its writer's |
+
+### Verdicts
+
+A finding's verdict, held by a Finding and a Settlement:
+
+**Reference Key:** Verdict \
+**Required:** Counted In, Means
+
+| Verdict | Counted In | Means |
 |---|---|---|
-| `design-refactor-refine` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped | as the builder's Design, Refactor, Refine pass ends |
-| `self-review` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped | as the builder's self-review ends |
-| `handed-off-judgment` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped | as the settling of a judgment the builder handed off ends |
-| `adversarial-review` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | as the round's settling ends |
-| `post-apply-review` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | as the round's settling ends |
-| `audit-specs` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | as the settling of an `.ai/skills/audit-specs/` run ends |
-| `verify-spec-implementation` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | as the settling of a `.ai/skills/verify-spec-implementation/` run ends |
-| `entered` | Reason | as the design enters in-progress |
-| `plan-change` | none | as the builder's revision of the steps at drafting or changing ends, before its Design, Refactor, Refine pass and its self-review |
-| `plan-approval` | Approval | as the user approves the plan |
-| `user-edit` | Places | in any state of the apply, or while the design is sent back with its changes kept, as the user confirms the edit intended |
-| `reassessment` | Decision | as reassessing ends |
-| `another-round` | none | as the user asks for another round |
-| `apply` | none | as applying begins |
-| `direct-edit` | Places | in any state of the apply, as the direct edit is made |
+| design flaw | Design Flaws | a design flaw, as [`specs/methodology/glossary.md`](/specs/methodology/glossary.md) defines one |
+| implementation flaw | Implementation Flaws | an implementation flaw, as the glossary defines one |
+| nit | Nits | a nit, as the glossary defines one |
+| dropped | Dropped | a finding [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test`](/specs/AGENTS.md#the-test) drops |
+| set aside | none | a finding the user judged wrong, as [`§ A Design Document § Changes After Approval`](#changes-after-approval) sets one aside |
+| review observation | none | a review observation, as the glossary defines one |
+| not caused | none | an audit's finding the design did not cause |
+
+### Where a Finding Lies
+
+Where a finding over applied work lies, held by a Finding and a Settlement:
+
+**Reference Key:** Lies In \
+**Required:** Means
+
+| Lies In | Means |
+|---|---|
+| the plan | it lies in the plan, as [`specs/AGENTS.md § Design, Refactor, Refine § The Post-Apply Review`](/specs/AGENTS.md#the-post-apply-review) places a finding |
+| the writing | it lies in the writing, as that section places a finding |
+| handed on | it is on text whose migration the frame hands on, or in a file the design's Kind does not let it change, each handed on as [`§ A Design Document § Changes After Approval`](#changes-after-approval) has it |
+
+### Kinds of Fix
+
+A fix's kind, held by a Possible Fix and a Proposed Change:
+
+**Reference Key:** Kind \
+**Required:** Means
+
+| Kind | Means |
+|---|---|
+| tactical fix | the fix made at every place its defect stands |
+| revision | the decision the finding touches revised whole |
+
+### Mechanism Outcomes
+
+The outcome [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether the Goals and the Frame Name a Mechanism`](/specs/AGENTS.md#whether-the-goals-and-the-frame-name-a-mechanism) gives, held by a Trace and a Cause:
+
+**Reference Key:** Outcome \
+**Required:** Means
+
+| Outcome | Means |
+|---|---|
+| name the mechanism | the goals and the frame name the mechanism the steps change |
+| miss the mechanism, a design flaw | they miss it |
+| not asked | the test is not asked of it |
+
+### Kinds of Builder Check
+
+The checks only the builder makes, held by a Builder Check, each with when a self-review's phase requires it:
+
+**Reference Key:** Check Kind \
+**Required:** Means, Required
+
+| Check Kind | Means | Required |
+|---|---|---|
+| steers against the user's messages | each steer's quoted words and its decision checked against the user's messages | in every self-review |
+| linked work | the design's Out of Scope, its Impact on the Application Specs and the designs its Depends On names checked against the work | in every self-review |
+| review's questions | the questions of the review that follows asked of the whole work | in every self-review |
+| user edit | an edit a `user-edit` entry names checked against the design | in every self-review, for each `user-edit` entry since the design's last `self-review` entry, citing its places |
+| worked case | a case worked through a Cause's change or an implementation flaw's settlement | in a self-review following a round's change, for each Cause holding a Proposed Change and each implementation flaw the round settles, citing it |
+| miss's question | a question a Miss names asked of the work, with the answer the work gave | in a self-review following a round's change, for each Question a Miss of the phase names, citing its Cause |
+| differential test | a script the diff changes run against its version at the last commit | in a self-review over applied work, for each script the diff changes, citing it |
+| cycle's changes | the trace of each line a Refactor and Refine cycle's changes show, as `.ai/skills/design-specs/` has a cycle trace them | where a cycle's changes are traced, citing each place `--show-refactor-and-refine-of-existing-specs` lists |
+
+### Script Checks
+
+**Records:**
+  - **Name:** report-in-its-form \
+    **Tests:** each report a check's entry names holds the parts the form requires of it, in their order, its Reading and its Settlement holding the fields this section gives them, and each record of the type its part or field cites, with each field its conditions require and no other, a possible fix in one of its forms among them \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/design-specs/` `--check-report`
+      - `.ai/skills/implement-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--check-report`
+
+  - **Name:** report-laid-out \
+    **Tests:** each report a check's entry names is laid out as [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) and [`specs/methodology/spec-style.md § Blank Lines`](/specs/methodology/spec-style.md#blank-lines) have a block of fields laid out \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/design-specs/` `--check-report`
+      - `.ai/skills/implement-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--check-report`
+
+  - **Name:** findings-settled-once \
+    **Tests:** each Finding of a report a check's entry names is settled by exactly one Settlement, except in a report whose Settlement holds Moved Past \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--append-entry`
+
+  - **Name:** report-keys-name-records \
+    **Tests:** each key a report cites names a record a report the design's log names holds \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--append-entry`
+
+  - **Name:** searches-cover-their-matches \
+    **Tests:** each Search a report holds covers in its Places each match of its Pattern run again over its ground, as this section gives a Search's ground and has each run again \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/design-specs/` `--check-report`
+      - `.ai/skills/implement-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--check-report`
+
+  - **Name:** traces-name-their-paths \
+    **Tests:** a self-review's report holds a Trace naming each path of each construct its phase traces, as this section's paragraph on what the design script checks has it \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--append-entry`
+
+  - **Name:** builder-checks-required \
+    **Tests:** a self-review's report holds each Builder Check its phase requires, covering each item it is required for, as this section's paragraph on what the design script checks has it \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--append-entry`
+
+  - **Name:** reads-cover-the-misses \
+    **Tests:** a self-review's report following a round's change covers in its Reads each place a Miss of the phase names, as this section's paragraph on what the design script checks has it \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--append-entry`
+
+  - **Name:** earlier-reports-listed \
+    **Tests:** a round's settlement lists in its Earlier Reports each report of the phase's record before the round, as this section's paragraph on what the design script checks has it \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--append-entry`
+
+  - **Name:** settling-reads-cover-the-evidence \
+    **Tests:** a round's settlement covers in its Settling Reads each place the Evidence of a Finding whose Verdict is a mark names, as this section's paragraph on what the design script checks has it \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--append-entry`
+
+  - **Name:** tactical-fixes-cover-their-searches \
+    **Tests:** a Proposed Change that is a tactical fix covers in its Places each place its Search found, as this section's paragraph on what the design script checks has it \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--append-entry`
+
+  - **Name:** places-in-their-form \
+    **Tests:** each value holding places in a report a check's entry names is in the form this section gives it \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/design-specs/` `--check-report`
+      - `.ai/skills/implement-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--check-report`
 
 ## Retired Phrase
 

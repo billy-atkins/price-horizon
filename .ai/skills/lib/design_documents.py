@@ -6,7 +6,10 @@ cites, a Target against its Kind and the constructs a design or a file states, t
 constructs.py, for its self-review, show and check the wording a design retires, list the files changed outside
 its Target, check the work against the specs' and the code's script checks in spec_checks.py and code_checks.py, check
 the workstack, show a validation, write citations' links, and show what a
-Refactor and Refine cycle changed.
+Refactor and Refine cycle changed. A check's entry is appended only once its report, in the design's folder, holds the
+form working-files.md § A Check's Report gives it and its records cover what that section has the design script check
+of them, its counts taken from it; a reviewer's part of a review's report is checked by the same units before its
+settlement.
 
 A design document must hold the form working-files.md sets, and the workstack its lineage draws must hold
 together. Its actions are flags per specs/methodology/skills.md § Authoring a Skill. The exit status is 0 when
@@ -18,9 +21,12 @@ folder, per specs/methodology/skills.md § Authoring a Skill.
 """
 
 import argparse
+import bisect
 import collections
+import contextlib
 import datetime
 import hashlib
+import io
 import json
 import re
 import subprocess
@@ -31,7 +37,8 @@ import citation_links
 import constructs
 import layout
 import record_types
-from spec_text import REGISTRY, lineages, read, registry, scope_paths, sections, skill_dirs, spec_texts, strip_fences
+from spec_text import REGISTRY, lineages, parse_citation, read, registry, scope_paths, sections, skill_dirs, spec_texts
+from spec_text import strip_fences, tracked
 from spec_text import resolve as resolve_citation
 
 
@@ -162,7 +169,7 @@ def log_type(root=None):
     kinds, table = {}, body.split("**Reference Key:** Kind", 1)
     for line in (table[1].split("\n") if len(table) > 1 else []):
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
-        if line.startswith("| `") and len(cells) == 3:
+        if line.startswith("| `") and len(cells) == 4:
             given = [] if cells[1] == "none" else [f.strip() for f in cells[1].split(",")]
             kinds[cells[0].strip("`")] = tuple(f for f in values if f in given)
     if not kinds:
@@ -943,9 +950,12 @@ def write_design(design, raw, new):
 
 
 # @canon-spec specs/methodology/working-files.md § Design Log Entry
+# @canon-spec specs/methodology/working-files.md § Design Log Entry § Script Checks [Name: counts-taken-from-the-report]
 def append_entry(value):
     """--append-entry DESIGN KIND [FIELD=VALUE ...]: appends an entry to the design's log, its count among its kind and
-    the UTC time it is appended, refusing one out of its type; -> 0, 1 where it is refused, 2 for a usage error."""
+    the UTC time it is appended, refusing one out of its type; a check's entry only once its report stands in the
+    design's folder, in its form and its records covering what its check had to cover, its counts taken from the
+    report; -> 0, 1 where it is refused, 2 for a usage error."""
     if len(value) < 2:
         sys.stderr.write("--append-entry takes a design document, a kind and the kind's fields as FIELD=VALUE\n")
         return 2
@@ -958,18 +968,38 @@ def append_entry(value):
         return 2
     fields = [tuple(s.strip() for s in p.split("=", 1)) for p in pairs]
     values, counts, kinds, declared = log_type()
-    problems = [p for _, p in declared] + (entry_problems(kind, fields, values, counts, kinds) if kinds else [])
-    if problems:
-        return report("append-entry, not appended", [(design.stem, p) for p in problems])
+    if declared or kind not in kinds:
+        return report("append-entry, not appended", [(design.stem, p) for p in
+                                                     [p for _, p in declared] + entry_problems(kind, fields, values, counts, kinds)])
+    given = [k for k, _ in fields if counts.get(k)]
+    if given:
+        return report("append-entry, not appended", [(COUNT_RULE, "a count given, which is taken from the check's report "
+                                                      "alone: " + ", ".join(given))])
     raw = design.read_bytes().decode("utf-8")
     text = raw.replace("\r\n", "\n")
     body = section(text, LOG)
     count = 1 + len(re.findall(r"^\s*- \*\*Entry:\*\* %s-\d+(?: \\)?\s*$" % re.escape(kind), body or "", re.M))
-    # a check's entry, one holding a Model, names its report, which stands before the entry does
-    report_file = design.parents[2] / "tmp" / design.parent.name / ("%s-%s-%d.md" % (design.stem, kind, count))
-    if "Model" in kinds[kind] and not report_file.is_file():
-        return report("append-entry, not appended", [(design.stem, "a check's entry whose report does not yet exist: "
-                                                      + report_file.relative_to(design.parents[3]).as_posix())])
+    # a check's entry, one holding a Model, names its report, which stands in the design's folder before the entry does
+    if "Model" in kinds[kind]:
+        root = repo_root()
+        report_path = report_file(design, kind, count)
+        if not report_path.is_file():
+            return report("append-entry, not appended", [(design.stem, "a check's entry whose report does not stand in "
+                                                          "the design's folder: " + rel_to(report_path, root))])
+        # a self-review's Script Output, which a report the work moved past holds none of
+        if kind == "self-review" and not moved_past(read_report(read(report_path))):
+            write_script_output(report_path, self_review_output(root, design, text))
+        problems, found = entry_report_problems(root, design, text, kind, count)
+        if problems:
+            return report("append-entry, not appended", problems)
+        taken = report_counts(found)
+        # the kind's fields in the type's order, each count the report's; a field the kind does not give kept, so it
+        # is refused as one out of its type
+        fields = [(k, str(taken[k])) if counts.get(k) else (k, dict(fields)[k]) for k in kinds[kind]
+                  if counts.get(k) or k in dict(fields)] + [(k, v) for k, v in fields if k not in kinds[kind]]
+    problems = entry_problems(kind, fields, values, counts, kinds)
+    if problems:
+        return report("append-entry, not appended", [(design.stem, p) for p in problems])
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     # modeling-constructs.md § Fields: the entry a record, an item two spaces beyond its key, each line a line opening
     # a field's key follows ending with a space and a backslash
@@ -993,6 +1023,929 @@ def append_entry(value):
     write_design(design, raw, new)
     print("== append-entry\n" + block + "\n")
     return 0
+
+
+# ---------------------------------------------------------------- a check's report
+
+WF = "specs/methodology/working-files.md"
+# @canon-spec specs/methodology/working-files.md § A Check's Report
+# where a report's form is declared: its parts are read from that declaration and its record types through the one
+# reader of the record types the specs declare
+REPORT_HOME = (WF, "A Check's Report")
+FORM_RULE = WF + " § A Check's Report"
+COUNT_RULE = WF + " § Design Log Entry"
+FIELDS_RULE = "specs/methodology/modeling-constructs.md § Fields"
+BLANK_LINES_RULE = "specs/methodology/spec-style.md § Blank Lines"
+# @canon-spec specs/methodology/working-files.md § A Check's Report
+REPORT_TITLE = "# Check's Report"
+TITLE_FIELDS = ("Design", "Entry")
+REVIEWS = ("adversarial-review", "post-apply-review")
+JUDGMENT = "handed-off-judgment"
+# the Reading's field, a review's and every other report's; the Settlement's fields, in their order; and what the
+# checks read of a report whose Settlement holds Moved Past, its records and its Settlement's fields, alone
+REVIEW_READING, OWN_READING = "Reviewer Readings", "Reads"
+SETTLEMENT_FIELDS = ("Earlier Reports", "Settling Reads", "Moved Past", "Settlements")
+MOVED_PAST_RECORDS = ("Findings", REVIEW_READING)
+MOVED_PAST_FIELDS = ("Earlier Reports", "Moved Past")
+# the parts a reviewer writes, and the parts holding records, each by its type's Plural Name
+REVIEWER_PARTS = ("Reading", "Findings", "Searches")
+RECORD_PARTS = ("Findings", "Searches", "Traces", "Builder Checks", "Causes")
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Verdicts
+MARKS = ("design flaw", "implementation flaw", "nit")
+FLAWS = MARKS[:2]
+# @canon-spec specs/methodology/working-files.md § Design Log Entry
+# each count of a check's entry, by the last word in its report it counts
+COUNTED = {"Design Flaws": "design flaw", "Implementation Flaws": "implementation flaw", "Nits": "nit", "Dropped": "dropped"}
+# @canon-spec specs/methodology/working-files.md § A Check's Report
+# the fields holding places, by the Plural Name of the type giving them or the part holding them; the one holding a
+# single place, and those holding `none` where they hold no place
+PLACE_FIELDS = {"Reading": ("Reads",), "Settlement": ("Earlier Reports", "Settling Reads"),
+                "Reviewer Readings": ("Collecting Reads", "Earlier Reports", "Weighing Reads"),
+                "Findings": ("Affected Parts", "Broken Rules"), "Report Evidence Items": ("Places",),
+                "Searches": ("Places",), "Builder Checks": ("Places Checked",), "Causes": ("Conflicting Steers",),
+                "Misses": ("Place", "Reads"), "Proposed Changes": ("Places",)}
+ONE_PLACE = {("Misses", "Place")}
+NONE_HELD = {("Reading", "Reads"), ("Settlement", "Earlier Reports"), ("Settlement", "Settling Reads"),
+             ("Reviewer Readings", "Collecting Reads"),
+             ("Reviewer Readings", "Earlier Reports"), ("Reviewer Readings", "Weighing Reads"), ("Searches", "Places")}
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Kinds of Builder Check
+# the checks every self-review requires, and those it requires for each item its phase gives
+EVERY_SELF_REVIEW = ("steers against the user's messages", "linked work", "review's questions")
+USER_EDIT, WORKED_CASE, MISS_QUESTION, DIFFERENTIAL = "user edit", "worked case", "miss's question", "differential test"
+SCRIPTS = (".py", ".ps1", ".sh")
+
+
+def report_file(design, kind, n):
+    """-> a check's report in its design's folder, `.ai/tmp/<skill-name>/<design>/reports/<kind>/{n}.md`."""
+    return design.parents[2] / "tmp" / design.parent.name / design.stem / "reports" / kind / ("%d.md" % n)
+
+
+def rel_to(path, root):
+    try:
+        return Path(path).resolve().relative_to(Path(root).resolve()).as_posix()
+    except ValueError:
+        return Path(path).as_posix()
+
+
+def report_parts(root=None):
+    """-> [(part, heading, required, the rules its Holds cites)] from § A Check's Report's table of parts, in order."""
+    body, path = declaration(REPORT_HOME, root)
+    lines = (body or "").split("\n")
+    head = next((i for i, l in enumerate(lines) if l.startswith("| Part | Heading |")), None)
+    out = []
+    for l in lines[head + 2:] if head is not None else []:
+        if not l.startswith("|"):
+            break
+        cells = [c.strip() for c in l.strip().strip("|").split("|")]
+        if len(cells) < 4:
+            continue
+        heading = re.match(r"`([^`]+)`", cells[1])
+        rules = [path + " " + c if c.startswith("§") else c for c in re.findall(r"`([^`]+)`", cells[3])]
+        out.append((cells[0], heading.group(1) if heading else "", cells[2], rules))
+    return out
+
+
+def canon_rule(rule):
+    """-> a rule the shared readers name by its file's name alone, cited with its path."""
+    return rule if rule.startswith("specs/") else "specs/methodology/" + rule
+
+
+def report_types(root):
+    """-> the record types the specs declare, by their Plural Names, read once through the one reader."""
+    if not record_types.TYPES:
+        record_types.declared_types(spec_texts(root))
+    return record_types.TYPES
+
+
+def as_record(rec):
+    """-> a record as the one reader gives it, [(key, value, line)], as {key: value, "_line": its 0-based line}, a
+    field holding records giving them as such records in turn."""
+    out = {"_line": rec[0][2] if rec else 0}
+    for key, value, _ in rec:
+        if key is not None:
+            out[key] = [as_record(r) for r in value] if isinstance(value, list) else str(value).strip()
+    return out
+
+
+def read_report(text):
+    """-> a check's report as its form reads it: {"in_form", "title" {field: (value, 0-based line)}, "parts"
+    [(part, 0-based line)], "blocks" {part: [field]}, "raw" {plural: records as the one reader gives them}, "records"
+    {plural: [record]}, "settlements", "lines", "problems" [(rule, 1-based line, message)]}. A report not opening with
+    its title is one written before the form, read as holding no records."""
+    text = text.replace("\r\n", "\n")
+    lines = text.split("\n")
+    out = {"in_form": False, "title": {}, "parts": [], "blocks": {}, "raw": {}, "records": {p: [] for p in RECORD_PARTS},
+           "settlements": [], "lines": lines, "problems": [], "text": text}
+    first = next((i for i, l in enumerate(lines) if l.strip()), None)
+    if first is None or lines[first].strip() != REPORT_TITLE:
+        return out
+    out["in_form"] = True
+    k = record_types._next_nonblank(lines, first + 1, len(lines))
+    if k < len(lines) and record_types.opens_key(lines[k]) and not record_types._indent(lines[k]):
+        block, _ = record_types.read_block(lines, k, 0, len(lines))
+        out["title"] = {f["key"]: (str(record_types.value_of(f)).strip(), f["line"]) for f in block}
+    for lineage, (h, end) in sorted(sections(text).items(), key=lambda s: s[1][0]):
+        if " § " in lineage:
+            out["problems"].append((FORM_RULE, h + 1, "a heading beneath a part's, where the form gives none: " + lineage))
+            continue
+        out["parts"].append((lineage, h))
+        if lineage in RECORD_PARTS:
+            recs, problems = record_types.parse_records(text, lineage)
+            out["problems"] += [(rule, i + 1, msg) for rule, i, msg in problems]
+            out["raw"][lineage] = recs
+            out["records"][lineage] = [as_record(r) for r in recs if r and r[0][0] is not None]
+        elif lineage in ("Reading", "Settlement"):
+            k = next((i for i in range(h + 1, end) if record_types.opens_key(lines[i]) and not record_types._indent(lines[i])), None)
+            block, j = record_types.read_block(lines, k, 0, end) if k is not None else ([], h + 1)
+            out["blocks"][lineage] = block
+            rest = record_types._next_nonblank(lines, j, end)
+            if rest < end:
+                out["problems"].append((FORM_RULE, rest + 1, "the %s part holds something other than its fields" % lineage))
+            # a field of the part holding records: the Reading's Reviewer Readings and the Settlement's Settlements
+            for f in block:
+                value = record_types.value_of(f)
+                if (lineage, f["key"]) in (("Reading", REVIEW_READING), ("Settlement", "Settlements")):
+                    recs = value if isinstance(value, list) else []
+                    out["raw"][f["key"]] = recs
+                    if f["key"] == "Settlements":
+                        out["settlements"] = [as_record(r) for r in recs if r and r[0][0] is not None]
+    return out
+
+
+def place_of(text):
+    """-> (path, lineage or None, selector or None) for one citation with its path, as
+    specs/methodology/sourcing-and-citation.md § Writing a Citation writes one, alone in its text; else None."""
+    m = re.fullmatch(r"\s*`([^`]+)`\s*", text or "")
+    if not m or m.group(1).strip().startswith("§"):
+        return None
+    path, target, selector = parse_citation(m.group(1), None)
+    if not path or " " in path:
+        return None
+    return path, target or None, re.sub(r"\s*:\s*", ": ", selector.strip()) if selector else None
+
+
+def place_list(value):
+    """-> the places a value holding places lists, `none` listing none."""
+    return [p for p in (place_of(l) for l in str(value or "").split("\n")
+                        if l.strip() and l.strip(" -`") != "none") if p]
+
+
+def cited_places(text):
+    """-> each place a text cites with its path, wherever in the text it stands."""
+    return [p for p in (place_of("`%s`" % s) for s in re.findall(r"`([^`]+)`", text or "")) if p]
+
+
+def place_key(place):
+    return place[0], place[1] or "", place[2] or ""
+
+
+def cite(place):
+    path, lineage, selector = place
+    return "`%s%s%s`" % (path, " § " + lineage if lineage else "", " [%s]" % selector if selector else "")
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report
+def covers(a, b):
+    """Whether place a covers place b: a file each of its sections, a section each section beneath it, and a part a
+    keyed instance holds itself alone, each matched as it is cited."""
+    if a[0] != b[0]:
+        return False
+    if a[1] is None:
+        return a[2] is None
+    if a[2] is not None:
+        return a == b
+    return b[1] is not None and (b[1] == a[1] or b[1].startswith(a[1] + " § "))
+
+
+def covered(listed, place):
+    return any(covers(a, place) for a in listed)
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: places-in-their-form]
+def places_problems(rep, types):
+    """-> [(rule, message)]: each value holding places in a report out of the form § A Check's Report gives it, a list
+    of citations with their paths, one to an item, or one such citation alone; `none` where its field holds it."""
+    out = []
+
+    def check(where, owner, key, value):
+        items = [l.strip() for l in str(value).split("\n") if l.strip()]
+        if items == ["none"] and (owner, key) in NONE_HELD:
+            return
+        if (owner, key) in ONE_PLACE and len(items) != 1:
+            out.append("%s's %s holds %d places, where it holds one citation" % (where, key, len(items)))
+        out.extend("%s's %s holds an item that is no citation of a place with its path: %s" % (where, key, i)
+                   for i in items if not place_of(i))
+
+    def walk(plural, recs):
+        for rec in recs:
+            for key, value, line in rec:
+                if key is None:
+                    continue
+                if isinstance(value, list):
+                    held = types.get(plural, {}).get("holds", {}).get(key)
+                    if held:
+                        walk(held[0], value)
+                elif key in PLACE_FIELDS.get(plural, ()):
+                    check("line %d, a record of %s" % (line + 1, plural), plural, key, value)
+    for plural, recs in held_records(rep).items():
+        walk(plural, recs)
+    for part, fields in rep["blocks"].items():
+        for f in fields:
+            if f["key"] in PLACE_FIELDS.get(part, ()):
+                check("line %d, the %s part" % (f["line"] + 1, part), part, f["key"], record_types.value_of(f))
+    return [(FORM_RULE, p) for p in out]
+
+
+def settled_findings(settlement):
+    """-> the keys of the Findings a Settlement settles, one to an item of its Settled Findings."""
+    return [k.strip().strip("`").strip() for k in settlement.get("Settled Findings", "").split("\n") if k.strip()]
+
+
+def last_words(rep):
+    """-> {a Finding's key: its last word in the report}: the Verdict of the Settlement settling it, else its own."""
+    out = {f.get("Finding", ""): f.get("Verdict", "") for f in rep["records"]["Findings"]}
+    for s in rep["settlements"]:
+        for k in settled_findings(s):
+            if k in out:
+                out[k] = s.get("Verdict", "")
+    return out
+
+
+def moved_past(rep):
+    return any(f["key"] == "Moved Past" for f in rep["blocks"].get("Settlement", []))
+
+
+def held_records(rep):
+    """-> {plural: records as the one reader gives them} the checks read: of a report whose Settlement holds Moved Past,
+    its Findings and its Reading's alone."""
+    return {p: r for p, r in rep["raw"].items() if not moved_past(rep) or p in MOVED_PAST_RECORDS}
+
+
+# @canon-spec specs/methodology/working-files.md § Design Log Entry § Script Checks [Name: counts-taken-from-the-report]
+def report_counts(rep):
+    """-> each count of a check's entry from its report, each Finding counted once by its last word."""
+    words = collections.Counter(last_words(rep).values())
+    return {field: words[word] for field, word in COUNTED.items()}
+
+
+def require(out, where, rec, key, required, condition):
+    """Holds a field its condition requires to the record, and one its condition does not give out of it."""
+    if required and key not in rec:
+        out.append("%s holds no %s, which its form requires %s" % (where, key, condition))
+    elif not required and key in rec:
+        out.append("%s holds a %s, which its form gives it only %s" % (where, key, condition))
+
+
+def cause_key(value, report_rel):
+    """-> the key of the Cause of the report at report_rel a value names, by its key alone or by a citation; else None."""
+    place = place_of(value)
+    if place is None:
+        return value.strip() or None
+    if place[0] == report_rel and place[1] == "Causes" and (place[2] or "").startswith("Cause: "):
+        return place[2][len("Cause: "):]
+    return None
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]
+def form_problems(rep, ctx, types, parts):
+    """-> [(rule, message)]: a report out of the form § A Check's Report gives it: its title, its parts in their order
+    and those its kind and its settling require, its Reading's and its Settlement's fields, and each record of the type
+    its part or field cites, with each field its conditions require and no other; of a report whose Settlement holds
+    Moved Past, no Causes and no Settlement record, and its Reading, its Findings and its Settlement alone; and
+    ctx["reviewer"] holds the reviewer's part alone to the form."""
+    import spec_checks
+    if not rep["in_form"]:
+        return [(FORM_RULE, "the report does not open with its title, %s" % REPORT_TITLE)]
+    out = [(canon_rule(rule), "line %d: %s" % (line, msg)) for rule, line, msg in rep["problems"]]
+    reviewer, kind, review, rule = ctx["reviewer"], ctx["kind"], ctx["kind"] in REVIEWS, ctx["rule"]
+    # its title
+    title = rep["title"]
+    if list(title) != list(TITLE_FIELDS):
+        out.append((FORM_RULE, "its title's fields are %s, not %s" % (", ".join(title) or "none", ", ".join(TITLE_FIELDS))))
+    for key, want in (("Design", ctx["design"]), ("Entry", ctx["entry"])):
+        if key in title and title[key][0] != want:
+            out.append((FORM_RULE, "its title's %s is %s, not %s" % (key, title[key][0], want)))
+    # its parts, in their order, each once, those required, and, where it was moved past, no other
+    order = [p for p, _, _, _ in parts]
+    held = [p for p, _ in rep["parts"]]
+    out += [(FORM_RULE, "a part the form does not give: " + p) for p in held if p not in order]
+    known = [p for p in held if p in order]
+    if known != sorted(known, key=order.index) or len(set(known)) != len(known):
+        out.append((FORM_RULE, "its parts are %s, not in the order the form gives them, each once" % ", ".join(known)))
+    moved, recs = moved_past(rep), rep["records"]
+    settlements = rep["settlements"] + ctx["judgment_settlements"]
+    required = {"Reading"} if reviewer else {"Reading", "Settlement"}
+    if not reviewer and not moved:
+        if kind == "self-review":
+            required.add("Script Output")
+        if review and any(s.get("Verdict") in MARKS for s in settlements):
+            required.add("Causes")
+    for p in sorted(required - set(held), key=order.index):
+        out.append((rule(p), "it holds no %s part, which its form requires of it" % p))
+    if moved and "Causes" in held:
+        out.append((rule("Causes"), "it holds a Causes part, though its Settlement holds Moved Past"))
+    # its Reading's field, and its Settlement's fields, in their order
+    keys = [f["key"] for f in rep["blocks"].get("Reading", [])]
+    want = [REVIEW_READING if review else OWN_READING]
+    if "Reading" in held and keys != want:
+        out.append((rule("Reading"), "its Reading's fields are %s, not %s" % (", ".join(keys) or "none", want[0])))
+    cond = []
+    if "Settlement" in held and not reviewer:
+        keys = [f["key"] for f in rep["blocks"].get("Settlement", [])]
+        if keys != [k for k in SETTLEMENT_FIELDS if k in keys] or any(k not in SETTLEMENT_FIELDS for k in keys):
+            out.append((rule("Settlement"), "its Settlement's fields are %s, not of %s in that order"
+                        % (", ".join(keys) or "none", ", ".join(SETTLEMENT_FIELDS))))
+        has = dict.fromkeys(keys)
+        require(cond, "its Settlement", has, "Earlier Reports", True, "always")
+        if moved:
+            cond += ["its Settlement holds %s, though it holds Moved Past" % k for k in keys if k not in MOVED_PAST_FIELDS]
+        else:
+            require(cond, "its Settlement", has, "Settling Reads", review, "where the report is a review's and its round is settled")
+            require(cond, "its Settlement", has, "Settlements", bool(recs["Findings"]), "where the report holds a Finding")
+    out += [(rule("Settlement"), c) for c in cond]
+    # each record of its type, a part's or a field's, its required fields and its values
+    found, raw = [], held_records(rep)
+    for plural in RECORD_PARTS + (REVIEW_READING, "Settlements"):
+        if reviewer and plural not in REVIEWER_PARTS + (REVIEW_READING,):
+            continue
+        if plural in raw and plural in types:
+            spec_checks._check_records(raw[plural], types[plural], WF, "the report", lambda i: i + 1, found, "its %s" % plural)
+    out += [(canon_rule(r), "line %d: %s" % (line, msg)) for r, _, line, msg in found]
+    # each field its conditions require, and no other
+    cond = []
+    for f in recs["Findings"]:
+        where, mark = "line %d, Finding %s" % (f["_line"] + 1, f.get("Finding", "")), f.get("Verdict") in MARKS
+        for key in ("Decision", "Possible Fix"):
+            require(cond, where, f, key, mark, "where its Verdict is a mark")
+        require(cond, where, f, "Affected Parts", mark and "Broken Rules" not in f, "where its Verdict is a mark and it holds no Broken Rules")
+        require(cond, where, f, "Broken Rules", mark and "Affected Parts" not in f, "where its Verdict is a mark and it holds no Affected Parts")
+        require(cond, where, f, "Evidence", f.get("Verdict") != "review observation", "where its Verdict is not a review observation")
+        require(cond, where, f, "Lies In", mark and ctx["applied"], "where its Verdict is a mark and the report lies over applied work")
+        for fix in f.get("Possible Fix") or []:
+            if isinstance(fix, dict):
+                require(cond, where + "'s Possible Fix", fix, "Fix", fix.get("Kind") == "tactical fix", "where its Kind is tactical fix")
+                require(cond, where + "'s Possible Fix", fix, "Delivers", fix.get("Kind") == "revision", "where its Kind is revision")
+    out += [(rule("Findings"), c) for c in cond]
+    if reviewer or moved:
+        return out
+    cond = []
+    for t in recs["Traces"]:
+        require(cond, "line %d, Trace %s" % (t["_line"] + 1, t.get("Trace", "")), t, "Outcome", ctx["trace_outcome"],
+                "where the report is a self-review's before the apply, and no plan-approval entry of the phase stands "
+                "before it but one an another-round entry follows")
+    out += [(rule("Traces"), c) for c in cond]
+    cond = []
+    for c in recs["Causes"]:
+        where = "line %d, Cause %s" % (c["_line"] + 1, c.get("Cause", ""))
+        naming = [s for s in settlements if cause_key(s.get("Cause", ""), ctx["report_rel"]) == c.get("Cause")]
+        flaw = any(s.get("Verdict") in FLAWS for s in naming)
+        unwritten = kind == REVIEWS[1] and any(s.get("Lies In") in ("the plan", "handed on") for s in naming)
+        require(cond, where, c, "Outcome", "Continues" in c, "where Continues is held")
+        require(cond, where, c, "Misses", flaw, "where it settles a design flaw or an implementation flaw")
+        # a Cause settling only nits may hold the change that fixes them
+        if flaw or "Proposed Change" not in c:
+            require(cond, where, c, "Proposed Change", flaw and not unwritten,
+                    "where it settles a flaw, no Settlement naming it giving Lies In the plan or handed on in a post-apply round")
+        for miss in c.get("Misses") or []:
+            if isinstance(miss, dict):
+                asked, at = miss.get("Kind") == "question not asked", where + "'s Miss " + miss.get("Miss", "")
+                for k in ("Place", "Reads"):
+                    require(cond, at, miss, k, not asked, "where its Kind is not question not asked")
+                for k in ("Question", "Answer"):
+                    require(cond, at, miss, k, asked, "where its Kind is question not asked")
+        for change in c.get("Proposed Change") or []:
+            if isinstance(change, dict):
+                for k in ("Search", "Reason"):
+                    require(cond, where + "'s Proposed Change", change, k, change.get("Kind") == "tactical fix", "where its Kind is tactical fix")
+                require(cond, where + "'s Proposed Change", change, "Decision Rewritten", change.get("Kind") == "revision", "where its Kind is revision")
+    out += [(rule("Causes"), c) for c in cond]
+    cond = []
+    for s in rep["settlements"]:
+        where, mark = "line %d, Settlement %s" % (s["_line"] + 1, s.get("Settlement", "")), s.get("Verdict") in MARKS
+        require(cond, where, s, "Lies In", mark and ctx["applied"], "where its Verdict is a mark and the report lies over applied work")
+        # a judgment's Settlement cites the round's Cause where it is settled with a round, checked at the round's entry
+        if kind != JUDGMENT or "Cause" not in s:
+            require(cond, where, s, "Cause", mark and "Causes" in held, "where the report holds Causes and its Verdict is a mark")
+    causes = {c.get("Cause") for c in recs["Causes"]}
+    cond += ["a handed-off judgment's Settlement %s, settled with the round, cites no Cause of its report by the report "
+             "and the Cause's key" % s.get("Settlement", "") for s in ctx["judgment_settlements"]
+             if s.get("Verdict") in MARKS and not (place_of(s.get("Cause", "")) and cause_key(s["Cause"], ctx["report_rel"]) in causes)]
+    out += [(rule("Settlement"), c) for c in cond]
+    return out
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-laid-out]
+def layout_problems(rep, root):
+    """-> [(rule, message)]: the report laid out otherwise than modeling-constructs.md § Fields and spec-style.md
+    § Blank Lines have a block of fields laid out."""
+    found = record_types.block_findings(rep["text"]) + layout.findings(rep["text"], layout.rules(root)[0])
+    return [(FIELDS_RULE if "Fields" in rule else BLANK_LINES_RULE, "line %d: %s" % (line, msg)) for rule, line, msg in found]
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-settled-once]
+def settled_problems(rep, ctx):
+    """-> [(rule, message)]: a Finding settled by no Settlement, or by more than one, but in a report whose Settlement
+    holds Moved Past."""
+    if moved_past(rep):
+        return []
+    times = collections.Counter(k for s in rep["settlements"] for k in settled_findings(s))
+    return [(ctx["rule"]("Settlement"), "Finding %s is settled by %d Settlements, not exactly one" % (f.get("Finding", ""), times[f.get("Finding", "")]))
+            for f in rep["records"]["Findings"] if times[f.get("Finding", "")] != 1]
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-keys-name-records]
+def key_problems(rep, ctx, named):
+    """-> [(rule, message)]: a key the report cites naming no record a report the design's log names holds, this report
+    among them: a Finding a Settlement settles, the Cause it lies in and the Search a Proposed Change cites, each by its
+    key alone in this report; and each record a citation of a report in the design's folder names, the Cause a Cause
+    continues or a Settlement weighs again by such a citation; none in a report whose Settlement holds Moved Past."""
+    recs, out = rep["records"], []
+    if moved_past(rep):
+        return out
+    keys = lambda part, field: {r.get(field) for r in recs[part]}
+    settling, causing = ctx["rule"]("Settlement"), ctx["rule"]("Causes")
+    for s in rep["settlements"]:
+        where = "Settlement %s" % s.get("Settlement", "")
+        out += [(settling, "%s settles %s, which no Finding of the report is" % (where, k))
+                for k in settled_findings(s) if k not in keys("Findings", "Finding")]
+        if "Cause" in s and place_of(s["Cause"]) is None and s["Cause"] not in keys("Causes", "Cause"):
+            out.append((settling, "%s names a Cause the report does not hold: %s" % (where, s["Cause"])))
+        if "Weighs Again" in s and place_of(s["Weighs Again"]) is None:
+            out.append((settling, "%s weighs again a Cause not cited with its report: %s" % (where, s["Weighs Again"])))
+    for c in recs["Causes"]:
+        if "Continues" in c and place_of(c["Continues"]) is None:
+            out.append((causing, "Cause %s continues a Cause not cited with its report: %s" % (c.get("Cause", ""), c["Continues"])))
+        for change in c.get("Proposed Change") or []:
+            if isinstance(change, dict) and "Search" in change and change["Search"] not in keys("Searches", "Search"):
+                out.append((causing, "Cause %s's Proposed Change cites a Search the report does not hold: %s" % (c.get("Cause", ""), change["Search"])))
+    reports = dict(named, **{ctx["report_rel"]: rep})
+    for place in cited_places(strip_fences(rep["text"])):
+        path, part, selector = place
+        if not path.startswith(ctx["folder"]) or not part or not selector or ": " not in selector:
+            continue
+        key, value = selector.split(": ", 1)
+        held = reports.get(path)
+        if held is None:
+            out.append((FORM_RULE, "it cites %s, in a report the design's log does not name" % cite(place)))
+        elif not any(r.get(key) == value for r in (held["settlements"] if part == "Settlement" else held["records"].get(part, []))):
+            out.append((FORM_RULE, "it cites %s, a record that report does not hold" % cite(place)))
+    return out
+
+
+def text_at(root, path, kept):
+    """-> a file's text as a search reads it: at the last commit where a send-back's kept changes stand, as
+    working-files.md § A Design Document § The States It Moves Through § A Send-back has a reading made, else as it
+    stands; None where it cannot be read."""
+    if path in kept:
+        shown = subprocess.run(["git", "show", "HEAD:" + path], capture_output=True, cwd=root)
+        return shown.stdout.decode("utf-8", "replace").replace("\r\n", "\n") if shown.returncode == 0 else None
+    try:
+        return (root / path).read_text(encoding="utf-8").replace("\r\n", "\n")
+    except (OSError, UnicodeDecodeError):
+        return None
+
+
+def step_lines(design_text):
+    """-> {0-based line: the Name of the design's step holding it}."""
+    lines = design_text.split("\n")
+    start = next((i for i, l in enumerate(lines) if re.match(r"^## Design Plan Steps\s*$", l)), None)
+    if start is None:
+        return {}
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+    out = {}
+    for step in records_read("\n".join(lines[start:end])) or []:
+        if step["fields"]:
+            name = str(record_types.value_of(step["fields"][0])).strip()
+            out.update({start + n: name for n in step["lines"]})
+    return out
+
+
+def line_places(path, text, steps=None):
+    """-> each 0-based line's place: in a design's step, that step; in a Markdown file, the section holding it; else, or
+    before a file's first section, the file."""
+    holding = {}
+    if path.endswith(".md"):
+        for lineage, (h, end) in sections(text).items():
+            holding.update({n: lineage for n in range(h, end)})
+    steps = steps or {}
+    return lambda n: (path, "Design Plan Steps", "Name: " + steps[n]) if n in steps else (path, holding.get(n), None)
+
+
+# @canon-spec specs/methodology/working-files.md § A Design Document § The Kinds of Change
+def file_kind(path, skills, code):
+    """-> a file's kind of change, or None for a working file; code, the code roots and the paths excluded from them."""
+    if is_working_file(path):
+        return None
+    roots, excluded = code
+    inside = lambda p, dirs: any(p == d or p.startswith(d + "/") for d in dirs)
+    if inside(path, roots) and not inside(path, excluded):
+        return "code"
+    if path == "README.md" or path.startswith("docs/"):
+        return "documentation"
+    return kind_of(path, skills) or "other"
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report
+def search_ground(root, design_rel, design_text, target, kept):
+    """-> a function giving a Search's ground as {path: text}, read once: the design document and the files of each
+    kind of those its Target names, with, for canon-specs, every file of Spec of Record's scope but code, and, for
+    application-specs, the code; the working files aside."""
+    held = {}
+
+    def ground():
+        if not held:
+            import code_checks
+            skills, code = skill_dirs(root), code_checks.code_roots(root) or ([], [])
+            kind = lambda p: file_kind(p, skills, code)
+            kinds = {kind(p) for p in target}
+            scope = set(scope_files(root)) if "canon-specs" in kinds else set()
+            for path in sorted(tracked(root, others=True) or scope_files(root)):
+                k = kind(path)
+                if k in kinds or (path in scope and k != "code") or ("application-specs" in kinds and k == "code"):
+                    text = text_at(root, path, kept)
+                    if text is not None:
+                        held[path] = text
+            held[design_rel] = design_text
+        return held
+    return ground
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]
+def search_problems(rep, ctx):
+    """-> [(rule, message)]: each match of a Search's Pattern, run again over its ground, in a place its Places do not
+    cover; none in a report whose Settlement holds Moved Past. A reviewer's Search, its key naming its Reviewer Reading
+    before it, is run again by --check-report alone, before the round's change is made."""
+    out = []
+    reviewers = tuple(as_record(r).get("Reviewer", "") + "-" for r in rep["raw"].get(REVIEW_READING, []) if r and r[0][0] is not None)
+    for s in rep["records"]["Searches"] if not moved_past(rep) else []:
+        if not ctx["reviewer"] and s.get("Search", "").startswith(tuple(r for r in reviewers if r != "-")):
+            continue
+        pattern = s.get("Pattern", "")
+        pattern = pattern[1:-1] if len(pattern) > 1 and pattern[0] == pattern[-1] == "`" else pattern
+        try:
+            compiled = re.compile(pattern)
+        except re.error as exc:
+            out.append("Search %s's Pattern is no regular expression Python's re reads: %s" % (s.get("Search", ""), exc))
+            continue
+        listed, missed = place_list(s.get("Places", "")), []
+        for path, text in ctx["ground"]().items():
+            place_at = line_places(path, text, ctx["steps"] if path == ctx["design_rel"] else None)
+            starts = [0] + [m.end() for m in re.finditer("\n", text)]
+            for m in compiled.finditer(text):
+                if m.end() == m.start():
+                    continue
+                place = place_at(bisect.bisect_right(starts, m.start()) - 1)
+                if not covered(listed, place) and place not in missed:
+                    missed.append(place)
+        out += ["Search %s's Pattern matches in %s, which its Places do not cover" % (s.get("Search", ""), cite(p)) for p in missed]
+    return [(ctx["rule"]("Searches"), p) for p in out]
+
+
+def log_entries(text):
+    """-> each entry of a design's log as (kind, count, {field: value}), in the order the entries stand."""
+    out = []
+    for record in records(section(text, LOG)) or []:
+        f = {k: v.strip() for k, v in record}
+        m = re.fullmatch(r"([a-z-]+?)-(\d+)", f.get("Entry", ""))
+        if m:
+            out.append((m.group(1), int(m.group(2)), f))
+    return out
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report
+def over_applied(entries):
+    """Whether an entry appended after these lies over applied work: after the design's last apply entry, with no
+    entered entry after that."""
+    applies = [i for i, e in enumerate(entries) if e[0] == "apply"]
+    return bool(applies) and not any(e[0] == "entered" for e in entries[applies[-1] + 1:])
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report
+def phase_start(entries, applied):
+    """-> where the phase an entry appended after these stands in starts: a post-apply review's after the design's last
+    apply entry, and an adversarial review's after its last reassessment entry deciding other than go on or its last
+    entered entry sent back, whichever stands later, or at the log's start."""
+    if applied:
+        return max(i for i, e in enumerate(entries) if e[0] == "apply") + 1
+    return max([i + 1 for i, (k, _, f) in enumerate(entries)
+                if (k == "reassessment" and f.get("Decision") != "go on") or (k == "entered" and f.get("Reason") == "sent back")],
+               default=0)
+
+
+def phase_record(design, entries, applied, root):
+    """-> [(path, report)] for each report of the phase's record, its review entries' and its handed-off judgments'."""
+    review = REVIEWS[1] if applied else REVIEWS[0]
+    return [(rel_to(report_file(design, k, n), root), load_report(design, k, n))
+            for k, n, _ in entries[phase_start(entries, applied):] if k in (review, JUDGMENT)]
+
+
+def load_report(design, kind, n):
+    path = report_file(design, kind, n)
+    return read_report(read(path)) if path.is_file() else read_report("")
+
+
+def named_reports(design, entries, root):
+    """-> {path: report} for each report a check's entry of the design's log names."""
+    kinds = log_type()[2]
+    return {rel_to(report_file(design, k, n), root): load_report(design, k, n)
+            for k, n, _ in entries if "Model" in kinds.get(k, ())}
+
+
+def round_change_followed(design, entries, applied, root):
+    """-> (path, report) of the round whose change a self-review appended after these follows: the last review entry of
+    its phase after the design's last self-review entry, where its report holds a Proposed Change; else None."""
+    last = max((i for i, e in enumerate(entries) if e[0] == "self-review"), default=-1)
+    review = REVIEWS[1] if applied else REVIEWS[0]
+    rounds = [i for i, e in enumerate(entries) if i > max(last, phase_start(entries, applied) - 1) and e[0] in REVIEWS]
+    if not rounds or entries[rounds[-1]][0] != review:
+        return None
+    k, n, _ = entries[rounds[-1]]
+    rep = load_report(design, k, n)
+    return (rel_to(report_file(design, k, n), root), rep) if any(c.get("Proposed Change") for c in rep["records"]["Causes"]) else None
+
+
+def judgment_settlements(design, entries):
+    """-> the Settlements of each handed-off judgment settled with a round appended after these: its report standing in
+    the design's folder, no entry naming it."""
+    done = sum(1 for e in entries if e[0] == JUDGMENT)
+    folder = report_file(design, JUDGMENT, 1).parent
+    return [s for path in (sorted(folder.glob("*.md")) if folder.is_dir() else [])
+            if path.stem.isdigit() and int(path.stem) > done for s in read_report(read(path))["settlements"]]
+
+
+def constructs_in(path, text, lines1=None):
+    """-> [(place, construct, its paths)] for each Decision Table and State Machine a file states, or, given 1-based
+    lines, each standing in a section those lines change."""
+    secs, out = sections(text), []
+    for _, name, fields, tables, lineage in constructs.declarations(strip_fences(text), secs):
+        if name not in WHOLE or lineage not in secs:
+            continue
+        h, end = secs[lineage]
+        if lines1 is None or any(h <= n - 1 < end for n in lines1):
+            out.append(((path, lineage, None), name, constructs.paths(name, fields, tables)))
+    return out
+
+
+def traced_constructs(ctx):
+    """-> [(the places citing it, construct, its paths)] for each Decision Table and State Machine a self-review's phase
+    traces: before the apply, each a step's Objectives state whole, cited by the step or its section; at it, each a
+    section the diff changed holds."""
+    if ctx["applied"]:
+        text_of = spec_texts(ctx["root"])
+        return [([place], name, paths) for path, lines in sorted(ctx["changes"].items()) if path in text_of
+                for place, name, paths in constructs_in(path, text_of[path], lines)]
+    out = []
+    for step, _, item in objectives_stating_constructs(ctx["design_text"]):
+        placed = construct_block(item)
+        if placed:
+            path, lineage, block = placed
+            for _, name, fields, tables, _ in constructs.declarations("\n".join(block), {}):
+                if name in WHOLE:
+                    out.append(([(ctx["design_rel"], "Design Plan Steps", "Name: " + step), (path, lineage, None)],
+                                name, constructs.paths(name, fields, tables)))
+    return out
+
+
+def path_name(text):
+    return re.sub(r"\s*,\s*", ", ", re.sub(r"\s+", " ", text.replace("`", ""))).strip()
+
+
+def required_checks(ctx):
+    """-> [(Builder Check kind, the places its Places Checked must cover)] for each Builder Check a self-review's phase
+    requires, as § A Check's Report § Kinds of Builder Check gives it."""
+    entries, out = ctx["entries"], [(k, []) for k in EVERY_SELF_REVIEW]
+    last = max((i for i, e in enumerate(entries) if e[0] == "self-review"), default=-1)
+    # an edit's place read as a citation, a part a keyed instance holds among them
+    out += [(USER_EDIT, [p for p in (place_of("`%s`" % " § ".join(x for x in ps if x)) for ps in places(f.get("Places", ""))) if p])
+            for k, _, f in entries[last + 1:] if k == "user-edit"]
+    if ctx["round"]:
+        path, rep = ctx["round"]
+        worked = [(path, "Causes", "Cause: " + c.get("Cause", "")) for c in rep["records"]["Causes"] if c.get("Proposed Change")]
+        worked += [(path, "Findings", "Finding: " + k) for k, w in last_words(rep).items() if w == "implementation flaw"]
+        asked = [(p, "Causes", "Cause: " + c.get("Cause", "")) for p, r in ctx["record"] for c in r["records"]["Causes"]
+                 if any(isinstance(m, dict) and m.get("Kind") == "question not asked" for m in c.get("Misses") or [])]
+        out += [(k, items) for k, items in ((WORKED_CASE, worked), (MISS_QUESTION, asked)) if items]
+    if ctx["applied"]:
+        import code_checks
+        skills, code = skill_dirs(ctx["root"]), code_checks.code_roots(ctx["root"]) or ([], [])
+        # the code the specs govern is no script, its tests checking it
+        scripts = [(p, None, None) for p in sorted(ctx["changes"]) if p.endswith(SCRIPTS) and file_kind(p, skills, code) != "code"]
+        out += [(DIFFERENTIAL, scripts)] if scripts else []
+    return out
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: traces-name-their-paths]
+def trace_problems(rep, ctx):
+    """-> [(rule, message)]: a construct a self-review's phase traces with no Trace, or a Trace leaving out a path."""
+    out, rule = [], ctx["rule"]
+    for mechanisms, name, paths in traced_constructs(ctx):
+        traced = [t for t in rep["records"]["Traces"] if set(cited_places(t.get("Mechanism", ""))) & set(mechanisms)]
+        if not traced:
+            out.append((rule("Traces"), "no Trace of the %s at %s" % (name, cite(mechanisms[-1]))))
+            continue
+        done = {path_name(p.get("Path", "")) for t in traced for p in t.get("Paths") or [] if isinstance(p, dict)}
+        # a row named by all its cells names its condition cells first
+        out += [(rule("Traces"), "the Trace of the %s at %s leaves out a path: %s" % (name, cite(mechanisms[-1]), p))
+                for p in paths if not any(d == path_name(p) or d.startswith(path_name(p) + ", ") for d in done)]
+    return out
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: builder-checks-required]
+def builder_check_problems(rep, ctx):
+    """-> [(rule, message)]: a Builder Check a self-review's phase requires missing, or not covering its items."""
+    out, rule = [], ctx["rule"]
+    for check, items in required_checks(ctx):
+        made = [b for b in rep["records"]["Builder Checks"] if b.get("Kind") == check]
+        if not made:
+            out.append((rule("Builder Checks"), "no Builder Check of %s, which its phase requires" % check))
+            continue
+        checked = [p for b in made for p in place_list(b.get("Places Checked", ""))]
+        out += [(rule("Builder Checks"), "its Builder Checks of %s leave out %s" % (check, cite(p)))
+                for p in items if not covered(checked, p)]
+    return out
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: reads-cover-the-misses]
+def miss_read_problems(rep, ctx):
+    """-> [(rule, message)]: a place a Miss of the phase names that the Reads of a self-review following a round's
+    change leave out."""
+    if not ctx["round"]:
+        return []
+    reads = place_list(next((record_types.value_of(f) for f in rep["blocks"].get("Reading", []) if f["key"] == OWN_READING), ""))
+    missed = [place_of(m.get("Place", "")) for _, r in ctx["record"] for c in r["records"]["Causes"]
+              for m in c.get("Misses") or [] if isinstance(m, dict)]
+    return [(ctx["rule"]("Reading"), "its Reads leave out %s, a place a Miss of the phase names" % cite(p))
+            for p in sorted(set(p for p in missed if p), key=place_key) if not covered(reads, p)]
+
+
+def settlement_block(rep):
+    return {f["key"]: record_types.value_of(f) for f in rep["blocks"].get("Settlement", [])}
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: earlier-reports-listed]
+def earlier_report_problems(rep, ctx):
+    """-> [(rule, message)]: a report of the phase's record a round's Earlier Reports leave out."""
+    earlier = place_list(settlement_block(rep).get("Earlier Reports", ""))
+    return [(ctx["rule"]("Settlement"), "its Earlier Reports leave out `%s`, a report of the phase's record" % p)
+            for p, _ in ctx["record"] if not covered(earlier, (p, None, None))]
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: settling-reads-cover-the-evidence]
+def settling_read_problems(rep, ctx):
+    """-> [(rule, message)]: a place the Evidence of a marked Finding names that a round's Settling Reads leave out."""
+    reads = place_list(settlement_block(rep).get("Settling Reads", ""))
+    evidence = {p for f in rep["records"]["Findings"] if f.get("Verdict") in MARKS for ev in f.get("Evidence") or []
+                if isinstance(ev, dict) for p in place_list(ev.get("Places", ""))}
+    return [(ctx["rule"]("Settlement"), "its Settling Reads leave out %s, a place the Evidence of a marked Finding names" % cite(p))
+            for p in sorted(evidence, key=place_key) if not covered(reads, p)]
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: tactical-fixes-cover-their-searches]
+def tactical_fix_problems(rep, ctx):
+    """-> [(rule, message)]: a place a tactical fix's Search found that its Places leave out."""
+    out, searches = [], {s.get("Search"): s for s in rep["records"]["Searches"]}
+    for c in rep["records"]["Causes"]:
+        for change in c.get("Proposed Change") or []:
+            if isinstance(change, dict) and change.get("Kind") == "tactical fix" and change.get("Search") in searches:
+                wrote = place_list(change.get("Places", ""))
+                out += [(ctx["rule"]("Causes"), "Cause %s's tactical fix leaves out %s, a place its Search found" % (c.get("Cause"), cite(p)))
+                        for p in place_list(searches[change["Search"]].get("Places", "")) if not covered(wrote, p)]
+    return out
+
+
+def cover_problems(rep, ctx):
+    """-> [(rule, message)]: what a self-review's records or a round's settlement leave uncovered of what § A Check's
+    Report has the design script check of them, by the unit of each record; nothing of a report whose Settlement holds
+    Moved Past."""
+    if moved_past(rep) or ctx["kind"] not in REVIEWS + ("self-review",):
+        return []
+    units = ((trace_problems, builder_check_problems, miss_read_problems) if ctx["kind"] == "self-review"
+             else (earlier_report_problems, settling_read_problems, tactical_fix_problems))
+    return [p for unit in units for p in unit(rep, ctx)]
+
+
+def report_context(root, design, design_text, kind, n, entries, reviewer=False):
+    """-> what a report's checks read of its design and its log: its kind and entry, the design's Name, whether it lies
+    over applied work, whether its Traces give their Outcome, the Settlements of the judgments settled with a round, a Search's ground, the phase's record, the round whose change a
+    self-review follows, the diff's changes over applied work, and the rules each part's Holds cites."""
+    applied = over_applied(entries)
+    start = phase_start(entries, applied)
+    approvals = [i for i, e in enumerate(entries) if i >= start and e[0] == "plan-approval"
+                 and not any(x[0] == "another-round" for x in entries[i + 1:])]
+    kept = [] if applied else kept_changes(root, design_text)
+    fields = dict(read_design(design)[1])
+    path = report_file(design, kind, n)
+    commit = last_commit(root) if applied and kind == "self-review" and not reviewer else None
+    rules = {p: ", ".join(r) or FORM_RULE for p, _, _, r in report_parts(root)}
+    return {"root": root, "kind": kind, "entry": "%s-%d" % (kind, n), "design": fields.get("Name", design.stem),
+            "applied": applied, "reviewer": reviewer, "entries": entries, "design_rel": rel_to(design, root),
+            "design_text": design_text, "steps": step_lines(design_text), "report_rel": rel_to(path, root),
+            "folder": rel_to(path.parents[1], root) + "/",
+            "trace_outcome": kind == "self-review" and not applied and not approvals,
+            "judgment_settlements": judgment_settlements(design, entries) if kind in REVIEWS and not reviewer else [],
+            "ground": search_ground(root, rel_to(design, root), design_text,
+                                    re.findall(r"`([^`]+)`", fields.get("Target", "")), kept),
+            "record": phase_record(design, entries, applied, root) if not reviewer else [],
+            "round": round_change_followed(design, entries, applied, root) if kind == "self-review" else None,
+            "changes": work_changes(root, commit)[0] if commit else {},
+            "rule": lambda part: rules.get(part, FORM_RULE)}
+
+
+def entry_report_problems(root, design, design_text, kind, n):
+    """-> ([(rule, message)] refusing a check's entry, the report read): the report held to its form and its layout,
+    each value holding places in its form, each Finding settled once, each key naming a record, each Search's matches
+    covered, and its records covering what its check had to cover."""
+    entries = log_entries(design_text)
+    path = report_file(design, kind, n)
+    rep = read_report(read(path))
+    ctx = report_context(root, design, design_text, kind, n, entries)
+    problems = form_problems(rep, ctx, report_types(root), report_parts(root))
+    if rep["in_form"]:
+        problems += layout_problems(rep, root) + places_problems(rep, report_types(root)) + settled_problems(rep, ctx)
+        problems += key_problems(rep, ctx, named_reports(design, entries, root)) + search_problems(rep, ctx)
+        problems += cover_problems(rep, ctx)
+    return [(rule, "%s: %s" % (ctx["report_rel"], msg)) for rule, msg in problems], rep
+
+
+def self_review_output(root, design, design_text):
+    """-> the output of the design script's checks the self-review runs for its phase: before the apply,
+    --check-cited-headings, --check-target-kind, --check-constructs on a design .ai/skills/design-specs/ writes, and
+    --show-reach where it records Retired Phrases; at the apply, --check-constructs on each file of the Target holding a
+    construct the diff changed, --check-work, --check-retired-wording and --check-changed-files."""
+    value = str(design)
+    if not over_applied(log_entries(design_text)):
+        runs = [("--check-cited-headings", check_cited_headings, value), ("--check-target-kind", check_target_kind, value)]
+        if Path(design).resolve().parent.name == "design-specs":
+            runs.append(("--check-constructs", check_constructs, value))
+        if retired_phrases(design_text):
+            runs.append(("--show-reach", show_reach, value))
+    else:
+        commit = last_commit(root)
+        changes = work_changes(root, commit)[0] if commit else {}
+        target = set(re.findall(r"`([^`]+)`", dict(read_design(design)[1]).get("Target", "")))
+        text_of = spec_texts(root)
+        runs = [("--check-constructs", check_constructs, str(root / p)) for p in sorted(changes)
+                if p in target and p in text_of and constructs_in(p, text_of[p], changes[p])]
+        runs += [("--check-work", check_work, value), ("--check-retired-wording", check_retired_wording, value),
+                 ("--check-changed-files", check_changed_files, value)]
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(out):
+        for flag, run, arg in runs:
+            print("$ %s %s" % (flag, rel_to(arg, root)))
+            print("exit %d\n" % run(arg))
+    return out.getvalue()
+
+
+def write_script_output(path, output):
+    """Write a self-review's Script Output part into its report, replacing any it holds, where the form orders it."""
+    raw = path.read_bytes().decode("utf-8")
+    lines = raw.replace("\r\n", "\n").rstrip("\n").split("\n")
+    fence = "````" if "```" in output else "```"
+    part = ["## Script Output", "", fence + "text"] + output.rstrip("\n").split("\n") + [fence]
+    secs = sections("\n".join(lines))
+    order = [p for p, _, _, _ in report_parts(repo_root())]
+    if "Script Output" in secs:
+        h, end = secs["Script Output"]
+        lines = lines[:h] + part + [""] + lines[end:]
+    else:
+        later = order[order.index("Script Output") + 1:] if "Script Output" in order else []
+        at = min((secs[p][0] for p in later if p in secs), default=None)
+        lines = lines + [""] + part if at is None else lines[:at] + part + [""] + lines[at:]
+    text = re.sub(r"\n{3,}", "\n\n", "\n".join(lines).rstrip("\n") + "\n")
+    path.write_bytes((text.replace("\n", "\r\n") if "\r\n" in raw else text).encode("utf-8"))
+
+
+def report_of(value):
+    """-> (design, kind, count) of a report at its path in a design's folder,
+    `.ai/tmp/<skill-name>/<design>/reports/<kind>/{n}.md`, its design `.ai/plans/<skill-name>/<design>.md`; or None."""
+    path = Path(value).resolve()
+    if len(path.parents) < 6 or not path.stem.isdigit() or path.parents[1].name != "reports" or path.parents[4].name != "tmp":
+        return None
+    design = path.parents[5] / "plans" / path.parents[3].name / (path.parents[2].name + ".md")
+    return (design, path.parent.name, int(path.stem)) if design.is_file() else None
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: places-in-their-form]
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-laid-out]
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]
+def check_report(value):
+    """--check-report REPORT: a review's report, before its settlement, its reviewer's part held to its form, its
+    Searches run again; writes no file; -> 1 where it reports, 0 where it reports nothing, 2 for a usage error."""
+    root = repo_root()
+    found = report_of(value) if Path(value).is_file() else None
+    if found is None or found[1] not in REVIEWS:
+        sys.stderr.write("--check-report takes a review's report at its path in a design's folder, "
+                         ".ai/tmp/<skill-name>/<design>/reports/<kind>/{n}.md: %s\n" % value)
+        return 2
+    design, kind, n = found
+    design_text = read(design).replace("\r\n", "\n")
+    rep = read_report(read(Path(value)))
+    ctx = report_context(root, design, design_text, kind, n, log_entries(design_text), reviewer=True)
+    problems = form_problems(rep, ctx, report_types(root), report_parts(root))
+    if rep["in_form"]:
+        problems += layout_problems(rep, root) + places_problems(rep, report_types(root)) + search_problems(rep, ctx)
+    return report("check-report " + rel_to(value, root), problems)
 
 
 def retired_phrases(text):
@@ -1655,7 +2608,9 @@ FLAGS = (
     ("--stamp-validation", "DESIGN", stamp_validation,
      "run the validation review on one design document and, if it passes, write its validation stamp; the builder runs it at validating on the way to the user's approval"),
     ("--append-entry", "DESIGN KIND [FIELD=VALUE ...]", append_entry,
-     "append an entry to a design document's log, its count among its kind and the UTC time it is appended, refusing a kind, a field or a value out of the Design Log Entry type; the builder appends every entry through it"),
+     "append an entry to a design document's log, its count among its kind and the UTC time it is appended, refusing a kind, a field or a value out of the Design Log Entry type; for a check's entry, reading its report at reports/<kind>/{n}.md in the design's folder, writing a self-review's script checks' output into it, refusing the entry where the report is out of its form, its layout or the form of its values holding places, leaves a finding unsettled or settles one twice, cites a key naming no record, holds a Search whose matches its Places do not cover, or holds records not covering what working-files.md § A Check's Report has the script check of them, and taking the entry's counts from it, refusing any the builder gives; the builder appends every entry through it"),
+    ("--check-report", "REPORT", check_report,
+     "check a review's report at its path in a design's folder before its settlement: its reviewer's part, its title, its Reading, its Findings and its Searches, held to the form working-files.md § A Check's Report gives it and to its layout, its values holding places in their form, and each Search run again; writes no file; the reviewer runs it before handing the report back, and the builder as settling starts"),
     ("--show-reach", "DESIGN", show_reach,
      "list each line in Spec of Record's scope holding a phrase the design's Retired Phrases record, outside its Stays Right, marking those outside the Target; the builder runs it at drafting"),
     ("--check-retired-wording", "DESIGN", check_retired_wording,
