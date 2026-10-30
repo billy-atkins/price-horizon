@@ -717,6 +717,21 @@ def declarations(body, sections, problems=None):
     return out
 
 
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: traces-name-their-paths]
+def paths(name, fields, tables):
+    """-> the paths a Decision Table or a State Machine allows, each named by its cells separated by commas: a Decision
+    Table's rows by their condition cells, which tell its rows apart, and the rows of a State Machine's Transitions
+    table by all their cells; none for another construct. `fields` and `tables` are a declaration's, as declarations
+    gives them."""
+    if name == "Decision Table" and tables:
+        conds = [c.strip() for _, key, value in fields if key == "Conditions" for c in value.split(",") if c.strip()]
+        at = [i for i, h in enumerate(tables[0]["written"]) if h in conds] or range(len(tables[0]["written"]))
+        return [", ".join(cells[i] for i in at if i < len(cells)) for _, cells in tables[0]["rows"]]
+    if name == "State Machine" and len(tables) > 1:
+        return [", ".join(cells) for _, cells in tables[1]["rows"]]
+    return []
+
+
 def construct_findings(r, body, found, sections):
     """modeling-constructs.md § Constructs: each declared construct checked for what its form
     lets a script decide. `body` is the file's live text, its fences stripped."""
