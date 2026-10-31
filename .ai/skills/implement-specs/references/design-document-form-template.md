@@ -6,7 +6,7 @@
 **Kind:** code \
 **Target:** {`path`; `path`, the code it writes or changes} \
 **Spawned By:** {a design document's Name, as `design-specs/{Name}` for one in that skill's plans folder, or none} \
-**Depends On:** {design documents' Names, in the same form, separated by semicolons, or none} \
+**Depends On Designs:** {design documents' Names, in the same form, separated by semicolons, or none} \
 **Validated:** none
 
 ## The Problem
@@ -25,15 +25,29 @@
 
 ### Scope
 
-{the cases the change governs and what tells them apart; then the sweep of the specs and the code, and what it found; and, where Depends On names a design, what this design relies on from each: the specs or code it leaves that this one cites or builds on}
+{the cases the change governs and what tells them apart; then the method of the sweep of the specs and the code, the research it was, never the whole of what that research matched; and, where Depends On Designs names a design, what this design relies on from each: the specs or code it leaves that this one cites or builds on}
+
+### Assessed Areas
+
+**Records:**
+  - **Area:** {a file or a section, cited as a place, used once in the design} \
+    **Impact:**
+      - {applies or changes, one to an item, as the latest Read Assessment of its Area holds them}
+
+    **Assessment:** {the report of the handed-off judgment holding that Read Assessment, as a place}
 
 ### Approach
 
-{the principle the solution applies, citing by Name the goals it rests on}
+{the principle the solution applies, citing each goal it rests on as a record is cited, by its record section and its Name}
 
-### Outcomes
+### Frame Outcomes
 
-{what a successful solution achieves, and how that is judged, each outcome citing by Name the goals it rests on}
+**Records:**
+  - **Name:** {a slug} \
+    **Goals:**
+      - {the Name of a goal it rests on, one to an item}
+
+    **Description:** {what a successful solution achieves, and how that is judged}
 
 ## Steering Decisions
 
@@ -52,10 +66,18 @@
 
 **Records:**
   - **Name:** {a slug} \
-    **What:** {what the step changes: a unit of governed code, where it is and its app-spec annotations, the wiring and what it connects, or the tests} \
-    **Why:** {why the step is needed, citing by Name each goal it serves} \
+    **What:** {each area the step changes, as a place, each an Assessed Area whose Impact holds changes, or a place within one: a unit of governed code, where it is and its app-spec annotations, the wiring and what it connects, or the tests} \
+    **Why:** {why the step is needed} \
+    **Depends On Steps:** {none, or a list of the Names of the steps it builds on, one to an item} \
     **Objectives:**
-      - {a state the applied code holds once the step is applied, such as what a unit does or what a test checks}
+      - **Name:** {a slug} \
+        **Goals:**
+          - {the Name of a goal it serves, one to an item}
+
+        **Upholds Frame Outcomes:**
+          - {the Name of a Frame Outcome it upholds, one to an item}
+
+        **State:** {what the step achieves toward the goals it names, a state the applied code holds, such as what a unit does or what a test checks, written as `specs/methodology/working-files.md § Design Plan Step § Step Objective` has an Objective's text written}
 
 ## Retired Phrases
 
@@ -72,4 +94,4 @@
 
 ## Out of Scope
 
-{each thing the design deliberately leaves unaddressed, each change considered and declined and each piece of work handed on, with its reason, naming no other working file}
+{each thing the design deliberately leaves unaddressed, each change considered and declined and each piece of work handed on, with its reason, naming no other working file; an area assessed changes that the user leaves out holds its place right after its item's bold lead-in, and cites the steer}

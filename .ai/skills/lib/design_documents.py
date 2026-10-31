@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """The design document tooling the skills writing design documents share: the validation review, which holds a
-design document to its form, drawing only on the document and the canon's declarations of its form, and stamps a
-design that passes; and the builder's tools, which append a design's log entries, check the headings a proposal
+design document to its form, its references within and the lineage from research to its steps, drawing only on
+the document, the reports of the handed-off judgments its log names, but one whose entry stands after its last plan-approval entry with no entered entry after that, and the
+canon's declarations of its form, and stamps a design that passes; and the builder's tools, which append a design's log entries, check the headings a proposal
 cites, a Target against its Kind and the constructs a design or a file states, through the construct checks in
 constructs.py, for its self-review, show and check the wording a design retires, list the files changed outside
 its Target, check the work against the specs' and the code's script checks in spec_checks.py and code_checks.py, check
-the workstack, show a validation, write citations' links, and show what a
+the workstack, show a validation, list the parts of a design naming one of its parts, write citations' links, and
+show what a
 Refactor and Refine cycle changed. A check's entry is appended only once its report, in the design's folder, holds the
 form working-files.md § A Check's Report gives it and its records cover what that section has the design script check
-of them, its counts taken from it; a reviewer's part of a review's report is checked by the same units before its
-settlement.
+of them, its counts taken from it; a reviewer's part of a review's report, and a handed-off judgment's report, is
+checked by the same units before it is taken in.
 
 A design document must hold the form working-files.md sets, and the workstack its lineage draws must hold
 together. Its actions are flags per specs/methodology/skills.md § Authoring a Skill. The exit status is 0 when
@@ -50,7 +52,10 @@ PLANS = ".ai/plans/design-specs"  # set by the entry script calling main
 # @canon-spec specs/methodology/working-files.md § A Design Document
 CODE_PLANS = "implement-specs"  # the plans folder of the designs changing code, whose kind is code
 # @canon-spec specs/methodology/working-files.md § A Design Document
-FIELDS = ("Name", "Status", "Source", "Kind", "Target", "Spawned By", "Depends On", "Validated")
+FIELDS = ("Name", "Status", "Source", "Kind", "Target", "Spawned By", "Depends On Designs", "Validated")
+# @canon-spec specs/methodology/working-files.md § A Design Document
+# a design written before Depends On Designs keeps its Depends On until it is next taken up, read as its Depends On Designs
+DEPENDS_ON, OLD_DEPENDS_ON = "Depends On Designs", "Depends On"
 # working-files.md § A Stamp: a UTC timestamp and a content hash; a design document's
 # Validated stamp leaves out the Validated and Status fields.
 STAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z sha256:[0-9a-f]{16}$")
@@ -80,8 +85,9 @@ OPTIONAL = ("Steering Decisions", RETIRED, LOG)
 UNTIL_FINISHED = ("Design Goals",)
 # @canon-spec specs/methodology/working-files.md § A Design Document
 # the design frame's level-three headings, in order, and the text a part not yet stated holds, which no design
-# approved or further holds
-FRAME = ("Scope", "Approach", "Outcomes")
+# approved or further holds; two of them record sections
+FRAME = ("Scope", "Assessed Areas", "Approach", "Frame Outcomes")
+AREAS, OUTCOMES = "Assessed Areas", "Frame Outcomes"
 NOT_YET_STATED = "Not yet stated."
 # @canon-spec specs/methodology/working-files.md § A Design Document
 # the text a step section holds until drafting states the steps, which no design approved or further holds
@@ -98,10 +104,21 @@ STEP_HOME = ("specs/methodology/working-files.md", "Design Plan Step")
 LOG_HOME = ("specs/methodology/working-files.md", "Design Log Entry")
 # @canon-spec specs/methodology/working-files.md § Retired Phrase
 RETIRED_HOME = ("specs/methodology/working-files.md", "Retired Phrase")
+# @canon-spec specs/methodology/working-files.md § A Design Document § Assessed Area
+AREA_HOME = ("specs/methodology/working-files.md", "A Design Document § Assessed Area")
+# @canon-spec specs/methodology/working-files.md § A Design Document § Frame Outcome
+OUTCOME_HOME = ("specs/methodology/working-files.md", "A Design Document § Frame Outcome")
+# @canon-spec specs/methodology/working-files.md § Design Plan Step § Step Objective
+OBJECTIVE_HOME = ("specs/methodology/working-files.md", "Design Plan Step § Step Objective")
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Read Assessment
+ASSESSMENT_HOME = ("specs/methodology/working-files.md", "A Check's Report § Read Assessment")
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Read Assessment § Read Assessment Impacts
+IMPACTS_HOME = ("specs/methodology/working-files.md", "A Check's Report § Read Assessment § Read Assessment Impacts")
 
 
 def declaration(home, root=None):
-    """-> (the text of the section declaring a type, or None, and the file's path)."""
+    """-> (the text of the section declaring a type, or None, and the file's path): a level-two section whole, or a
+    section beneath one, named by its lineage, its own text, to its next heading."""
     path, title = home
     # the checkout's root: the one given, or the nearest directory up from this file, or else from where it runs,
     # holding the declaration's file
@@ -109,7 +126,11 @@ def declaration(home, root=None):
     base = Path(root) if root else next((p for p in (*here.parents, Path.cwd(), *Path.cwd().parents) if (p / path).exists()), Path.cwd())
     if not (base / path).exists():
         return None, path
-    return section(read((base / path)).replace("\r\n", "\n"), title) or "", path
+    text = read((base / path)).replace("\r\n", "\n")
+    if " § " not in title:
+        return section(text, title) or "", path
+    found = sections(text).get(title)
+    return ("\n".join(text.split("\n")[found[0] + 1:found[1]]) if found else ""), path
 
 
 def declared_type(home, plural, root=None, key="Name"):
@@ -184,6 +205,34 @@ def retired_type(root=None):
     return tuple(row[0] for row in rows), tuple(row[0] for row in rows if len(row) > 2 and row[2] == "yes"), problems
 
 
+# the record types of a design's frame and of a step's Objectives, and of a report's Read Assessments, each by its home,
+# its Plural Name and its Reference Key, read from its declaration as the others are
+PLAN_TYPES = {AREAS: (AREA_HOME, "Area"), OUTCOMES: (OUTCOME_HOME, "Name"), "Step Objectives": (OBJECTIVE_HOME, "Name"),
+              "Read Assessments": (ASSESSMENT_HOME, "Area")}
+
+
+def plan_type(plural, root=None):
+    """One of PLAN_TYPES as its declaration gives it -> (its fields in order, the fields it requires, problems with the
+    declaration)."""
+    home, key = PLAN_TYPES[plural]
+    rows, problems = declared_type(home, plural, root, key=key)
+    return tuple(row[0] for row in rows), tuple(row[0] for row in rows if len(row) > 2 and row[2] == "yes"), problems
+
+
+def impact_members(root=None):
+    """-> the members of § A Check's Report § Read Assessment § Read Assessment Impacts, the rows of its table keyed by
+    Impact, in order, and problems with the declaration."""
+    body, path = declaration(IMPACTS_HOME, root)
+    lines = (body or "").split("\n")
+    head = next((i for i, l in enumerate(lines) if l.startswith("| Impact |")), None)
+    members = []
+    for l in lines[head + 2:] if head is not None else []:
+        if not l.startswith("|"):
+            break
+        members.append(l.strip().strip("|").split("|")[0].strip().strip("`"))
+    return tuple(members), [] if members else [(path, "no table gives the members of Read Assessment Impacts")]
+
+
 # a record's own fields, a design's header and every field's value are read through the one reader of a block of
 # fields, record_types.read_block, wherever the form indents them (modeling-constructs.md § Fields)
 
@@ -222,14 +271,15 @@ KEY = r"\*\*([A-Z][A-Za-z ]*):\*\*"
 def read_design(f):
     """-> (file name, [(key, value)], [level-two heading], text) for one design document;
     its fields are read from the Design Document section, before its first level-two heading, as one block of fields
-    through the one reader."""
+    through the one reader, a Depends On field of a design not yet brought to the form read as its Depends On Designs."""
     text = read(f).replace("\r\n", "\n")
     head = text.split("\n## ", 1)[0].split("\n")
     i = next((i for i, l in enumerate(head) if record_types.opens_key(l) and not record_types._indent(l)), None)
     fields = []
     if i is not None:
         block, _ = record_types.read_block(head, i, 0, len(head))
-        fields = [(f["key"], " ".join(str(record_types.value_of(f)).split())) for f in block]
+        fields = [(DEPENDS_ON if f["key"] == OLD_DEPENDS_ON else f["key"], " ".join(str(record_types.value_of(f)).split()))
+                  for f in block]
     return f.stem, fields, re.findall(r"^## (.+?)\s*$", text, re.M), text
 
 
@@ -241,7 +291,7 @@ def is_design(f):
 def read_designs(folder):
     """-> every design the workstack draws on: those in folder, named by file name, and those in each
     other skill's plans folder beside it, named by that folder's name, a slash and the file name, their
-    Spawned By and Depends On named the same way, per working-files.md § A Design Document."""
+    Spawned By and Depends On Designs named the same way, per working-files.md § A Design Document."""
     folder = Path(folder).resolve()
     out = [read_design(f) for f in sorted(folder.glob("*.md")) if is_design(f)] if folder.is_dir() else []
     for other in sorted(p for p in folder.parent.iterdir() if p.is_dir() and p != folder):
@@ -249,7 +299,7 @@ def read_designs(folder):
             if not is_design(f):
                 continue
             name, fields, sections, text = read_design(f)
-            fields = [(k, rename(v, other.name, folder.name)) if k in ("Spawned By", "Depends On") else (k, v) for k, v in fields]
+            fields = [(k, rename(v, other.name, folder.name)) if k in ("Spawned By", DEPENDS_ON) else (k, v) for k, v in fields]
             out.append((other.name + "/" + name, fields, sections, text))
     return out
 
@@ -264,22 +314,57 @@ def rename(value, own, base):
 
 
 def named(value):
-    """-> the design documents a Spawned By or Depends On value names; none for none."""
+    """-> the design documents a Spawned By or Depends On Designs value names; none for none."""
     if value.strip().lower() in ("", "none"):
         return []
     return [n.strip().strip("`") for n in value.split(";") if n.strip()]
 
 
+# @canon-spec specs/methodology/working-files.md § A Design Document
+def read_entries(entries):
+    """-> the indexes, among a design's log entries as log_entries gives them, of each `handed-off-judgment` entry whose
+    report the validation review reads: each but one standing after the log's last `plan-approval` entry with no
+    `entered` entry after that, as a report over applied work is bounded, so research logged after the plan's approval,
+    the frame frozen, leaves the validation as it stood, and a design sent back reads its research whole."""
+    approvals = [i for i, e in enumerate(entries) if e[0] == "plan-approval"]
+    last = approvals[-1] if approvals else None
+    if last is not None and any(e[0] == "entered" for e in entries[last + 1:]):
+        last = None
+    return [i for i, e in enumerate(entries[:last] if last is not None else entries) if e[0] == JUDGMENT]
+
+
+# @canon-spec specs/methodology/working-files.md § A Stamp
+def stamped_entry_lines(lines):
+    """-> the 0-based lines of each log entry naming a report the validation review reads, which a design's stamp takes
+    in, though it leaves out the rest of its Design Log Entries."""
+    head = next((i for i, l in enumerate(lines) if re.match(r"^## %s\s*$" % re.escape(LOG), l)), None)
+    if head is None:
+        return set()
+    end = next((i for i in range(head + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+    items = records_read("\n".join(lines[head + 1:end])) or []
+    entries, spans = [], []
+    for it in items:
+        f = {x["key"]: str(record_types.value_of(x)).strip() for x in it["fields"] or []}
+        m = re.fullmatch(r"([a-z-]+?)-(\d+)", f.get("Entry", ""))
+        if m:
+            entries.append((m.group(1), int(m.group(2)), f))
+            spans.append(it["lines"])
+    return {head + 1 + n for i in read_entries(entries) for n in spans[i]}
+
+
 def content_hash(text, leave_out=UNSTAMPED, leave_out_sections=UNSTAMPED_SECTIONS):
     """working-files.md § A Stamp: SHA-256 of the text as UTF-8, line endings a line feed,
     the lines holding the left-out fields dropped, and each left-out section, its heading through the next heading
-    of its level; its first 16 hexadecimal characters."""
+    of its level, but for each log entry naming a report the validation review reads; its first 16 hexadecimal
+    characters."""
     keys = "|".join(re.escape(k) for k in leave_out)
+    raw = text.replace("\r\n", "\n").split("\n")
+    kept = stamped_entry_lines(raw) if LOG in leave_out_sections else set()
     lines, dropping = [], False
-    for l in text.replace("\r\n", "\n").split("\n"):
+    for n, l in enumerate(raw):
         if l.startswith("## "):
             dropping = l[3:].strip() in leave_out_sections
-        if not dropping and not re.match(r"\*\*(?:%s):\*\*" % keys, l):
+        if (not dropping or n in kept) and not re.match(r"\*\*(?:%s):\*\*" % keys, l):
             lines.append(l)
     return "sha256:" + hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()[:16]
 
@@ -378,27 +463,145 @@ def check_goals(body):
 
 
 
-def check_steps(body):
-    """-> problems with a Design Plan Steps section: `Not yet drafted.`, or a Records field and each record its type's
-    fields in order, Objectives a list and the last field, its Name a slug, no two sharing a Name, each Why citing a
-    goal, which check_form holds to the goals the design holds, and each step a step cites one the section holds."""
-    if body.strip() == NOT_YET_DRAFTED:
-        return []
+def names_of(field):
+    """-> the Names a field naming parts of the design holds, a list, one Name to an item, or `none`; None where it
+    holds text on its key's line other than `none`, or nothing, so it is no such list (working-files.md § Design Goal)."""
+    if field["items"] is None:
+        return [] if field["value"].strip().strip("`") == "none" else None
+    if field["value"] or any(it["fields"] is not None for it in field["items"]):
+        return None
+    return [it["text"].strip().strip("`").strip() for it in field["items"]]
+
+
+def values_of(it):
+    return {f["key"]: f for f in it["fields"] or []}
+
+
+def typed(it, fields, required):
+    """Whether a record holds its type's fields in their order, each it requires among them."""
+    keys = [f["key"] for f in it["fields"] or []]
+    return [k for k in fields if k in keys] == keys and set(required) <= set(keys)
+
+
+# @canon-spec specs/methodology/working-files.md § Design Plan Step § Step Objective
+# an Objective's State, its key opening a line; the construct it states whole stands indented beneath it, after its
+# own text, which the one reader of a block of fields reads as no part of the record, so the plan's reader sets it apart
+STATE_LINE = re.compile(r"^(\s*)\*\*State:\*\*")
+
+
+def steps_body(text):
+    """-> (the 0-based line of the design's text the Design Plan Steps section's body opens at, its body with each block
+    an Objective's State holds indented beneath its own text blanked, {0-based line of such a State: the 0-based lines
+    of the block}), or None where the design holds no such section."""
+    lines = text.split("\n")
+    start = next((i for i, l in enumerate(lines) if re.match(r"^## Design Plan Steps\s*$", l)), None)
+    if start is None:
+        return None
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+    body, hidden = lines[start + 1:end], {}
+    i = 0
+    while i < len(body):
+        m = STATE_LINE.match(body[i])
+        if not m:
+            i += 1
+            continue
+        indent, j, block = len(m.group(1)), i + 1, False
+        while j < len(body) and (not body[j].strip() or record_types._indent(body[j]) > indent):
+            # the State's own text runs on until a blank line, a field's key or a table opens the block beneath it
+            block = block or not body[j].strip() or record_types.opens_key(body[j]) is not None or body[j].lstrip().startswith("|")
+            if block:
+                hidden.setdefault(start + 1 + i, []).append(start + 1 + j)
+            j += 1
+        under = hidden.get(start + 1 + i, [])
+        while under and not lines[under[-1]].strip():
+            under.pop()
+        if not any(lines[n].strip() for n in under):
+            hidden.pop(start + 1 + i, None)
+        for n in hidden.get(start + 1 + i, []):
+            body[n - start - 1] = ""
+        i = j
+    return start + 1, "\n".join(body), hidden
+
+
+def read_steps(text):
+    """-> the design's steps as its Design Plan Steps section holds them, each {"name", "fields" {key: field}, "line",
+    "lines", "item", "objectives"}, its lines 0-based in the design's text and its Objectives' lines apart, each Objective
+    {"name", "fields", "line", "lines", "state", "item"}, its lines those the State holds beneath it among them, and
+    "state" the State's line followed by those; or None where the section holds no Records field."""
+    read = steps_body(text)
+    if read is None:
+        return None
+    at, body, hidden = read
     items = records_read(body)
     if items is None:
-        return ["Design Plan Steps has no Records field"]
-    if not items:
+        return None
+    lines, steps = text.split("\n"), []
+    for it in items:
+        values = values_of(it)
+        objectives = []
+        for ob in (values["Objectives"]["items"] if "Objectives" in values else None) or []:
+            state = next((f["line"] for f in ob["fields"] or [] if f["key"] == "State"), None)
+            under = hidden.get(at + state, []) if state is not None else []
+            own = [at + n for n in ob["lines"]] + under
+            objectives.append({"name": str(record_types.value_of(ob["fields"][0])).strip() if ob["fields"] else None,
+                               "fields": values_of(ob), "line": at + ob["line"], "lines": own, "item": ob,
+                               "state": [at + state] + under if state is not None else own})
+        held = {n for ob in objectives for n in ob["lines"]}
+        steps.append({"name": str(record_types.value_of(it["fields"][0])).strip() if it["fields"] else "",
+                      "fields": values, "line": at + it["line"], "item": it, "objectives": objectives,
+                      "lines": [at + n for n in it["lines"] if at + n not in held]})
+    return steps
+
+
+def stray_tables(objective, text):
+    """-> the 1-based lines of the design opening each table an Objective holds that is no part of a Decision Table or a
+    State Machine it states whole (working-files.md § Design Plan Step § Step Objective)."""
+    lines = text.split("\n")
+    own = sorted(objective["lines"])
+    # the construct stands beneath the State of an Objective record, or beneath the first line of an Objective written
+    # before the record form, dedented as it will stand
+    under = objective["state"][1:] if objective["item"]["fields"] is not None else own[1:]
+    indent = min((record_types._indent(lines[n]) for n in under if lines[n].strip()), default=0)
+    block = [lines[n][indent:] for n in under]
+    owned = set()
+    for _, name, _, tables, _ in constructs.declarations(strip_fences("\n".join(block)), {}):
+        if name in WHOLE:
+            for t in tables + [t["classes"] for t in tables if t.get("classes")]:
+                last = max([n for n, _ in t["rows"]] + [t["line"] + 1])
+                owned |= {under[k] for k in range(t["line"] - 1, last)}
+    table = lambda n: lines[n].lstrip().startswith("|") and n not in owned
+    return [n + 1 for k, n in enumerate(own) if table(n) and (k == 0 or not table(own[k - 1]))]
+
+
+def check_steps(body, text=None):
+    """-> problems with a Design Plan Steps section: `Not yet drafted.`, or a Records field and each record its type's
+    fields in order, Objectives a list of Step Objective records and the last field, Depends On Steps `none` or a list
+    of Names, its Name a slug, no two sharing a Name, each Objective its type's fields in order, its Goals and its
+    Upholds Frame Outcomes each a list of Names, its Name a slug, and no table but a Decision Table or a State Machine
+    it states whole; and each step a step cites one the section holds. check_form holds the Names to the parts the
+    design holds."""
+    if body.strip() == NOT_YET_DRAFTED:
+        return []
+    steps = read_steps(text) if text is not None else None
+    if steps is None:
+        items = records_read(body)
+        if items is None:
+            return ["Design Plan Steps has no Records field"]
+        steps = [{"name": "", "fields": values_of(it), "item": it, "objectives": []} for it in items]
+    if not steps:
         return ["Design Plan Steps holds no record"]
     fields, declared = step_type()
     if not fields:
         return [p for _, p in declared] or ["the Design Plan Step type declares no fields"]
+    ob_fields, ob_required, ob_declared = plan_type("Step Objectives")
     problems, seen = [], set()
-    for it in items:
+    for step in steps:
+        it = step["item"]
         keys = [f["key"] for f in it["fields"] or []]
         if keys != list(fields):
             problems.append("a design plan step's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
             continue
-        name = str(record_types.value_of(it["fields"][0])).strip()
+        name = step["name"]
         # working-files.md § Design Plan Step: a Name in kebab-case, as a design document's Name is
         if kebab(name) != name:
             problems.append("a design plan step's Name is not in kebab-case: " + name)
@@ -409,12 +612,166 @@ def check_steps(body):
         last = it["fields"][-1]
         if last["inline"] or not last["items"]:
             problems.append("design plan step %s's %s is not a list" % (name, fields[-1]))
-        why = next((f for f in it["fields"] if f["key"] == "Why"), None)
-        cited = re.findall(r"`§ Design Goals \[Name: ([^\]]+)\]`", str(record_types.value_of(why)) if why else "")
-        if not cited:
-            problems.append("design plan step %s's Why cites no goal" % name)
+        if "Depends On Steps" in step["fields"] and names_of(step["fields"]["Depends On Steps"]) is None:
+            problems.append("design plan step %s's Depends On Steps is neither none nor a list of steps' Names, one to an item" % name)
+        if text is None:
+            continue
+        if not ob_fields:
+            problems += [p for _, p in ob_declared] or ["the Step Objective type declares no fields"]
+            break
+        plain = [ob for ob in step["objectives"] if ob["item"]["fields"] is None]
+        if plain:
+            problems.append("design plan step %s's Objectives hold %d item%s that %s no Step Objective record"
+                            % (name, len(plain), "" if len(plain) == 1 else "s", "is" if len(plain) == 1 else "are"))
+        for ob in step["objectives"]:
+            label = "design plan step %s's Objective %s" % (name, ob["name"] or "at line %d" % (ob["line"] + 1))
+            for line in stray_tables(ob, text):
+                problems.append("%s holds a table at line %d that is no Decision Table or State Machine it states whole" % (label, line))
+            if ob["item"]["fields"] is None:
+                continue
+            if not typed(ob["item"], ob_fields, ob_required) or [f["key"] for f in ob["item"]["fields"]] != list(ob_fields):
+                problems.append("%s's fields are %s, not %s" % (label, ", ".join(ob["fields"]), ", ".join(ob_fields)))
+                continue
+            if kebab(ob["name"]) != ob["name"]:
+                problems.append("a step objective's Name is not in kebab-case: " + ob["name"])
+            for key in ("Goals", "Upholds Frame Outcomes"):
+                if not names_of(ob["fields"][key]):
+                    problems.append("%s's %s is not a list of Names, one to an item" % (label, key))
     for step in sorted({c.strip() for c in re.findall(r"`§ Design Plan Steps \[Name: ([^\]]+)\]`", body)} - seen - {"…"}):
         problems.append("a citation of a step the design does not hold: " + step)
+    return problems
+
+
+# @canon-spec specs/methodology/working-files.md § A Design Document § Assessed Area
+# @canon-spec specs/methodology/working-files.md § A Design Document § Frame Outcome
+def check_frame_records(plural, body):
+    """-> problems with the frame's Assessed Areas or Frame Outcomes: `Not yet stated.`, or a Records field and each
+    record its type's fields in order, an Assessed Area's Area one place used once, its Impact a list of the members of
+    Read Assessment Impacts other than `none` and its Assessment one place; a Frame Outcome's Name a slug used once and
+    its Goals a list of Names."""
+    if body is None or body.strip() == NOT_YET_STATED:
+        return []
+    items = records_read(body)
+    if items is None:
+        return ["%s has no Records field" % plural]
+    if not items:
+        return ["%s holds no record" % plural]
+    fields, required, declared = plan_type(plural)
+    if not fields:
+        return [p for _, p in declared] or ["the %s type declares no fields" % PLAN_TYPES[plural][0][1].split(" § ")[-1]]
+    label = "an assessed area" if plural == AREAS else "a frame outcome"
+    members = [m for m in impact_members()[0] if m != "none"]
+    problems, seen = [], set()
+    for it in items:
+        keys = [f["key"] for f in it["fields"] or []]
+        if not typed(it, fields, required):
+            problems.append("%s's fields are %s, not %s" % (label, ", ".join(keys) or "none", ", ".join(fields)))
+            continue
+        values = values_of(it)
+        key = str(record_types.value_of(values[PLAN_TYPES[plural][1]])).strip()
+        if key in seen:
+            problems.append("two %ss share the %s %s" % (label.split(" ", 1)[1], PLAN_TYPES[plural][1], key))
+        seen.add(key)
+        if plural == OUTCOMES:
+            if kebab(key) != key:
+                problems.append("a frame outcome's Name is not in kebab-case: " + key)
+            if not names_of(values["Goals"]):
+                problems.append("frame outcome %s's Goals is not a list of goals' Names, one to an item" % key)
+            continue
+        for k in ("Area", "Assessment"):
+            if not place_of(str(record_types.value_of(values[k]))):
+                problems.append("assessed area %s's %s is no one place cited with its path" % (key, k))
+        impact = names_of(values["Impact"])
+        if not impact or any(i not in members for i in impact) or len(set(impact)) != len(impact):
+            problems.append("assessed area %s's Impact is not a list of %s, one to an item" % (key, " or ".join(members)))
+    return problems
+
+
+def read_plan(text):
+    """-> the design's keyed parts by their Names, read from its records: {"goals": [Name], "outcomes": {Name: [goal]},
+    "steps": [step as read_steps gives it], "objectives": {Name: (step, its Goals, its Upholds Frame Outcomes)}, "areas":
+    [(Area, [Impact], Assessment)], "whole": whether each step and each Objective holds its type's fields}."""
+    goals = [str(record_types.value_of(values_of(it)["Name"])).strip() for it in records_read(section(text, "Design Goals")) or []
+             if "Name" in values_of(it)]
+    frame = frame_parts(text)
+    outcomes, areas = {}, []
+    for it in records_read(frame.get(OUTCOMES)) or []:
+        v = values_of(it)
+        if "Name" in v:
+            outcomes[str(record_types.value_of(v["Name"])).strip()] = names_of(v["Goals"]) or [] if "Goals" in v else []
+    for it in records_read(frame.get(AREAS)) or []:
+        v = values_of(it)
+        if "Area" in v:
+            areas.append((str(record_types.value_of(v["Area"])).strip(),
+                          names_of(v["Impact"]) or [] if "Impact" in v else [],
+                          str(record_types.value_of(v["Assessment"])).strip() if "Assessment" in v else ""))
+    steps, objectives = read_steps(text) or [], {}
+    fields, ob_fields = step_type()[0], plan_type("Step Objectives")[0]
+    whole = bool(steps)
+    for step in steps:
+        whole = whole and [f["key"] for f in step["item"]["fields"] or []] == list(fields) and bool(step["objectives"])
+        for ob in step["objectives"]:
+            v = ob["fields"]
+            whole = whole and list(v) == list(ob_fields)
+            if ob["name"] and "Goals" in v and "Upholds Frame Outcomes" in v:
+                objectives[ob["name"]] = (step["name"], names_of(v["Goals"]) or [], names_of(v["Upholds Frame Outcomes"]) or [])
+    return {"goals": goals, "outcomes": outcomes, "steps": steps, "objectives": objectives, "areas": areas, "whole": whole}
+
+
+# @canon-spec specs/methodology/working-files.md § A Design Document
+def reference_problems(text, plan):
+    """-> problems with the references within a design, the References check of working-files.md § A Design Document:
+    each Name a Frame Outcome's Goals, a step's Depends On Steps, and a step Objective's Goals and Upholds Frame
+    Outcomes hold, and each goal its Approach cites, naming a part the design holds; no Name two kinds of part take; each goal served by a step Objective
+    and each Frame Outcome upheld by one, once each step and each Objective holds its type's fields; and no step
+    depending on itself through the steps it depends on, nor standing before a step it depends on."""
+    problems = []
+    goals, outcomes = plan["goals"], plan["outcomes"]
+    steps = [s["name"] for s in plan["steps"] if s["name"]]
+    kinds = collections.defaultdict(list)
+    for kind, names in (("a goal", goals), ("a frame outcome", outcomes), ("a step", steps), ("a step objective", plan["objectives"])):
+        for n in dict.fromkeys(names):
+            kinds[n].append(kind)
+    problems += ["the Name %s is taken by %s, where one part of the design takes a Name" % (n, " and ".join(k))
+                 for n, k in kinds.items() if len(k) > 1]
+    for name, named_goals in outcomes.items():
+        problems += ["frame outcome %s's Goals names %s, no goal the design holds" % (name, g) for g in named_goals if g not in goals]
+    cited = re.findall(r"§ Design Goals \[Name: ([^\]`]+)\]", frame_parts(text).get("Approach") or "")
+    problems += ["the Approach cites the goal %s, which the design does not hold" % g
+                 for g in dict.fromkeys(c.strip() for c in cited) if g not in goals]
+    depends = {}
+    for s in plan["steps"]:
+        field = s["fields"].get("Depends On Steps")
+        depends[s["name"]] = (names_of(field) or []) if field is not None else []
+        problems += ["design plan step %s's Depends On Steps names %s, no step the design holds" % (s["name"], d)
+                     for d in depends[s["name"]] if d not in steps]
+    for name, (_, named_goals, upholds) in plan["objectives"].items():
+        problems += ["step objective %s's Goals names %s, no goal the design holds" % (name, g) for g in named_goals if g not in goals]
+        problems += ["step objective %s's Upholds Frame Outcomes names %s, no Frame Outcome the design holds" % (name, o)
+                     for o in upholds if o not in outcomes]
+    if plan["whole"]:
+        served = {g for _, gs, _ in plan["objectives"].values() for g in gs}
+        upheld = {o for _, _, os in plan["objectives"].values() for o in os}
+        problems += ["goal %s is served by no step Objective naming it" % g for g in goals if g not in served]
+        problems += ["frame outcome %s is upheld by no step Objective naming it" % o for o in outcomes if o not in upheld]
+    reported = set()
+
+    def cycle(n, path):
+        if n in path:
+            return path[path.index(n):] + [n]
+        for d in depends.get(n, []):
+            hit = cycle(d, path + [n])
+            if hit:
+                return hit
+        return None
+    for n in steps:
+        hit = cycle(n, [])
+        if hit and frozenset(hit) not in reported:
+            reported.add(frozenset(hit))
+            problems.append("Depends On Steps runs in a cycle: " + " -> ".join(hit))
+    order = {n: i for i, n in enumerate(steps)}
+    problems += ["design plan step %s stands before %s, a step it depends on" % (n, d)
+                 for n in steps for d in depends.get(n, []) if d != n and order.get(d, -1) > order[n]]
     return problems
 
 
@@ -500,9 +857,11 @@ def check_retired(body):
 
 
 def steer_table_problems(root):
-    """-> problems with the Steering Decision, Design Goal, Design Plan Step, Design Log Entry and Retired Phrase
-    types' declarations, which this tooling reads their records' fields from."""
-    return steer_type(root)[2] + goal_type(root)[1] + step_type(root)[1] + log_type(root)[3] + retired_type(root)[2]
+    """-> problems with the Steering Decision, Design Goal, Assessed Area, Frame Outcome, Design Plan Step, Step
+    Objective, Read Assessment, Design Log Entry and Retired Phrase types' declarations, and with Read Assessment
+    Impacts', which this tooling reads their records' fields and values from."""
+    return steer_type(root)[2] + goal_type(root)[1] + step_type(root)[1] + log_type(root)[3] + retired_type(root)[2] \
+        + [p for plural in PLAN_TYPES for p in plan_type(plural, root)[2]] + impact_members(root)[1]
 
 
 def check_form(design):
@@ -557,6 +916,8 @@ def check_form(design):
         if values.get("Status") in ("approved", "applying", "complete"):
             for part in [p for p in FRAME if frame.get(p) == NOT_YET_STATED]:
                 problems.append((name, values["Status"] + ", but its design frame's " + part + " is not yet stated"))
+        for plural in (AREAS, OUTCOMES):
+            problems += [(name, p) for p in check_frame_records(plural, frame.get(plural))]
         body = section(text, "Steering Decisions")
         for p in check_steers(body) if body is not None else []:
             problems.append((name, p))
@@ -565,17 +926,18 @@ def check_form(design):
             problems.append((name, p))
         if goals is not None and goals.strip() == NOT_YET_STATED and values.get("Status") in ("approved", "applying", "complete"):
             problems.append((name, values["Status"] + ", but its design goals are not yet stated"))
-        # specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame and specs/methodology/working-files.md § Design Plan Step: the frame and the steps cite the goals they rest on by Names the
+        # specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame and specs/methodology/working-files.md § Design Plan Step § Step Objective: the frame and the steps cite the goals they rest on by Names the
         # design holds
         held = {dict(rec).get("Name", "").strip() for rec in records(goals) or []}
         steps = section(text, "Design Plan Steps")
         cites = re.findall(r"`§ Design Goals \[Name: ([^\]]+)\]`", (section(text, "The Design Frame") or "") + (steps or ""))
         for cited in sorted({c.strip() for c in cites} - held - {"…"}):
             problems.append((name, "a citation of a goal the design does not hold: " + cited))
-        for p in check_steps(steps) if steps is not None else []:
+        for p in check_steps(steps, text) if steps is not None else []:
             problems.append((name, p))
         if steps is not None and steps.strip() == NOT_YET_DRAFTED and values.get("Status") in ("approved", "applying", "complete"):
             problems.append((name, values["Status"] + ", but its steps are not yet drafted"))
+        problems += [(name, p) for p in reference_problems(text, read_plan(text))]
         # modeling-constructs.md § Fields and spec-style.md § Blank Lines: the design's layout, each block of fields and
         # each list a field holds by the reader's checks, and each blank line by the layout check
         base = Path(design).resolve().parents[3]
@@ -642,29 +1004,29 @@ def check_kind(design, root):
 
 def check_stack(folder):
     """-> (report lines, [(file name, problem)]): the workstack each design document's
-    Spawned By and Depends On draw, and where its Status is out of sync with what it
+    Spawned By and Depends On Designs draw, and where its Status is out of sync with what it
     depends on, per working-files.md § A Design Document."""
     read = read_designs(folder)
     designs = {name: dict(fields) for name, fields, _, _ in read}
     checked = {name: validation(text, fields)[0] for name, fields, _, text in read}
     status = lambda n: designs[n].get("Status", "")
     names = lambda n, key: named(designs[n].get(key, ""))
-    deps = lambda n: [d for d in names(n, "Depends On") if d in designs]
+    deps = lambda n: [d for d in names(n, DEPENDS_ON) if d in designs]
     blocked_by = lambda n: [d for d in deps(n) if status(d) not in FINISHED]
     landed = lambda n: [d for d in deps(n) if status(d) in FINISHED]
     problems = []
     for n in designs:
-        for d in names(n, "Depends On"):
+        for d in names(n, DEPENDS_ON):
             if d not in designs:
-                problems.append((n, "Depends On names no design document: " + d))
+                problems.append((n, "Depends On Designs names no design document: " + d))
         s = status(n)
         unapproved = [d for d in blocked_by(n) if status(d) not in ("approved", "applying")]
         if s == "approved" and unapproved:
-            problems.append((n, "approved, but its Depends On names %s, not approved; it goes back to in progress" % "; ".join(unapproved)))
+            problems.append((n, "approved, but its Depends On Designs names %s, not approved; it goes back to in progress" % "; ".join(unapproved)))
         elif s == "approved" and landed(n):
             problems.append((n, "approved, but %s has finished; it goes back to in progress to take it in" % "; ".join(landed(n))))
-        elif s in ("applying", "complete") and names(n, "Depends On"):
-            problems.append((n, "%s, but its Depends On names %s; a design is applied once it names none" % (s, "; ".join(names(n, "Depends On")))))
+        elif s in ("applying", "complete") and names(n, DEPENDS_ON):
+            problems.append((n, "%s, but its Depends On Designs names %s; a design is applied once it names none" % (s, "; ".join(names(n, DEPENDS_ON)))))
 
     def loops(edges):
         found, seen = [], set()
@@ -694,7 +1056,7 @@ def check_stack(folder):
         hit = dep_cycles(n, [])
         if hit and frozenset(hit) not in reported:
             reported.add(frozenset(hit))
-            problems.append((n, "Depends On runs in a cycle: " + " -> ".join(hit)))
+            problems.append((n, "Depends On Designs runs in a cycle: " + " -> ".join(hit)))
     parent = lambda n: [p for p in names(n, "Spawned By")[:1] if p in designs]
     for n, loop in loops(parent):
         problems.append((n, "Spawned By runs in a loop: " + " -> ".join(loop)))
@@ -831,13 +1193,103 @@ def design_file(value):
     return design
 
 
+def named_places(text):
+    """-> each place a step's What names, a citation with a path to a file or a directory, as
+    specs/methodology/sourcing-and-citation.md § Writing a Citation writes one."""
+    return [p for p in cited_places(text) if "/" in p[0] or re.search(r"\.\w+$", p[0])]
+
+
+def reaches(a, b):
+    """Whether place a reaches place b, as a What reaches an Area: a is b, lies within it or holds it, a directory
+    holding each file under it and a part a keyed instance holds lying within its section."""
+    inside = lambda x, y: x[0] == y[0] or (y[0].endswith("/") and x[0].startswith(y[0]))
+    within = lambda x, y: inside(x, y) and (y[1] is None or (x[1] is not None and (x[1] == y[1] or x[1].startswith(y[1] + " § "))))
+    return within(a, b) or within(b, a)
+
+
+# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files.md § A Design Document § Assessed Area
+def lineage_problems(design, text, plan=None):
+    """-> each break of the lineage from research to the steps, the Lineage check of working-files.md § A Design
+    Document, read against the Read Assessments of the reports of the handed-off judgments the design's log names,
+    but one whose entry stands after its last `plan-approval` entry with no `entered` entry after that: a place a step's What names reaching no Assessed Area whose Impact holds
+    `changes`; such an Assessed Area no What reaches; an Assessed Area whose Impact and Assessment are not those of the
+    latest Read Assessment of its Area, an Assessment naming a report the review does not read reported once for the
+    report; and an Area whose latest Read Assessment holds an Impact other than `none` neither an Assessed Area nor, its
+    Impact holding `changes`, named right after the bold lead-in of an item of the Out of Scope. None where the frame
+    holds no Assessed Areas yet, its form reported apart."""
+    body = frame_parts(text).get(AREAS)
+    if body is None or body.strip() == NOT_YET_STATED or records_read(body) is None:
+        return []
+    plan = plan or read_plan(text)
+    root = repo_root()
+    entries = log_entries(text)
+    reports = [(rel_to(report_file(design, entries[i][0], entries[i][1]), root),
+                load_report(design, entries[i][0], entries[i][1])) for i in read_entries(entries)]
+    latest = {}
+    for path, rep in reports:
+        for ra in rep["records"].get("Read Assessments", []):
+            place = place_of(ra.get("Area", ""))
+            if place:
+                latest[place_key(place)] = (path, sorted(names_of_text(ra.get("Impact", ""))), place)
+    problems = []
+    areas = [(place_of(a), a, impact, place_of(assessment)) for a, impact, assessment in plan["areas"]]
+    changing = [p for p, _, impact, _ in areas if p and "changes" in impact]
+    whats = [(s["name"], named_places(str(record_types.value_of(s["fields"]["What"]))))
+             for s in plan["steps"] if "What" in s["fields"]]
+    for step, places_ in whats:
+        problems += ["design plan step %s's What names %s, which reaches no Assessed Area whose Impact holds changes"
+                     % (step, cite(p)) for p in dict.fromkeys(places_) if not any(reaches(p, a) for a in changing)]
+    named_anywhere = [p for _, ps in whats for p in ps]
+    problems += ["assessed area %s holds changes, and no step's What reaches it" % cite(p)
+                 for p in changing if not any(reaches(w, p) for w in named_anywhere)]
+    read = {path for path, _ in reports}
+    unread = collections.OrderedDict()
+    for p, area, impact, assessment in areas:
+        if not p:
+            continue
+        if assessment and assessment[0] not in read:
+            unread.setdefault(assessment[0], []).append(area)
+            continue
+        found = latest.get(place_key(p))
+        if found is None:
+            problems.append("assessed area %s has no Read Assessment of its Area in the reports the validation review reads" % cite(p))
+            continue
+        if sorted(impact) != found[1]:
+            problems.append("assessed area %s's Impact is %s, not %s, the Impact of the latest Read Assessment of its Area, in %s"
+                            % (cite(p), ", ".join(impact) or "none", ", ".join(found[1]) or "none", found[0]))
+        if assessment and assessment[0] != found[0]:
+            problems.append("assessed area %s's Assessment is %s, not %s, the report holding the latest Read Assessment of its Area"
+                            % (cite(p), assessment[0], found[0]))
+    problems += ["%d assessed area%s rest%s on %s, a report the validation review does not read: no handed-off-judgment "
+                 "entry of the design's log names it, or its entry stands after the last plan-approval entry with no entered entry "
+                 "after that"
+                 % (len(a), "" if len(a) == 1 else "s", "s" if len(a) == 1 else "", path) for path, a in unread.items()]
+    held = {place_key(p) for p, _, _, _ in areas if p}
+    left_out = {place_key(p) for p in (place_of("`%s`" % m) for m in re.findall(
+        r"^\s*- \*\*[^\n]+?\*\*\s*`([^`]+)`", section(text, "Out of Scope") or "", re.M)) if p}
+    for key, (path, impact, place) in latest.items():
+        if impact and impact != ["none"] and key not in held and not ("changes" in impact and key in left_out):
+            problems.append("%s, assessed %s in %s, is neither an Assessed Area nor, its Impact holding changes, named right "
+                            "after the bold lead-in of an item of the Out of Scope" % (cite(place), ", ".join(impact), path))
+    return problems
+
+
+def names_of_text(value):
+    """-> the items of a list field's value as the one reader gives it, one to a line, backticks and list markers aside."""
+    return [l.strip(" -`") for l in str(value or "").split("\n") if l.strip(" -`")]
+
+
 def design_problems(design):
-    """The validation review's checks on one design: its form, its records and the references within it, drawing
-    only on the document and the canon's declarations of its form, per working-files.md § A Design Document; by
-    validating, no goal, no part of its frame and no step section not yet stated. Any problem a declaration reports
-    counts, so a type that cannot be read stops a stamp."""
+    """The validation review's checks on one design: its form, its records and the references within it, and the
+    lineage from research to its steps, drawing only on the document, the reports of the handed-off judgments its log
+    names, but one whose entry stands after its last `plan-approval` entry with no `entered` entry after that, and the
+    canon's declarations of its form, per working-files.md § A
+    Design Document; by validating, no goal, no part of its frame and no step section not yet stated. Any problem a
+    declaration reports counts, so a type that cannot be read stops a stamp."""
     name, fields, _, text = read_design(design)
     found = check_form(design)[1] + steer_table_problems(None)
+    found += [(name, p) for p in lineage_problems(design, text)]
     if dict(fields).get("Status") not in ("approved", "applying", "complete"):
         found += [(name, "its design frame's %s is not yet stated" % p) for p in FRAME if frame_parts(text).get(p) == NOT_YET_STATED]
         if (section(text, "Design Goals") or "").strip() == NOT_YET_STATED:
@@ -881,6 +1333,92 @@ def check_target_kind(value):
 def check_design(value):
     design = design_file(value)
     return 2 if design is None else report("check-design " + design.stem, design_problems(design))
+
+
+LEAD_IN = re.compile(r"^\*\*([^*]+?)\.?\*\*")
+
+
+def plan_parts(text):
+    """-> the design's parts in the order specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once gives a
+    change, as [(label, kind, Name or lead-in, [0-based lines])]: its goals; its frame, each paragraph of its Scope with
+    those after it to the next bold lead-in, its Assessed Areas, each item of its Approach, then its Frame Outcomes;
+    then its steps in their Depends On Steps order, each followed by its Objectives."""
+    lines, found, out = text.split("\n"), sections(text), []
+
+    def records_in(lineage, key):
+        if lineage not in found:
+            return []
+        h, end = found[lineage]
+        return [(str(record_types.value_of(values_of(it)[key])).strip(), [h + 1 + n for n in it["lines"]])
+                for it in records_read("\n".join(lines[h + 1:end])) or [] if key in values_of(it)]
+
+    out += [("goal " + n, "goal", n, ls) for n, ls in records_in("Design Goals", "Name")]
+    frame = "The Design Frame § "
+    if frame + "Scope" in found:
+        h, end = found[frame + "Scope"]
+        part = ("the Scope's opening", "scope", None, [])
+        for n in range(h + 1, end):
+            m = LEAD_IN.match(lines[n])
+            if m and (n == h + 1 or not lines[n - 1].strip()):
+                out.append(part)
+                part = ("the Scope's **%s**" % m.group(1), "scope", m.group(1), [])
+            part[3].append(n)
+        out.append(part)
+    out += [("assessed area " + a, "area", a, ls) for a, ls in records_in(frame + "Assessed Areas", "Area")]
+    if frame + "Approach" in found:
+        h, end = found[frame + "Approach"]
+        for n in range(h + 1, end):
+            if lines[n].startswith("- "):
+                out.append(("the Approach's item at line %d" % (n + 1), "approach", None, [n]))
+            elif out[-1][1] == "approach" and lines[n].strip():
+                out[-1][3].append(n)
+    out += [("frame outcome " + n, "outcome", n, ls) for n, ls in records_in(frame + "Frame Outcomes", "Name")]
+    steps = [s for s in read_steps(text) or [] if s["name"]]
+    placed, ordered = set(), []
+    while len(ordered) < len(steps):
+        # each step after the steps it depends on, else in the order the design holds them; a loop is reported apart
+        left = [s for s in steps if s["name"] not in placed]
+        needs = lambda s: set(names_of(s["fields"]["Depends On Steps"]) or []) - {"none"} if "Depends On Steps" in s["fields"] else set()
+        ready = [s for s in left if needs(s) <= placed] or left
+        ordered.append(ready[0])
+        placed.add(ready[0]["name"])
+    for s in ordered:
+        out.append(("step " + s["name"], "step", s["name"], s["lines"]))
+        out += [("step objective %s, of step %s" % (ob["name"], s["name"]), "objective", ob["name"], sorted(ob["lines"]))
+                for ob in s["objectives"] if ob["name"]]
+    return [p for p in out if p[3]]
+
+
+def show_dependents(value):
+    """--show-dependents DESIGN NAME: each part of the design naming or citing the goal, Frame Outcome, step or step
+    Objective NAME names, or the paragraph of its Scope whose bold lead-in NAME is, in the order a change runs down;
+    writes no file and decides nothing; -> 0, or 2 where the design or NAME is not found."""
+    path, name = value
+    design = design_file(path)
+    if design is None:
+        return 2
+    text = read(design).replace("\r\n", "\n")
+    lines, parts = text.split("\n"), plan_parts(text)
+    name = name.strip().strip("`").strip("*").rstrip(".")
+    target = next((p for p in parts if p[2] == name and p[1] != "area"), None)
+    if target is None:
+        sys.stderr.write("%s holds no goal, Frame Outcome, step or step Objective named %s, nor a Scope paragraph "
+                         "whose bold lead-in it is\n" % (design.name, name))
+        return 2
+    naming = (re.compile(r"\*\*%s\.?\*\*" % re.escape(name)) if target[1] == "scope"
+              else re.compile(r"(?<![\w-])%s(?![\w-])" % re.escape(name)))
+    print("== show-dependents %s %s (%s)" % (design.stem, name, target[0]))
+    count = 0
+    for label, _, _, own in parts:
+        if (label, own) == (target[0], target[3]):
+            continue
+        at = [n + 1 for n in own if naming.search(lines[n])]
+        if at:
+            count += 1
+            print("%s: line%s %s" % (label, "" if len(at) == 1 else "s", ", ".join(map(str, at))))
+    print("%d part%s name%s or cite%s %s\n" % (count, "" if count == 1 else "s", "s" if count == 1 else "",
+                                               "s" if count == 1 else "", name))
+    return 0
 
 
 def plans_folder(value, heading):
@@ -930,7 +1468,7 @@ def stamp_validation(value):
         return 0
     # every check but the stamp's own absence, which this is about to write; the design's place in the workstack is
     # --check-workstack's, which runs before each validation
-    problems = [(t, p) for t, p in design_problems(design) if "validation review" not in p]
+    problems = [(t, p) for t, p in design_problems(design) if not re.search(r"validation review (has )?stamped", p)]
     if problems:
         report("stamp-validation, not stamped", problems)
         return 1
@@ -1038,7 +1576,10 @@ FIELDS_RULE = "specs/methodology/modeling-constructs.md § Fields"
 BLANK_LINES_RULE = "specs/methodology/spec-style.md § Blank Lines"
 # @canon-spec specs/methodology/working-files.md § A Check's Report
 REPORT_TITLE = "# Check's Report"
+# the title's fields, and the one an adversarial review's report whose round stopped at the structure holds, with its
+# one value
 TITLE_FIELDS = ("Design", "Entry")
+STOPPED_AT, THE_STRUCTURE = "Stopped At", "the structure"
 REVIEWS = ("adversarial-review", "post-apply-review")
 JUDGMENT = "handed-off-judgment"
 # the Reading's field, a review's and every other report's; the Settlement's fields, in their order; and what the
@@ -1048,8 +1589,13 @@ SETTLEMENT_FIELDS = ("Earlier Reports", "Settling Reads", "Moved Past", "Settlem
 MOVED_PAST_RECORDS = ("Findings", REVIEW_READING)
 MOVED_PAST_FIELDS = ("Earlier Reports", "Moved Past")
 # the parts a reviewer writes, and the parts holding records, each by its type's Plural Name
-REVIEWER_PARTS = ("Reading", "Findings", "Searches")
-RECORD_PARTS = ("Findings", "Searches", "Traces", "Builder Checks", "Causes")
+# a cold agent doing research writes its Read Assessments too
+REVIEWER_PARTS = ("Reading", "Findings", "Searches", "Read Assessments")
+RECORD_PARTS = ("Findings", "Searches", "Read Assessments", "Traces", "Builder Checks", "Causes")
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Finding
+# a Finding's fields naming the parts of the design it bears on, by their Names, and the one citing the rules it breaks
+ANCHORS = {"Affected Goals": "goals", "Affected Frame Outcomes": "outcomes", "Affected Step Objectives": "objectives"}
+BROKEN_RULES = "Broken Rules"
 # @canon-spec specs/methodology/working-files.md § A Check's Report § Verdicts
 MARKS = ("design flaw", "implementation flaw", "nit")
 FLAWS = MARKS[:2]
@@ -1061,13 +1607,14 @@ COUNTED = {"Design Flaws": "design flaw", "Implementation Flaws": "implementatio
 # single place, and those holding `none` where they hold no place
 PLACE_FIELDS = {"Reading": ("Reads",), "Settlement": ("Earlier Reports", "Settling Reads"),
                 "Reviewer Readings": ("Collecting Reads", "Earlier Reports", "Weighing Reads"),
-                "Findings": ("Affected Parts", "Broken Rules"), "Report Evidence Items": ("Places",),
-                "Searches": ("Places",), "Builder Checks": ("Places Checked",), "Causes": ("Conflicting Steers",),
-                "Misses": ("Place", "Reads"), "Proposed Changes": ("Places",)}
-ONE_PLACE = {("Misses", "Place")}
+                "Findings": (BROKEN_RULES,), "Report Evidence Items": ("Places",),
+                "Searches": ("Places",), "Read Assessments": ("Area",), "Builder Checks": ("Places Checked",),
+                "Causes": ("Conflicting Steers",), "Misses": ("Place", "Reads"), "Proposed Changes": ("Places",)}
+ONE_PLACE = {("Misses", "Place"), ("Read Assessments", "Area")}
 NONE_HELD = {("Reading", "Reads"), ("Settlement", "Earlier Reports"), ("Settlement", "Settling Reads"),
              ("Reviewer Readings", "Collecting Reads"),
-             ("Reviewer Readings", "Earlier Reports"), ("Reviewer Readings", "Weighing Reads"), ("Searches", "Places")}
+             ("Reviewer Readings", "Earlier Reports"), ("Reviewer Readings", "Weighing Reads"), ("Searches", "Places"),
+             ("Findings", BROKEN_RULES)}
 # @canon-spec specs/methodology/working-files.md § A Check's Report § Kinds of Builder Check
 # the checks every self-review requires, and those it requires for each item its phase gives
 EVERY_SELF_REVIEW = ("steers against the user's messages", "linked work", "review's questions")
@@ -1320,11 +1867,17 @@ def form_problems(rep, ctx, types, parts):
     reviewer, kind, review, rule = ctx["reviewer"], ctx["kind"], ctx["kind"] in REVIEWS, ctx["rule"]
     # its title
     title = rep["title"]
-    if list(title) != list(TITLE_FIELDS):
-        out.append((FORM_RULE, "its title's fields are %s, not %s" % (", ".join(title) or "none", ", ".join(TITLE_FIELDS))))
+    if list(title) not in (list(TITLE_FIELDS), list(TITLE_FIELDS) + [STOPPED_AT]):
+        out.append((FORM_RULE, "its title's fields are %s, not %s, and %s where its round stopped at the structure"
+                    % (", ".join(title) or "none", ", ".join(TITLE_FIELDS), STOPPED_AT)))
     for key, want in (("Design", ctx["design"]), ("Entry", ctx["entry"])):
         if key in title and title[key][0] != want:
             out.append((FORM_RULE, "its title's %s is %s, not %s" % (key, title[key][0], want)))
+    # the mark of an adversarial round stopped at the structure, held in no other report
+    if STOPPED_AT in title and kind != REVIEWS[0]:
+        out.append((FORM_RULE, "its title holds %s, which only an adversarial review's report holds" % STOPPED_AT))
+    elif STOPPED_AT in title and title[STOPPED_AT][0].strip("`") != THE_STRUCTURE:
+        out.append((FORM_RULE, "its title's %s is %s, not %s" % (STOPPED_AT, title[STOPPED_AT][0], THE_STRUCTURE)))
     # its parts, in their order, each once, those required, and, where it was moved past, no other
     order = [p for p, _, _, _ in parts]
     held = [p for p, _ in rep["parts"]]
@@ -1377,8 +1930,6 @@ def form_problems(rep, ctx, types, parts):
         where, mark = "line %d, Finding %s" % (f["_line"] + 1, f.get("Finding", "")), f.get("Verdict") in MARKS
         for key in ("Decision", "Possible Fix"):
             require(cond, where, f, key, mark, "where its Verdict is a mark")
-        require(cond, where, f, "Affected Parts", mark and "Broken Rules" not in f, "where its Verdict is a mark and it holds no Broken Rules")
-        require(cond, where, f, "Broken Rules", mark and "Affected Parts" not in f, "where its Verdict is a mark and it holds no Affected Parts")
         require(cond, where, f, "Evidence", f.get("Verdict") != "review observation", "where its Verdict is not a review observation")
         require(cond, where, f, "Lies In", mark and ctx["applied"], "where its Verdict is a mark and the report lies over applied work")
         for fix in f.get("Possible Fix") or []:
@@ -1386,6 +1937,17 @@ def form_problems(rep, ctx, types, parts):
                 require(cond, where + "'s Possible Fix", fix, "Fix", fix.get("Kind") == "tactical fix", "where its Kind is tactical fix")
                 require(cond, where + "'s Possible Fix", fix, "Delivers", fix.get("Kind") == "revision", "where its Kind is revision")
     out += [(rule("Findings"), c) for c in cond]
+    # a Read Assessment's Impact, a list of the members of Read Assessment Impacts: `none` alone, or one or both others
+    members = impact_members(ctx["root"])[0]
+    for a in recs["Read Assessments"] if not moved else []:
+        if "Impact" not in a:  # a record wanting its Impact is out of its type, reported with the record's form
+            continue
+        impact = names_of_text(a["Impact"])
+        if not impact or any(i not in members for i in impact) or len(set(impact)) != len(impact) \
+                or ("none" in impact and len(impact) > 1):
+            out.append((rule("Read Assessments"), "line %d, Read Assessment %s's Impact is not a list holding none alone, "
+                        "or one or both of %s, one to an item" % (a["_line"] + 1, a.get("Area", ""),
+                                                                   " and ".join(m for m in members if m != "none"))))
     if reviewer or moved:
         return out
     cond = []
@@ -1507,16 +2069,10 @@ def text_at(root, path, kept):
 
 def step_lines(design_text):
     """-> {0-based line: the Name of the design's step holding it}."""
-    lines = design_text.split("\n")
-    start = next((i for i, l in enumerate(lines) if re.match(r"^## Design Plan Steps\s*$", l)), None)
-    if start is None:
-        return {}
-    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
     out = {}
-    for step in records_read("\n".join(lines[start:end])) or []:
-        if step["fields"]:
-            name = str(record_types.value_of(step["fields"][0])).strip()
-            out.update({start + n: name for n in step["lines"]})
+    for step in read_steps(design_text) or []:
+        if step["item"]["fields"]:
+            out.update({n: step["name"] for n in step["lines"] + [n for ob in step["objectives"] for n in ob["lines"]]})
     return out
 
 
@@ -1574,31 +2130,98 @@ def search_ground(root, design_rel, design_text, target, kept):
 def search_problems(rep, ctx):
     """-> [(rule, message)]: each match of a Search's Pattern, run again over its ground, in a place its Places do not
     cover; none in a report whose Settlement holds Moved Past. A reviewer's Search, its key naming its Reviewer Reading
-    before it, is run again by --check-report alone, before the round's change is made."""
+    before it, is run again by --check-report alone, before the round's change is made. A Search in a report of
+    research, one holding Read Assessments, takes the design document out of its ground, the builder writing the
+    research's assessments into it."""
     out = []
+    research = bool(rep["records"].get("Read Assessments"))
     reviewers = tuple(as_record(r).get("Reviewer", "") + "-" for r in rep["raw"].get(REVIEW_READING, []) if r and r[0][0] is not None)
     for s in rep["records"]["Searches"] if not moved_past(rep) else []:
         if not ctx["reviewer"] and s.get("Search", "").startswith(tuple(r for r in reviewers if r != "-")):
             continue
-        pattern = s.get("Pattern", "")
-        pattern = pattern[1:-1] if len(pattern) > 1 and pattern[0] == pattern[-1] == "`" else pattern
-        try:
-            compiled = re.compile(pattern)
-        except re.error as exc:
-            out.append("Search %s's Pattern is no regular expression Python's re reads: %s" % (s.get("Search", ""), exc))
+        matched = search_matches(s, ctx)
+        if isinstance(matched, re.error):
+            out.append("Search %s's Pattern is no regular expression Python's re reads: %s" % (s.get("Search", ""), matched))
             continue
-        listed, missed = place_list(s.get("Places", "")), []
-        for path, text in ctx["ground"]().items():
-            place_at = line_places(path, text, ctx["steps"] if path == ctx["design_rel"] else None)
-            starts = [0] + [m.end() for m in re.finditer("\n", text)]
-            for m in compiled.finditer(text):
-                if m.end() == m.start():
-                    continue
-                place = place_at(bisect.bisect_right(starts, m.start()) - 1)
-                if not covered(listed, place) and place not in missed:
-                    missed.append(place)
-        out += ["Search %s's Pattern matches in %s, which its Places do not cover" % (s.get("Search", ""), cite(p)) for p in missed]
+        listed = place_list(s.get("Places", ""))
+        out += ["Search %s's Pattern matches in %s, which its Places do not cover" % (s.get("Search", ""), cite(p))
+                for p in matched if not covered(listed, p) and not (research and p[0] == ctx["design_rel"])]
     return [(ctx["rule"]("Searches"), p) for p in out]
+
+
+def search_matches(s, ctx):
+    """-> the places a Search's Pattern, run again over its ground, matches in, each once in the order found, or the
+    error where Python's re reads no regular expression in it; run once for each Search a report holds."""
+    pattern = s.get("Pattern", "")
+    pattern = pattern[1:-1] if len(pattern) > 1 and pattern[0] == pattern[-1] == "`" else pattern
+    held = ctx.setdefault("matches", {})
+    if pattern in held:
+        return held[pattern]
+    try:
+        compiled = re.compile(pattern)
+    except re.error as exc:
+        held[pattern] = exc
+        return exc
+    found = []
+    for path, text in ctx["ground"]().items():
+        place_at = line_places(path, text, ctx["steps"] if path == ctx["design_rel"] else None)
+        starts = [0] + [m.end() for m in re.finditer("\n", text)]
+        for m in compiled.finditer(text):
+            if m.end() == m.start():
+                continue
+            place = place_at(bisect.bisect_right(starts, m.start()) - 1)
+            if place not in found:
+                found.append(place)
+    held[pattern] = found
+    return found
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: reads-assessed]
+def reads_assessed_problems(rep, ctx):
+    """-> [(rule, message)]: in a report holding Read Assessments, a place outside the design document that one of its
+    Searches matched, run again over its ground, or a place its Reads holds, the places the builder named, lying within
+    no Read Assessment's Area, as § A Check's Report has one place cover another."""
+    assessed = rep["records"]["Read Assessments"]
+    if not assessed:
+        return []
+    areas = [p for p in (place_of(a.get("Area", "")) for a in assessed) if p]
+    reads = place_list(next((record_types.value_of(f) for f in rep["blocks"].get("Reading", []) if f["key"] == OWN_READING), ""))
+    places, out = [], []
+    for s in rep["records"]["Searches"]:
+        matched = search_matches(s, ctx)
+        places += [(p, "Search %s matched" % s.get("Search", "")) for p in ([] if isinstance(matched, re.error) else matched)]
+    places += [(p, "its Reads hold") for p in reads]
+    seen = set()
+    for place, how in places:
+        if place[0] == ctx["design_rel"] or place_key(place) in seen or covered(areas, place):
+            continue
+        seen.add(place_key(place))
+        out.append((ctx["rule"]("Read Assessments"), "%s, a place %s, lies within no Read Assessment's Area" % (cite(place), how)))
+    return out
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-anchored-in-the-design]
+def anchor_problems(rep, ctx):
+    """-> [(rule, message)]: a Finding whose Verdict is a mark naming in its Affected Goals, Affected Frame Outcomes and
+    Affected Step Objectives no part of the design and citing in its Broken Rules no rule it breaks, or naming a goal, a
+    Frame Outcome or a step Objective the design its Title names does not hold; none in a report whose Settlement holds
+    Moved Past."""
+    if moved_past(rep):
+        return []
+    plan, out = read_plan(ctx["design_text"]), []
+    rule = WF + " § A Check's Report § Finding"
+    for f in rep["records"]["Findings"]:
+        if f.get("Verdict") not in MARKS:
+            continue
+        where = "line %d, Finding %s" % (f["_line"] + 1, f.get("Finding", ""))
+        named = {key: [n for n in names_of_text(f.get(key, "")) if n != "none"] for key in ANCHORS}
+        if not any(named.values()) and not place_list(f.get(BROKEN_RULES, "")):
+            out.append((rule, "%s, marked a %s, names no goal, Frame Outcome or step Objective it bears on and cites no rule "
+                              "it breaks" % (where, f.get("Verdict"))))
+        for key, kind in ANCHORS.items():
+            out += [(rule, "%s's %s names %s, which the design %s does not hold" % (where, key, n, ctx["design"]))
+                    for n in named[key] if n not in plan[kind]]
+    return out
 
 
 def log_entries(text):
@@ -1792,11 +2415,13 @@ def earlier_report_problems(rep, ctx):
 
 # @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: settling-reads-cover-the-evidence]
 def settling_read_problems(rep, ctx):
-    """-> [(rule, message)]: a place the Evidence of a marked Finding names that a round's Settling Reads leave out."""
-    reads = place_list(settlement_block(rep).get("Settling Reads", ""))
+    """-> [(rule, message)]: a place the Evidence of a marked Finding names that a round's Settling Reads leave out and
+    no Read Assessment's Area covers, of the reports of the handed-off judgments the design's log names."""
+    reads = place_list(settlement_block(rep).get("Settling Reads", "")) + ctx["assessed"]()
     evidence = {p for f in rep["records"]["Findings"] if f.get("Verdict") in MARKS for ev in f.get("Evidence") or []
                 if isinstance(ev, dict) for p in place_list(ev.get("Places", ""))}
-    return [(ctx["rule"]("Settlement"), "its Settling Reads leave out %s, a place the Evidence of a marked Finding names" % cite(p))
+    return [(ctx["rule"]("Settlement"), "its Settling Reads leave out %s, a place the Evidence of a marked Finding names, "
+                                        "and no Read Assessment of a logged handed-off judgment's report covers it" % cite(p))
             for p in sorted(evidence, key=place_key) if not covered(reads, p)]
 
 
@@ -1837,7 +2462,17 @@ def report_context(root, design, design_text, kind, n, entries, reviewer=False):
     path = report_file(design, kind, n)
     commit = last_commit(root) if applied and kind == "self-review" and not reviewer else None
     rules = {p: ", ".join(r) or FORM_RULE for p, _, _, r in report_parts(root)}
-    return {"root": root, "kind": kind, "entry": "%s-%d" % (kind, n), "design": fields.get("Name", design.stem),
+    held = []
+
+    def assessed():
+        """-> the Area of each Read Assessment in the report of a handed-off judgment the design's log names, read once."""
+        if not held:
+            held.append([p for k, m, _ in entries if k == JUDGMENT
+                         for a in load_report(design, k, m)["records"]["Read Assessments"]
+                         for p in [place_of(a.get("Area", ""))] if p])
+        return held[0]
+
+    return {"assessed": assessed,"root": root, "kind": kind, "entry": "%s-%d" % (kind, n), "design": fields.get("Name", design.stem),
             "applied": applied, "reviewer": reviewer, "entries": entries, "design_rel": rel_to(design, root),
             "design_text": design_text, "steps": step_lines(design_text), "report_rel": rel_to(path, root),
             "folder": rel_to(path.parents[1], root) + "/",
@@ -1854,7 +2489,8 @@ def report_context(root, design, design_text, kind, n, entries, reviewer=False):
 def entry_report_problems(root, design, design_text, kind, n):
     """-> ([(rule, message)] refusing a check's entry, the report read): the report held to its form and its layout,
     each value holding places in its form, each Finding settled once, each key naming a record, each Search's matches
-    covered, and its records covering what its check had to cover."""
+    covered, each place its Searches matched and its Reads hold assessed where it holds Read Assessments, each marked
+    Finding anchored in the design, and its records covering what its check had to cover."""
     entries = log_entries(design_text)
     path = report_file(design, kind, n)
     rep = read_report(read(path))
@@ -1863,7 +2499,7 @@ def entry_report_problems(root, design, design_text, kind, n):
     if rep["in_form"]:
         problems += layout_problems(rep, root) + places_problems(rep, report_types(root)) + settled_problems(rep, ctx)
         problems += key_problems(rep, ctx, named_reports(design, entries, root)) + search_problems(rep, ctx)
-        problems += cover_problems(rep, ctx)
+        problems += reads_assessed_problems(rep, ctx) + anchor_problems(rep, ctx) + cover_problems(rep, ctx)
     return [(rule, "%s: %s" % (ctx["report_rel"], msg)) for rule, msg in problems], rep
 
 
@@ -1925,18 +2561,22 @@ def report_of(value):
     return (design, path.parent.name, int(path.stem)) if design.is_file() else None
 
 
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-anchored-in-the-design]
 # @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: places-in-their-form]
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: reads-assessed]
 # @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]
 # @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-laid-out]
 # @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]
 def check_report(value):
-    """--check-report REPORT: a review's report, before its settlement, its reviewer's part held to its form, its
-    Searches run again; writes no file; -> 1 where it reports, 0 where it reports nothing, 2 for a usage error."""
+    """--check-report REPORT: a review's report, before its settlement, or a handed-off judgment's, before the builder
+    takes it in, the cold agent's part held to its form, its Searches run again, each place it read assessed where it
+    holds Read Assessments, each marked Finding anchored in the design; writes no file; -> 1 where it reports, 0 where
+    it reports nothing, 2 for a usage error."""
     root = repo_root()
     found = report_of(value) if Path(value).is_file() else None
-    if found is None or found[1] not in REVIEWS:
-        sys.stderr.write("--check-report takes a review's report at its path in a design's folder, "
-                         ".ai/tmp/<skill-name>/<design>/reports/<kind>/{n}.md: %s\n" % value)
+    if found is None or found[1] not in REVIEWS + (JUDGMENT,):
+        sys.stderr.write("--check-report takes a review's or a handed-off judgment's report at its path in a design's "
+                         "folder, .ai/tmp/<skill-name>/<design>/reports/<kind>/{n}.md: %s\n" % value)
         return 2
     design, kind, n = found
     design_text = read(design).replace("\r\n", "\n")
@@ -1945,6 +2585,7 @@ def check_report(value):
     problems = form_problems(rep, ctx, report_types(root), report_parts(root))
     if rep["in_form"]:
         problems += layout_problems(rep, root) + places_problems(rep, report_types(root)) + search_problems(rep, ctx)
+        problems += reads_assessed_problems(rep, ctx) + anchor_problems(rep, ctx)
     return report("check-report " + rel_to(value, root), problems)
 
 
@@ -2159,10 +2800,10 @@ def refresh_links(value):
     return 0
 
 
-# @canon-spec specs/methodology/working-files.md § Design Plan Step
+# @canon-spec specs/methodology/working-files.md § Design Plan Step § Step Objective
 # the constructs the drafting check reads whole, the ones a construct's own block decides
 WHOLE = ("Decision Table", "State Machine")
-OPENING_CITATION = re.compile(r"^\s*- `([^`§]+?) § ([^`]+)`[:.,]?\s*(.*)$")
+OPENING_CITATION = re.compile(r"^\s*(?:- |\*\*State:\*\* )`([^`§]+?) § ([^`]+)`[:.,]?\s*(.*)$")
 LEFT_TO_THE_APPLY = ("left to the apply's self-review and the audit: a part a step changes, an Algorithm, a DAG or a "
                      "Constraint, and what a change brings in another file")
 
@@ -2176,24 +2817,19 @@ def repo_root():
 
 
 def objectives_stating_constructs(text):
-    """-> [(step, design line of the Objective, its lines)] for each Objective of a Design Plan Step holding a
-    **Construct:** field declaring one of WHOLE, its lines as written: the Objective item's own lines, ending where
-    spec-style.md § Markdown has a list item end, as the one reader reads it."""
+    """-> [(step, design line its lines open at, its lines)] for each Objective of a Design Plan Step whose State holds
+    a **Construct:** field declaring one of WHOLE, its lines as written: a Step Objective's State line and the block
+    beneath it; an Objective written before the record form, its item's own lines, ending where spec-style.md
+    § Markdown has a list item end, as the one reader reads it."""
     lines, out = text.split("\n"), []
-    start = next((i for i, l in enumerate(lines) if re.match(r"^## Design Plan Steps\s*$", l)), None)
-    if start is None:
-        return out
-    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
-    for step in records_read("\n".join(lines[start:end])) or []:
-        if step["fields"] is None:
+    for step in read_steps(text) or []:
+        if step["item"]["fields"] is None:
             continue
-        name = str(record_types.value_of(step["fields"][0])).strip()
-        objectives = next((f for f in step["fields"] if f["key"] == "Objectives"), None)
-        for it in (objectives["items"] if objectives else None) or []:
-            at = start + it["line"]
-            item = [lines[start + n] for n in it["lines"]]
-            if any(l.strip().startswith("**Construct:**") and any(w in l for w in WHOLE) for l in item):
-                out.append((name, at + 1, item))
+        for ob in step["objectives"]:
+            own = ob["state"] if ob["item"]["fields"] is not None else sorted(ob["lines"])
+            item = [lines[n] for n in own]
+            if own and any(l.strip().startswith("**Construct:**") and any(w in l for w in WHOLE) for l in item):
+                out.append((step["name"], own[0] + 1, item))
     return out
 
 
@@ -2283,7 +2919,7 @@ def check_constructs(value):
         for step, at, item in objectives_stating_constructs(design):
             placed = construct_block(item)
             if not placed:
-                findings.append((step, at, "working-files.md § Design Plan Step",
+                findings.append((step, at, "working-files.md § Design Plan Step § Step Objective",
                                  "an Objective stating a construct whole opens with no citation of its section"))
                 continue
             path, lineage, block = placed
@@ -2598,19 +3234,21 @@ FLAGS = (
     ("--check-target-kind", "DESIGN", check_target_kind,
      "confirm every file a design document's Target names is of the kind its Kind field declares, and that it names no working file"),
     ("--check-design", "DESIGN", check_design,
-     "run the validation review on one design document, writing no stamp: its form, its records and the references within it, drawing only on the document and the canon's declarations of its form; the builder runs it at validating before each adversarial round"),
+     "run the validation review on one design document, writing no stamp: its form, its records, the references within it and the lineage from research to its steps, drawing only on the document, the reports of the handed-off judgments its log names before its last plan-approval entry and the canon's declarations of its form; the builder runs it at validating before each adversarial round"),
     ("--check-workstack", "PLANS_DIR", check_workstack,
-     "report what is out of sync in the workstack: a Status out of sync with what a design depends on, a Depends On naming no design, and a loop; the builder runs it before each validation; reads the skill's plans folder, and those beside it, unless given a directory"),
+     "report what is out of sync in the workstack: a Status out of sync with what a design depends on, a Depends On Designs naming no design, and a loop; the builder runs it before each validation; reads the skill's plans folder, and those beside it, unless given a directory"),
     ("--show-workstack", "PLANS_DIR", show_workstack,
      "draw the workstack and list what to work next, what is blocked and what may be deleted; reads the skill's plans folder, and those beside it, unless given a directory"),
+    ("--show-dependents", "DESIGN NAME", show_dependents,
+     "list each part of a design naming or citing one of its goals, Frame Outcomes, steps or step Objectives by its Name, or a paragraph of its Scope by its bold lead-in, in the order specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once gives a change; writes no file and decides nothing; the builder runs it as a steer, a settlement or a pass changes a part"),
     ("--show-validation", "DESIGN", show_validation,
      "print a design document's stamped hash, its hash now, and whether it is validated, stale or never stamped"),
     ("--stamp-validation", "DESIGN", stamp_validation,
-     "run the validation review on one design document and, if it passes, write its validation stamp; the builder runs it at validating on the way to the user's approval"),
+     "run the validation review on one design document and, if it passes, write its validation stamp, taking in each log entry naming a report the review reads; the builder runs it at validating on the way to the user's approval"),
     ("--append-entry", "DESIGN KIND [FIELD=VALUE ...]", append_entry,
-     "append an entry to a design document's log, its count among its kind and the UTC time it is appended, refusing a kind, a field or a value out of the Design Log Entry type; for a check's entry, reading its report at reports/<kind>/{n}.md in the design's folder, writing a self-review's script checks' output into it, refusing the entry where the report is out of its form, its layout or the form of its values holding places, leaves a finding unsettled or settles one twice, cites a key naming no record, holds a Search whose matches its Places do not cover, or holds records not covering what working-files.md § A Check's Report has the script check of them, and taking the entry's counts from it, refusing any the builder gives; the builder appends every entry through it"),
+     "append an entry to a design document's log, its count among its kind and the UTC time it is appended, refusing a kind, a field or a value out of the Design Log Entry type; for a check's entry, reading its report at reports/<kind>/{n}.md in the design's folder, writing a self-review's script checks' output into it, refusing the entry where the report is out of its form, its layout or the form of its values holding places, leaves a finding unsettled or settles one twice, cites a key naming no record, holds a Search whose matches its Places do not cover, holds Read Assessments leaving a place its Searches matched or its Reads hold unassessed, holds a marked Finding anchored in no part of the design, or holds records not covering what working-files.md § A Check's Report has the script check of them, and taking the entry's counts from it, refusing any the builder gives; the builder appends every entry through it"),
     ("--check-report", "REPORT", check_report,
-     "check a review's report at its path in a design's folder before its settlement: its reviewer's part, its title, its Reading, its Findings and its Searches, held to the form working-files.md § A Check's Report gives it and to its layout, its values holding places in their form, and each Search run again; writes no file; the reviewer runs it before handing the report back, and the builder as settling starts"),
+     "check a review's report at its path in a design's folder before its settlement, or a handed-off judgment's before the builder takes it in: the cold agent's part, its title, its Reading, its Findings, its Searches and its Read Assessments, held to the form working-files.md § A Check's Report gives it and to its layout, its values holding places in their form, each Search run again, each place it matched or read lying within a Read Assessment's Area where it holds Read Assessments, and each marked Finding naming the parts of the design it bears on, or the rules it breaks; writes no file; the cold agent runs it before handing the report back, and the builder as settling starts"),
     ("--show-reach", "DESIGN", show_reach,
      "list each line in Spec of Record's scope holding a phrase the design's Retired Phrases record, outside its Stays Right, marking those outside the Target; the builder runs it at drafting"),
     ("--check-retired-wording", "DESIGN", check_retired_wording,
@@ -2638,6 +3276,8 @@ def main(argv, plans=PLANS):
             parser.add_argument(flag, metavar=metavar, nargs="?", const=PLANS, action="append", help=help_text)
         elif flag == "--refresh-links":
             parser.add_argument(flag, metavar=metavar, nargs="?", const=".", action="append", help=help_text)
+        elif flag == "--show-dependents":
+            parser.add_argument(flag, metavar=("DESIGN", "NAME"), nargs=2, action="append", help=help_text)
         elif flag == "--append-entry":
             parser.add_argument(flag, metavar="ARG", nargs="+", action="append", help=metavar + ": " + help_text)
         else:

@@ -46,46 +46,47 @@ Each design document is a file of its own, one per change taken through the Desi
 | Status | a `**Status:**` field | yes | | its state in [`§ A Design Document § The States It Moves Through`](#the-states-it-moves-through) |
 | Source | a `**Source:**` field | yes | | what asked for the change: the user's own words, or the finding that raised it |
 | Kind | a `**Kind:**` field | yes | | the kind of change, one of the kinds [`§ A Design Document § The Kinds of Change`](#the-kinds-of-change) gives, which bounds the files the builder edits, the steps' writing and each direct edit, though not a user's edit, which lies wherever the user made it. It sizes the design's reviews ([`specs/methodology/design-workflow.md § A Design's Reviews`](/specs/methodology/design-workflow.md#a-designs-reviews)). It is settled while the design is shaped and before any file is edited |
-| Target | a `**Target:**` field | yes | | every file the steps edit, each a path in backticks, separated by semicolons; none while the design is not-started and its files are not yet known |
+| Target | a `**Target:**` field | yes | | every file the steps edit, each a path in backticks, separated by semicolons, and each holding an area the frame's Assessed Areas hold with an Impact holding `changes`; none while the design is not-started and its files are not yet known |
 | Spawned By | a `**Spawned By:**` field | yes | | the design document this one was spawned from, or none |
-| Depends On | a `**Depends On:**` field | yes | | the design documents that block this one, separated by semicolons, or none; what blocks a design, and when, is set by this section's paragraphs on what blocks what and on blocked and to revise |
-| Validated | a `**Validated:**` field | yes | | the stamp the validation review left once the document passed it, per [`§ A Stamp`](#a-stamp), leaving out the Validated and Status fields and the Design Log Entries section; none; or `by hand`, where the design is validated by hand, as this section's paragraph on a form the methodology is still adding has it; a stamp current while the design is approved |
+| Depends On Designs | a `**Depends On Designs:**` field | yes | | the design documents that block this one, separated by semicolons, or none; what blocks a design, and when, is set by this section's paragraphs on what blocks what and on blocked and to revise. A design written before this field keeps its `**Depends On:**` field until it is next taken up, as [`§ The Working Files`](#the-working-files) has a changed form reach another design's files, and the design script reads that field as its Depends On Designs |
+| Validated | a `**Validated:**` field | yes | | the stamp the validation review left once the document passed it, per [`§ A Stamp`](#a-stamp), leaving out the Validated and Status fields and the Design Log Entries section but each entry naming a report the validation review reads; none; or `by hand`, where the design is validated by hand, as this section's paragraph on a form the methodology is still adding has it; a stamp current while the design is approved |
 | The Problem | a `## The Problem` section | yes | | what is wrong, stated on its own, before any fix |
 | Design Goals | a `## Design Goals` record section ([`§ Design Goal`](#design-goal)) | until the design is complete or abandoned | | the design's goals, or `Not yet stated.` until the user agrees on them, which no design approved or further holds |
-| The Design Frame | a `## The Design Frame` section | yes | | the design frame ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)) the user agreed to or adjusted ([`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame)), under level-three headings in this order: Scope, Approach and Outcomes. Scope holds the cases the change governs and what tells them apart, then how the sweep for affected content was done and what it found. For a design whose Depends On names a design, Scope also holds what it relies on from each, a premise citing no goal: what that design leaves in the files, specs or code, that this one cites or builds on, its rules, forms, headings, units and annotations among it. What the change leaves out is its Out of Scope's. A part not yet stated reads `Not yet stated.`, which no design approved or further holds |
+| The Design Frame | a `## The Design Frame` section | yes | | the design frame ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)) the user agreed to or adjusted ([`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame)), under level-three headings in this order: Scope, Assessed Areas, Approach and Frame Outcomes. Scope holds the cases the change governs and what tells them apart, then the method of the research ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)) that swept for affected content, never the whole of what it matched. For a design whose Depends On Designs names a design, Scope also holds what it relies on from each, a premise citing no goal: what that design leaves in the files, specs or code, that this one cites or builds on, its rules, forms, headings, units and annotations among it. Assessed Areas is a record section of the areas in the design's scope ([`§ A Design Document § Assessed Area`](#assessed-area)). Approach cites the goals it rests on, as a goal is cited ([`§ Design Goal`](#design-goal)). Frame Outcomes is a record section of the frame's outcomes ([`§ A Design Document § Frame Outcome`](#frame-outcome)). What the change leaves out is its Out of Scope's. A part not yet stated reads `Not yet stated.`, which no design approved or further holds |
 | Steering Decisions | a `## Steering Decisions` record section | once the user has steered the design | | each steer the user gave, per [`§ Steering Decision`](#steering-decision) |
 | Design Plan Steps | a `## Design Plan Steps` record section ([`§ Design Plan Step`](#design-plan-step)) | yes | | the plan's steps, or `Not yet drafted.` until drafting states them, which no design approved or further holds |
 | Retired Phrases | a `## Retired Phrases` record section ([`§ Retired Phrase`](#retired-phrase)) | no | none | the wording the design retires, each phrase with its replacement and the places it stays right, a phrase the user turned down while steering among them |
 | Impact on the Application Specs | a `## Impact on the Application Specs` section | in a canon design | | each application file and section the canon change leaves out of sync, what it leaves out of sync there and what the application work must do, or that none was found; and how the application specs were reviewed |
 | Design Log Entries | a `## Design Log Entries` record section ([`§ Design Log Entry`](#design-log-entry)) | once the design's first entry is appended | | the design's log: an entry for each check of its work and each event of its workflow, in the order they came |
-| Out of Scope | a `## Out of Scope` section | yes | | each thing the design deliberately leaves unaddressed, so a reviewer spends no time on it: each change considered and declined, and each piece of work handed on, the code a design changing the specs leaves out of sync among it. Each item gives its reason and names no other working file, and the work it hands on is held where the skill's step handing it on sends it. Work the design waits on is named in its Depends On instead, and the application work a canon design leaves is in its Impact on the Application Specs |
+| Out of Scope | a `## Out of Scope` section | yes | | each thing the design deliberately leaves unaddressed, so a reviewer spends no time on it: each change considered and declined, and each piece of work handed on, the code a design changing the specs leaves out of sync among it. Each item gives its reason and names no other working file, and the work it hands on is held where the skill's step handing it on sends it. An area whose latest Read Assessment holds `changes` and that the design leaves out is named by an item holding its place right after the item's bold lead-in, citing the steer that left it out. Work the design waits on is named in its Depends On Designs instead, and the application work a canon design leaves is in its Impact on the Application Specs |
 
-**Spawning keeps a design focused.** A design may turn up work that is a change of its own, such as a migration of files a rule change leaves out of sync. That work is spawned as a design document of its own or logged as a follow-up ([`§ A Follow-up`](#a-follow-up)), as the user decides, because which suits depends on how the user means to work it. Work that changes only working files is logged as a follow-up, never spawned, since no design changes a working file ([`§ The Working Files`](#the-working-files)). The user approves each spawned design before it is written, with its text shown first, and each follow-up as [`§ A Follow-up`](#a-follow-up) has it. Nothing is spawned or logged on the builder's own call. Work is spawned or logged when it is deferred, not when the design completes. A spawned design's Spawned By names the design it came from, so each design, and each review of it, holds one change. The design's scope still sweeps what the spawned change touches, and only the spawned design's steps change it.
+**Spawning keeps a design focused.** A design may turn up work that is a change of its own, such as a migration of files a rule change leaves out of sync. That work is spawned as a design document of its own or logged as a follow-up ([`§ A Follow-up`](#a-follow-up)), as the user decides, because which suits depends on how the user means to work it. Work that changes only working files is logged as a follow-up, never spawned, since no design changes a working file ([`§ The Working Files`](#the-working-files)). The user approves each spawned design before it is written, with its text shown first, and each follow-up as [`§ A Follow-up`](#a-follow-up) has it. Nothing is spawned or logged on the builder's own call. Work is spawned or logged when it is deferred, not when the design completes. A spawned design's Spawned By names the design it came from, so each design, and each review of it, holds one change. The design's research still reaches what the spawned change touches, and only the spawned design's steps change it.
 
 **One standing Objective.** Every step of a design carries one Objective the canon keeps rather than each step stating it: the prose around what the step changes, within the Target, stays consistent with the steps. The builder meets it at the apply, and the post-apply review checks it, never passage by passage in the steps.
 
-**Depends On records what blocks what.** A spawned design blocks the design it came from when that design cannot finish without it, and is named in that design's Depends On. A spawned design that can be worked before or after the design it came from does not block that design. Depends On is the one record of what blocks what. It names any design that must finish first, spawned or not, as an application design names the canon design whose rule it follows. A workstack is worked from the designs nothing open blocks, back toward the design it began from.
+**Depends On Designs records what blocks what.** A spawned design blocks the design it came from when that design cannot finish without it, and is named in that design's Depends On Designs. A spawned design that can be worked before or after the design it came from does not block that design. Depends On Designs is the one record of what blocks what. It names any design that must finish first, spawned or not, as an application design names the canon design whose rule it follows. A workstack is worked from the designs nothing open blocks, back toward the design it began from.
 
-**Blocked and to revise are read, not recorded.** A design finishes when it enters one of the states the Trigger Classes table of [`§ A Design Document § The States It Moves Through`](#the-states-it-moves-through) lists. A design is blocked while its Depends On names a design that has not finished. It is to revise once a design its Depends On names has finished. Blocked and to revise are both read from the Status of the designs its Depends On names, never recorded in the design itself. A blocked design may still be worked and reviewed. A design goes to the user's approval only once each design its Depends On names is approved or applying, so designs that build on each other can be shaped and approved before any of them is applied. A finished design among those it names is taken in and removed first. It works as integrating branches early does: a conflict between the designs is found before any of them is applied, not at the merge. A design is applied only once its Depends On names none, so designs apply in dependency order. Where a design goes back to in-progress, the builder moves back each approved design whose Depends On names it. Once a design its Depends On names finishes, the design naming it goes back to in-progress if it is approved. It takes in what the finished design settled, or why it was dropped, against the files as they stand once that design finishes, and, where that design was dropped, revises itself for its absence. It then removes the finished design from Depends On, and from its Scope what it relied on from that design.
+**Blocked and to revise are read, not recorded.** A design finishes when it enters one of the states the Trigger Classes table of [`§ A Design Document § The States It Moves Through`](#the-states-it-moves-through) lists. A design is blocked while its Depends On Designs names a design that has not finished. It is to revise once a design its Depends On Designs names has finished. Blocked and to revise are both read from the Status of the designs its Depends On Designs names, never recorded in the design itself. A blocked design may still be worked and reviewed. A design goes to the user's approval only once each design its Depends On Designs names is approved or applying, so designs that build on each other can be shaped and approved before any of them is applied. A finished design among those it names is taken in and removed first. It works as integrating branches early does: a conflict between the designs is found before any of them is applied, not at the merge. A design is applied only once its Depends On Designs names none, so designs apply in dependency order. Where a design goes back to in-progress, the builder moves back each approved design whose Depends On Designs names it. Once a design its Depends On Designs names finishes, the design naming it goes back to in-progress if it is approved. It takes in what the finished design settled, or why it was dropped, against the files as they stand once that design finishes, and, where that design was dropped, revises itself for its absence. It then removes the finished design from Depends On Designs, and from its Scope what it relied on from that design.
 
-**Unwinding.** A finished design is deleted once no design names it in Depends On, so what it settled or why it was dropped stays readable until the designs that waited on it have taken it in. When a design is abandoned, each open design it spawned goes on as a design of its own, or is abandoned with it, as the user decides. A Spawned By naming a design since deleted stays, as the spawned design's history.
+**Unwinding.** A finished design is deleted once no design names it in Depends On Designs, so what it settled or why it was dropped stays readable until the designs that waited on it have taken it in. When a design is abandoned, each open design it spawned goes on as a design of its own, or is abandoned with it, as the user decides. A Spawned By naming a design since deleted stays, as the spawned design's history.
 
-**The record's checks.** Before each adversarial round and before the user's approval, the validation review checks that the design document is a valid document. The validation review is the design script of the skill writing the design. It checks the document's structure alone, drawing only on the document and the canon's declarations of its form, never what the document says, and reads no file besides those. How the builder applied the user's steers, and whether the design is right, are the adversarial review's to read ([`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review)). The steers are that review's account of how the design was shaped. The checks:
+**The record's checks.** Before each adversarial round and before the user's approval, the validation review checks that the design document is a valid document. The validation review is the design script of the skill writing the design. It checks the document's structure alone, drawing only on the document, the reports of the handed-off judgments the design's log names, but a report whose entry stands after the design's last `plan-approval` entry with no `entered` entry after that, as [`§ A Check's Report`](#a-checks-report) bounds a report over applied work, and the canon's declarations of its form, never what any of them says, and reads no file besides those. So research logged after the plan's approval, when the frame is frozen, leaves the validation as it stood, and a design sent back reads its research whole. How the builder applied the user's steers, and whether the design is right, are the adversarial review's to read ([`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review)). The steers are that review's account of how the design was shaped. The checks:
 
 **Reference Key:** Check \
 **Required:** What The Record Holds, Why
 
 | Check | What The Record Holds | Why |
 |---|---|---|
-| Form | its heading, its fields and its sections in the order and the form this section's table gives them, each block of fields and each list a field holds as [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) has them, each blank line placed as [`specs/methodology/spec-style.md § Blank Lines`](/specs/methodology/spec-style.md#blank-lines) has it, and, by the time it is validated, no goal, no part of its frame and no step section reading `Not yet stated.` or `Not yet drafted.` | a reader and a script find each part where the form puts it |
+| Form | its heading, its fields and its sections in the order and the form this section's table gives them, each block of fields and each list a field holds as [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) has them, each blank line placed as [`specs/methodology/spec-style.md § Blank Lines`](/specs/methodology/spec-style.md#blank-lines) has it, and, by the time it is validated, no goal, no part of its frame and no step section reading `Not yet stated.` or `Not yet drafted.`; and no table in a step Objective but a Decision Table or a State Machine it states whole ([`§ Design Plan Step § Step Objective`](#step-objective)) | a reader and a script find each part where the form puts it |
 | Records | its design goals, its steering decisions, its design plan steps and each other record section, each record holding the fields its type declares, a Type among the values it declares, and each Name used once; each design log entry's count counting its kind from 1 in the order the entries stand, and each Timestamp no earlier than the one before it | a record out of its form is one no script can read |
-| References | each goal its frame or a step's Why cites one the design holds, and each step a step cites one the design holds | a reference to nothing leads a reader, and the work, nowhere |
+| References | each Name a field holds, a Frame Outcome's Goals, a step's Depends On Steps, and a step Objective's Goals and Upholds Frame Outcomes, and each goal its Approach cites, naming a part the design holds; no Name used twice across its goals, Frame Outcomes, steps and step Objectives; each goal served by a step Objective naming it, and each Frame Outcome upheld by one; no step depending on itself through the steps it depends on, and none standing before a step it depends on | a reference to nothing leads a reader, and the work, nowhere, and a part nothing serves or upholds is a gap in the plan |
+| Lineage | each place a step's What names reaching an Assessed Area whose Impact holds `changes`, and each such Assessed Area reached by a step's What, a What reaching an Area where a place it names is the Area, lies within it or holds it; each Assessed Area's Impact and Assessment those of the latest Read Assessment of its Area in the reports the validation review reads; and each Area whose latest Read Assessment there holds an Impact other than `none` an Assessed Area or, its Impact holding `changes`, named by an item of the Out of Scope holding its place right after the item's bold lead-in | nothing enters the design's scope but through an assessment, and each step changes only what is in scope |
 
-Whether the design's citations of other files resolve, and its Target against its Kind, are the adversarial review's to judge. The design's place in the workstack is `--check-workstack`'s, which runs before each validation. A problem it reports is put right before the design goes to a review or to the approval.
+Whether the design's citations of other files resolve, and its Target against its Kind, are the adversarial review's to judge. Whether a step Objective serves its goals and states an outcome, and whether the steps uphold a Frame Outcome, are the semantic checks standing under [`§ Design Plan Step § Step Objective`](#step-objective) and [`§ A Design Document § Frame Outcome`](#frame-outcome). The design's place in the workstack is `--check-workstack`'s, which runs before each validation. A problem it reports is put right before the design goes to a review or to the approval.
 
 **Valid to approve.** The validation review reports each problem it finds, the builder fixes it, and the review runs again, until the document passes. On the way to the user's approval, the passing review stamps it ([`§ A Stamp`](#a-stamp)); before an adversarial round, it stamps nothing. Every problem it can report is one of form or integrity, so none is a question for the user. A stamp never waits on what the document says. The stamp is the review's record in the design. A design changed after its stamp no longer matches the stamp, so a stale validation is read from the file and never cleared by hand. The review runs again.
 
-**A form the methodology is still adding.** A design changing the methodology may add a form, such as a part of a design document or a record type. A design whose record uses a form not yet applied is validated by hand: its Validated field reads `by hand`, and the script's reports of the form it does not yet know are the expected ones. Another design whose record uses that form names the design adding it in its Depends On. The design adding the form is stamped at its writing, once its form is applied; one depending on it, when next validated after that design finishes. Either way, the record is held to the methodology as it will be. A self-hosting compiler is built the same way, with the syntax it adds.
+**A form the methodology is still adding.** A design changing the methodology may add a form, such as a part of a design document or a record type. A design whose record uses a form not yet applied is validated by hand: its Validated field reads `by hand`, and the script's reports of the form it does not yet know are the expected ones. Another design whose record uses that form names the design adding it in its Depends On Designs. The design adding the form is stamped at its writing, once its form is applied; one depending on it, when next validated after that design finishes. Either way, the record is held to the methodology as it will be. A self-hosting compiler is built the same way, with the syntax it adds.
 
 **A change needing both kinds is split.** The change's canon design reviews the application specs for what the change leaves out of sync there. It records that in its Impact on the Application Specs, and edits none of the application specs. That application work goes to the application design the canon design was spawned from, where there is one. Otherwise it is spawned or logged as this section's spawning paragraph has it. The canon and application designs may be worked in concert. A design changing the specs that leaves code out of sync edits none of the code either. It records the code it leaves out of sync in its Out of Scope, and that work goes to a design changing code, spawned or logged the same way. What an audit in the canon design's apply finds in the application specs is settled by [`§ A Design Document § Changes After Approval`](#changes-after-approval). What that table hands on is application work too. It is added to what the canon design's review handed on, or handed on the same way, so the canon design completes without editing the application specs. Where the application work finds the canon design wrong, the canon design takes the change while it is in-progress or approved, the user reopening an approved one. For any other canon change the application work needs, the application design spawns a canon design, which blocks it. A change to the canon design once that design is applying or complete is such a change too. Where the application design is approved, the user reopens it before the canon design is spawned. An application design already applying keeps to what was approved. The canon change is then spawned or logged without blocking it, as the user decides.
 
@@ -113,6 +114,54 @@ What each kind bounds a change to:
 
 Every file a design's Target names is of its declared kind, or is a file of `documentation` or `other`, or is code whose annotation lines alone it edits, as [`specs/methodology/code.md § Changing Code`](/specs/methodology/code.md#changing-code) has a design retitling a heading.
 
+### Assessed Area
+
+A design holds its current scope in its frame's Assessed Areas, so an agent taking the design up finds there what the last one put in scope and what the design follows. Each is an area research found bearing on the design ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)), and holds the Impact and the report of the latest Read Assessment of its Area ([`§ A Check's Report § Read Assessment`](#read-assessment)). Nothing enters the design's scope but through such an assessment. A step's What names only areas whose Impact holds `changes`, and the design follows each whose Impact holds `applies`. An area whose latest Read Assessment holds `changes` that the design leaves out is named in its Out of Scope instead. As a newer assessment of an Area comes in, its Assessed Area takes that assessment's Impact and report, and the earlier reports stay as the history. The validation review holds the Assessed Areas to the research and to the steps, as [`§ A Design Document`](#a-design-document)'s Lineage check has it.
+
+A design's Assessed Areas sit in its frame's record section of this type, after its Scope, a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Assessed Areas \
+**Reference Key:** Area
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Area | yes | yes | | text | the area, a file or a section, one place as [`§ A Check's Report`](#a-checks-report) has a value holding places written |
+| Impact | no | yes | | text | a list, the Impact of the latest Read Assessment of its Area, each item a member of [`§ A Check's Report § Read Assessment § Read Assessment Impacts`](#read-assessment-impacts) other than `none` |
+| Assessment | no | yes | | text | the report of the handed-off judgment holding that Read Assessment, one place as [`§ A Check's Report`](#a-checks-report) has a value holding places written |
+
+### Frame Outcome
+
+A Frame Outcome is one of a design frame's outcomes ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)): what a successful solution achieves, stated of the applied work and never of the plan, and how that is judged. So a reviewer judges it against the steps before the apply, and against the applied work after it. Each names the goals it rests on, as [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame) has the frame's outcomes rest on them. The step Objectives naming it in their Upholds Frame Outcomes uphold it ([`§ Design Plan Step § Step Objective`](#step-objective)).
+
+A design's Frame Outcomes sit in its frame's record section of this type, after its Approach, a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Frame Outcomes \
+**Reference Key:** Name
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Name | yes | yes | | text | the Frame Outcome's slug, in kebab-case as a design document's Name is ([`§ A Design Document`](#a-design-document)), by which a field names it |
+| Goals | no | yes | | text | the goals it rests on, a list, one goal's Name to an item, as [`§ Design Goal`](#design-goal) has a field name a goal |
+| Description | no | yes | | text | what the applied work achieves, and how that is judged |
+
+#### Semantic Checks
+
+**Records:**
+  - **Name:** outcome-upheld \
+    **Tests:** a Frame Outcome's Description states what the applied work achieves and how that is judged, and the step Objectives naming it in their Upholds Frame Outcomes together achieve that, judged as it says, in the steps before the apply and in the applied work after it, as this section has a Frame Outcome upheld \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` Refactor and refine, then the reviews and the approval
+      - `.ai/skills/design-specs/` Check what you wrote, then the post-apply review, the audit and the commit
+      - `.ai/skills/implement-specs/` Design, Refactor, Refine, then the reviews
+      - `.ai/skills/implement-specs/` Check what you wrote, then the post-apply review, the audit and the commit
+
+    **Unit:** per Frame Outcome
+
 ### Changes After Approval
 
 Once the user approves the plan, a passage outside the Target that the apply leaves false is a tactical fix ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)) where a rewording that restates what the steps decide makes it true. Otherwise it is a finding lying in the plan, as [`§ A Design Document`](#a-design-document)'s paragraph on applying and committing bounds a design's changes. A finding the post-apply review makes within the Target lies in the plan or in the writing, as [`specs/AGENTS.md § Design, Refactor, Refine § The Post-Apply Review`](/specs/AGENTS.md#the-post-apply-review) has the review settled, unless it is on text whose migration the frame hands on, which lies in neither. This section's table settles that finding, one outside the Target, and each finding the builder's self-review makes over the work and does not fix in the writing, as it settles an audit's. The builder triages and marks an audit's findings, as [`specs/AGENTS.md § Design, Refactor, Refine § An Audit`](/specs/AGENTS.md#an-audit) has an audit read. Before this section's table, the builder applies [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test`](/specs/AGENTS.md#the-test) to each finding the table would settle, and records each finding the test drops in its triage. Each finding the test keeps is presented to the user and settled by the questions that sort it, asked in order:
@@ -120,7 +169,7 @@ Once the user approves the plan, a passage outside the Target that the apply lea
 - **Judged wrong by the user?** The user's judgment as the finding is presented.
 - **In a file the design's Kind lets it change?** A canon design's finding in the application specs, and a code design's in the specs, answer false.
 - **Handed on by the frame?** A rule the design changed may find a breach in text the apply carried over. That finding answers true where the design's Out of Scope hands the text's migration on, to a design of its own or a follow-up, as [`§ A Design Document`](#a-design-document)'s paragraph on spawning has such work handed on. It answers false where the goals take the migration in, since the migration is then the steps'. It answers false too where the frame hands nothing on, having missed text it should have held. A script check's finding and a semantic check's are answered alike.
-- **A tactical fix?** As the glossary defines one. Every nit answers true. A finding asking to reword wording an Objective quotes answers false whatever its mark, as [`§ Design Plan Step`](#design-plan-step) has that wording frozen.
+- **A tactical fix?** As the glossary defines one. Every nit answers true. A finding asking to reword wording an Objective quotes answers false whatever its mark, as [`§ Design Plan Step § Step Objective`](#step-objective) has that wording frozen.
 - **Lying in the plan?** A finding lying in the plan, as [`specs/AGENTS.md § Design, Refactor, Refine § The Post-Apply Review`](/specs/AGENTS.md#the-post-apply-review) sorts one, answers true.
 
 So a tactical fix never sends a design back, no design edits a file its Kind does not let it change, no migration the frame hands on is made in the design, and no row sends a tactical fix the user declines back to the writing or into the plan:
@@ -194,9 +243,9 @@ The states a design document's Status moves through, and what moves it from one 
 | not-started | in-progress | the work is taken up | none |
 | in-progress | approved | none | none |
 | approved | in-progress | the user reopens it | none |
-| approved | in-progress | in-progress of a design its Depends On names is entered | none |
-| approved | in-progress | a design its Depends On names finishes | none |
-| approved | applying | the user gives the go-ahead to apply | its Depends On names none, [`§ A Design Document § Uncommitted Changes`](#uncommitted-changes) admits every uncommitted change, and no other design is applying in the checkout |
+| approved | in-progress | in-progress of a design its Depends On Designs names is entered | none |
+| approved | in-progress | a design its Depends On Designs names finishes | none |
+| approved | applying | the user gives the go-ahead to apply | its Depends On Designs names none, [`§ A Design Document § Uncommitted Changes`](#uncommitted-changes) admits every uncommitted change, and no other design is applying in the checkout |
 | applying | in-progress | none | exit = "sent back" |
 | applying | complete | none | exit = "applied" |
 | not-started | abandoned | the user abandons it | none |
@@ -208,8 +257,8 @@ The states a design document's Status moves through, and what moves it from one 
 
 | Member | Class |
 |---|---|
-| complete of a design its Depends On names is entered | a design its Depends On names finishes |
-| abandoned of a design its Depends On names is entered | a design its Depends On names finishes |
+| complete of a design its Depends On Designs names is entered | a design its Depends On Designs names finishes |
+| abandoned of a design its Depends On Designs names is entered | a design its Depends On Designs names finishes |
 
 #### A Send-back
 
@@ -219,7 +268,7 @@ The kept changes hold their checkout as an apply's changes do. The design enters
 
 ### A Design Changing Code
 
-A design changing code starts from applied specs, or from the specs as a design its Depends On names leaves them, rather than from a problem in them. It designs the code and the tests that bring the specs to life. It takes the form [`§ A Design Document`](#a-design-document) sets, the Design, Refactor, Refine process, the validation review, the adversarial review, the stamp and the post-apply review, as a design changing the specs does. It differs only where code does. Its parts differ so:
+A design changing code starts from applied specs, or from the specs as a design its Depends On Designs names leaves them, rather than from a problem in them. It designs the code and the tests that bring the specs to life. It takes the form [`§ A Design Document`](#a-design-document) sets, the Design, Refactor, Refine process, the validation review, the adversarial review, the stamp and the post-apply review, as a design changing the specs does. It differs only where code does. Its parts differ so:
 
 **Reference Key:** Part \
 **Required:** In A Design Changing Code
@@ -228,17 +277,17 @@ A design changing code starts from applied specs, or from the specs as a design 
 |---|---|
 | The Problem | names the product module it carries out, then the specs it carries into code, cited, and what the code lacks |
 | Kind | `code` |
-| Design Plan Steps | its steps' Objectives state the units of governed code the applied code holds, with the app-spec annotations each carries ([`specs/methodology/code.md § Citing the Specs From Code`](/specs/methodology/code.md#citing-the-specs-from-code)), the wiring that connects the units ([`specs/methodology/code.md § Governed Code and Wiring Code`](/specs/methodology/code.md#governed-code-and-wiring-code)), and the tests that check the specs ([`specs/methodology/code.md § Tests`](/specs/methodology/code.md#tests)), as [`§ Design Plan Step`](#design-plan-step) has an Objective state an outcome |
+| Design Plan Steps | its steps' Objectives state the units of governed code the applied code holds, with the app-spec annotations each carries ([`specs/methodology/code.md § Citing the Specs From Code`](/specs/methodology/code.md#citing-the-specs-from-code)), the wiring that connects the units ([`specs/methodology/code.md § Governed Code and Wiring Code`](/specs/methodology/code.md#governed-code-and-wiring-code)), and the tests that check the specs ([`specs/methodology/code.md § Tests`](/specs/methodology/code.md#tests)), as [`§ Design Plan Step § Step Objective`](#step-objective) has an Objective state an outcome |
 
-**One product module.** A design changing code carries out one product module. It reads what [`specs/methodology/spec-placement.md § A Product Module`](/specs/methodology/spec-placement.md#a-product-module) sets, in the order [`specs/methodology/scope.md § Progressive Disclosure`](/specs/methodology/scope.md#progressive-disclosure) sets. Work reaching several modules is a design for each. A technical section several modules need, such as a shared data model's, is carried out by the first design changing code that takes it up. A later design names that design in its Depends On while that design is unfinished, and builds on that design's code once it is applied.
+**One product module.** A design changing code carries out one product module. It reads what [`specs/methodology/spec-placement.md § A Product Module`](/specs/methodology/spec-placement.md#a-product-module) sets, in the order [`specs/methodology/scope.md § Progressive Disclosure`](/specs/methodology/scope.md#progressive-disclosure) sets. Work reaching several modules is a design for each. A technical section several modules need, such as a shared data model's, is carried out by the first design changing code that takes it up. A later design names that design in its Depends On Designs while that design is unfinished, and builds on that design's code once it is applied.
 
-**The builder designs, the user steers.** The builder designs the code from the specs on its own, with the specs as its starting point. The user approves the design or steers it. A steer about how the code carries out the specs is this design's. A steer changing what a spec states is spawned as a design changing the specs and named in this design's Depends On. This design then waits on the spawned design, per [`§ A Design Document`](#a-design-document)'s paragraph on blocked and to revise. Once the spawned design finishes, this design takes it in, revised against the specs as they then stand.
+**The builder designs, the user steers.** The builder designs the code from the specs on its own, with the specs as its starting point. The user approves the design or steers it. A steer about how the code carries out the specs is this design's. A steer changing what a spec states is spawned as a design changing the specs and named in this design's Depends On Designs. This design then waits on the spawned design, per [`§ A Design Document`](#a-design-document)'s paragraph on blocked and to revise. Once the spawned design finishes, this design takes it in, revised against the specs as they then stand.
 
 The audit in its apply is the one [`specs/methodology/design-workflow.md § A Design's Reviews`](/specs/methodology/design-workflow.md#a-designs-reviews) picks from the kinds of the files its Target names, `.ai/skills/verify-spec-implementation/`'s full run for its code.
 
 ## Design Goal
 
-A design's goals ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)) are agreed on before its design frame, and changed and weighed, as [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame) has them. A goal is named, never numbered, so a record speaks of a goal by its Name however the list changes. A record cites a goal as a record is cited, by its record section and its Name ([`specs/methodology/sourcing-and-citation.md § Writing a Citation`](/specs/methodology/sourcing-and-citation.md#writing-a-citation)).
+A design's goals ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)) are agreed on before its design frame, and changed and weighed, as [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame) has them. A goal is named, never numbered, so a record speaks of a goal by its Name however the list changes. A design's goals, Frame Outcomes, steps and step Objectives each take a Name no other part of the design takes. A field naming any of them holds each by its Name alone, a list, one Name to an item, and the design script resolves each against the design. Prose cites a goal as a record is cited, by its record section and its Name ([`specs/methodology/sourcing-and-citation.md § Writing a Citation`](/specs/methodology/sourcing-and-citation.md#writing-a-citation)).
 
 A design's goals sit in its record section of this type, a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
 
@@ -248,14 +297,14 @@ A design's goals sit in its record section of this type, a record type ([`specs/
 
 | Field | Unique | Required | Default Value | Values | Holds |
 |---|---|---|---|---|---|
-| Name | yes | yes | | text | the goal's slug, in kebab-case as a design document's Name is ([`§ A Design Document`](#a-design-document)), by which the record names and cites it |
+| Name | yes | yes | | text | the goal's slug, in kebab-case as a design document's Name is ([`§ A Design Document`](#a-design-document)), by which a field names it and prose cites it |
 | Description | no | yes | | text | what the goal asks of the change |
 
 ## Design Plan Step
 
 Each step of a design's plan states what it changes and the state the applied work holds once it is changed, never the text or the code that brings the state about. That text or code is written at the apply ([`specs/methodology/design-workflow.md § The Order of a Design's Work § The Apply`](/specs/methodology/design-workflow.md#the-apply)). A step reaches as many files as its change does, and the design's Target is every file its steps reach.
 
-**An Objective is an outcome.** An Objective ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)) describes the outcome, never the work to reach it, and it names no phrase or passage to change. Everything a step's Objectives do not state stands as it is. A step's Objectives freeze what they state, never the words carrying it, whatever the design's kind. A step changing a mechanism states each part it adds, changes or removes, such as its rows, fields, conditions, outcomes, states, transitions, guards, facts and steps, in the form its construct's definition gives that part. It writes a value, an expression or a citation as the spec writes it. An Objective adding a Decision Table or a State Machine, or rewriting one whole, opens with a citation of the section the construct stands in, `{path} § {section}`. Indented under the Objective, it states the construct whole in its form ([`specs/methodology/modeling-constructs.md § Constructs`](/specs/methodology/modeling-constructs.md#constructs)), as a mechanism's form is its outcome. An Algorithm's, a DAG's and a Constraint's parts, and a Basic Table's and a record type's rows, are stated as any other outcome, never whole. A step states each passage of prose by the meaning it holds, never by quoting its words, each part written as free prose among them, such as a Description, a Fact's Means and an outcome written as prose. So rewording such a passage while keeping its meaning is a tactical fix ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)). An Objective quotes wording only where the wording is itself the outcome, a steer's chosen words among it, and so freezes that wording: rewording it is a finding lying in the plan, never a tactical fix. A step's Why cites a goal the step serves, as a record cites a goal ([`§ Design Goal`](#design-goal)).
+**What a step rests on.** A step's What names each area the step changes, as a place, and only areas the frame's Assessed Areas hold with an Impact holding `changes` ([`§ A Design Document § Assessed Area`](#assessed-area)), never a place read only to confirm the builder's understanding. Within those areas, the step's change is written whole, as [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once`](/specs/AGENTS.md#measure-twice-cut-once) has a rule written whole. Its Why holds why the step is needed alone, and the step serves the goals its Objectives name. A step names the steps it builds on in its Depends On Steps, and stands after each of them, so the steps are read and built in the order they build on each other. Its Objectives state the outcomes it achieves, each written as [`§ Design Plan Step § Step Objective`](#step-objective) has an Objective written.
 
 A design's steps sit in its record section of this type, a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
 
@@ -265,10 +314,59 @@ A design's steps sit in its record section of this type, a record type ([`specs/
 
 | Field | Unique | Required | Default Value | Values | Holds |
 |---|---|---|---|---|---|
-| Name | yes | yes | | text | the step's slug, in kebab-case as a design document's Name is ([`§ A Design Document`](#a-design-document)), by which the record names and cites it |
-| What | no | yes | | text | what the step changes, the files and sections it reaches |
-| Why | no | yes | | text | why the step is needed, citing each goal it serves |
-| Objectives | no | yes | | text | a list of the states the applied work holds once the step is applied, each an Objective |
+| Name | yes | yes | | text | the step's slug, in kebab-case as a design document's Name is ([`§ A Design Document`](#a-design-document)), by which a field names it and the record cites it |
+| What | no | yes | | text | what the step changes, each area it changes named as a place, as this section has a What name it |
+| Why | no | yes | | text | why the step is needed |
+| Depends On Steps | no | yes | | text | the steps it builds on, a list, one step's Name to an item, as [`§ Design Goal`](#design-goal) has a field name a step, or `none` |
+| Objectives | no | yes | | a list of [`§ Design Plan Step § Step Objective`](#step-objective) | the states the applied work holds once the step is applied |
+
+### Step Objective
+
+A step Objective is an Objective ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)): it states the outcome its step achieves toward the goals it names, never the work to reach it nor how the step is implemented, and it names no phrase or passage to change. Everything a step's Objectives do not state stands as it is. A step's Objectives freeze what they state, never the words carrying it, whatever the design's kind. Each part an Objective states, a part of a mechanism among them, is text of one of four kinds, each written one way:
+- **A name or a value.** A record type's or a field's name, a slug, a heading, a closed set's member, a value that is no prose, an expression or a citation is written literally, as the spec writes it.
+- **Wording that is itself the outcome.** Such wording, a steer's chosen words among it, is quoted, and so frozen: rewording it is a finding lying in the plan, never a tactical fix, as [`§ Steering Decision`](#steering-decision) and [`§ A Design Document § Changes After Approval`](#changes-after-approval) rely on.
+- **A Decision Table or a State Machine added or rewritten whole.** Its form is its outcome, so the Objective opens with a citation of the section the construct stands in, `{path} § {section}`, and, indented under it, states the construct whole in its form ([`specs/methodology/modeling-constructs.md § Constructs`](/specs/methodology/modeling-constructs.md#constructs)), its prose cells among it.
+- **Whatever else a reader judges by its meaning.** A field's Holds and its Required condition, a field holding prose, such as a Description, a Fact's Means or a Covers, a Basic Table's row, an Algorithm's, a DAG's or a Constraint's part, and prose are each stated as an outcome, by the meaning they hold. So rewording such text while keeping its meaning is a tactical fix ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)).
+
+So an Objective holds no table but a Decision Table or a State Machine it states whole.
+
+A step's Objectives sit in its Objectives field, records of this type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Step Objectives \
+**Reference Key:** Name
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Name | yes | yes | | text | the Objective's slug, in kebab-case as a design document's Name is ([`§ A Design Document`](#a-design-document)), by which a field names it |
+| Goals | no | yes | | text | the goals the Objective serves, a list, one goal's Name to an item, as [`§ Design Goal`](#design-goal) has a field name a goal |
+| Upholds Frame Outcomes | no | yes | | text | the Frame Outcomes the Objective upholds, a list, one Frame Outcome's Name to an item, as [`§ Design Goal`](#design-goal) has a field name one |
+| State | no | yes | | text | the state the applied work holds once the step is applied, written as this section has an Objective's text written |
+
+#### Semantic Checks
+
+**Records:**
+  - **Name:** objective-serves-its-goals \
+    **Tests:** each step Objective's State achieves something each goal its Goals names asks of the change, as this section has an Objective state the outcome its step achieves toward the goals it names \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` Refactor and refine, then the reviews and the approval
+      - `.ai/skills/implement-specs/` Design, Refactor, Refine, then the reviews
+
+    **Unit:** per step Objective
+
+  - **Name:** objective-states-an-outcome \
+    **Tests:** each step Objective states the outcome its step achieves and never how the step is implemented, each part it states written as the kind of text this section gives it \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` Refactor and refine, then the reviews and the approval
+      - `.ai/skills/implement-specs/` Design, Refactor, Refine, then the reviews
+
+    **Unit:** per step Objective
 
 ## Design Log Entry
 
@@ -311,7 +409,7 @@ The kinds of entry, each with the fields it gives beside Entry and Timestamp, th
 |---|---|---|---|
 | `design-refactor-refine` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped | the builder's own report | as the builder's Design, Refactor, Refine pass ends |
 | `self-review` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped | the builder's own report | as the builder's self-review ends |
-| `handed-off-judgment` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped | the builder's own report | as the settling of a judgment the builder handed off ends; for one settled with a round, right after the round's entry, its settling ending with the round's ([`§ A Check's Report`](#a-checks-report)) |
+| `handed-off-judgment` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped | the builder's own report | as the settling of a judgment the builder handed off ends; for research, once the builder takes its Read Assessments into the frame, before the validation, or, over applied work, into a round's settling, before the round's entry; for one settled with a round, right after the round's entry, its settling ending with the round's ([`§ A Check's Report`](#a-checks-report)) |
 | `adversarial-review` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | a review's report | as the round's settling ends |
 | `post-apply-review` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | a review's report | as the round's settling ends |
 | `audit-specs` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | the builder's triage of an audit | as the settling of an `.ai/skills/audit-specs/` run ends |
@@ -339,7 +437,7 @@ The kinds of entry, each with the fields it gives beside Entry and Timestamp, th
 
 ## A Check's Report
 
-A check's report records what a check of a design found and how its findings were settled, and what the builder's own work in the check read, searched, traced and asked. So nothing a later step, a later round, a review or a session taking the design up fresh needs lies in one agent's context alone, and the design script checks each record against what it works out from the files. This section is the one home of a report's form. The form reaches every report a design's log entry names. It reaches no audit run's own report, which keeps its own skill's form and folder, and no file a log entry does not name. A report is one of three, the Report its entry's row of [`§ Design Log Entry`](#design-log-entry)'s kinds table gives:
+A check's report records what a check of a design found and how its findings were settled, what the builder's own work in the check read, searched, traced and asked, and, for research, how each area the cold agent doing it read bears on the design. So nothing a later step, a later round, a review or a session taking the design up fresh needs lies in one agent's context alone, and the design script checks each record against what it works out from the files. This section is the one home of a report's form. The form reaches every report a design's log entry names. It reaches no audit run's own report, which keeps its own skill's form and folder, and no file a log entry does not name. A report is one of three, the Report its entry's row of [`§ Design Log Entry`](#design-log-entry)'s kinds table gives:
 - a review's report, written by the cold reviewer, the builder adding its settlement;
 - the builder's own report, of its Design, Refactor, Refine pass, its self-review or a judgment it handed off;
 - the builder's triage of an audit, holding each audit finding it settles as a finding of its own.
@@ -351,19 +449,20 @@ The three tell who writes a report and which checks read it. Each takes its part
 
 | Part | Heading | Required | Holds |
 |---|---|---|---|
-| Title | `# Check's Report`, with the fields Design and Entry | yes | the design, by its Name, and the log entry naming the report |
+| Title | `# Check's Report`, with the fields Design, Entry and Stopped At | yes | the design, by its Name, and the log entry naming the report; and, in an adversarial review's report whose round stopped at the structure, as [`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review) has a round stop, Stopped At holding `the structure`, which marks the round and is held in no other report |
 | Reading | `## Reading` | yes | what the check read, each file read fresh as [`specs/AGENTS.md § Design, Refactor, Refine § Reading Fresh`](/specs/AGENTS.md#reading-fresh) has it, in a review's passes as [`specs/AGENTS.md § Design, Refactor, Refine § Weighing a Review's Findings`](/specs/AGENTS.md#weighing-a-reviews-findings) orders them |
 | Findings | `## Findings`, a record section of Findings | where the check found anything | each finding, as [`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review), [`specs/AGENTS.md § Design, Refactor, Refine § Weighing a Review's Findings`](/specs/AGENTS.md#weighing-a-reviews-findings) and the audit's settling in [`specs/AGENTS.md § Design, Refactor, Refine § An Audit`](/specs/AGENTS.md#an-audit) have one reported |
-| Searches | `## Searches`, a record section of Searches | where a search was run | each search the builder ran, as [`specs/methodology/sourcing-and-citation.md § One Home Per Fact`](/specs/methodology/sourcing-and-citation.md#one-home-per-fact) has a fact's home sought and [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose`](/specs/AGENTS.md#propose) has a tactical fix made at every place its defect stands, and each search a reviewer ran in redoing the frame's sweep, as [`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review) has it redone |
+| Searches | `## Searches`, a record section of Searches | where a search was run | each search the builder or a reviewer ran for its own check, as [`specs/methodology/sourcing-and-citation.md § One Home Per Fact`](/specs/methodology/sourcing-and-citation.md#one-home-per-fact) has a fact's home sought and [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose`](/specs/AGENTS.md#propose) has a tactical fix made at every place its defect stands, and each search a cold agent ran doing research, as [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once`](/specs/AGENTS.md#measure-twice-cut-once) has research done |
+| Read Assessments | `## Read Assessments`, a record section of Read Assessments | where the report is a judgment's doing research | each area the cold agent doing the research assessed, as [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once`](/specs/AGENTS.md#measure-twice-cut-once) has research assessed |
 | Traces | `## Traces`, a record section of Traces | where the builder traced a mechanism | each trace, as [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once`](/specs/AGENTS.md#measure-twice-cut-once) has a mechanism traced and [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether the Goals and the Frame Name a Mechanism`](/specs/AGENTS.md#whether-the-goals-and-the-frame-name-a-mechanism) has its test asked |
 | Builder Checks | `## Builder Checks`, a record section of Builder Checks | where the builder made a check of its own | each check only the builder makes, as the self-review's row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why`](/specs/AGENTS.md#who-checks-what-and-why) has it recorded |
 | Script Output | `## Script Output`, text | where the report is a self-review's | the output of the design script's checks the self-review runs for its phase, as the self-review's row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why`](/specs/AGENTS.md#who-checks-what-and-why) gives them, written by `--append-entry` |
 | Causes | `## Causes`, a record section of Causes | where the round is one [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes`](/specs/AGENTS.md#the-round-at-its-causes) settles at its causes and a finding it settles, its own or a handed-off judgment's settled with it, takes a mark | the round's causes, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose`](/specs/AGENTS.md#propose) has them stated |
 | Settlement | `## Settlement` | once the report's entry is appended | the earlier reports read and the builder's reading at settling, as [`specs/AGENTS.md § Design, Refactor, Refine § Reading the Earlier Reports`](/specs/AGENTS.md#reading-the-earlier-reports) and [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Group`](/specs/AGENTS.md#group) have them read before grouping, and how each finding was settled, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose`](/specs/AGENTS.md#propose), [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test`](/specs/AGENTS.md#the-test), [`specs/AGENTS.md § Design, Refactor, Refine § Who Decides`](/specs/AGENTS.md#who-decides) and [`§ A Design Document § Changes After Approval`](#changes-after-approval) have it recorded |
 
-**Who writes each part.** The reviewer's part of a review's report is its Title, its Reading, its Findings and the Searches it ran. The builder adds its own Searches after the reviewer's, the Causes and the Settlement, and changes no record the reviewer wrote. The Script Output part is the design script's, and no hand writes it. A reviewer's Search, its key opening with its Reviewer Reading's key and a hyphen, is run again by `--check-report` before the round's change is made, and every other Search by `--append-entry`. A reviewer runs `--check-report` on its report before handing it back, as its row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why`](/specs/AGENTS.md#who-checks-what-and-why) has it, and puts right what it reports. A report handed back out of its form goes back to its reviewer with what the flag reports, or, where the agent in use cannot continue a reviewer, its round is run again with the same brief.
+**Who writes each part.** The reviewer's part of a review's report is its Title, its Reading, its Findings and the Searches it ran. The builder adds its own Searches after the reviewer's, the Causes and the Settlement, and changes no record the reviewer wrote. The Script Output part is the design script's, and no hand writes it. A reviewer's Search, its key opening with its Reviewer Reading's key and a hyphen, is run again by `--check-report` before the round's change is made, a Search in a report of research by `--check-report` and `--append-entry` alike, and every other Search by `--append-entry`. A reviewer runs `--check-report` on its report before handing it back, as its row of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why`](/specs/AGENTS.md#who-checks-what-and-why) has it, and puts right what it reports. A report handed back out of its form goes back to its reviewer with what the flag reports, or, where the agent in use cannot continue a reviewer, its round is run again with the same brief. In a report of research, the cold agent doing it writes its Title, its Reading, its Searches and its Read Assessments, and no hand changes a Read Assessment after.
 
-**The Reading and the Settlement.** The Reading holds, where the report is a review's, the field Reviewer Readings, a list of [`§ A Check's Report § Reviewer Reading`](#reviewer-reading) records, one for each reviewer; and the field Reads otherwise, places, `none` where the check read nothing. The Settlement holds these fields, in this order:
+**The Reading and the Settlement.** The Reading holds, where the report is a review's, the field Reviewer Readings, a list of [`§ A Check's Report § Reviewer Reading`](#reviewer-reading) records, one for each reviewer; and the field Reads otherwise, places, `none` where the check read nothing, a report of research's holding the places the builder named. The Settlement holds these fields, in this order:
 - Earlier Reports, places, `none` where the round's phase holds no report before it;
 - Settling Reads, places, the builder's reading at settling, held where the report is a review's and its round is settled, `none` where no Finding holds a mark;
 - Moved Past, what moved the work past the check, held only where the work moved past it before its settling ended, the report then holding no Causes and no Settlement record;
@@ -373,13 +472,16 @@ The three tell who writes a report and which checks read it. Each takes its part
 
 **Over applied work, and a phase's record.** A report lies over applied work where its entry stands after the design's last `apply` entry, with no `entered` entry after that. A phase's record is the reports of its review entries and of each `handed-off-judgment` entry among them. An adversarial review's phase starts after the design's last `reassessment` entry deciding other than go on, or its last `entered` entry whose Reason is sent back, whichever stands later, or at the log's start, and a post-apply review's after the design's last `apply` entry. A self-review follows a round's change where the last review entry of its phase before it, after the design's last `self-review` entry, names a report holding a Proposed Change.
 
-**A judgment settled with a round.** A judgment the builder hands off is settled with a round where its report stands in the design's folder and no entry names it as the round's entry is appended. So a judgment handed off after the phase's last round is settled alone ([`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § After the Last Round`](/specs/AGENTS.md#after-the-last-round)). Each Settlement of its report whose Verdict is a mark cites the round's Cause it lies in, by the round's report and the Cause's key. Its entry is appended right after the round's, as [`§ Design Log Entry`](#design-log-entry)'s kinds table has it.
+**A judgment settled with a round.** A judgment the builder hands off is settled with a round where its report stands in the design's folder and no entry names it as the round's entry is appended. So a judgment handed off after the phase's last round is settled alone ([`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § After the Last Round`](/specs/AGENTS.md#after-the-last-round)). Each Settlement of its report whose Verdict is a mark cites the round's Cause it lies in, by the round's report and the Cause's key. Its entry is appended right after the round's, as [`§ Design Log Entry`](#design-log-entry)'s kinds table has it. A judgment doing research is never settled with a round, since its entry is appended once the builder takes its Read Assessments in, as that table has it.
 
 **What the design script checks.** The design script checks of a report what it works out from the files, and nothing of what a record must cover beyond it. Of every report:
 - it holds the form this section gives and the layout [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) and [`specs/methodology/spec-style.md § Blank Lines`](/specs/methodology/spec-style.md#blank-lines) give;
 - each key it cites names a record a report the design's log names holds;
 - each Finding is settled by exactly one Settlement, but in a report whose Settlement holds Moved Past;
-- each Search's Pattern, run again over its ground, matches only within its Places. A Search's ground is the design document and the files of each kind its Target names, the kinds being those [`§ A Design Document § The Kinds of Change`](#the-kinds-of-change) gives. For `canon-specs`, it takes in every file of Spec of Record's scope but code and the working files, as [`specs/methodology/design-workflow.md § A Design's Reviews`](/specs/methodology/design-workflow.md#a-designs-reviews) has a `canon-specs` audit cover them. For `application-specs`, it takes in the code. A search narrower than that ground cannot show it found every place.
+- each Finding whose Verdict is a mark names in its Affected Goals, Affected Frame Outcomes or Affected Step Objectives what it bears on, each Name one the design its Title names holds, or cites in its Broken Rules the rules it breaks, but in a report whose Settlement holds Moved Past;
+- each Search's Pattern, run again over its ground, matches only within its Places. A Search's ground is the design document and the files of each kind its Target names, the kinds being those [`§ A Design Document § The Kinds of Change`](#the-kinds-of-change) gives. A Search in a report of research takes the design document out of its ground, since the builder writes the research's assessments into it. For `canon-specs`, it takes in every file of Spec of Record's scope but code and the working files, as [`specs/methodology/design-workflow.md § A Design's Reviews`](/specs/methodology/design-workflow.md#a-designs-reviews) has a `canon-specs` audit cover them. For `application-specs`, it takes in the code. A search narrower than that ground cannot show it found every place.
+
+Of a report holding Read Assessments: each place outside the design document that one of its Searches matched, and each place its Reads holds, lying within the Area of one of its Read Assessments, as this section has one place cover another.
 
 Of a self-review:
 - a Trace of each Decision Table and State Machine a step's Objectives state whole, before the apply, or a section the diff changed holds, at it, naming each of its paths, a Decision Table's rows and a State Machine's transitions each named by its cells;
@@ -389,7 +491,7 @@ Of a self-review:
 
 Of a round's settlement:
 - its Earlier Reports listing each report of the phase's record before the round;
-- its Settling Reads covering each place the Evidence of a Finding whose Verdict is a mark names;
+- its Settling Reads, or the Area of a Read Assessment in the report of a handed-off judgment the design's log names, covering each place the Evidence of a Finding whose Verdict is a mark names;
 - each Cause settling a flaw holding its Misses;
 - each Cause settling a flaw holding its Proposed Change, but where a Settlement naming it gives Lies In the plan or handed on in a post-apply round;
 - a Cause continuing an earlier one holding its Outcome;
@@ -397,7 +499,7 @@ Of a round's settlement:
 
 Of a report whose Settlement holds Moved Past: its Reading, its Findings, and its Settlement's Earlier Reports and Moved Past alone.
 
-**What no check decides.** When a place was read; which facts' homes a pass or a self-review sought, or whether a search was the one a fact needed; whether a finding continues an earlier cause or lands on text an earlier change wrote; what a Builder Check found; and whether a cause or a verdict is right. Each is a judgment, checked for its presence and the keys it cites alone, and the next review's and the user's to read.
+**What no check decides.** When a place was read; which facts' homes a pass or a self-review sought, or whether a search was the one a fact needed; whether a finding continues an earlier cause or lands on text an earlier change wrote; what a Builder Check found; whether a finding bears on the parts it names, or a Read Assessment's Impact is right; and whether a cause or a verdict is right. Each is a judgment, checked for its presence and the keys it cites alone, and the next review's and the user's to read.
 
 **A report not in the form.** A report not in the form keeps the form it was written in, and a check reading the design's earlier reports reads one not in the form as holding no records.
 
@@ -418,7 +520,7 @@ What one reviewer of a review read, its records in a review's report's Reading, 
 
 ### Finding
 
-A finding a check reports, of any verdict, its records in a report's Findings. A triage's Finding may stand for the audit rows one decision settles, and is counted once:
+A finding a check reports, of any verdict, its records in a report's Findings. A Finding whose Verdict is a mark and that is anchored in the plan names what it bears on in its Affected Goals, its Affected Frame Outcomes and its Affected Step Objectives, each Name resolved against the design its report's Title names. One showing the work's breach cites each rule it breaks in its Broken Rules, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test`](/specs/AGENTS.md#the-test) sorts a finding. A Finding names no steer: a review judges the design, so a finding pressing on a steer names the part of the design carrying the steer's choice, and the builder finds the steers behind the parts it names at settling ([`§ Steering Decision § Revisiting a Steer`](#revisiting-a-steer)). A triage's Finding may stand for the audit rows one decision settles, and is counted once:
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
 **Plural Name:** Findings \
@@ -429,8 +531,10 @@ A finding a check reports, of any verdict, its records in a report's Findings. A
 | Finding | yes | yes | | text | its key, its reviewer's file's name before it |
 | Verdict | no | yes | | [`§ A Check's Report § Verdicts`](#verdicts) | its writer's word on it |
 | Decision | no | where its Verdict is a mark | | text | the decision of the design it touches, in its writer's words |
-| Affected Parts | no | where its Verdict is a mark and it holds no Broken Rules | | text | the steps and the goals of the design it bears on, and each steer it bears on, a list as [`§ A Check's Report`](#a-checks-report) has a value holding places written |
-| Broken Rules | no | where its Verdict is a mark and it holds no Affected Parts | | text | the rules of the canon it breaks, a list as [`§ A Check's Report`](#a-checks-report) has a value holding places written |
+| Affected Goals | no | no | none | text | the goals of the design it bears on, a list, one goal's Name to an item, as [`§ Design Goal`](#design-goal) has a field name a goal |
+| Affected Frame Outcomes | no | no | none | text | the Frame Outcomes of the design it bears on, a list, one Frame Outcome's Name to an item, as [`§ Design Goal`](#design-goal) has a field name one |
+| Affected Step Objectives | no | no | none | text | the step Objectives of the design it bears on, a list, one step Objective's Name to an item, as [`§ Design Goal`](#design-goal) has a field name one |
+| Broken Rules | no | no | none | text | the rules of the canon the work's breach it shows breaks, a list as [`§ A Check's Report`](#a-checks-report) has a value holding places written |
 | Description | no | yes | | text | the finding, or the observation |
 | Evidence | no | where its Verdict is not a review observation | | a list of [`§ A Check's Report § Report Evidence`](#report-evidence) | its evidence |
 | Rationale | no | yes | | text | what goes wrong in the work if it is left, or why it was dropped, set aside, set apart or found not caused |
@@ -466,7 +570,7 @@ A finding's possible fix, in one of the two forms [`specs/AGENTS.md § Design, R
 
 ### Search
 
-A search the builder or a reviewer ran, its records in a report's Searches:
+A search the builder or a reviewer ran for its own check, or a cold agent ran doing research, its records in a report's Searches:
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
 **Plural Name:** Searches \
@@ -475,9 +579,36 @@ A search the builder or a reviewer ran, its records in a report's Searches:
 | Field | Unique | Required | Default Value | Values | Holds |
 |---|---|---|---|---|---|
 | Search | yes | yes | | text | its key, its reviewer's file's name before it where a reviewer ran it |
-| For | no | yes | | text | the fact whose home it sought, the defect whose every place it found, or the sweep a reviewer redid |
+| For | no | yes | | text | the fact whose home it sought, the defect whose every place it found, or what the research it serves sought: a rule's reach, the frame's sweep or what restates a change |
 | Pattern | no | yes | | text | the regular expression it ran, in Python's `re` syntax ([`specs/methodology/external-references.md § External References [Name: Python]`](/specs/methodology/external-references.md#external-references)), its flags written inline |
 | Places | no | yes | | text | the places its matches lie in, a list as [`§ A Check's Report`](#a-checks-report) has a value holding places written, `none` where it matched nothing |
+
+### Read Assessment
+
+How an area of the files bears on a design, as the cold agent doing research ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)) judged it, its records in a report's Read Assessments. The cold agent assesses each place it reads, as [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once`](/specs/AGENTS.md#measure-twice-cut-once) has research assessed. The most specific Area holding a place decides that place's Impact, so a file assessed `none` may hold a section assessed `changes`. An area holding both `applies` and `changes` is followed as changed, as [`§ A Design Document`](#a-design-document) holds a design adding a form to the methodology as it will be. A Read Assessment says how its area bears on the design and never where the area goes, into the frame, the Out of Scope or the user's hands, which is the builder's or the user's to decide, as [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame) has an area's place decided:
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Read Assessments \
+**Reference Key:** Area
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Area | yes | yes | | text | the area it judges, a file or a section, one place as [`§ A Check's Report`](#a-checks-report) has a value holding places written |
+| Impact | no | yes | | text | a list, each item a member of [`§ A Check's Report § Read Assessment § Read Assessment Impacts`](#read-assessment-impacts): `none` alone, or one or both of `applies` and `changes` |
+| Reason | no | yes | | text | why the area bears on the design as its Impact says, the words it draws on quoted among it |
+
+#### Read Assessment Impacts
+
+How an area bears on the design, held by a Read Assessment and an Assessed Area:
+
+**Reference Key:** Impact \
+**Required:** Means
+
+| Impact | Means |
+|---|---|
+| none | the area bears on the design in no way |
+| applies | the design follows the area, as a rule or a form it is shaped by |
+| changes | the design changes the area |
 
 ### Trace
 
@@ -656,7 +787,7 @@ The checks only the builder makes, held by a Builder Check, each with when a sel
 | Check Kind | Means | Required |
 |---|---|---|
 | steers against the user's messages | each steer's quoted words and its decision checked against the user's messages | in every self-review |
-| linked work | the design's Out of Scope, its Impact on the Application Specs and the designs its Depends On names checked against the work | in every self-review |
+| linked work | the design's Out of Scope, its Impact on the Application Specs and the designs its Depends On Designs names checked against the work | in every self-review |
 | review's questions | the questions of the review that follows asked of the whole work | in every self-review |
 | user edit | an edit a `user-edit` entry names checked against the design | in every self-review, for each `user-edit` entry since the design's last `self-review` entry, citing its places |
 | worked case | a case worked through a Cause's change or an implementation flaw's settlement | in a self-review following a round's change, for each Cause holding a Proposed Change and each implementation flaw the round settles, citing it |
@@ -669,6 +800,17 @@ The checks only the builder makes, held by a Builder Check, each with when a sel
 **Records:**
   - **Name:** report-in-its-form \
     **Tests:** each report a check's entry names holds the parts the form requires of it, in their order, its Reading and its Settlement holding the fields this section gives them, and each record of the type its part or field cites, with each field its conditions require and no other, a possible fix in one of its forms among them \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/design-specs/` `--check-report`
+      - `.ai/skills/implement-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--check-report`
+
+  - **Name:** findings-anchored-in-the-design \
+    **Tests:** each Finding whose Verdict is a mark, in a report a check's entry names, names in its Affected Goals, Affected Frame Outcomes or Affected Step Objectives what it bears on, each Name one the design its Title names holds, or cites in its Broken Rules the rules it breaks, except in a report whose Settlement holds Moved Past, as [`§ A Check's Report § Finding`](#finding) has a finding name what it bears on \
     **Reads:**
       - `none`
 
@@ -718,6 +860,17 @@ The checks only the builder makes, held by a Builder Check, each with when a sel
       - `.ai/skills/implement-specs/` `--append-entry`
       - `.ai/skills/implement-specs/` `--check-report`
 
+  - **Name:** reads-assessed \
+    **Tests:** in a report holding Read Assessments, each place outside the design document that one of its Searches matched, and each place the builder named, held in its Reads, lies within the Area of one of its Read Assessments, as this section has one place cover another \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/design-specs/` `--check-report`
+      - `.ai/skills/implement-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--check-report`
+
   - **Name:** traces-name-their-paths \
     **Tests:** a self-review's report holds a Trace naming each path of each construct its phase traces, as this section's paragraph on what the design script checks has it \
     **Reads:**
@@ -755,7 +908,7 @@ The checks only the builder makes, held by a Builder Check, each with when a sel
       - `.ai/skills/implement-specs/` `--append-entry`
 
   - **Name:** settling-reads-cover-the-evidence \
-    **Tests:** a round's settlement covers in its Settling Reads each place the Evidence of a Finding whose Verdict is a mark names, as this section's paragraph on what the design script checks has it \
+    **Tests:** a round's settlement covers each place the Evidence of a Finding whose Verdict is a mark names, by its Settling Reads or by the Area of a Read Assessment in the report of a handed-off judgment the design's log names, as this section's paragraph on what the design script checks has it \
     **Reads:**
       - `none`
 
@@ -805,7 +958,7 @@ A design's Steering Decisions record only the user's steers, the decisions a ste
 
 **A go-ahead to take in findings.** It is a steer for the findings that change what the design is, and direction for the tactical fixes ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)). An answer carrying both is recorded for the part that decides the design.
 
-**Each steer is recorded when it is given.** The design is then revised to apply the steer before its work goes on, so the design carries how it was formed and never lags a steer it records. A steer changing the goals or the frame is confirmed with the user, as [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame) has it. It is carried into the goals or the frame, its case reaching the Scope, the Approach and the Outcomes. Any other steer, such as one choosing wording a step quotes as its outcome or a name in code, is recorded as given. The record tells the adversarial review the user chose it. Where the steer differs from another choice only by preference, it stands. Where it breaks a rule, the review raises it as a finding pressing on the steer. The builder presents the conflict to the user with a wording or a name that follows the rule, and the user chooses either ([`§ Steering Decision § Revisiting a Steer`](#revisiting-a-steer)). Only the user revises a steer, by a later one. The record is history. A later steer revising what an earlier one decided is recorded after it, and its Decision says which steer it revises. The earlier one stays as it was given. The design follows the later one, whatever the Type of either, so the records, read in order, show how the design was shaped. A question the user leaves unanswered is asked again, never read as agreed. The adversarial review reads the steers as background, checking fidelity to them rather than reopening them ([`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review)). The request that opened the design is its Source. The design's log records each check and event of its work, never a steer, so each steer is recorded once.
+**Each steer is recorded when it is given.** The design is then revised to apply the steer before its work goes on, so the design carries how it was formed and never lags a steer it records. A steer changing the goals or the frame is confirmed with the user, as [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame) has it. It is carried into the goals or the frame, its case reaching the Scope, the Approach and the Frame Outcomes, and an area it leaves out reaching the Out of Scope from the Assessed Areas, and each part naming what it changes is revised after it, in the order [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once`](/specs/AGENTS.md#measure-twice-cut-once) gives. Any other steer, such as one choosing wording a step quotes as its outcome or a name in code, is recorded as given. The record tells the adversarial review the user chose it. Where the steer differs from another choice only by preference, it stands. Where it breaks a rule, the review raises a finding on the part of the design carrying the steer's choice, naming that part and no steer ([`§ A Check's Report § Finding`](#finding)). At settling, the builder finds the steers behind the parts a finding names, in the order [`§ Steering Decision § Revisiting a Steer`](#revisiting-a-steer) gives them. It presents the conflict to the user with a wording or a name that follows the rule, and the user chooses either. Only the user revises a steer, by a later one. The record is history. A later steer revising what an earlier one decided is recorded after it, and its Decision says which steer it revises. The earlier one stays as it was given. The design follows the later one, whatever the Type of either, so the records, read in order, show how the design was shaped. A question the user leaves unanswered is asked again, never read as agreed. The adversarial review reads the steers as background, checking fidelity to them rather than reopening them ([`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review)). The request that opened the design is its Source. The design's log records each check and event of its work, never a steer, so each steer is recorded once.
 
 A design's steering decisions sit in its record section of this type, a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
 
@@ -867,7 +1020,7 @@ A stamp lets a later reader tell whether content has changed since a check passe
 - **The timestamp.** A date and time as RFC 3339 writes one ([`specs/methodology/external-references.md § External References [Name: RFC 3339]`](/specs/methodology/external-references.md#external-references)), in UTC, to the second, ending in `Z`, as `YYYY-MM-DDThh:mm:ssZ`, so stamps written on different machines compare without a time zone.
 - **The content hash.** SHA-256 of the file's text, encoded as UTF-8 with line-feed line endings, after dropping the lines that hold the fields and the sections the form leaves out. It is written as `sha256:` followed by the digest's first sixteen hexadecimal characters, lowercase. The hash detects a change, and is not meant to resist tampering.
 
-The form a stamp is used in names the field holding the stamp and the fields the stamp leaves out. The stamp always leaves out its own field, since writing the stamp must not change the hash. It also leaves out any field whose change the check does not concern, as a design document's Validated field leaves out its Status ([`§ A Design Document`](#a-design-document)). It may leave out a section too, its heading through the next heading of its level, as a design document's stamp leaves out its Design Log Entries, so an entry appended after the stamp leaves it current.
+The form a stamp is used in names the field holding the stamp and the fields the stamp leaves out. The stamp always leaves out its own field, since writing the stamp must not change the hash. It also leaves out any field whose change the check does not concern, as a design document's Validated field leaves out its Status ([`§ A Design Document`](#a-design-document)). It may leave out a section too, its heading through the next heading of its level, but for lines its form keeps, as a design document's stamp leaves out its Design Log Entries but each entry naming a report the validation review reads ([`§ A Design Document`](#a-design-document)). So an entry appended after the stamp leaves it current, unless the validation review reads the report it names.
 
 ## A Follow-up
 
