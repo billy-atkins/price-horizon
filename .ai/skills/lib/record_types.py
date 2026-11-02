@@ -7,6 +7,7 @@ list and a record begin and end through read_block and read_item, as modeling-co
 a list item ends is spec-style.md § Markdown's rule, read here for a record's item and, by the same rule, by the element reader
 of layout.py for the check of spec-style.md § Blank Lines."""
 import re
+from pathlib import PurePosixPath
 
 import constructs
 import layout
@@ -135,9 +136,11 @@ def read_block(lines, i, indent, end=None, problems=None, consumed=None, first=F
     running to the next line opening a field's key or to the block's end, each line between continuing it, without the
     space and the backslash ending a line, and the list beneath a key, its items at the key's indentation or beyond,
     each item ending as spec-style.md § Markdown has a list item end. A list or a table
-    ends the block's paragraph, and a field opening the next paragraph is the block's. -> ([field], the line after the
-    block), each field {"key", "value", "line", "lines", "items", "inline"}; the reader's checks are appended to
-    `problems` as (rule, 0-based line, message), and the lines read to `consumed`."""
+    ends the block's paragraph, and a field opening the next paragraph is the block's. A block standing two spaces
+    beyond a field's key after its text and one blank line is the field's nested block, as modeling-constructs.md
+    § Fields § A Nested Construct has one stand. -> ([field], the line after the block), each field {"key", "value",
+    "line", "lines", "items", "inline", "nested"}, "nested" as _read_nested gives it, or None; the reader's checks are
+    appended to `problems` as (rule, 0-based line, message), and the lines read to `consumed`."""
     end = len(lines) if end is None else end
     problems = [] if problems is None else problems
     fields = []
@@ -157,10 +160,10 @@ def read_block(lines, i, indent, end=None, problems=None, consumed=None, first=F
         text = _own_line(lines, j, end, problems, consumed)
         value_text = FIELD_LINE.match(text)
         field = {"key": m["key"], "value": ((value_text["value"] if value_text else m["value"]) or "").strip(),
-                 "line": j, "lines": [j], "items": None, "inline": bool((m["value"] or "").strip())}
+                 "line": j, "lines": [j], "items": None, "inline": bool((m["value"] or "").strip()), "nested": None}
         fields.append(field)
         j += 1
-        # the value's continuation lines, then the list beneath the key
+        # the value's continuation lines, then the list beneath the key, or the block nested beneath its text
         while j < end:
             line = lines[j]
             if not line.strip():
@@ -168,6 +171,8 @@ def read_block(lines, i, indent, end=None, problems=None, consumed=None, first=F
                 if k < end and _is_item(lines[k]) and _indent(lines[k]) >= indent and (field["items"] or not opens_key(lines[k])):
                     j = k
                     continue
+                if field["items"] is None and k < end and opens_key(lines[k]) and _indent(lines[k]) == indent + 2:
+                    field["nested"], j = _read_nested(lines, k, indent + 2, end, problems, consumed)
                 break
             if _is_item(line) and _indent(line) >= indent:
                 item, j = read_item(lines, j, end, problems, consumed)
@@ -186,12 +191,72 @@ def read_block(lines, i, indent, end=None, problems=None, consumed=None, first=F
     return fields, j
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Fields § A Nested Construct
+NESTED_HOME = ("specs/methodology/modeling-constructs.md", "Fields § A Nested Construct")
+
+
+def _read_nested(lines, k, at, end, problems, consumed):
+    """modeling-constructs.md § Fields § A Nested Construct: the block nested beneath a field's text, opening at line k
+    with a key at indentation `at` and running to its last line before one that is not blank and is indented less ->
+    ({"line", "lines", "fields", "tables", "construct"}, the line after it): its fields read as blocks of fields at
+    `at`, the 0-based first lines of its tables, and whether it opens with a Construct field."""
+    last, n = k, k
+    while n < end and (not lines[n].strip() or _indent(lines[n]) >= at):
+        last = n if lines[n].strip() else last
+        n += 1
+    fields, tables, j = [], [], k
+    while j <= last:
+        if lines[j].lstrip().startswith("|"):
+            tables.append(j)
+            while j <= last and lines[j].lstrip().startswith("|"):
+                if consumed is not None:
+                    consumed.add(j)
+                j += 1
+        elif opens_key(lines[j]) and _indent(lines[j]) == at:
+            read, j = read_block(lines, j, at, last + 1, problems, consumed)
+            fields += read
+        else:
+            j += 1
+    return {"line": k, "lines": list(range(k, last + 1)), "fields": fields, "tables": tables,
+            "construct": bool(fields) and fields[0]["key"] == "Construct"}, last + 1
+
+
+class Record(list):
+    """A record as the checks read one, [(key, value, 0-based line)], and `constructs`, {key: its nested block}, for
+    each of its fields holding a construct nested beneath it (modeling-constructs.md § Fields § A Nested Construct)."""
+    constructs = {}
+
+
 def record_of(item):
-    """-> a record as the checks read one, [(key, value, 0-based line)], from an item opening a field's key: a field
-    holding records gives them as a list of records, and a field holding plain items the items' texts, one to a line."""
+    """-> a record as the checks read one, a Record, from an item opening a field's key: a field holding records gives
+    them as a list of records, and a field holding plain items the items' texts, one to a line. A block nested beneath
+    a field's text that opens with a Construct field is that field's construct; each field of any other nested block is
+    a field of the record."""
+    out = Record()
+    out.constructs = {f["key"]: f["nested"] for f in item["fields"] if f["nested"] is not None and f["nested"]["construct"]}
+    out += [(f["key"], value_of(f), f["line"]) for f in record_fields(item)]
+    return out
+
+
+def record_fields(item):
+    """-> the fields of a record's item as the one reader gives them, in order, each field of a block nested beneath a
+    field's text that opens with no Construct field among them, after the field it stands beneath."""
     out = []
-    for f in item["fields"]:
-        out.append((f["key"], value_of(f), f["line"]))
+    for f in item["fields"] or []:
+        out.append(f)
+        if f["nested"] is not None and not f["nested"]["construct"]:
+            out += f["nested"]["fields"]
+    return out
+
+
+def nested_lines(rec):
+    """-> the 0-based lines of each field of the constructs a record and the records it holds hold nested, at any depth."""
+    out, todo = set(), [rec]
+    while todo:
+        r = todo.pop()
+        for block in getattr(r, "constructs", {}).values():
+            out |= {g["line"] for g in block["fields"]}
+        todo += [x for _, value, _ in r if isinstance(value, list) for x in value]
     return out
 
 
@@ -290,10 +355,17 @@ def block_path(r, start):
     return f"{r}#L{start + 1}"
 
 
+def read_for_records(r):
+    """modeling-constructs.md § Constructs § Record Form: whether file `r` is one whose record types and records are read,
+    a file of the canon or an application spec, but a skill's form template, told by its name ending `-form-template`
+    (skills.md § Authoring a Skill), whose fields are placeholders a copy fills."""
+    return r.startswith("specs/") or (r.startswith(".ai/skills/") and not PurePosixPath(r).stem.endswith("-form-template"))
+
+
 def type_of(title, r):
     """modeling-constructs.md § Constructs § Record Form: the record type a section titled `title` holds in file `r`,
-    one whose Plural Name it is and whose records may sit there, a canon type's in any file under specs/, an application spec's
-    type's in the application specs, and a fenced `markdown` block's in that block alone; or None."""
+    one whose Plural Name it is and whose records may sit there, a canon type's in any file read_for_records reads, an
+    application spec's type's in the application specs, and a fenced `markdown` block's in that block alone; or None."""
     if r in BLOCK_TYPES and title in BLOCK_TYPES[r]:
         return BLOCK_TYPES[r][title]
     spec = TYPES.get(title)
@@ -305,7 +377,11 @@ def _raw_type(r, line, fields, tables, lineage, reach):
     rec = [t for t in tables if t["header"] == constructs.RECORD_FIELDS]
     sec = [t for t in tables if t["header"] == constructs.SECTION_FIELDS]
     home = f"{r} § {lineage}"
-    return {"table": tuple(tuple(row[:5]) for _, row in rec[0]["rows"] if len(row) == 6) if rec else (),
+    rows = [row for _, row in rec[0]["rows"] if len(row) == 6] if rec else []
+    return {"table": tuple(tuple(row[:5]) for row in rows),
+            # modeling-constructs.md § Fields § A Nested Construct: the fields whose Holds cites it, each holding a
+            # construct nested beneath its text
+            "own_nested": tuple(row[0] for row in rows if any(resolve(c, r) == NESTED_HOME for c in CITATION.findall(row[5]))),
             "key": [k.strip() for k in values.get("Reference Key", "").split(",") if k.strip()],
             "section_table": tuple(tuple(row[:4]) for _, row in sec[0]["rows"] if len(row) == 5) if sec else (),
             "home": home, "last_top_level": home in LAST_TOP_LEVEL, "declared": (r, line),
@@ -332,6 +408,8 @@ def _resolve_types(raw, out, report=True):
     for p, spec in raw.items():
         types = chain(p)
         spec["table"] = tuple(row for t in types for row in own[t][0])
+        # the fields holding a construct nested beneath them, its own or its bases'
+        spec["nested"] = {f for t in types for f in raw[t]["own_nested"]}
         # each field with the file declaring it, where a citation in its Values resolves
         spec["origin"] = {row[0]: raw[t]["declared"][0] for t in types for row in own[t][0]}
         # its Reference Key, its own or its nearest base's, of fields it gives and requires
@@ -370,8 +448,8 @@ def _resolve_types(raw, out, report=True):
 
 
 def declared_types(text_of):
-    """modeling-constructs.md § Constructs § Record Form: each record type a Record Form declares under specs/, by its
-    Plural Name, read from its declaration, a type extending another holding its base's fields first; each added to TYPES
+    """modeling-constructs.md § Constructs § Record Form: each record type a Record Form declares in a file
+    read_for_records reads, by its Plural Name, read from its declaration, a type extending another holding its base's fields first; each added to TYPES
     and its fields' keys to FIELD_KEYS, and the closed-set resolver set. The types a fenced `markdown` block declares
     are read too, each reaching that block alone and none of their declarations' findings reported. -> the
     declarations' own findings: a defining section titled other than with the type's name, bare; a Plural Name two
@@ -380,7 +458,7 @@ def declared_types(text_of):
     out, raw = [], {}
     # the canon's declarations first, so a type sharing a canon type's Plural Name is the one reported
     for r, body in sorted(text_of.items(), key=lambda kv: (not kv[0].startswith("specs/methodology/"), kv[0])):
-        if not r.startswith("specs/"):
+        if not read_for_records(r):
             continue
         for line, name, fields, tables, lineage in constructs.declarations(strip_fences(body), sections(body)):
             values = dict((k, v) for _, k, v in fields)
@@ -395,8 +473,9 @@ def declared_types(text_of):
             if plural in raw:
                 out.append((RECORD_FORM, r, line, f"a Plural Name another record type declares: {plural}"))
                 continue
+            # a canon type's records may sit in any file read for records, an application type's in the application specs
             raw[plural] = _raw_type(r, line, fields, tables, lineage,
-                                    "specs/application/" if r.startswith("specs/application/") else "specs/")
+                                    "specs/application/" if r.startswith("specs/application/") else "")
     for p, spec in _resolve_types(raw, out).items():
         TYPES[p] = spec
         for key in spec["fields"]:
@@ -406,7 +485,7 @@ def declared_types(text_of):
     out += _self_holding_findings(TYPES)
     # the types a fenced `markdown` block declares, read with the canon's, each reaching the block alone
     for r, body in sorted(text_of.items()):
-        if not r.startswith("specs/"):
+        if not read_for_records(r):
             continue
         for start, _, inner in layout.markdown_blocks(body):
             path = block_path(r, start)
@@ -497,7 +576,7 @@ def closed_set_findings(text_of):
     a field whose Values cite the definition of the set's type, since a field naming a member cites the set's section."""
     out, homes = [], {}
     for r, body in text_of.items():
-        if not r.startswith("specs/"):
+        if not read_for_records(r):
             continue
         for _, _, d in constructs.fact_records(strip_fences(body), sections(body)):
             if d.get("cited"):

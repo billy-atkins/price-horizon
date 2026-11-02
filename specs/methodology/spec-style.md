@@ -194,22 +194,23 @@ Items of one kind stand together, in the order they are read, and a blank line s
 - front matter;
 - a paragraph: any other text, a lead-in among it.
 
-The table's condition Ends a list item? is true where the element above is a list item's last line and the element below stands outside that item, as [`§ Markdown`](#markdown) has a list item end. A nested record's last field ends its item before the outer record's next field, and a record's last field ends its item before the next record. The table's row for groups that differ gives each blank line GFM needs. Where a blank line falls:
+The table's condition Ends a list item? is true where the element above is a list item's last line and the element below stands outside that item, as [`§ Markdown`](#markdown) has a list item end. A nested record's last field ends its item before the outer record's next field, and a record's last field ends its item before the next record. The condition Nested beneath the field above? is true where the element below is a field whose key stands two spaces beyond the key of the field above, as [`specs/methodology/modeling-constructs.md § Fields § A Nested Construct`](/specs/methodology/modeling-constructs.md#a-nested-construct) has a nested block stand. The table's row for groups that differ gives each blank line GFM needs. Where a blank line falls:
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
 **Hit Policy:** First \
-**Conditions:** The element above, The element below, Ends a list item? \
+**Conditions:** The element above, The element below, Ends a list item?, Nested beneath the field above? \
 **Annotations:** Why \
 **Input Values:**
   - The element above: "front matter", "a heading", "a paragraph", "a field", "a record", "a list item", "a table", "a code block", "a thematic break"
   - The element below: "a heading", "a paragraph", "a field", "a record", "a list item", "a table", "a code block", "a thematic break"
 
-| The element above | The element below | Ends a list item? | A blank line between? | Why |
-|---|---|---|---|---|
-| "a field", "a record" | a field | false | false | one block's fields, a paragraph whose hard line breaks render each field on a line of its own |
-| "a field", "a record" | "a list item", "a record" | false | false | a field's list, of plain items or of records, directly beneath its key |
-| "a paragraph", "a list item" | a list item | - | false | a list beneath the sentence or the lead-in introducing it, and the items of one plain list |
-| - | - | - | true | groups that differ, records one after another and a field after a list or after a nested record among them. Where no blank line stands, GFM joins two paragraphs, reads a paragraph's line after a list item as continuing it and adds a row to a table |
+| The element above | The element below | Ends a list item? | Nested beneath the field above? | A blank line between? | Why |
+|---|---|---|---|---|---|
+| "a field", "a record" | "a field" | false | true | true | a field's text and the construct nested beneath it, the block standing as [`specs/methodology/modeling-constructs.md § Fields § A Nested Construct`](/specs/methodology/modeling-constructs.md#a-nested-construct) has it. Where no blank line stands, GFM reads the block's first field as continuing the field's paragraph |
+| "a field", "a record" | a field | false | - | false | one block's fields, a paragraph whose hard line breaks render each field on a line of its own |
+| "a field", "a record" | "a list item", "a record" | false | - | false | a field's list, of plain items or of records, directly beneath its key |
+| "a paragraph", "a list item" | a list item | - | - | false | a list beneath the sentence or the lead-in introducing it, and the items of one plain list |
+| - | - | - | - | true | groups that differ, records one after another and a field after a list or after a nested record among them. Where no blank line stands, GFM joins two paragraphs, reads a paragraph's line after a list item as continuing it and adds a row to a table |
 
 A blank line missing where the table gives true, or standing where it gives false, is reported. A fenced block whose info string is `markdown` is read as [`§ Markdown`](#markdown) has it, so it is one element toward the lines around it. Any other code block is one element.
 
