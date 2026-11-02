@@ -1,97 +1,97 @@
 # Design Document
 
-**Name:** {the design's slug, its file name without .md} \
-**Status:** {not-started, or in-progress once it is worked} \
-**Source:** {the user's words, quoted, or the finding that raised it} \
+**Name:** {a slug (`specs/methodology/working-files.md § A Design Document`)} \
+**Status:** {a state (`specs/methodology/working-files.md § A Design Document § The States It Moves Through`)} \
+**Source:** {the user's words, quoted, or the finding (`specs/methodology/working-files.md § A Design Document`)} \
 **Kind:** code \
-**Target:** {`path`; `path`, the code it writes or changes} \
-**Spawned By:** {a design document's Name, as `design-specs/{Name}` for one in that skill's plans folder, or none} \
-**Depends On Designs:** {design documents' Names, in the same form, separated by semicolons, or none} \
+**Target:** {paths in backticks, separated by semicolons (`specs/methodology/working-files.md § A Design Document`)} \
+**Spawned By:** {a design document's Name, or none (`specs/methodology/working-files.md § A Design Document § Spawning a Change of Its Own`)} \
+**Depends On Designs:** {design documents' Names, separated by semicolons, or none (`specs/methodology/working-files.md § A Design Document`)} \
 **Validated:** none
 
 ## The Problem
 
-{the product module it carries out, then the specs it carries into code, cited, and what the code lacks}
+{the product module, the specs it carries into code, and what the code lacks (`specs/methodology/working-files.md § A Design Document § A Design Changing Code`)}
 
 ## Design Goals
 
-{`Not yet stated.` until the user agrees on the goals; then:}
+{`Not yet stated.` until the user agrees on the goals, as `specs/methodology/working-files.md § A Design Document` has it; then:}
 
 **Records:**
-  - **Name:** {a slug} \
-    **Description:** {what the goal asks}
+  - **Name:** {a slug (`specs/methodology/working-files.md § Design Goal`)} \
+    **Description:** {what the goal asks (`specs/methodology/working-files.md § Design Goal`)}
 
 ## The Design Frame
 
 ### Scope
 
-{the cases the change governs and what tells them apart; then the method of the sweep of the specs and the code, the research it was, never the whole of what that research matched; and, where Depends On Designs names a design, what this design relies on from each: the specs or code it leaves that this one cites or builds on}
+{the cases the change governs, the sweep's method, and what the design relies on from each design its Depends On Designs names (`specs/methodology/working-files.md § A Design Document`)}
 
 ### Assessed Areas
 
 **Records:**
-  - **Area:** {a file or a section, cited as a place, used once in the design} \
+  - **Area:** {a place (`specs/methodology/working-files.md § A Design Document § Assessed Area`)} \
     **Impact:**
-      - {applies or changes, one to an item, as the latest Read Assessment of its Area holds them}
+      - {an impact, one to an item (`specs/methodology/working-files.md § A Design Document § Assessed Area`)}
 
-    **Assessment:** {the report of the handed-off judgment holding that Read Assessment, as a place}
+    **Assessment:** {a report, as a place (`specs/methodology/working-files.md § A Design Document § Assessed Area`)}
 
 ### Approach
 
-{the principle the solution applies, citing each goal it rests on as a record is cited, by its record section and its Name}
+{the principle the solution applies (`specs/methodology/glossary.md`), citing the goals it rests on (`specs/methodology/working-files.md § A Design Document`)}
 
 ### Frame Outcomes
 
 **Records:**
-  - **Name:** {a slug} \
+  - **Name:** {a slug (`specs/methodology/working-files.md § A Design Document § Frame Outcome`)} \
     **Goals:**
-      - {the Name of a goal it rests on, one to an item}
+      - {a goal's Name, one to an item (`specs/methodology/working-files.md § A Design Document § Frame Outcome`)}
 
-    **Description:** {what a successful solution achieves, and how that is judged}
+    **Description:** {what the applied work achieves, and how that is judged (`specs/methodology/working-files.md § A Design Document § Frame Outcome`)}
 
 ## Steering Decisions
 
-{this section only once the user has steered the design}
+{this section only once the user has steered the design, as `specs/methodology/working-files.md § A Design Document` has it}
 
 **Records:**
-  - **Name:** {a short name} \
-    **Prompted By:** {the builder's question, proposal or account and the options it offered, a finding's ID, or the user's own initiative} \
-    **Type:** {selection or perspective} \
-    **Steer:** {the user's words, quoted} \
-    **Decision:** {the essence of what the steer decided}
+  - **Name:** {a short name (`specs/methodology/working-files.md § Steering Decision`)} \
+    **Prompted By:** {what prompted the steer (`specs/methodology/working-files.md § Steering Decision`)} \
+    **Type:** {a steer's type (`specs/methodology/working-files.md § Steering Decision § A Steer's Type`)} \
+    **Steer:** {the user's words, quoted (`specs/methodology/working-files.md § Steering Decision`)} \
+    **Decision:** {the essence of what the steer decided (`specs/methodology/working-files.md § Steering Decision`)}
 
 ## Design Plan Steps
 
-{`Not yet drafted.` until drafting states the steps; then:}
+{`Not yet drafted.` until drafting states the steps, as `specs/methodology/working-files.md § A Design Document` has it; then:}
 
 **Records:**
-  - **Name:** {a slug} \
-    **What:** {each area the step changes, as a place, each an Assessed Area whose Impact holds changes, or a place within one: a unit of governed code, where it is and its app-spec annotations, the wiring and what it connects, or the tests} \
-    **Why:** {why the step is needed} \
-    **Depends On Steps:** {none, or a list of the Names of the steps it builds on, one to an item} \
+  - **Name:** {a slug (`specs/methodology/working-files.md § Design Plan Step`)} \
+    **What:** {places (`specs/methodology/working-files.md § Design Plan Step`)} \
+    **Why:** {why the step is needed (`specs/methodology/working-files.md § Design Plan Step`)} \
+    **Depends On Steps:** {none, or a list of steps' Names, one to an item (`specs/methodology/working-files.md § Design Plan Step`)} \
     **Objectives:**
-      - **Name:** {a slug} \
+      - **Name:** {a slug (`specs/methodology/working-files.md § Design Plan Step § Step Objective`)} \
         **Goals:**
-          - {the Name of a goal it serves, one to an item}
+          - {a goal's Name, one to an item (`specs/methodology/working-files.md § Design Plan Step § Step Objective`)}
 
         **Upholds Frame Outcomes:**
-          - {the Name of a Frame Outcome it upholds, one to an item}
+          - {a Frame Outcome's Name, one to an item (`specs/methodology/working-files.md § Design Plan Step § Step Objective`)}
 
-        **State:** {what the step achieves toward the goals it names, a state the applied code holds, such as what a unit does or what a test checks, written as `specs/methodology/working-files.md § Design Plan Step § Step Objective` has an Objective's text written}
+        **State:** {a state the applied code holds (`specs/methodology/working-files.md § A Design Document § A Design Changing Code`)}
 
 ## Retired Phrases
 
-{this section only where the design retires wording; then:}
+{this section only where the design retires wording, as `specs/methodology/working-files.md § A Design Document` has it; then:}
 
 **Records:**
-  - **Phrase:** {a word or phrase the design stops using in one sense} \
-    **Replacement:** {what the design uses instead} \
-    **Stays Right:** {the places the phrase stays right, each a path, its section after it; left out where none}
+  - **Phrase:** {a word or phrase (`specs/methodology/working-files.md § Retired Phrase`)} \
+    **Replacement:** {the wording used instead (`specs/methodology/working-files.md § Retired Phrase`)} \
+    **Stays Right:** {places, each a path, its section after it (`specs/methodology/working-files.md § Retired Phrase`)}
 
 ## Design Log Entries
 
-{appended through the design script's `--append-entry` from the design's entry into in-progress on, never written by hand, as `specs/methodology/working-files.md § Design Log Entry` has each entry appended}
+{the entries `--append-entry` appends (`specs/methodology/working-files.md § Design Log Entry`)}
 
 ## Out of Scope
 
-{each thing the design deliberately leaves unaddressed, each change considered and declined and each piece of work handed on, with its reason, naming no other working file; an area assessed changes that the user leaves out holds its place right after its item's bold lead-in, and cites the steer}
+{a list of items (`specs/methodology/working-files.md § A Design Document`)}

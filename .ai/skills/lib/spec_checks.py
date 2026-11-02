@@ -20,8 +20,8 @@ import layout
 from record_types import (
     CONSTRUCT_KEYS, FACT_HOME, FIELD_KEYS, FIELD_LINE, KEY_VALUE, LAST_TOP_LEVEL, NAME_CITED, RECORD_FORM,
     TYPES, _TEXT_OF, basic_tables, block_findings, block_path, cited_value_findings, closed_set, closed_set_findings,
-    _indent, construct_keys, declared_types, derive, opens_key, parse_records, part_citation, read_block, read_fact,
-    record_citation, row_citation, type_of, value_of)
+    _indent, construct_keys, declared_types, derive, nested_lines, opens_key, parse_records, part_citation, read_block, read_fact,
+    read_for_records, record_citation, row_citation, type_of, value_of)
 from spec_text import (
     HEADING, REGISTRY, REGISTRY_RULE, SCOPE_HOME, headings, lineages, md_files, parse_citation, read, registry, resolve, scope_paths,
     sections, skill_dirs, strip_fences, tracked)
@@ -45,9 +45,12 @@ DIAGRAM_LABEL = re.compile(r'\[[^\]]*\]|\([^)]*\)|\{[^}]*\}|"[^"]*"|\|[^|]*\|')
 AUDIT_SKILL = ".ai/skills/audit-specs/SKILL.md"
 CODE_CHECKS = ".ai/skills/verify-spec-implementation/SKILL.md"  # names the check enforcing each section of code.md
 COVERAGE_RULE = "scope.md § Rules and Skills"
-# The tables in the audit skill naming what reads or carries out each section stating rules:
+# The table in the audit skill naming the audit reading each section stating rules:
 # (section heading, the column naming the sections)
-COVERAGE_TABLES = (("The audits", "Enforces"), ("Operating rules carried out by a step", "Section"))
+COVERAGE_TABLES = (("The audits", "Enforces"),)
+# scope.md § Rules and Skills § Skipped Step: the records naming each section stating operating rules, and where they stand
+SKIPPED_STEP_HOME = "specs/methodology/scope.md § Rules and Skills § Skipped Step"
+SKIPPED_STEPS_AT = "Operating rules carried out by a step"
 DIAGRAMS_RULE = "modeling-constructs.md § Diagrams"
 IMAGE = re.compile(r"!\[[^\]]*\][(\[]|<img\b", re.I)
 WORKING_FILES = "specs/methodology/working-files.md"
@@ -79,6 +82,8 @@ IMPACTS_CITED = ("specs/methodology/spec-placement.md § Open Question",)
 
 # modeling-constructs.md § Fields: every key a form declares, and where that form places it.
 FIELDS = "modeling-constructs.md § Fields"
+# @canon-spec specs/methodology/modeling-constructs.md § Fields § A Nested Construct
+NESTED = "modeling-constructs.md § Fields § A Nested Construct"
 # modeling-constructs.md § Constructs § Basic Table: its headers, its Reference Key and its rows
 TABLES = "modeling-constructs.md § Constructs § Basic Table"
 MAPPING = "sourcing-and-citation.md § External Reference § A Mapping onto a Standard"
@@ -212,8 +217,9 @@ def _record_findings(host, body, found, r, offset):
 def _check_records(records, spec, host, r, at, found, scope):
     """modeling-constructs.md § Constructs § Record Form: each record of one collection, a record section's own items
     or the records one field holds, against its type: its fields, their order, its required fields, its values, its
-    identifying values and its unique fields, and each field holding records checked against the type it cites in
-    turn."""
+    identifying values and its unique fields, a construct nested beneath a field only where the field's Holds cites
+    modeling-constructs.md § Fields § A Nested Construct, and each field holding records checked against the type it
+    cites in turn."""
     home, names, given = spec["home"], set(), set()
     for rec in records:
         line = at(rec[0][2])
@@ -231,6 +237,11 @@ def _check_records(records, spec, host, r, at, found, scope):
         if missing:
             found.append((home, r, line, f"a record without the field its type requires: {', '.join(missing)}"))
             continue
+        # modeling-constructs.md § Fields § A Nested Construct: a construct nested beneath a field whose Holds cites
+        # that section alone
+        for key, block in getattr(rec, "constructs", {}).items():
+            if key not in spec.get("nested", ()):
+                found.append((NESTED, r, at(block["line"]), f"a construct nested beneath a field whose Holds does not cite {NESTED}: {key}"))
         values = {key: value for key, value, _ in rec}
         for key, value in values.items():
             if key in spec["holds"]:
@@ -339,7 +350,8 @@ def header_findings(r, body, found):
 
 def field_findings(r, body, found):
     """modeling-constructs.md § Fields: each field's key is one a form declares, and it sits where that form places it,
-    a record's fields, a nested record's among them, placed by the one reader through the type its field cites."""
+    a record's fields, a nested record's among them, placed by the one reader through the type its field cites, and the
+    fields of a construct nested beneath a record's field placed as that construct's."""
     raw = body.split("\n")
     live = strip_fences(body).split("\n")
     secs = sorted(sections(body).items(), key=lambda x: x[1][0])
@@ -350,6 +362,8 @@ def field_findings(r, body, found):
         spec = type_of(lineage.split(" § ")[-1], r)
         if spec and spec["home"] != f"{r} § {lineage}":
             records, _ = parse_records(body, lineage, spec["section_fields"])
+            # a construct's fields nested beneath a record's field are that construct's (§ Fields § A Nested Construct)
+            placed |= {i for rec in records for i in nested_lines(rec)}
             todo = list(records)
             while todo:
                 rec = todo.pop()
@@ -814,13 +828,16 @@ def check(root, warned=None):
         header_findings(r, body, found)
         basic_findings(r, body, found)
 
+        # modeling-constructs.md § Constructs § Record Form, § Fields: a record and a field are read in each file
+        # under specs/ and each skill's file but a form template, as read_for_records tells them
+        if read_for_records(r):
+            record_findings(r, body, found)
+            field_findings(r, body, found)
         # mermaid blocks: declared as flowcharts, in the form a diagram takes, and cited
         # back by their sources. Scoped to specs/ because a skill may legitimately carry a
         # worked example. The fence is found in the raw text: strip_fences() blanks it.
         if r.startswith("specs/"):
             diagram_findings(r, body, text_of, known, lineage, found)
-            record_findings(r, body, found)
-            field_findings(r, body, found)
             environment_findings(r, body, found)
             for m in re.finditer(r'^```mermaid\s*\n(.*?)^```', body, re.S | re.M):
                 # a diagram opens with a config front matter block, so scan the whole
@@ -956,8 +973,9 @@ def workflow_citations(root):
 
 def coverage_findings(root):
     """Every section of specs/AGENTS.md and of the methodology's files, its overview aside, is
-    named, itself or through a section it sits under, in the column naming the sections in one of
-    the audit skill's coverage tables, or, for a section of code.md, in the verify skill's table of checks;
+    named, itself or through a section it sits under, in the column naming the sections in the audit
+    skill's coverage table, or in the Sections of a Skipped Step record under its ## Operating rules
+    carried out by a step, or, for a section of code.md, in the verify skill's table of checks;
     or is named by a record section of checks standing directly under it, which names no section under
     that one; and each section stating operating rules is cited, itself or through a section it
     sits under, by a step of a registered skill's Workflow, which is where its step is found. A record
@@ -977,7 +995,18 @@ def coverage_findings(root):
                 path, _, target = m.group(1).partition(" § ")
                 if target:
                     named.add((path.strip(), target.strip()))
-                    if title == COVERAGE_TABLES[1][0]:
+    # scope.md § Rules and Skills § Skipped Step: each section a Skipped Step's Sections names states operating rules
+    held = [lin for lin in sections(text) if lin.split(" § ")[0] == SKIPPED_STEPS_AT
+            and (type_of(lin.split(" § ")[-1], AUDIT_SKILL) or {}).get("home") == SKIPPED_STEP_HOME]
+    if not held:
+        found.append((COVERAGE_RULE, AUDIT_SKILL, 0, f"no Skipped Step records under ## {SKIPPED_STEPS_AT}"))
+    for lin in held:
+        for rec in parse_records(text, lin, type_of(lin.split(" § ")[-1], AUDIT_SKILL)["section_fields"])[0]:
+            for key, value, _ in rec:
+                for m in CITATION.finditer(str(value) if key == "Sections" else ""):
+                    path, _, target = m.group(1).partition(" § ")
+                    if target:
+                        named.add((path.strip(), target.strip()))
                         operating.add((path.strip(), target.strip()))
     # specs/methodology/scope.md § Rules and Skills: a section of code.md is named by the check on code
     checks = root / CODE_CHECKS

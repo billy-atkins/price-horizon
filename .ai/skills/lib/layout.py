@@ -1,7 +1,7 @@
 """The check of where a blank line falls: each line of a Markdown file read as the element it opens or continues,
 and each blank line held to the Decision Table specs/methodology/spec-style.md § Blank Lines states, read from the
-canon. The element names the module holds are a copy of the table's Input Values, checked against them as the table
-is read. The audit-specs script, the design-specs script and implement-specs' script, through check_form, run the
+canon. The element names the module holds are a copy of the table's Input Values, and the conditions it works out a
+copy of the table's Conditions, each checked against the table as it is read. The audit-specs script, the design-specs script and implement-specs' script, through check_form, run the
 check through this one copy (specs/methodology/skills.md § Authoring a Skill). A fenced block whose info string is
 `markdown` is read as spec-style.md § Markdown has it, one code block toward what stands outside it and a file of its
 own within."""
@@ -184,7 +184,7 @@ def rules(root):
         return _RULES[root]
     home = root / HOME
     problems = []
-    table = None
+    table, unknown = None, []
     if home.is_file():
         import citation_links
         body = citation_links.strip(home.read_text(encoding="utf-8")).replace("\r\n", "\n")
@@ -196,7 +196,11 @@ def rules(root):
             conditions = [c.strip() for c in values.get("Conditions", "").split(",") if c.strip()]
             header = tables[0]["header"]
             outcome = next((c for c in header if c not in conditions), None)
-            if conditions and outcome and all(c in header for c in conditions):
+            # a condition the table names that findings() does not work out leaves the table unread, reported here
+            unknown = [c for c in conditions if c not in CONDITIONS]
+            for name in unknown:
+                problems.append((RULE, HOME, 0, f"a condition the table names that the module does not work out: {name}"))
+            if conditions and outcome and all(c in header for c in conditions) and not unknown:
                 rows = [dict(zip(header, cells)) for _, cells in tables[0]["rows"] if len(cells) == len(header)]
                 table = (rows, conditions, outcome)
             # the element names this module holds, compared with the Input Values the table gives, so a renamed
@@ -210,10 +214,19 @@ def rules(root):
             for name in sorted(given - set(ELEMENTS)):
                 problems.append((RULE, HOME, 0, f"an element the table's Input Values give that the module lacks: {name}"))
             break
-    if table is None:
+    if table is None and not unknown:
         problems.append((RULE, HOME, 0, "the layout check reads no Decision Table of where a blank line falls in spec-style.md § Blank Lines"))
     _RULES[root] = (table, problems)
     return _RULES[root]
+
+
+# @canon-spec specs/methodology/spec-style.md § Blank Lines
+# the table's conditions, a copy of the names it gives, each one findings() works out, compared with them in rules()
+ABOVE = "The element above"
+BELOW = "The element below"
+ENDS = "Ends a list item?"
+NESTED = "Nested beneath the field above?"
+CONDITIONS = (ABOVE, BELOW, ENDS, NESTED)
 
 
 def _matches(cell, value):
@@ -228,15 +241,19 @@ def _matches(cell, value):
     return value == cell
 
 
-def decide(table, above, below, ends):
-    """-> whether a blank line stands between the element above and the element below, by the table's first matching
-    row, or None where no row matches."""
+def decide(table, given):
+    """-> whether a blank line stands between the element above and the element below, by the table's first row
+    matching `given`, {condition's name: its value}, or None where no row matches."""
     rows, conditions, outcome = table
-    given = dict(zip(conditions, (above, below, ends)))
     for row in rows:
         if all(_matches(row[c], given[c]) for c in conditions):
             return row[outcome].strip() == "true"
     return None
+
+
+def _key_indent(el):
+    """The indentation of the key a field's or a record's line opens: a record's key stands at its item's text."""
+    return el.holder if el.kind == RECORD else el.indent
 
 
 def findings(text, table, offset=0):
@@ -246,7 +263,7 @@ def findings(text, table, offset=0):
     if table is None:
         return out
     els = elements(text)
-    prev, blank = None, None
+    prev, blank, opened = None, None, None  # opened: the line opening the element above, a field's key line among them
     for i, el in enumerate(els):
         if el is None:
             if prev is not None and blank is None:
@@ -254,12 +271,16 @@ def findings(text, table, offset=0):
             continue
         if el.opens and prev is not None:
             above = els[prev]
-            ends = above.holder is not None and el.indent < above.holder
-            want = decide(table, above.kind, el.kind, ends)
+            nested = (el.kind == FIELD and above.kind in (FIELD, RECORD) and opened is not None
+                      and el.indent == _key_indent(els[opened]) + 2)
+            want = decide(table, {ABOVE: above.kind, BELOW: el.kind,
+                                  ENDS: above.holder is not None and el.indent < above.holder, NESTED: nested})
             if want is True and blank is None:
                 out.append((RULE, i + 1 + offset, f"a blank line missing between {above.kind} and {el.kind}"))
             elif want is False and blank is not None:
                 out.append((RULE, blank + 1 + offset, f"a blank line between {above.kind} and {el.kind}, where none falls"))
+        if el.opens:
+            opened = i
         prev, blank = i, None
     for start, _, inner in markdown_blocks(text):
         out += findings(inner, table, offset + start + 1)

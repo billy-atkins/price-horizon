@@ -226,7 +226,7 @@ A finding in a working file's form is put right as `specs/methodology/working-fi
 
 ## Running one
 
-`specs/AGENTS.md § Design, Refactor, Refine` covers verifying findings before acting on them. It also covers who runs an audit and what the audit reads, as the audit's row of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why` sets: a cold agent given this skill's name and, in a design's apply, the kinds `specs/methodology/design-workflow.md § A Design's Reviews` sets, with no brief (`specs/methodology/design-workflow.md § A Review's Brief`). All of it applies. Here, an audit run by the content's own author costs a confident sweep that misses the section the author forgot existed.
+`specs/AGENTS.md § Design, Refactor, Refine § An Audit` covers who reads an audit's findings, how their quoted evidence is confirmed and how they are triaged. Who runs an audit and what the audit reads are as `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: an audit]` has them: a cold agent given this skill's name and, in a design's apply, the kinds `specs/methodology/design-workflow.md § A Design's Reviews` sets, with no brief (`specs/methodology/design-workflow.md § A Review's Brief`). All of it applies. Here, an audit run by the content's own author costs a confident sweep that misses the section the author forgot existed.
 
 ## Scoping a run
 
@@ -247,11 +247,11 @@ The unit each audit reads at a time:
 | Ordinals and counts | everything in the script's scope |
 | Markup | everything in the script's scope |
 | Glossary terms | everything in the script's scope, the glossary among it |
-| Construct choice and form | every spec and `specs/AGENTS.md` |
+| Construct choice and form | every spec, `specs/AGENTS.md`, and each skill's files but its form templates |
 | Placement | per directory, its `index.md` and every file in it, with the product `architecture.md` for the product side |
 | Finished style | the specs and the documentation, and, for `specs/methodology/spec-style.md § Clear Prose`, both `AGENTS.md` files, and, for where a citation sits, every skill |
 | Agent agnostic | both `AGENTS.md` files, each registered skill, the project's `.gitignore`, and the helpers the root `AGENTS.md` names |
-| Skill form | `specs/methodology/skills.md`, each registered skill, the code the skills share, each unregistered skill `--list-candidates` lists, the states of `specs/methodology/design-workflow.md § The Order of a Design's Work`, the rows of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why`, and each section a record section of `Script Checks` or `Semantic Checks` stands under |
+| Skill form | `specs/methodology/skills.md`, each registered skill, the code the skills share, each unregistered skill `--list-candidates` lists, the states of `specs/methodology/design-workflow.md § The Order of a Design's Work`, the Check Role records of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles`, and each section a record section of `Script Checks` or `Semantic Checks` stands under |
 | Working-file form | `.ai/follow-ups.md` |
 | Diagram currency | per diagram, with every section its Sources list names |
 
@@ -279,7 +279,7 @@ Each row describes, in the script's own terms, what the script checks for the se
 | Every `technical-specs` list is sorted in plain character order, appears only in a product file, and every path in it resolves under the technical directory | `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` |
 | `specs/methodology/glossary.md` holds no citation and one table, headed Term, Abbreviation and Definition, whose Term cells are bare terms, unique and sorted, each with its abbreviation, if any, bare in its own column and a definition naming none; each definition ends with its other full names in the fixed form, and no abbreviation or other name is shared by two terms or equals a term | `specs/methodology/glossary.md § Writing an Entry` |
 | No specification, `AGENTS.md` file or skill, its scripts among it, uses an inside-the-house abbreviation, one in the glossary's Abbreviation column or recorded in the application specs as `(abbreviated X)`, anywhere but where it is recorded, a diagram's node ids aside, and none is recorded twice | `specs/methodology/glossary.md § Using an Abbreviation` |
-| Every section of `specs/AGENTS.md` and of each file in `specs/methodology/` but its `architecture.md` and `index.md` is named, itself or through a section it sits under, in the Enforces column of `§ The audits` or the Section column of `§ Operating rules carried out by a step`, or, for a section of `specs/methodology/code.md`, in the Enforces column of the `verify-spec-implementation` skill's table of checks, or is named by a record section of `Script Checks` or `Semantic Checks` standing directly under it, which names no section under that one, no record section of checks being itself reported, and each section that column names is cited, itself or through a section it sits under, by a step under a registered skill's `## Workflow` | `specs/methodology/scope.md § Rules and Skills` |
+| Every section of `specs/AGENTS.md` and of each file in `specs/methodology/` but its `architecture.md` and `index.md` is named, itself or through a section it sits under, in the Enforces column of `§ The audits` or the Sections of a record of `§ Operating rules carried out by a step § Skipped Steps`, or, for a section of `specs/methodology/code.md`, in the Enforces column of the `verify-spec-implementation` skill's table of checks, or is named by a record section of `Script Checks` or `Semantic Checks` standing directly under it, which names no section under that one, no record section of checks being itself reported, and each section a Skipped Step's Sections names is cited, itself or through a section it sits under, by a step under a registered skill's `## Workflow`, `§ Operating rules carried out by a step § Skipped Steps` holding at least one record | `specs/methodology/scope.md § Rules and Skills` |
 | No spec embeds an image | `specs/methodology/modeling-constructs.md § Diagrams` |
 | Each working file `specs/methodology/working-files.md § The Working Files` names is ignored by a line of the project's `.gitignore` naming it or a directory holding it, and no negating line un-ignores it | `specs/methodology/working-files.md § The Working Files` |
 | No reviewer definition an agent writes to set itself up, `review-light`, `review-medium` or `review-high`, whatever its extension or held as a folder, is tracked, read from `git ls-files` where the project is a git repository | `specs/methodology/scope.md § Agent Agnostic`, `specs/methodology/skills.md § Setting Up an Agent` |
@@ -298,20 +298,20 @@ Each row describes, in the script's own terms, what the script checks for the se
 | No line opens with italic, after any list marker, quote marker and indentation; underscore italic goes unchecked, since it cannot be told apart from an identifier such as retention_purge written outside backticks | `specs/methodology/spec-style.md § Emphasis` |
 | Every record citation resolves to a record section, names each field of its type's Reference Key, in the key's order, and no other, separated by `; `, and matches exactly one record; brackets on a section that is not a record section name a part of the construct the section declares, one key its construct's definition declares as its Reference Key, a table's name and its key joined by a dot where the construct has more than one keyed table and a key written alone read so in the application specs only, and a value a part of it holds, or a row of the one Basic Table the citation's path or its key's columns reach, by the path its Table Name and its key make where it declares a name, each column its Reference Key names, in its order, and no other, separated by `; `, matching exactly one row, and are malformed on a section declaring neither; and a value a citation names holds no `§`, `;` or `]` | `specs/methodology/sourcing-and-citation.md § Writing a Citation` |
 | No heading title contains `[` | `specs/methodology/sourcing-and-citation.md § Titling a Heading` |
-| Under `specs/`, a section holding a `**Records:**` field is titled with the Plural Name of a type the specs declare, its fields read from its declaration, a type extending another holding its base's fields first; a record section holds an optional `**Diagrams:**` field, then any section fields its type declares, each it requires present, in its order, none at its default and each value one its Values allow, then a `**Records:**` field of at least one record, one list item each, and nothing else, the section's fields one block of fields; each record, a nested one against the type its field cites, gives its type's fields in their order as one block of fields in its item, every field its type requires and none at its default value, each value one its type's Values allow where they list them; a field holding records holds each as an item of its list, each item a record opening with a field its type gives, a field holding one record holding one item; no two records of one collection, a record section's own items or the records one field holds, share their identifying values, nor a value of a field marked Unique; a value of a field whose Values cite a closed set is one of the set's members, a second record section of a closed set a fact's or a field's Values cite is reported, and a field whose Values cite the definition of a type whose record section a Values cites is reported; the records a fenced `markdown` block holds are read as a file of its own, against the types the block declares and the canon's; an `Open Questions` section is its file's last top-level section, and each of its records' Impacts carries at least one section citation | `specs/methodology/modeling-constructs.md § Constructs § Record Form`, `specs/methodology/spec-style.md § Markdown`, `specs/methodology/spec-placement.md § Open Question`, `specs/methodology/sourcing-and-citation.md § External Reference`, `specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact` |
+| In each file under `specs/` and each skill's file but a form template, one whose name ends `-form-template`, a section holding a `**Records:**` field is titled with the Plural Name of a type the specs declare, its fields read from its declaration, a type extending another holding its base's fields first; a record section holds an optional `**Diagrams:**` field, then any section fields its type declares, each it requires present, in its order, none at its default and each value one its Values allow, then a `**Records:**` field of at least one record, one list item each, and nothing else, the section's fields one block of fields; each record, a nested one against the type its field cites, gives its type's fields in their order as one block of fields in its item, every field its type requires and none at its default value, each value one its type's Values allow where they list them; a construct nested beneath a field, at any depth, stands only beneath a field whose Holds cites `specs/methodology/modeling-constructs.md § Fields § A Nested Construct`, and each field of any other block nested beneath a field's text is read as a field of its record; a field holding records holds each as an item of its list, each item a record opening with a field its type gives, a field holding one record holding one item; no two records of one collection, a record section's own items or the records one field holds, share their identifying values, nor a value of a field marked Unique; a value of a field whose Values cite a closed set is one of the set's members, a second record section of a closed set a fact's or a field's Values cite is reported, and a field whose Values cite the definition of a type whose record section a Values cites is reported; the records a fenced `markdown` block holds are read as a file of its own, against the types the block declares and the canon's; an `Open Questions` section is its file's last top-level section, and each of its records' Impacts carries at least one section citation | `specs/methodology/modeling-constructs.md § Constructs § Record Form`, `specs/methodology/modeling-constructs.md § Fields § A Nested Construct`, `specs/methodology/spec-style.md § Markdown`, `specs/methodology/spec-placement.md § Open Question`, `specs/methodology/sourcing-and-citation.md § External Reference`, `specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact` |
 | Every canon-spec annotation in a registered skill's scripts, and the code the skills share, is a comment line of its own holding the tag, a space and a citation of `specs/AGENTS.md` or a methodology file, or a section of one, that exists, a part it cites being a check's record, matching one record, and each run of them on consecutive lines is sorted in plain character order | `specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code`, `specs/methodology/skills.md § Authoring a Skill` |
 | The script's copy of each construct's table of the fields it declares matches that table where it is defined, row by row: each field's name and order, whether it is required, its default value and its values, each Values cell a quoted list, a citation or `text`; a record type has none, read from its declaration; and its copy of the columns of a table of fields and of each tabular construct's tables matches the `Column | Holds` tables defining them, each column headed in backticks, in order, its optional columns and a Name column where it may open one among them | `specs/methodology/modeling-constructs.md § Constructs § Construct`, `specs/methodology/modeling-constructs.md § Constructs § Tabular Construct`, `specs/methodology/modeling-constructs.md § Constructs § Decision Table`, `specs/methodology/modeling-constructs.md § Constructs § Algorithm` |
 | In `specs/application/technical/environments.md`, every environment's section opens with one `**Kind:**` field, on a line of its own, whose value is local, integration, shared or production, no other Kind field appears, exactly one environment is local, and every tools table is headed Tool, Version and Purpose with at least one install column after them, and every tasks table Task, Command and Does, with Runs On after them where a task needs it | `specs/methodology/spec-placement.md § Environments` |
 | Each Basic Table outside a fenced block, a list item, a quote and an indented block is headed by field labels, but a header in backticks and a word in a proper noun's own casing; its fields opening it, `**Table Name:**`, `**Reference Key:**` and `**Required:**`, in that order, one block of fields before it, its Table Name, and a Table Name opening any construct's table, a field label unique among its section's tables, a construct's keyed tables taking part in the clash, its Reference Key and its Required naming columns its header holds, none named by both, no cell under either blank and its key's values unique, alone or together; of tables in one section keyed by the same declared columns, all but one declaring a distinct Table Name; a cited key value holding no `§`, `;` or `]`; and a Reference Key a definition sets names, where its instances write more than one keyed table, each table's name as its definition gives it and that table's key, joined by a dot | `specs/methodology/modeling-constructs.md § Constructs § Basic Table`, `specs/methodology/modeling-constructs.md § Constructs § Keyed Construct` |
 | A table whose first header is a registered standard's Name and which holds a Treatment column is a mapping onto that standard in its one form, opened by its fields: its Table Name the standard's Name and `Elements`, its Reference Key that Name, its Required `Section, Treatment`, its columns that Name, Section, Treatment, Departs For and Why, each Treatment opening `the same`, `differs:` or `not written`, and a Departs For of one or two of `the standard's gap`, `the canon's form` and `no need yet`, in that order, and a Why on each row that differs or is not written and on no other; the script's copy of those kinds matches the mapping's Departs For row; and a sentence of a methodology file, its overview and its index aside, naming a departure from a registered standard, in any wording, departing, differing or deviating from it, unlike it or contrary to it, cites a row of that standard's mapping, a sentence opening that standard's mapping aside | `specs/methodology/sourcing-and-citation.md § External Reference § A Mapping onto a Standard` |
-| Under `specs/`, every line opening with a bold phrase ending in a colon inside the bold carries a key a form declares, where that form places it, a record type the specs declare declaring its fields' keys | `specs/methodology/modeling-constructs.md § Fields` |
-| A Record Form, a record type's declaration, gives a Plural Name, then its tables: a table of any section fields it declares, headed Field, Required, Default Value, Values and Holds, then its table of record fields, headed Field, Unique, Required, Default Value, Values and Holds, that table left out only by a type extending another; each field named once, by it or its base, its Unique yes or no, and a Reference Key, its own or its base's, naming fields the type gives and requires, a type extending another declaring none and a key of one field marking that field Unique, its Default Value empty where it is required and given where it is not, and each Values cell a quoted list, a citation or `text`, a citation of a record type's definition, alone or after `a list of`, holding that type's records, one or a list; a type holding itself through fields whose Required is yes, each citing a record type's definition, its own or other types' in turn, is reported; an abstract type, its Modifier `Abstract`, is extended by some type, no field cites its definition, and no record section is titled with its Plural Name; it declares no Order or Held In; its section is titled with the type's name, bare, opening with no article and never its Plural Name; and its Plural Name is no other type's where its records may sit, a canon type's in any file under `specs/`, an application spec's type's in the application specs, and those of a type a fenced `markdown` block declares in that block alone, the block's declarations' own findings unreported | `specs/methodology/modeling-constructs.md § Constructs § Record Form`, `specs/methodology/spec-style.md § Markdown`, `specs/methodology/modeling-constructs.md § Constructs § Construct` |
+| In each file under `specs/` and each skill's file but a form template, every line opening with a bold phrase ending in a colon inside the bold carries a key a form declares, where that form places it, a record type the specs declare declaring its fields' keys and the fields of a construct nested beneath a record's field placed as that construct's | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Fields § A Nested Construct`, `specs/methodology/modeling-constructs.md § Constructs § Record Form` |
+| A Record Form, a record type's declaration, gives a Plural Name, then its tables: a table of any section fields it declares, headed Field, Required, Default Value, Values and Holds, then its table of record fields, headed Field, Unique, Required, Default Value, Values and Holds, that table left out only by a type extending another; each field named once, by it or its base, its Unique yes or no, and a Reference Key, its own or its base's, naming fields the type gives and requires, a type extending another declaring none and a key of one field marking that field Unique, its Default Value empty where it is required and given where it is not, and each Values cell a quoted list, a citation or `text`, a citation of a record type's definition, alone or after `a list of`, holding that type's records, one or a list; a type holding itself through fields whose Required is yes, each citing a record type's definition, its own or other types' in turn, is reported; an abstract type, its Modifier `Abstract`, is extended by some type, no field cites its definition, and no record section is titled with its Plural Name; it declares no Order or Held In; its section is titled with the type's name, bare, opening with no article and never its Plural Name; and its Plural Name is no other type's where its records may sit, a canon type's in each file under `specs/` and each skill's file but a form template, an application spec's type's in the application specs, and those of a type a fenced `markdown` block declares in that block alone, the block's declarations' own findings unreported | `specs/methodology/modeling-constructs.md § Constructs § Record Form`, `specs/methodology/spec-style.md § Markdown`, `specs/methodology/modeling-constructs.md § Constructs § Construct` |
 | A Facts record's Values written as one citation names the record section of a type identifying its records by one field, or a Basic Table keyed by one column, its values the identifying values of those records or rows, and sits on a fact whose Type is `string`, judged once the record's Type is one FEEL names | `specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact`, `specs/methodology/modeling-constructs.md § Constructs § Record Form` |
 | Each directory of the worked examples a section of `specs/AGENTS.md` or of the methodology's files names exists, and each topic of `specs/methodology/examples/`, a subject's subdirectory, is named by such a section | `specs/methodology/scope.md § Progressive Disclosure` |
 | Outside a fenced code block, and outside an indented one where `specs/methodology/spec-style.md § Blank Lines` reads a line as one, no run of two or more backticks opens or closes a code span but a citation's, carrying a key value that holds a backtick | `specs/methodology/spec-style.md § Literal Text` |
-| Every block of fields, those a fenced `markdown` block holds among them as `specs/methodology/spec-style.md § Markdown` has the block read, has each line that a line opening a field's key directly follows end with one space and a backslash, no other line of the block end with one, and each list a field holds stand with its items two spaces beyond its key, a list at its key's indentation reported | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/spec-style.md § Markdown` |
-| Every blank line stands where the Decision Table of `specs/methodology/spec-style.md § Blank Lines` gives true and nowhere it gives false, each line read as the element it opens or continues, a fenced `markdown` block read as `specs/methodology/spec-style.md § Markdown` has it and any other code block as one element, the table read from `specs/methodology/spec-style.md § Blank Lines` and the element names the module holds compared with the table's Input Values | `specs/methodology/spec-style.md § Blank Lines` |
-| Every construct's section opens with prose before its `**Construct:**` field, its description; every `**Construct:**` field cites a construct's definition, locally qualified, a bare name read so in the application specs alone until they are migrated, opens the construct's block of fields: the fields that construct sets, in that block, a list-valued one its items beneath its key, in their order, a field the construct sets standing beneath a `**Table Name:**` reported, an Algorithm's Inputs and Output, either taking `none` on its key's line, and a Decision Table's Conditions among them, and no field written at its default value, a Hit Policy as Unique, or Reads, Computed, Annotations, Input Values or Default Output as none, or a Protocol as No, and each value one its field's Values allow where they list them; no such field outside a construct's block, but a Reference Key in a construct's definition, or a Table Name, a Reference Key or a Required opening a Basic Table, before it in that order; then its tables headed as its form gives, a column a construct renamed read in its old spelling, a State Machine's `description` as `Description`, say, in the application specs alone until their tables are migrated, and reported in it anywhere else, every row as many cells as its header, no cell empty but where its form allows, no cell holding `none` or `-` where its form does not give it, a Name column opening only a table it may open, every row named and no two alike, and each part's identifier, a state's, a task's or a Name, holding no `§`, `;` or `]`; a Held In, a list, gives an item for each table its construct's form gives, each a fact's name, a colon and the citation of a Facts record declaring it whose Type is a list of a context whose entries are named as that table's columns; an Extends cites a construct of the same kind, and a construct declaring one is checked for its fields and its tables' form alone; and no section holds two constructs of its own | `specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct`, `specs/methodology/modeling-constructs.md § Defining Constructs § References and Names`, `specs/methodology/modeling-constructs.md § Constructs § Declared Construct`, `specs/methodology/modeling-constructs.md § Constructs § Ordered Construct`, `specs/methodology/modeling-constructs.md § Constructs § Configured Construct`, `specs/methodology/modeling-constructs.md § Constructs § Keyed Construct`, `specs/methodology/modeling-constructs.md § Constructs § Tabular Construct`, `specs/methodology/modeling-constructs.md § Constructs § Decision Table`, `specs/methodology/modeling-constructs.md § Constructs § Algorithm` |
+| Every block of fields, those a fenced `markdown` block holds and those nested beneath a field among them, as `specs/methodology/spec-style.md § Markdown` and `specs/methodology/modeling-constructs.md § Fields § A Nested Construct` have them read, has each line that a line opening a field's key directly follows end with one space and a backslash, no other line of the block end with one, and each list a field holds stand with its items two spaces beyond its key, a list at its key's indentation reported | `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/modeling-constructs.md § Fields § A Nested Construct`, `specs/methodology/spec-style.md § Markdown` |
+| Every blank line stands where the Decision Table of `specs/methodology/spec-style.md § Blank Lines` gives true and nowhere it gives false, each line read as the element it opens or continues, a fenced `markdown` block read as `specs/methodology/spec-style.md § Markdown` has it and any other code block as one element, a field nested beneath the field above where its key stands two spaces beyond that field's key, the table read from `specs/methodology/spec-style.md § Blank Lines`, each of its conditions taken by its name, the element names the module holds compared with the table's Input Values and each condition it names that the module does not work out reported | `specs/methodology/spec-style.md § Blank Lines` |
+| Every construct's section opens with prose before its `**Construct:**` field, its description; every `**Construct:**` field, at the margin or opening a construct nested beneath a field as `specs/methodology/modeling-constructs.md § Fields § A Nested Construct` has one stand, its block read dedented, cites a construct's definition, locally qualified, a bare name read so in the application specs alone until they are migrated, opens the construct's block of fields: the fields that construct sets, in that block, a list-valued one its items beneath its key, in their order, a field the construct sets standing beneath a `**Table Name:**` reported, an Algorithm's Inputs and Output, either taking `none` on its key's line, and a Decision Table's Conditions among them, and no field written at its default value, a Hit Policy as Unique, or Reads, Computed, Annotations, Input Values or Default Output as none, or a Protocol as No, and each value one its field's Values allow where they list them; no such field outside a construct's block, but a Reference Key in a construct's definition, or a Table Name, a Reference Key or a Required opening a Basic Table, before it in that order; then its tables headed as its form gives, a column a construct renamed read in its old spelling, a State Machine's `description` as `Description`, say, in the application specs alone until their tables are migrated, and reported in it anywhere else, every row as many cells as its header, no cell empty but where its form allows, no cell holding `none` or `-` where its form does not give it, a Name column opening only a table it may open, every row named and no two alike, and each part's identifier, a state's, a task's or a Name, holding no `§`, `;` or `]`; a Held In, a list, gives an item for each table its construct's form gives, each a fact's name, a colon and the citation of a Facts record declaring it whose Type is a list of a context whose entries are named as that table's columns; an Extends cites a construct of the same kind, and a construct declaring one is checked for its fields and its tables' form alone; and no section holds two constructs of its own | `specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct`, `specs/methodology/modeling-constructs.md § Defining Constructs § References and Names`, `specs/methodology/modeling-constructs.md § Constructs § Declared Construct`, `specs/methodology/modeling-constructs.md § Constructs § Ordered Construct`, `specs/methodology/modeling-constructs.md § Constructs § Configured Construct`, `specs/methodology/modeling-constructs.md § Constructs § Keyed Construct`, `specs/methodology/modeling-constructs.md § Constructs § Tabular Construct`, `specs/methodology/modeling-constructs.md § Constructs § Decision Table`, `specs/methodology/modeling-constructs.md § Constructs § Algorithm` |
 | A State Machine's States and Transitions tables open with their Table Names, States and Transitions; its Transitions table is headed From, To and Trigger, then a Guard, an Effect or both in that order, no such column every cell of which is none, each Effect cell the citation of an Algorithm or a Decision Table, or `none`; a Recorded In field is a fact's name, a colon and the citation of a Facts record whose Values, a quoted list or the citation of a closed set, hold each state's name, a state drawn from a closed set opening its description with the citation of its member, its record or its row; a word a guard tests a fact for, by `=`, `!=` or `in` a list or tests, one of the fact's Values, the fact its machine's own file declares or else the one other files declare alike; a protocol machine has no Effect column, no transition with no trigger or taken on time or a condition, and no governed state; a Trigger Classes table, found in the machine's section after its Transitions table and before a subsection by its Table Name or its header, and reported where no machine's section holds it so, opens with its Table Name, is headed Member and Class, each row a member and its class each written, writes each member once, a member citing a machine cites one whose Trigger Classes table holds its class and stands for the members that table gives it, a member written in FEEL checked as a trigger is, each class a trigger a transition names, and no state takes a class and one of its members; a state's description saying `governed by` names a State Machine and no part of one, and a description citing another machine's whole section says it; a state is governed by one machine at most, no machine governs itself, a governed state is not terminal, and it is left, of its transitions with no trigger, as its machine's exits have it: by one with no guard where its machine has one terminal state, by one for each guarded `exit = "{that state}"` where it has more, by the join alone where it stands in a join's From, and by none where its machine never ends | `specs/methodology/modeling-constructs.md § Constructs § State Machine`, `specs/methodology/modeling-constructs.md § Constructs § State Machine § A Submachine State` |
 | A State Machine's states are named uniquely, free of a comma and the word `and`, each initial and terminal Yes or No, one initial and each reached from it, a state that is not terminal having a way out and a terminal one none; each From and To names a state, a From one state or a join's several; its forks and joins pair, and an exclusive choice's guards, each a FEEL boolean expression parsed by `expressions.py`, a fact it tests as a boolean named as a question, every fact it tests holding no word FEEL keeps, read where each is a conjunction of tests of facts as a Decision Table's rows, each fact tested once, every name a test holds one a guard of the choice tests, a Facts record declares, or `exit`, a fact compared with another of its kind, and each fact one kind of value across them, never both hold, and each can hold, a choice with a guard in any other of FEEL's forms listed for the reading audit | `specs/methodology/modeling-constructs.md § Constructs § State Machine` |
 | A trigger opening with `after`, `at` or `when` and a space is a FEEL expression parsed by `expressions.py`, judged with the facts in scope as a guard's are, its file's own or else the one other files declare alike, every problem it gives reported, and one calling FEEL's `today()` or `now()` reported, `after` and `at` reading the wall clock; `after`'s giving a duration, `at`'s a date or a date and time and `when`'s a yes or no; a name other files declare with differing Types read and not checked; two triggers in FEEL are compared by their tokens; a Trigger Classes member written in FEEL is checked as a trigger is | `specs/methodology/modeling-constructs.md § Constructs § State Machine`, `specs/methodology/modeling-constructs.md § Constructs § State Machine § What It Means`, `specs/methodology/modeling-constructs.md § Time` |
@@ -324,32 +324,1168 @@ Each row describes, in the script's own terms, what the script checks for the se
 | A Name column opens a table exactly where a part of it is cited, by Name, from outside its construct's section | `specs/methodology/modeling-constructs.md § Constructs § Keyed Construct § Part Identifier` |
 | Each definition under `specs/methodology/modeling-constructs.md § Constructs` gives the Modifier, Extends and Implements the script's copy of it holds, its Modifier `Abstract` or `Interface`, its Extends citing one definition whose section comes before its own, multiple only for an interface extending interfaces, and given by every definition but Construct and an interface, and its Implements citing interfaces whose sections come before its own; no definition gives a field or a column a definition it extends gives, sets or bounds a member of no interface it implements, its bases' and the interfaces they extend among them, or sets a member a definition it extends sets; every Construct, Extends and Implements field cites its definition; every member Specified By Definition, the Locator among them, set by each concrete definition implementing its interface, and none Specified By Instance set by a definition; every interface's section after Construct's; no Modifier, Implements or member Specified By Definition stands outside a definition's section, but for the Modifier a record type's declaration gives; and no Construct field names an abstract definition or an interface | `specs/methodology/modeling-constructs.md § Defining Constructs`, `specs/methodology/modeling-constructs.md § Defining Constructs § Inheritance`, `specs/methodology/modeling-constructs.md § Defining Constructs § Modifiers`, `specs/methodology/modeling-constructs.md § Defining Constructs § Interfaces and Members`, `specs/methodology/modeling-constructs.md § Defining Constructs § References and Names`, `specs/methodology/modeling-constructs.md § Constructs § Keyed Construct` |
 
-**Scope.** The script's scope is the files that `specs/methodology/scope.md § What Spec of Record Governs` names, the working files aside. Those files are the root `AGENTS.md`, the documentation, every file under `specs/`, and each skill that `specs/methodology/skills.md` registers: its `SKILL.md`, its references and its scripts, with the code the skills' scripts share under `.ai/skills/lib/`. The documentation is `README.md` and the files under `docs/`. Code is aside too, since the skill does not read it. The working files are aside because they legitimately carry citations to things since moved or removed, and the script's pre-pass reads none of them. The Working-file form audit reads `.ai/follow-ups.md` instead, and runs the checks `specs/methodology/modeling-constructs.md § Fields` gives a block of fields and the check `specs/methodology/spec-style.md § Blank Lines` gives a blank line over it in its own run alone. `.ai/skills/design-specs/` and `.ai/skills/implement-specs/` check the plans they write. No check of this script reads the skills' output under `.ai/tmp/`, because that output is reports rather than rules. The reports a design's log names are read instead by the `--append-entry` and `--check-report` of `.ai/skills/design-specs/` and `.ai/skills/implement-specs/`, as `specs/methodology/working-files.md § A Check's Report` has them checked. The check keeping the working files out of version control reads the project's `.gitignore`. `--list-candidates` lists places for the Ordinals and counts audit, the Markup audit, the Glossary terms audit, the Construct choice and form audit, the Finished style audit and the Agent agnostic audit to read. For the Skill form audit, it lists an unregistered skill whose `SKILL.md` cites the methodology's rules, and a registered skill's script importing a module that is neither in the standard library, nor one of the skill's own helpers, nor the code the skills share. It also lists a skill's long sentence of chained clauses, and a path into the application specs in a skill. An audit whose unit names the script's scope for a full run uses this scope. The candidates print apart from the findings, since a list of places to read decides nothing (`specs/methodology/scope.md § Rules and Skills`).
+**Scope.** The script's scope is the files that `specs/methodology/scope.md § What Spec of Record Governs` names, the working files aside. Those files are the root `AGENTS.md`, the documentation, every file under `specs/`, and each skill that `specs/methodology/skills.md` registers: its `SKILL.md`, its references and its scripts, with the code the skills' scripts share under `.ai/skills/lib/`. The documentation is `README.md` and the files under `docs/`. Code is aside too, since the skill does not read it. The working files are aside because they legitimately carry citations to things since moved or removed, and the script's pre-pass reads none of them. The Working-file form audit reads `.ai/follow-ups.md` instead, and runs the checks `specs/methodology/modeling-constructs.md § Fields` gives a block of fields and the check `specs/methodology/spec-style.md § Blank Lines` gives a blank line over it in its own run alone. `.ai/skills/design-specs/` and `.ai/skills/implement-specs/` check the plans they write. No check of this script reads the skills' output under `.ai/tmp/`, because that output is reports rather than rules. The reports a design's log names are read instead by the `--append-entry` and `--check-report` of `.ai/skills/design-specs/` and `.ai/skills/implement-specs/`, as `specs/methodology/working-files.md § A Check's Report § What the Design Script Checks` has them checked. The check keeping the working files out of version control reads the project's `.gitignore`. `--list-candidates` lists places for the Ordinals and counts audit, the Markup audit, the Glossary terms audit, the Construct choice and form audit, the Finished style audit and the Agent agnostic audit to read. For the Skill form audit, it lists an unregistered skill whose `SKILL.md` cites the methodology's rules, and a registered skill's script importing a module that is neither in the standard library, nor one of the skill's own helpers, nor the code the skills share. It also lists a skill's long sentence of chained clauses, and a path into the application specs in a skill. An audit whose unit names the script's scope for a full run uses this scope. The candidates print apart from the findings, since a list of places to read decides nothing (`specs/methodology/scope.md § Rules and Skills`).
 
 ## Operating rules carried out by a step
 
-Each operating rule that leaves no trace in the files the audits read is carried out by the steps applying it, and each of those steps gives it a point-of-use citation (`specs/methodology/scope.md § Rules and Skills`). The sections stating them, each with what skipping the steps carrying out its rules leaves in the files:
+Each operating rule that leaves no trace in the files the audits read is carried out by the steps applying it, and each of those steps gives it a point-of-use citation (`specs/methodology/scope.md § Rules and Skills`). Each failure a skipped step leaves is a Skipped Step record (`specs/methodology/scope.md § Rules and Skills § Skipped Step`).
 
-**Reference Key:** Section \
-**Required:** A Skipped Step Leaves
+### Skipped Steps
 
-| Section | A Skipped Step Leaves |
-|---|---|
-| `specs/AGENTS.md § Writing specs` | a fact placed, cited or formed against its rule, which the audit reading that rule finds |
-| `specs/AGENTS.md § Design, Refactor, Refine` | a direct edit, or a new branch, made without the user's approval, which leaves nothing in the files, the user who approves being its check; a review's log entry naming no model and reasoning effort, which the entry script of the skill writing the design refuses as it appends the entry and reports while the design stands; a review's model and reasoning effort not offered to the user, which leaves nothing in the files, the user being its check; a design revised again past any run `specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs` sets, unless the user had the work go on, which its log shows by its entries, the user being its check; a step stated without its reach researched, or a passage written without the builder zooming out to its reach, which leaves it patched, the adversarial review or the post-apply review finding it; a step a change moved not taken through the builder's own Design, Refactor, Refine before the next validation, which leaves nothing the script reads, the next adversarial review being its check; a finding the adversarial review or the post-apply review leaves unmarked, which the builder settling the round finds; a kept finding a review reports without its rationale or a possible fix, a possible fix in neither of its forms, or a finding it drops without its reason, which `--check-report` reports as the builder starts settling and `--append-entry` of the skill writing the design refuses as it appends the check's entry, by `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`; a finding an earlier round dropped raised again with no argument that round did not weigh, which the builder settling the round finds in the report; a review weighing its findings, or reading a report the design's log names, before it has collected them all, which the report's Reading shows, the user reading it being its check; an audit's finding the builder leaves untriaged against the design's changes, which leaves nothing the script reads, the user being its check; a review finding what the builder's self-review would have caught, the self-review made with less than the reading and the questions its row sets, or a round's change proven by rereading it alone, which leave nothing the script reads, the user being their check; something the user says during the apply acted on before it is told apart, which leaves nothing the script reads, the user being its check; a review started with more than the standard brief, or an audit started with any brief, either asking beyond its row of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why`, which leaves nothing the script reads, the user being its check; a script changed with no ephemeral differential test of it recorded, which `--append-entry` of the skill writing the design refuses as it appends the check's entry, by `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: builder-checks-required]`; a design drafted on design goals or a design frame the user has neither agreed to nor adjusted, or goals or a frame a steer changed without the user's confirmation, which leaves nothing the script reads, the user, who confirms each such steer, being its check; a design drafted before the user agreed to or adjusted its frame, which leaves nothing in the files, the user, shown the frame before the draft, being its check; a round's settlement stating no cause, or no miss for a flaw, which `--append-entry` of the skill writing the design refuses as it appends the check's entry, by `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`; a round of an adversarial review or a post-apply review settled one finding at a time, by more than the least change at its causes, with a cause whose fix is no tactical fix settled where its finding sits, or with no reason given where the builder's verdict on a finding differs from the reviewer's or its change settles less than the reviewer's possible fix reaches, which its report shows by the settlement it holds, or with its change proposed before the builder read what each miss shows, which no record dates, a report holding what was read and never when, the next review of the round's phase being the check of each, and, for the round that ends the review, the user; a round's settlement or an audit's triage not recording the user's answer to each call the builder brought, which leaves nothing the script reads, the user being its check; a Decision Table or State Machine a step's Objectives state whole left untraced before the adversarial review, or one a section the apply changed holds left untraced before the post-apply review, or either traced with a path left out, which `--append-entry` of the skill writing the design refuses as it appends the check's entry, by `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: traces-name-their-paths]`; any other mechanism with states or routes so left untraced, a Decision Table or State Machine a step changes only in part among them, which the builder's self-review report shows by the traces it records, the next review being its check, and, where no review follows, the user; an approval that ended the review logged as no `plan-approval` entry, the user who gave it being its check; a nit judged harmless though leaving it harms what is built, which leaves nothing the script reads, the user, approving the plan, and the post-apply review being its check; goals or a frame that let a round's findings in not revised and approved before the design changed, which leaves nothing in the files, the user being its check; a Frame Outcome naming no goal, which the validation review reports; an Approach resting on a goal and citing none, which the adversarial review finds, reading the frame against its goals; a review reading a working file other than the design it is given, its own report and the reports the design's log names, which leaves nothing in the files, the builder being its check where the read surfaces in a finding or a citation in the review's report, the finding settled as `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round` has it; a marked finding naming no goal, Frame Outcome or step Objective and citing no rule it breaks, or naming one the design does not hold, which `--check-report` reports as the builder starts settling and `--append-entry` of the skill writing the design refuses as it appends the check's entry, by `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-anchored-in-the-design]`; any other review finding settled though `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test` drops it, or dropped though the test needs it, which the round's settlement in its report shows, the next adversarial review and the user being its check; a review observation counted among the findings, or not brought to the user, which leaves nothing the script reads, the user being its check; an edit the user made during the apply not confirmed with the user as intended or accidental, or, intended, not logged as a `user-edit` entry or not checked as it was logged, which `--check-changed-files` shows by a file changed outside the Target that no entry names, a user's edit left unchecked in the self-review's report, which `--append-entry` of the skill writing the design refuses as it appends the check's entry, by `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: builder-checks-required]`, and otherwise the user; a design's changes read from anywhere but their one home in `specs/methodology/working-files.md § A Design Document`, which leaves a rule reading them otherwise, the post-apply review or the audit finding it; the plan, the applied result or the settled audit shown the user without its summary, which leaves nothing in the files, the user being its check; `--show-reach` left unrun at drafting, or `--check-retired-wording` or `--check-changed-files` before the post-apply review, which leaves nothing the script reads, the post-apply review finding the wording or the file left behind; `--check-work` or a reading audit's rules left unrun over the work at the builder's self-review, which leaves nothing the script reads, the post-apply review finding what the work caused, or left unrun at the post-apply review, the audit finding it; the construct checks of the skill writing the design not run at the builder's self-review, which lets a construct's gap or overlap reach the apply, the audit's construct checks finding it there; the builder not reading the opening of `specs/AGENTS.md § Design, Refactor, Refine` again as it resumes the work, which leaves nothing in the files, the user being its check; a round's findings grouped before the builder read the earlier reports, which leaves nothing in the files, the user being its check; a round's settlement whose Settling Reads, and the Read Assessments in the reports of the handed-off judgments the design's log names, leave out a place the Evidence of a marked finding names, which `--append-entry` of the skill writing the design refuses as it appends the check's entry, by `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: settling-reads-cover-the-evidence]`; a self-review following a round's change whose Reads leave out a place a Miss of the phase names, which `--append-entry` of the skill writing the design refuses as it appends the check's entry, by `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: reads-cover-the-misses]`; a round's settlement not naming an earlier report of its phase, or a tactical fix made at fewer than every place its Search matched, which `--append-entry` of the skill writing the design refuses as it appends the check's entry, by `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: earlier-reports-listed]`, `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: tactical-fixes-cover-their-searches]` and `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]`; a tactical fix made with no Search, which `--append-entry` of the skill writing the design refuses as it appends the check's entry, by `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`; a Trace of a self-review before the adversarial review, or a Cause continuing an earlier one, stating no outcome of the table of `specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether the Goals and the Frame Name a Mechanism`, which `--append-entry` of the skill writing the design refuses as it appends the check's entry, by `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`; a mechanism that heading reaches left with no Trace at the self-review before an adversarial round, a decision drawing findings again settled with no Cause continuing an earlier one, or an outcome the goals and the frame do not bear out, which the self-review report or the round's report shows by what it holds, the next adversarial review being its check, and, for the round that ends the review, the user; a report of research leaving a place outside the design document that one of its Searches matched, or a place the builder named, within no Read Assessment's Area, which `--append-entry` of the skill writing the design refuses as it appends the check's entry, by `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: reads-assessed]`; a frame's sweep whose method is recorded nowhere in its Scope, or whose Assessed Areas miss a passage stating part of a rule the change states or a use of a term it defines or redefines, which the adversarial review finds, judging the frame's Assessed Areas from its own reading and redoing no sweep |
-| `specs/methodology/working-files.md § The Working Files`, `specs/methodology/working-files.md § A Design Document`, `specs/methodology/working-files.md § Design Goal`, `specs/methodology/working-files.md § Design Plan Step`, `specs/methodology/working-files.md § Design Log Entry`, `specs/methodology/working-files.md § Retired Phrase`, `specs/methodology/working-files.md § Steering Decision`, `specs/methodology/working-files.md § A Stamp`, `specs/methodology/working-files.md § A Check's Report` | a working file changed by a design's step rather than by the builder's route, which leaves the design's Target naming it, and `--check-target-kind` reports; a design document out of its form, a step, a step Objective, a goal, a Frame Outcome, an Assessed Area, a steer, a log entry or a retired phrase out of its record type, or log entries out of their count or their order, which the validation review, the entry script of the skill writing the design, reports while it stands; a design out of sync with the workstack, which `--check-workstack` reports before each validation; a citation of another file that does not resolve, or a Target out of its Kind, which the adversarial review finds; a table in a step Objective that is no Decision Table or State Machine it states whole, which the validation review reports; an Objective stating how its step is implemented, or writing out text that is not itself the outcome, rather than a state the applied work holds, which the semantic pass finds by `specs/methodology/working-files.md § Design Plan Step § Step Objective § Semantic Checks [Name: objective-states-an-outcome]`, the builder's self-review asking it and the adversarial review judging it first; prose around what a step changes, within the Target, left inconsistent with the steps, against the one standing Objective, which the post-apply review finds; a change that is none of the design's changes, as `specs/methodology/working-files.md § A Design Document` states them, which the post-apply review finds, and `--check-changed-files` lists for the builder's self-review where it lies outside the Target; a tactical fix sent back to the writing or into the plan, which leaves nothing the script reads, the user being its check; a Decision not giving the essence of what its steer decided, a Steer quoting only part of the user's words that decided, a revising steer's Decision not naming the steer it revises, or a steer whose Type is not the one `specs/methodology/working-files.md § Steering Decision` gives it, which leave nothing the script reads, the adversarial review reading the steers and the user being their check; a steer changing the goals or the frame applied without the user's confirmation, an unanswered question read as agreed, or an earlier steering decision rewritten, which leave nothing in the files, the user being their check; a design lagging a steer it records, which the adversarial review finds, checking the design's fidelity to its steers, and, for a steer given after its last adversarial review, the user; a frame out of sync with its steers or its steps, a Frame Outcome untrue of them, an Out of Scope naming another working file, a design naming a dependency with no statement of what it relies on from it, or a canon-specs design's Impact not saying how its review was done, which the adversarial review finds, reading the record around the design, and, for a step changed after its last round, the builder's self-review; work handed on, in Out of Scope or Impact on the Application Specs, that nothing holds, found by the user, who approves each follow-up and each spawned design as it is handed on; a statement of what a design relies on that no longer matches its dependency, found by the review the design takes again as it takes the finished dependency in, and before that by the user at the design's approval; a decision the user gave left out of the steers, which the builder's self-review against the user's messages finds, and otherwise the user; a check's report not recording how its findings were settled, or the builder's triage of an audit not recording each finding as caused by the design or not, which `--append-entry` of the skill writing the design refuses as it appends the check's entry, by `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-settled-once]`; a reviewer handing back its report without running `--check-report`, which the builder's `--check-report` as settling starts finds; a builder changing a part of the report the reviewer wrote, which leaves nothing the script reads, the user being its check; a judgment a record holds, a Cause's decision, a Miss, a Finding's Verdict or a Builder Check's Result, made against what the files show, which `--append-entry` cannot decide, the next review of the phase and the user being its check; a log entry out of its type as it is appended, which `--append-entry` refuses and the validation review reports; a design applied while other changes were uncommitted, its changes committed with another's or without the user's go-ahead, or under a message not naming each direct edit and each edit of the user's, or a send-back that set aside or reverted the changes it keeps in place, which leave nothing the script reads, the user being their check; a reading for a design taking a sent-back design's kept changes as the files at the last commit, which the post-apply review finds by the changes that are none of the design's |
-| `specs/methodology/design-workflow.md § The Order of a Design's Work`, `specs/methodology/design-workflow.md § A Design's Reviews`, `specs/methodology/design-workflow.md § A Review's Brief`, `specs/methodology/design-workflow.md § A Review's Effort` | a design worked out of the order its machines give, which leaves nothing the files decide, the user being its check; a skill writing a brief of its own for a review, or a brief for an audit, which leaves nothing the script reads, the user being its check; a design's reviews not sized by its Kind, or a review's effort applied otherwise than its table has it, which its log shows by the model and effort each entry names; an audit in a design's apply other than the one the kinds of the files its Target names pick, or given other kinds, which leaves nothing the script reads, the user being its check |
-| `specs/methodology/skills.md § Setting Up an Agent` | a reviewer definition an agent wrote to set itself up left in version control, which `.ai/skills/audit-specs/scripts/audit-specs.py` reports; an agent not set up is no skipped step, a review then running as the agent allows |
-| `specs/methodology/scope.md § Progressive Disclosure`, `specs/methodology/scope.md § The Shape of the Scope` | a citation naming a heading that does not exist, which the script finds; a fact given a second home, which Where a rule lives finds; a term used against its sense, which Glossary terms finds |
-| `specs/methodology/sourcing-and-citation.md § One Home Per Fact` | a fact given a second home, or a sentence holding several rules, which Where a rule lives finds; a citation bare where it owed its application or its reason, which Whether the home holds the fact finds |
-| `specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync` | a view or a counterpart a change reached left out of sync, which Directory summary currency, Diagram currency or Counterpart currency finds, and the technical overview's account of the code, which `.ai/skills/verify-spec-implementation/` finds |
-| `specs/methodology/spec-placement.md § Where a File Goes`, `specs/methodology/spec-placement.md § Naming a Capability Domain` | a file or a domain placed against its test, which Placement finds |
-| `specs/methodology/scope.md § Rules and Skills` | a section stating rules that neither table names, nor, for `specs/methodology/code.md`, the check on code's, or a section stating operating rules that no Workflow step cites, which the script finds |
-| `specs/methodology/spec-placement.md § Personas` | a spec, the documentation, or a design changing code, that does not read as its persona's, which the design's adversarial review finds; an adversarial review or a post-apply review not framed as its persona, which leaves nothing in the files, the user being its check |
-| `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` | a technical change breaking a promise its product file makes, which Counterpart currency finds |
-| `specs/methodology/spec-placement.md § A Product Module` | a design changing code reaching beyond one module, which the design's adversarial review finds; a gap the rule names, which the implement-specs skill's step stops at |
-| `specs/methodology/spec-placement.md § Environments` | code handed on with a task of the local environment unrun, which the integration environment's run of the same tasks finds, or, with none, a reviewer reading the builder's self-review report |
-| `specs/methodology/code.md § Changing Code` | governed code doing what no spec states, which `.ai/skills/verify-spec-implementation/` finds; what a change writes in code against American English, which `.ai/skills/verify-spec-implementation/` reports wherever it finds it, the builder's triage telling what a design wrote; a change made outside a design, which leaves nothing in the files, the user who approves each design being its check |
+**Records:**
+  - **Failure:** a fact placed, cited or formed against its rule \
+    **Sections:**
+      - `specs/AGENTS.md § Writing specs`
+
+    **Rule:** `specs/AGENTS.md § Writing specs` \
+    **Leaves:** the fact, placed, cited or formed against its rule \
+    **Caught By:**
+      - `§ The audits`
+
+  - **Failure:** a direct edit made without the user's approval \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Direct Edits` \
+    **Leaves:** nothing in the files \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a new branch made without the user's approval \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § A New Branch` \
+    **Leaves:** nothing in the files \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a review's entry naming no model and effort \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Each Review's Model and Effort` \
+    **Leaves:** a log entry naming no model and reasoning effort, refused as it is appended \
+    **Caught By:**
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--append-entry`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the validation review]`
+
+  - **Failure:** a review's model and effort not offered \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Each Review's Model and Effort` \
+    **Leaves:** nothing in the files \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a design revised past a run the user did not have go on \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs` \
+    **Leaves:** the design's log, whose entries show the rounds of the run \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a step stated without its reach researched \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § Research` \
+    **Leaves:** the step patched \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+
+  - **Failure:** a passage written without zooming out \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Zoom-Out` \
+    **Leaves:** the passage patched \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+
+  - **Failure:** a moved step not taken through Design, Refactor, Refine \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Order of a Design's Parts` \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+
+  - **Failure:** a finding left unmarked \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Weighing a Review's Findings` \
+    **Leaves:** a finding in the round's report holding no mark \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round`
+
+  - **Failure:** a kept finding without its rationale or possible fix \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Weighing a Review's Findings` \
+    **Leaves:** a kept finding in the round's report holding no rationale or no possible fix, a possible fix in neither of its forms, or a dropped finding holding no reason \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`
+
+  - **Failure:** a dropped finding raised again with no new argument \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Weighing a Review's Findings` \
+    **Leaves:** the finding in the round's report \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round`
+
+  - **Failure:** findings weighed, or the earlier reports read, before all are collected \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Weighing a Review's Findings` \
+    **Leaves:** the report's Reading, showing what the review read \
+    **Caught By:**
+      - the user
+
+  - **Failure:** an audit's finding left untriaged \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § An Audit` \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a self-review short of its reading and questions \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Self-Review` \
+    **Leaves:** nothing the script reads, a review then finding what the self-review would have caught \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a round's change proven by rereading it alone \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Change and Prove` \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - the user
+
+  - **Failure:** something the user says at the apply acted on untold apart \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § What the User Says at the Apply` \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a script changed with no differential test \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/methodology/working-files.md § A Check's Report § Kinds of Builder Check` \
+    **Leaves:** a self-review's report recording no differential test of the script \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: builder-checks-required]`
+
+  - **Failure:** a draft on goals or a frame the user has not agreed \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame` \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a settlement stating no cause or no miss \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose` \
+    **Leaves:** a round's Settlement holding no Cause, or a flaw's Cause holding no Miss \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`
+
+  - **Failure:** a round settled finding by finding \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes` \
+    **Leaves:** the round's Settlement, showing each finding settled where it sits \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+      - the user
+
+  - **Failure:** a round settled by more than the least change \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose` \
+    **Leaves:** the round's Settlement, showing a change past the least of the revisions at its causes \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+      - the user
+
+  - **Failure:** a differing verdict given no reason \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test` \
+    **Leaves:** the round's Settlement, holding no reason where the builder's verdict differs from the reviewer's or its change settles less than the reviewer's possible fix reaches \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+      - the user
+
+  - **Failure:** a change proposed before the misses are asked \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Group` \
+    **Leaves:** nothing a record dates, a report holding what was read and never when \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+      - the user
+
+  - **Failure:** a user's answer to a call left unrecorded \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Who Decides` \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a stated Decision Table or State Machine left untraced \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § Tracing a Mechanism` \
+    **Leaves:** a self-review's report holding no Trace of the table or the machine, or a Trace leaving a path out \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: traces-name-their-paths]`
+
+  - **Failure:** another mechanism left untraced \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § Tracing a Mechanism` \
+    **Leaves:** a self-review's report showing the traces it records \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+      - the user
+
+  - **Failure:** an approval ending the review logged as no plan-approval entry \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review § The Plan's Approval` \
+    **Leaves:** a log holding no `plan-approval` entry \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a nit judged harmless that harms the work \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § A Nit` \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - the user
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+
+  - **Failure:** goals or a frame letting findings in left unrevised \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose` \
+    **Leaves:** nothing in the files \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a Frame Outcome naming no goal \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document § Frame Outcome` \
+    **Leaves:** a Frame Outcome whose Goals names no goal \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the validation review]`
+
+  - **Failure:** an Approach resting on a goal it does not cite \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document` \
+    **Leaves:** an Approach citing no goal \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+
+  - **Failure:** a review reading another working file \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § What a Review Reads` \
+    **Leaves:** nothing in the files, but where the read surfaces in a finding or a citation in the review's report \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round`
+
+  - **Failure:** a marked finding anchored in nothing, or in what the design does not hold \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/methodology/working-files.md § A Check's Report § Finding` \
+    **Leaves:** a marked finding naming no goal, Frame Outcome or step Objective and citing no rule it breaks, or naming one the design does not hold \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-anchored-in-the-design]`
+
+  - **Failure:** a finding settled or dropped against the test \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test` \
+    **Leaves:** the round's Settlement, showing each finding it settles and drops \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - the user
+
+  - **Failure:** a review observation counted \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § What a Review Reads` \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a review observation not brought \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Who Decides` \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a user's edit at the apply not confirmed, logged or checked \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/methodology/working-files.md § Steering Decision § Telling a Steer Apart § Steer, Direction, Feedback, Other Work or the User's Edit` \
+    **Leaves:** a file changed outside the Target that no entry names, or a self-review's report leaving a user's edit unchecked \
+    **Caught By:**
+      - `.ai/skills/design-specs/` `--check-changed-files`
+      - `.ai/skills/implement-specs/` `--check-changed-files`
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: builder-checks-required]`
+      - the user
+
+  - **Failure:** a design's changes read from outside their home \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document § Applying and Committing` \
+    **Leaves:** a rule reading a design's changes otherwise \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: an audit]`
+
+  - **Failure:** something the user approves shown without its summary \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § What the User Is Shown` \
+    **Leaves:** nothing in the files \
+    **Caught By:**
+      - the user
+
+  - **Failure:** the reach and wording checks left unrun \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Self-Review` \
+    **Leaves:** nothing the script reads, the retired wording or the file outside the Target left behind \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+
+  - **Failure:** the work's checks left unrun over the work \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § The Scope a Check Runs Over` \
+    **Leaves:** nothing the script reads, the breach the work caused left in the files \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: an audit]`
+
+  - **Failure:** the construct checks left unrun at the self-review \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Self-Review` \
+    **Leaves:** a construct's gap or overlap carried to the apply \
+    **Caught By:**
+      - `§ The audits [Audit: Construct choice and form]`
+
+  - **Failure:** What Sets the Work not read again on resuming \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Reading Fresh` \
+    **Leaves:** nothing in the files \
+    **Caught By:**
+      - the user
+
+  - **Failure:** findings grouped before the earlier reports are read \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Group` \
+    **Leaves:** nothing in the files \
+    **Caught By:**
+      - the user
+
+  - **Failure:** settling reads missing a finding's evidence \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Group` \
+    **Leaves:** a round's Settling Reads, with the Read Assessments the log's handed-off judgments hold, leaving out a place a marked finding's Evidence names \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: settling-reads-cover-the-evidence]`
+
+  - **Failure:** a self-review's reads missing a miss's place \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Self-Review` \
+    **Leaves:** a self-review's Reads leaving out a place a Miss of the phase names \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: reads-cover-the-misses]`
+
+  - **Failure:** a settlement naming no earlier report \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Reading the Earlier Reports` \
+    **Leaves:** a round's Settlement leaving out an earlier report of its phase \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: earlier-reports-listed]`
+
+  - **Failure:** a tactical fix short of its Search's matches \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose` \
+    **Leaves:** a tactical fix made at fewer than every place its Search matched \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: tactical-fixes-cover-their-searches]`
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]`
+
+  - **Failure:** a tactical fix made with no Search \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/methodology/working-files.md § A Check's Report § Proposed Change` \
+    **Leaves:** a Cause's Proposed Change of the Kind tactical fix naming no Search \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`
+
+  - **Failure:** a Trace or a continuing Cause stating no outcome \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether the Goals and the Frame Name a Mechanism` \
+    **Leaves:** a Trace of a self-review before the adversarial review, or a Cause continuing an earlier one, stating no outcome of the table \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`
+
+  - **Failure:** the goals and frame test left unasked, unrecorded or not borne out \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether the Goals and the Frame Name a Mechanism` \
+    **Leaves:** the self-review's report before an adversarial round with no Trace of a mechanism the test reaches, the round's report settling a decision drawing findings again with no Cause continuing an earlier one, or either holding an outcome the goals and the frame do not bear out \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - the user
+
+  - **Failure:** a researched place left unassessed \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § Research` \
+    **Leaves:** a report of research leaving a place a Search matched outside the design document, or a place the builder named, within no Read Assessment's Area \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: reads-assessed]`
+
+  - **Failure:** a sweep unrecorded \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document` \
+    **Leaves:** a Scope recording no method for its sweep \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+
+  - **Failure:** a sweep short of the change's rules and terms \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame` \
+    **Leaves:** Assessed Areas missing a passage stating part of a rule the change states or a use of a term it defines or redefines \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+
+  - **Failure:** a working file changed by a design's step \
+    **Sections:**
+      - `specs/methodology/working-files.md § The Working Files`
+
+    **Rule:** `specs/methodology/working-files.md § The Working Files` \
+    **Leaves:** the design's Target naming the working file \
+    **Caught By:**
+      - `.ai/skills/design-specs/` `--check-target-kind`
+      - `.ai/skills/implement-specs/` `--check-target-kind`
+
+  - **Failure:** a design or its records out of their form \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Design Document`
+      - `specs/methodology/working-files.md § Design Goal`
+      - `specs/methodology/working-files.md § Design Plan Step`
+      - `specs/methodology/working-files.md § Design Log Entry`
+      - `specs/methodology/working-files.md § Retired Phrase`
+      - `specs/methodology/working-files.md § Steering Decision`
+      - `specs/methodology/working-files.md § A Stamp`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document` \
+    **Leaves:** a design document out of its form \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the validation review]`
+
+  - **Failure:** a design's records out of their record types \
+    **Sections:**
+      - `specs/methodology/working-files.md § Design Goal`
+      - `specs/methodology/working-files.md § Design Plan Step`
+      - `specs/methodology/working-files.md § Design Log Entry`
+      - `specs/methodology/working-files.md § Retired Phrase`
+      - `specs/methodology/working-files.md § Steering Decision`
+
+    **Rule:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+    **Leaves:** a step, a step Objective, a goal, a Frame Outcome, an Assessed Area, a steer, a log entry or a retired phrase out of its record type \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the validation review]`
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--append-entry`
+
+  - **Failure:** log entries out of their count or their order \
+    **Sections:**
+      - `specs/methodology/working-files.md § Design Log Entry`
+
+    **Rule:** `specs/methodology/working-files.md § Design Log Entry` \
+    **Leaves:** log entries out of their count or their order \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the validation review]`
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--append-entry`
+
+  - **Failure:** a design's dependencies out of sync with the workstack \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Design Document § The Record's Checks`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document § What Blocks What` \
+    **Leaves:** a design whose Depends On Designs the workstack does not bear out \
+    **Caught By:**
+      - `.ai/skills/design-specs/` `--check-workstack`
+      - `.ai/skills/implement-specs/` `--check-workstack`
+
+  - **Failure:** a design's Status out of sync with the workstack \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Design Document § The Record's Checks`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document § Blocked and to Revise` \
+    **Leaves:** a design whose Status the workstack does not bear out \
+    **Caught By:**
+      - `.ai/skills/design-specs/` `--check-workstack`
+      - `.ai/skills/implement-specs/` `--check-workstack`
+
+  - **Failure:** a design's citation of another file unresolved \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Design Document § The Record's Checks`
+
+    **Rule:** `specs/methodology/sourcing-and-citation.md § Writing a Citation` \
+    **Leaves:** a citation of another file that does not resolve \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+
+  - **Failure:** a Target out of its Kind \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Design Document § The Record's Checks`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document § The Kinds of Change` \
+    **Leaves:** a Target naming a file the design's Kind does not let it change \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+
+  - **Failure:** a table in an Objective no construct states whole \
+    **Sections:**
+      - `specs/methodology/working-files.md § Design Plan Step § Step Objective`
+
+    **Rule:** `specs/methodology/working-files.md § Design Plan Step § Step Objective` \
+    **Leaves:** a table in a step Objective that is no Decision Table or State Machine it states whole \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the validation review]`
+
+  - **Failure:** an Objective stating no outcome \
+    **Sections:**
+      - `specs/methodology/working-files.md § Design Plan Step § Step Objective`
+
+    **Rule:** `specs/methodology/working-files.md § Design Plan Step § Step Objective` \
+    **Leaves:** an Objective stating how its step is implemented, or writing out text that is not itself the outcome \
+    **Caught By:**
+      - `specs/methodology/working-files.md § Design Plan Step § Step Objective § Semantic Checks [Name: objective-states-an-outcome]`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the builder's self-review]`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+
+  - **Failure:** prose around a step's change left inconsistent \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Design Document § The Standing Objective`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document § The Standing Objective` \
+    **Leaves:** prose within the Target left inconsistent with the steps \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+
+  - **Failure:** a change none of the design's changes \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Design Document § Applying and Committing`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document § Applying and Committing` \
+    **Leaves:** a change that is none of the design's changes \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+      - `.ai/skills/design-specs/` `--check-changed-files`
+      - `.ai/skills/implement-specs/` `--check-changed-files`
+
+  - **Failure:** a tactical fix sent back \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Design Document § Changes After Approval`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document § Changes After Approval` \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a steer recorded out of its form \
+    **Sections:**
+      - `specs/methodology/working-files.md § Steering Decision`
+
+    **Rule:** `specs/methodology/working-files.md § Steering Decision` \
+    **Leaves:** a Decision not giving the essence of what its steer decided \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - the user
+
+  - **Failure:** a revising steer not naming the steer it revises \
+    **Sections:**
+      - `specs/methodology/working-files.md § Steering Decision § When a Steer Is Recorded`
+
+    **Rule:** `specs/methodology/working-files.md § Steering Decision § When a Steer Is Recorded` \
+    **Leaves:** a revising steer's Decision not naming the steer it revises \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - the user
+
+  - **Failure:** a steer quoting only part of the user's words \
+    **Sections:**
+      - `specs/methodology/working-files.md § Steering Decision § Telling a Steer Apart`
+
+    **Rule:** `specs/methodology/working-files.md § Steering Decision § Telling a Steer Apart § Steer, Direction, Feedback, Other Work or the User's Edit` \
+    **Leaves:** a Steer quoting only part of the user's words that decided \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the builder's self-review]`
+      - the user
+
+  - **Failure:** a steer of a Type other than its own \
+    **Sections:**
+      - `specs/methodology/working-files.md § Steering Decision § A Steer's Type`
+
+    **Rule:** `specs/methodology/working-files.md § Steering Decision § A Steer's Type` \
+    **Leaves:** a steer of a Type other than its own \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - the user
+
+  - **Failure:** a steer changing the goals or the frame applied unconfirmed \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+      - `specs/methodology/working-files.md § Steering Decision § When a Steer Is Recorded`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame` \
+    **Leaves:** nothing in the files \
+    **Caught By:**
+      - the user
+
+  - **Failure:** an unanswered question read as agreed \
+    **Sections:**
+      - `specs/methodology/working-files.md § Steering Decision § When a Steer Is Recorded`
+
+    **Rule:** `specs/methodology/working-files.md § Steering Decision § When a Steer Is Recorded` \
+    **Leaves:** nothing in the files \
+    **Caught By:**
+      - the user
+
+  - **Failure:** an earlier steering decision rewritten \
+    **Sections:**
+      - `specs/methodology/working-files.md § Steering Decision § When a Steer Is Recorded`
+
+    **Rule:** `specs/methodology/working-files.md § Steering Decision § When a Steer Is Recorded` \
+    **Leaves:** nothing in the files \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a design lagging a steer \
+    **Sections:**
+      - `specs/methodology/working-files.md § Steering Decision § When a Steer Is Recorded`
+
+    **Rule:** `specs/methodology/working-files.md § Steering Decision § When a Steer Is Recorded` \
+    **Leaves:** a design not yet carrying out a steer it records \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - the user
+
+  - **Failure:** a frame out of sync with its steers or its steps \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Order of a Design's Parts`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Order of a Design's Parts` \
+    **Leaves:** a frame out of sync with its steers or its steps, a Frame Outcome untrue of them among it \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the builder's self-review]`
+
+  - **Failure:** a design's part holding less than its form asks \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Design Document`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document` \
+    **Leaves:** an Out of Scope naming another working file, a dependency named with no statement of what the design relies on from it, or a canon design's Impact on the Application Specs holding no item and not saying how its research was done \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the builder's self-review]`
+
+  - **Failure:** a hand-off that nothing holds \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Design Document`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document § Spawning a Change of Its Own` \
+    **Leaves:** an item of Out of Scope or of Impact on the Application Specs handing on work no design or follow-up holds \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the builder's self-review]`
+      - the user
+
+  - **Failure:** a reliance no longer matching its dependency \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Design Document § Blocked and to Revise`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document § Blocked and to Revise` \
+    **Leaves:** a statement of what a design relies on that its finished dependency does not settle \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - the user
+
+  - **Failure:** a decision of the user's left out of the steers \
+    **Sections:**
+      - `specs/methodology/working-files.md § Steering Decision § When a Steer Is Recorded`
+
+    **Rule:** `specs/methodology/working-files.md § Steering Decision § When a Steer Is Recorded` \
+    **Leaves:** a design's steers missing a decision the user gave \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the builder's self-review]`
+      - the user
+
+  - **Failure:** a report not recording its settlement \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Check's Report`
+
+    **Rule:** `specs/methodology/working-files.md § A Check's Report` \
+    **Leaves:** a check's report not recording how its findings were settled \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-settled-once]`
+
+  - **Failure:** an audit's triage not recording what the design caused \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Check's Report § Verdicts`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § An Audit` \
+    **Leaves:** the builder's triage of an audit not recording each finding as caused by the design or not \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-settled-once]`
+
+  - **Failure:** a report handed back unchecked \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Check's Report § Who Writes Each Part`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review` \
+    **Leaves:** a report out of its form as settling starts \
+    **Caught By:**
+      - `.ai/skills/design-specs/` `--check-report`
+      - `.ai/skills/implement-specs/` `--check-report`
+
+  - **Failure:** a reviewer's part of a report changed by the builder \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Check's Report § Who Writes Each Part`
+
+    **Rule:** `specs/methodology/working-files.md § A Check's Report § Who Writes Each Part` \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a cause or a miss the files do not bear out \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Check's Report § What the Design Script Checks`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Group` \
+    **Leaves:** a Cause's decision or a Miss the files do not bear out \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+      - the user
+
+  - **Failure:** a verdict the files do not bear out \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Check's Report § What the Design Script Checks`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test` \
+    **Leaves:** a Finding's Verdict the files do not bear out \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+      - the user
+
+  - **Failure:** a Builder Check's Result the files do not bear out \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Check's Report § What the Design Script Checks`
+
+    **Rule:** `specs/methodology/working-files.md § A Check's Report § Kinds of Builder Check` \
+    **Leaves:** a Builder Check's Result the files do not bear out \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+      - the user
+
+  - **Failure:** a log entry out of its type \
+    **Sections:**
+      - `specs/methodology/working-files.md § Design Log Entry`
+
+    **Rule:** `specs/methodology/working-files.md § Design Log Entry` \
+    **Leaves:** a log entry out of its type, refused as it is appended \
+    **Caught By:**
+      - `.ai/skills/design-specs/` `--append-entry`
+      - `.ai/skills/implement-specs/` `--append-entry`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the validation review]`
+
+  - **Failure:** a design applied over uncommitted changes \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Design Document § Uncommitted Changes`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document § Uncommitted Changes` \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a design's changes committed with another's \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Design Document § Applying and Committing`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document § Applying and Committing` \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a design's changes committed unbidden \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Design Document § Applying and Committing`
+
+    **Rule:** `specs/methodology/design-workflow.md § The Order of a Design's Work § The Apply` \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a commit message not naming each edit \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Design Document § Applying and Committing`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document § Applying and Committing` \
+    **Leaves:** a commit message leaving out a direct edit or an edit of the user's \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a send-back setting aside its kept changes \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Design Document § The States It Moves Through § A Send-back`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document § The States It Moves Through § A Send-back` \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a sent-back design's kept changes read as the last commit \
+    **Sections:**
+      - `specs/methodology/working-files.md § A Design Document § The States It Moves Through § A Send-back`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document § The States It Moves Through § A Send-back` \
+    **Leaves:** changes that are none of the design's \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+
+  - **Failure:** a design worked out of its machines' order \
+    **Sections:**
+      - `specs/methodology/design-workflow.md § The Order of a Design's Work`
+
+    **Rule:** `specs/methodology/design-workflow.md § The Order of a Design's Work` \
+    **Leaves:** nothing the files decide \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a review started with more than the standard brief, a brief of a skill's own among it, or an audit with any brief \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+      - `specs/methodology/design-workflow.md § A Review's Brief`
+
+    **Rule:** `specs/methodology/design-workflow.md § A Review's Brief` \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a review not sized by its Kind \
+    **Sections:**
+      - `specs/methodology/design-workflow.md § A Design's Reviews`
+
+    **Rule:** `specs/methodology/design-workflow.md § A Design's Reviews` \
+    **Leaves:** the design's log, whose entries name each review's effort \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a review not run at its effort \
+    **Sections:**
+      - `specs/methodology/design-workflow.md § A Review's Effort`
+
+    **Rule:** `specs/methodology/design-workflow.md § A Review's Effort` \
+    **Leaves:** the design's log, whose entries name each review's model and effort \
+    **Caught By:**
+      - the user
+
+  - **Failure:** an audit in an apply other than its Target's kinds pick \
+    **Sections:**
+      - `specs/methodology/design-workflow.md § A Design's Reviews`
+
+    **Rule:** `specs/methodology/design-workflow.md § A Design's Reviews` \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a reviewer definition left in version control \
+    **Sections:**
+      - `specs/methodology/skills.md § Setting Up an Agent`
+
+    **Rule:** `specs/methodology/skills.md § Setting Up an Agent` \
+    **Leaves:** a reviewer definition in version control \
+    **Caught By:**
+      - `§ What the script checks`
+
+  - **Failure:** a citation naming a heading that does not exist \
+    **Sections:**
+      - `specs/methodology/scope.md § Progressive Disclosure`
+      - `specs/methodology/scope.md § The Shape of the Scope`
+
+    **Rule:** `specs/methodology/sourcing-and-citation.md § Writing a Citation` \
+    **Leaves:** the citation \
+    **Caught By:**
+      - `§ What the script checks`
+
+  - **Failure:** a fact given a second home \
+    **Sections:**
+      - `specs/methodology/scope.md § Progressive Disclosure`
+      - `specs/methodology/scope.md § The Shape of the Scope`
+      - `specs/methodology/sourcing-and-citation.md § One Home Per Fact`
+
+    **Rule:** `specs/methodology/sourcing-and-citation.md § One Home Per Fact` \
+    **Leaves:** the fact stated twice \
+    **Caught By:**
+      - `§ The audits [Audit: Where a rule lives]`
+
+  - **Failure:** a term used against its sense \
+    **Sections:**
+      - `specs/methodology/scope.md § Progressive Disclosure`
+      - `specs/methodology/scope.md § The Shape of the Scope`
+
+    **Rule:** `specs/methodology/glossary.md § Glossary` \
+    **Leaves:** the term's use \
+    **Caught By:**
+      - `§ The audits [Audit: Glossary terms]`
+
+  - **Failure:** a sentence holding several rules \
+    **Sections:**
+      - `specs/methodology/sourcing-and-citation.md § One Home Per Fact`
+
+    **Rule:** `specs/methodology/sourcing-and-citation.md § One Home Per Fact § One Rule to a Sentence` \
+    **Leaves:** the sentence \
+    **Caught By:**
+      - `§ The audits [Audit: Where a rule lives]`
+
+  - **Failure:** a citation bare where it owed more \
+    **Sections:**
+      - `specs/methodology/sourcing-and-citation.md § One Home Per Fact`
+
+    **Rule:** `specs/methodology/sourcing-and-citation.md § One Home Per Fact` \
+    **Leaves:** a citation bare where it owed its application or its reason \
+    **Caught By:**
+      - `§ The audits [Audit: Whether the home holds the fact]`
+
+  - **Failure:** a view or a counterpart left out of sync \
+    **Sections:**
+      - `specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync`
+
+    **Rule:** `specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync` \
+    **Leaves:** the view or the counterpart, out of sync with what the change reached \
+    **Caught By:**
+      - `§ The audits [Audit: Directory summary currency]`
+      - `§ The audits [Audit: Diagram currency]`
+      - `§ The audits [Audit: Counterpart currency]`
+
+  - **Failure:** the technical overview's account of the code left out of sync \
+    **Sections:**
+      - `specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync`
+
+    **Rule:** `specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync § Materialized Views` \
+    **Leaves:** the technical overview's account, untrue of the code \
+    **Caught By:**
+      - `.ai/skills/verify-spec-implementation/`
+
+  - **Failure:** a file or a domain placed against its test \
+    **Sections:**
+      - `specs/methodology/spec-placement.md § Where a File Goes`
+      - `specs/methodology/spec-placement.md § Naming a Capability Domain`
+
+    **Rule:** `specs/methodology/spec-placement.md § Where a File Goes` \
+    **Leaves:** the file or the domain where its test does not place it \
+    **Caught By:**
+      - `§ The audits [Audit: Placement]`
+
+  - **Failure:** a section stating rules that no check names \
+    **Sections:**
+      - `specs/methodology/scope.md § Rules and Skills`
+
+    **Rule:** `specs/methodology/scope.md § Rules and Skills` \
+    **Leaves:** a section stating rules that neither `§ The audits` nor any Skipped Step's Sections names, nor, for `specs/methodology/code.md`, the check on code's, nor a record section of checks standing directly under it \
+    **Caught By:**
+      - `§ What the script checks`
+
+  - **Failure:** a section stating operating rules no step cites \
+    **Sections:**
+      - `specs/methodology/scope.md § Rules and Skills`
+
+    **Rule:** `specs/methodology/scope.md § Rules and Skills` \
+    **Leaves:** a section stating operating rules that no Workflow step cites \
+    **Caught By:**
+      - `§ What the script checks`
+
+  - **Failure:** a work not read as its persona's \
+    **Sections:**
+      - `specs/methodology/spec-placement.md § Personas`
+
+    **Rule:** `specs/methodology/spec-placement.md § Personas` \
+    **Leaves:** a spec, the documentation, or a design changing code, that does not read as its persona's \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+
+  - **Failure:** a review not framed as its persona \
+    **Sections:**
+      - `specs/methodology/spec-placement.md § Personas`
+
+    **Rule:** `specs/methodology/spec-placement.md § Personas` \
+    **Leaves:** nothing in the files \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a technical change breaking its product file's promise \
+    **Sections:**
+      - `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability`
+
+    **Rule:** `specs/methodology/spec-placement.md § Naming the Technical Files Behind a Capability` \
+    **Leaves:** the technical file, breaking a promise its product file makes \
+    **Caught By:**
+      - `§ The audits [Audit: Counterpart currency]`
+
+  - **Failure:** a code design reaching beyond one module \
+    **Sections:**
+      - `specs/methodology/spec-placement.md § A Product Module`
+
+    **Rule:** `specs/methodology/working-files.md § A Design Document § A Design Changing Code § One Product Module` \
+    **Leaves:** a design changing code whose Target reaches beyond one module \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+
+  - **Failure:** a gap the module rule names \
+    **Sections:**
+      - `specs/methodology/spec-placement.md § A Product Module`
+
+    **Rule:** `specs/methodology/spec-placement.md § A Product Module` \
+    **Leaves:** a design written past the gap \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - the user
+
+  - **Failure:** code handed on with a local task unrun \
+    **Sections:**
+      - `specs/methodology/spec-placement.md § Environments`
+
+    **Rule:** `specs/methodology/spec-placement.md § Environments` \
+    **Leaves:** a self-review's report recording no run of the task \
+    **Caught By:**
+      - `specs/methodology/spec-placement.md § Environments`
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
+
+  - **Failure:** governed code doing what no spec states \
+    **Sections:**
+      - `specs/methodology/code.md § Changing Code`
+
+    **Rule:** `specs/methodology/code.md § Changing Code` \
+    **Leaves:** the code \
+    **Caught By:**
+      - `.ai/skills/verify-spec-implementation/`
+
+  - **Failure:** code a change writes against American English \
+    **Sections:**
+      - `specs/methodology/code.md § Changing Code`
+
+    **Rule:** `specs/methodology/code.md § Changing Code` \
+    **Leaves:** the code's spelling \
+    **Caught By:**
+      - `.ai/skills/verify-spec-implementation/`
+
+  - **Failure:** a change to code made outside a design \
+    **Sections:**
+      - `specs/methodology/code.md § Changing Code`
+
+    **Rule:** `specs/methodology/code.md § Changing Code` \
+    **Leaves:** nothing in the files \
+    **Caught By:**
+      - the user
 
 ## What is deliberately not audited
 

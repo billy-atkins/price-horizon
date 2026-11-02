@@ -9,8 +9,8 @@ its Target, check the work against the specs' and the code's script checks in sp
 the workstack, show a validation, list the parts of a design naming one of its parts, write citations' links, and
 show what a
 Refactor and Refine cycle changed. A check's entry is appended only once its report, in the design's folder, holds the
-form working-files.md § A Check's Report gives it and its records cover what that section has the design script check
-of them, its counts taken from it; a reviewer's part of a review's report, and a handed-off judgment's report, is
+form working-files.md § A Check's Report gives it and its records cover what § A Check's Report § What the Design
+Script Checks has the design script check of them, its counts taken from it; a reviewer's part of a review's report, and a handed-off judgment's report, is
 checked by the same units before it is taken in.
 
 A design document must hold the form working-files.md sets, and the workstack its lineage draws must hold
@@ -61,7 +61,7 @@ DEPENDS_ON, OLD_DEPENDS_ON = "Depends On Designs", "Depends On"
 STAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z sha256:[0-9a-f]{16}$")
 # @canon-spec specs/methodology/working-files.md § A Stamp
 TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
-# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files.md § A Design Document § A Form the Methodology Is Still Adding
 # a design validated by hand, its record using a form the methodology is still adding
 BY_HAND = "by hand"
 # @canon-spec specs/methodology/working-files.md § A Design Document
@@ -320,7 +320,7 @@ def named(value):
     return [n.strip().strip("`") for n in value.split(";") if n.strip()]
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files.md § A Design Document § The Record's Checks
 def read_entries(entries):
     """-> the indexes, among a design's log entries as log_entries gives them, of each `handed-off-judgment` entry whose
     report the validation review reads: each but one standing after the log's last `plan-approval` entry with no
@@ -418,7 +418,7 @@ def check_steers(body):
     if not fields:
         return [p for _, p in declared] or ["the Steering Decision type declares no fields"]
     for it in items:
-        keys = [f["key"] for f in it["fields"] or []]
+        keys = [f["key"] for f in record_types.record_fields(it)]
         if keys != list(fields):
             problems.append("a steering decision's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
             continue
@@ -448,7 +448,7 @@ def check_goals(body):
         return [p for _, p in declared] or ["the Design Goal type declares no fields"]
     problems, seen = [], set()
     for it in items:
-        keys = [f["key"] for f in it["fields"] or []]
+        keys = [f["key"] for f in record_types.record_fields(it)]
         if keys != list(fields):
             problems.append("a design goal's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
             continue
@@ -474,78 +474,41 @@ def names_of(field):
 
 
 def values_of(it):
-    return {f["key"]: f for f in it["fields"] or []}
+    return {f["key"]: f for f in record_types.record_fields(it)}
 
 
 def typed(it, fields, required):
     """Whether a record holds its type's fields in their order, each it requires among them."""
-    keys = [f["key"] for f in it["fields"] or []]
+    keys = [f["key"] for f in record_types.record_fields(it)]
     return [k for k in fields if k in keys] == keys and set(required) <= set(keys)
 
 
-# @canon-spec specs/methodology/working-files.md § Design Plan Step § Step Objective
-# an Objective's State, its key opening a line; the construct it states whole stands indented beneath it, after its
-# own text, which the one reader of a block of fields reads as no part of the record, so the plan's reader sets it apart
-STATE_LINE = re.compile(r"^(\s*)\*\*State:\*\*")
-
-
-def steps_body(text):
-    """-> (the 0-based line of the design's text the Design Plan Steps section's body opens at, its body with each block
-    an Objective's State holds indented beneath its own text blanked, {0-based line of such a State: the 0-based lines
-    of the block}), or None where the design holds no such section."""
+def read_steps(text):
+    """-> the design's steps as its Design Plan Steps section holds them, read through the one reader, each {"name",
+    "fields" {key: field}, "line", "lines", "item", "objectives"}, its lines 0-based in the design's text and its
+    Objectives' lines apart, each Objective {"name", "fields", "line", "lines", "state", "item"}, its lines the block
+    nested beneath its State among them (modeling-constructs.md § Fields § A Nested Construct), and "state" the State's
+    line followed by that block's; or None where the section holds no Records field."""
     lines = text.split("\n")
     start = next((i for i, l in enumerate(lines) if re.match(r"^## Design Plan Steps\s*$", l)), None)
     if start is None:
         return None
     end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
-    body, hidden = lines[start + 1:end], {}
-    i = 0
-    while i < len(body):
-        m = STATE_LINE.match(body[i])
-        if not m:
-            i += 1
-            continue
-        indent, j, block = len(m.group(1)), i + 1, False
-        while j < len(body) and (not body[j].strip() or record_types._indent(body[j]) > indent):
-            # the State's own text runs on until a blank line, a field's key or a table opens the block beneath it
-            block = block or not body[j].strip() or record_types.opens_key(body[j]) is not None or body[j].lstrip().startswith("|")
-            if block:
-                hidden.setdefault(start + 1 + i, []).append(start + 1 + j)
-            j += 1
-        under = hidden.get(start + 1 + i, [])
-        while under and not lines[under[-1]].strip():
-            under.pop()
-        if not any(lines[n].strip() for n in under):
-            hidden.pop(start + 1 + i, None)
-        for n in hidden.get(start + 1 + i, []):
-            body[n - start - 1] = ""
-        i = j
-    return start + 1, "\n".join(body), hidden
-
-
-def read_steps(text):
-    """-> the design's steps as its Design Plan Steps section holds them, each {"name", "fields" {key: field}, "line",
-    "lines", "item", "objectives"}, its lines 0-based in the design's text and its Objectives' lines apart, each Objective
-    {"name", "fields", "line", "lines", "state", "item"}, its lines those the State holds beneath it among them, and
-    "state" the State's line followed by those; or None where the section holds no Records field."""
-    read = steps_body(text)
-    if read is None:
-        return None
-    at, body, hidden = read
-    items = records_read(body)
+    at = start + 1
+    items = records_read("\n".join(lines[at:end]))
     if items is None:
         return None
-    lines, steps = text.split("\n"), []
+    steps = []
     for it in items:
         values = values_of(it)
         objectives = []
         for ob in (values["Objectives"]["items"] if "Objectives" in values else None) or []:
-            state = next((f["line"] for f in ob["fields"] or [] if f["key"] == "State"), None)
-            under = hidden.get(at + state, []) if state is not None else []
-            own = [at + n for n in ob["lines"]] + under
+            state = next((f for f in ob["fields"] or [] if f["key"] == "State"), None)
+            own = [at + n for n in ob["lines"]]
+            under = [at + n for n in state["nested"]["lines"]] if state is not None and state["nested"] else []
             objectives.append({"name": str(record_types.value_of(ob["fields"][0])).strip() if ob["fields"] else None,
                                "fields": values_of(ob), "line": at + ob["line"], "lines": own, "item": ob,
-                               "state": [at + state] + under if state is not None else own})
+                               "state": [at + state["line"]] + under if state is not None else own})
         held = {n for ob in objectives for n in ob["lines"]}
         steps.append({"name": str(record_types.value_of(it["fields"][0])).strip() if it["fields"] else "",
                       "fields": values, "line": at + it["line"], "item": it, "objectives": objectives,
@@ -597,7 +560,7 @@ def check_steps(body, text=None):
     problems, seen = [], set()
     for step in steps:
         it = step["item"]
-        keys = [f["key"] for f in it["fields"] or []]
+        keys = [f["key"] for f in record_types.record_fields(it)]
         if keys != list(fields):
             problems.append("a design plan step's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
             continue
@@ -629,7 +592,7 @@ def check_steps(body, text=None):
                 problems.append("%s holds a table at line %d that is no Decision Table or State Machine it states whole" % (label, line))
             if ob["item"]["fields"] is None:
                 continue
-            if not typed(ob["item"], ob_fields, ob_required) or [f["key"] for f in ob["item"]["fields"]] != list(ob_fields):
+            if not typed(ob["item"], ob_fields, ob_required) or [f["key"] for f in record_types.record_fields(ob["item"])] != list(ob_fields):
                 problems.append("%s's fields are %s, not %s" % (label, ", ".join(ob["fields"]), ", ".join(ob_fields)))
                 continue
             if kebab(ob["name"]) != ob["name"]:
@@ -663,7 +626,7 @@ def check_frame_records(plural, body):
     members = [m for m in impact_members()[0] if m != "none"]
     problems, seen = [], set()
     for it in items:
-        keys = [f["key"] for f in it["fields"] or []]
+        keys = [f["key"] for f in record_types.record_fields(it)]
         if not typed(it, fields, required):
             problems.append("%s's fields are %s, not %s" % (label, ", ".join(keys) or "none", ", ".join(fields)))
             continue
@@ -709,7 +672,7 @@ def read_plan(text):
     fields, ob_fields = step_type()[0], plan_type("Step Objectives")[0]
     whole = bool(steps)
     for step in steps:
-        whole = whole and [f["key"] for f in step["item"]["fields"] or []] == list(fields) and bool(step["objectives"])
+        whole = whole and [f["key"] for f in record_types.record_fields(step["item"])] == list(fields) and bool(step["objectives"])
         for ob in step["objectives"]:
             v = ob["fields"]
             whole = whole and list(v) == list(ob_fields)
@@ -718,9 +681,9 @@ def read_plan(text):
     return {"goals": goals, "outcomes": outcomes, "steps": steps, "objectives": objectives, "areas": areas, "whole": whole}
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files.md § A Design Document § The Record's Checks
 def reference_problems(text, plan):
-    """-> problems with the references within a design, the References check of working-files.md § A Design Document:
+    """-> problems with the references within a design, the References check of working-files.md § A Design Document § The Record's Checks:
     each Name a Frame Outcome's Goals, a step's Depends On Steps, and a step Objective's Goals and Upholds Frame
     Outcomes hold, and each goal its Approach cites, naming a part the design holds; no Name two kinds of part take; each goal served by a step Objective
     and each Frame Outcome upheld by one, once each step and each Objective holds its type's fields; and no step
@@ -1005,7 +968,7 @@ def check_kind(design, root):
 def check_stack(folder):
     """-> (report lines, [(file name, problem)]): the workstack each design document's
     Spawned By and Depends On Designs draw, and where its Status is out of sync with what it
-    depends on, per working-files.md § A Design Document."""
+    depends on, per working-files.md § A Design Document § Blocked and to Revise."""
     read = read_designs(folder)
     designs = {name: dict(fields) for name, fields, _, _ in read}
     checked = {name: validation(text, fields)[0] for name, fields, _, text in read}
@@ -1207,16 +1170,17 @@ def reaches(a, b):
     return within(a, b) or within(b, a)
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document
 # @canon-spec specs/methodology/working-files.md § A Design Document § Assessed Area
+# @canon-spec specs/methodology/working-files.md § A Design Document § The Record's Checks
 def lineage_problems(design, text, plan=None):
     """-> each break of the lineage from research to the steps, the Lineage check of working-files.md § A Design
-    Document, read against the Read Assessments of the reports of the handed-off judgments the design's log names,
+    Document § The Record's Checks, read against the Read Assessments of the reports of the handed-off judgments the design's log names,
     but one whose entry stands after its last `plan-approval` entry with no `entered` entry after that: a place a step's What names reaching no Assessed Area whose Impact holds
     `changes`; such an Assessed Area no What reaches; an Assessed Area whose Impact and Assessment are not those of the
     latest Read Assessment of its Area, an Assessment naming a report the review does not read reported once for the
     report; and an Area whose latest Read Assessment holds an Impact other than `none` neither an Assessed Area nor, its
-    Impact holding `changes`, named right after the bold lead-in of an item of the Out of Scope. None where the frame
+    Impact holding `changes`, named right after the bold lead-in of an item of the Out of Scope or, a canon design's
+    alone holding the section, of the Impact on the Application Specs. None where the frame
     holds no Assessed Areas yet, its form reported apart."""
     body = frame_parts(text).get(AREAS)
     if body is None or body.strip() == NOT_YET_STATED or records_read(body) is None:
@@ -1266,12 +1230,14 @@ def lineage_problems(design, text, plan=None):
                  "after that"
                  % (len(a), "" if len(a) == 1 else "s", "s" if len(a) == 1 else "", path) for path, a in unread.items()]
     held = {place_key(p) for p, _, _, _ in areas if p}
+    items = (section(text, "Out of Scope") or "") + "\n" + (section(text, IMPACT) or "")
     left_out = {place_key(p) for p in (place_of("`%s`" % m) for m in re.findall(
-        r"^\s*- \*\*[^\n]+?\*\*\s*`([^`]+)`", section(text, "Out of Scope") or "", re.M)) if p}
+        r"^\s*- \*\*[^\n]+?\*\*\s*`([^`]+)`", items, re.M)) if p}
     for key, (path, impact, place) in latest.items():
         if impact and impact != ["none"] and key not in held and not ("changes" in impact and key in left_out):
             problems.append("%s, assessed %s in %s, is neither an Assessed Area nor, its Impact holding changes, named right "
-                            "after the bold lead-in of an item of the Out of Scope" % (cite(place), ", ".join(impact), path))
+                            "after the bold lead-in of an item of the Out of Scope or of the Impact on the Application "
+                            "Specs" % (cite(place), ", ".join(impact), path))
     return problems
 
 
@@ -1285,7 +1251,7 @@ def design_problems(design):
     lineage from research to its steps, drawing only on the document, the reports of the handed-off judgments its log
     names, but one whose entry stands after its last `plan-approval` entry with no `entered` entry after that, and the
     canon's declarations of its form, per working-files.md § A
-    Design Document; by validating, no goal, no part of its frame and no step section not yet stated. Any problem a
+    Design Document § The Record's Checks; by validating, no goal, no part of its frame and no step section not yet stated. Any problem a
     declaration reports counts, so a type that cannot be read stops a stamp."""
     name, fields, _, text = read_design(design)
     found = check_form(design)[1] + steer_table_problems(None)
@@ -1339,8 +1305,8 @@ LEAD_IN = re.compile(r"^\*\*([^*]+?)\.?\*\*")
 
 
 def plan_parts(text):
-    """-> the design's parts in the order specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once gives a
-    change, as [(label, kind, Name or lead-in, [0-based lines])]: its goals; its frame, each paragraph of its Scope with
+    """-> the design's parts in the order specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Order
+    of a Design's Parts gives a change, as [(label, kind, Name or lead-in, [0-based lines])]: its goals; its frame, each paragraph of its Scope with
     those after it to the next bold lead-in, its Assessed Areas, each item of its Approach, then its Frame Outcomes;
     then its steps in their Depends On Steps order, each followed by its Objectives."""
     lines, found, out = text.split("\n"), sections(text), []
@@ -1489,6 +1455,7 @@ def write_design(design, raw, new):
 
 # @canon-spec specs/methodology/working-files.md § Design Log Entry
 # @canon-spec specs/methodology/working-files.md § Design Log Entry § Script Checks [Name: counts-taken-from-the-report]
+# @canon-spec specs/methodology/working-files.md § Design Log Entry § When an Entry Is Appended
 def append_entry(value):
     """--append-entry DESIGN KIND [FIELD=VALUE ...]: appends an entry to the design's log, its count among its kind and
     the UTC time it is appended, refusing one out of its type; a check's entry only once its report stands in the
@@ -1571,7 +1538,7 @@ WF = "specs/methodology/working-files.md"
 # reader of the record types the specs declare
 REPORT_HOME = (WF, "A Check's Report")
 FORM_RULE = WF + " § A Check's Report"
-COUNT_RULE = WF + " § Design Log Entry"
+COUNT_RULE = WF + " § Design Log Entry § What a Check Counts"
 FIELDS_RULE = "specs/methodology/modeling-constructs.md § Fields"
 BLANK_LINES_RULE = "specs/methodology/spec-style.md § Blank Lines"
 # @canon-spec specs/methodology/working-files.md § A Check's Report
@@ -1599,7 +1566,7 @@ BROKEN_RULES = "Broken Rules"
 # @canon-spec specs/methodology/working-files.md § A Check's Report § Verdicts
 MARKS = ("design flaw", "implementation flaw", "nit")
 FLAWS = MARKS[:2]
-# @canon-spec specs/methodology/working-files.md § Design Log Entry
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Verdicts
 # each count of a check's entry, by the last word in its report it counts
 COUNTED = {"Design Flaws": "design flaw", "Implementation Flaws": "implementation flaw", "Nits": "nit", "Dropped": "dropped"}
 # @canon-spec specs/methodology/working-files.md § A Check's Report
@@ -1751,7 +1718,7 @@ def cite(place):
     return "`%s%s%s`" % (path, " § " + lineage if lineage else "", " [%s]" % selector if selector else "")
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report
+# @canon-spec specs/methodology/working-files.md § A Check's Report § A Value Holding Places
 def covers(a, b):
     """Whether place a covers place b: a file each of its sections, a section each section beneath it, and a part a
     keyed instance holds itself alone, each matched as it is cited."""
@@ -2101,7 +2068,7 @@ def file_kind(path, skills, code):
     return kind_of(path, skills) or "other"
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report
+# @canon-spec specs/methodology/working-files.md § A Check's Report § What the Design Script Checks
 def search_ground(root, design_rel, design_text, target, kept):
     """-> a function giving a Search's ground as {path: text}, read once: the design document and the files of each
     kind of those its Target names, with, for canon-specs, every file of Spec of Record's scope but code, and, for
@@ -2235,7 +2202,7 @@ def log_entries(text):
     return out
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record
 def over_applied(entries):
     """Whether an entry appended after these lies over applied work: after the design's last apply entry, with no
     entered entry after that."""
@@ -2243,7 +2210,7 @@ def over_applied(entries):
     return bool(applies) and not any(e[0] == "entered" for e in entries[applies[-1] + 1:])
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record
 def phase_start(entries, applied):
     """-> where the phase an entry appended after these stands in starts: a post-apply review's after the design's last
     apply entry, and an adversarial review's after its last reassessment entry deciding other than go on or its last
@@ -2819,7 +2786,7 @@ def repo_root():
 def objectives_stating_constructs(text):
     """-> [(step, design line its lines open at, its lines)] for each Objective of a Design Plan Step whose State holds
     a **Construct:** field declaring one of WHOLE, its lines as written: a Step Objective's State line and the block
-    beneath it; an Objective written before the record form, its item's own lines, ending where spec-style.md
+    the one reader reads nested beneath it; an Objective written before the record form, its item's own lines, ending where spec-style.md
     § Markdown has a list item end, as the one reader reads it."""
     lines, out = text.split("\n"), []
     for step in read_steps(text) or []:
@@ -3057,7 +3024,7 @@ def whole_section(secs, lineage):
 
 def around_and_up(text, line):
     """-> (the 0-based lines read around and up from a 1-based line, the lineages read around and up), as
-    specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once has the builder zoom out."""
+    specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Zoom-Out has the builder zoom out."""
     secs = sections(text)
     at = line - 1
     holding = next((l for l, (s, e) in secs.items() if s <= at < e), None)
@@ -3130,8 +3097,8 @@ def script_units(text):
 
 def script_reach(root, changes):
     """-> {path: 1-based lines} of the reach in a script: the unit holding each change, the units it calls and the
-    units calling it, as specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once gives it; a script not
-    in Python read whole."""
+    units calling it, as specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Zoom-Out gives it; a
+    script not in Python read whole."""
     scripts = {p: (root / p).read_text(encoding="utf-8", errors="replace") for s in scope_paths(root)
                for p in ([s] if (root / s).is_file() else
                          [f.relative_to(root).as_posix() for f in (root / s).rglob("*") if f.is_file()]
@@ -3240,13 +3207,13 @@ FLAGS = (
     ("--show-workstack", "PLANS_DIR", show_workstack,
      "draw the workstack and list what to work next, what is blocked and what may be deleted; reads the skill's plans folder, and those beside it, unless given a directory"),
     ("--show-dependents", "DESIGN NAME", show_dependents,
-     "list each part of a design naming or citing one of its goals, Frame Outcomes, steps or step Objectives by its Name, or a paragraph of its Scope by its bold lead-in, in the order specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once gives a change; writes no file and decides nothing; the builder runs it as a steer, a settlement or a pass changes a part"),
+     "list each part of a design naming or citing one of its goals, Frame Outcomes, steps or step Objectives by its Name, or a paragraph of its Scope by its bold lead-in, in the order specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Order of a Design's Parts gives a change; writes no file and decides nothing; the builder runs it as a steer, a settlement or a pass changes a part"),
     ("--show-validation", "DESIGN", show_validation,
      "print a design document's stamped hash, its hash now, and whether it is validated, stale or never stamped"),
     ("--stamp-validation", "DESIGN", stamp_validation,
      "run the validation review on one design document and, if it passes, write its validation stamp, taking in each log entry naming a report the review reads; the builder runs it at validating on the way to the user's approval"),
     ("--append-entry", "DESIGN KIND [FIELD=VALUE ...]", append_entry,
-     "append an entry to a design document's log, its count among its kind and the UTC time it is appended, refusing a kind, a field or a value out of the Design Log Entry type; for a check's entry, reading its report at reports/<kind>/{n}.md in the design's folder, writing a self-review's script checks' output into it, refusing the entry where the report is out of its form, its layout or the form of its values holding places, leaves a finding unsettled or settles one twice, cites a key naming no record, holds a Search whose matches its Places do not cover, holds Read Assessments leaving a place its Searches matched or its Reads hold unassessed, holds a marked Finding anchored in no part of the design, or holds records not covering what working-files.md § A Check's Report has the script check of them, and taking the entry's counts from it, refusing any the builder gives; the builder appends every entry through it"),
+     "append an entry to a design document's log, its count among its kind and the UTC time it is appended, refusing a kind, a field or a value out of the Design Log Entry type; for a check's entry, reading its report at reports/<kind>/{n}.md in the design's folder, writing a self-review's script checks' output into it, refusing the entry where the report is out of its form, its layout or the form of its values holding places, leaves a finding unsettled or settles one twice, cites a key naming no record, holds a Search whose matches its Places do not cover, holds Read Assessments leaving a place its Searches matched or its Reads hold unassessed, holds a marked Finding anchored in no part of the design, or holds records not covering what working-files.md § A Check's Report § What the Design Script Checks has the script check of them, and taking the entry's counts from it, refusing any the builder gives; the builder appends every entry through it"),
     ("--check-report", "REPORT", check_report,
      "check a review's report at its path in a design's folder before its settlement, or a handed-off judgment's before the builder takes it in: the cold agent's part, its title, its Reading, its Findings, its Searches and its Read Assessments, held to the form working-files.md § A Check's Report gives it and to its layout, its values holding places in their form, each Search run again, each place it matched or read lying within a Read Assessment's Area where it holds Read Assessments, and each marked Finding naming the parts of the design it bears on, or the rules it breaks; writes no file; the cold agent runs it before handing the report back, and the builder as settling starts"),
     ("--show-reach", "DESIGN", show_reach,

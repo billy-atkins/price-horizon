@@ -649,19 +649,28 @@ TABLE_OPENERS = ("Table Name", "Reference Key", "Required")
 
 
 def declarations(body, sections, problems=None):
-    """-> [(line, construct, fields, tables, lineage)] for each **Construct:** field in live text, the declaration,
+    """-> [(line, construct, fields, tables, lineage)] for each **Construct:** field in live text, at the margin or
+    opening a construct nested beneath a field (modeling-constructs.md § Fields § A Nested Construct), the declaration,
     the fields it sets and the Table Name opening each of its tables read as one block of fields through the one reader
     (modeling-constructs.md § Fields), a list a field holds given as its items one to a line. A field the construct
     sets standing beneath a Table Name, where only a Table Name opens a table (modeling-constructs.md § Defining
     Constructs § Declaring a Construct), is appended to `problems` as (0-based line, message) where a list is given."""
     import record_types
-    lines = body.split("\n")
+    body_lines = body.split("\n")
     secs = sorted(sections.items(), key=lambda x: x[1][0])
     out = []
-    for i, line in enumerate(lines):
-        m = _margin_field(line)
-        if not m or m["key"] != "Construct":
+    for i, line in enumerate(body_lines):
+        m = FIELD.match(line)
+        if not m or m["marker"] or m["key"] != "Construct":
             continue
+        lines, at = body_lines, len(m["indent"].expandtabs(4))
+        if at:
+            # modeling-constructs.md § Fields § A Nested Construct: a construct nested beneath a field's text, after one
+            # blank line, read as its block stands dedented to the margin, to its first line indented less
+            if i == 0 or body_lines[i - 1].strip():
+                continue
+            stop = next((n for n in range(i, len(body_lines)) if body_lines[n].strip() and record_types._indent(body_lines[n]) < at), len(body_lines))
+            lines = body_lines[:i] + [l[at:] for l in body_lines[i:stop]] + body_lines[stop:]
         name = construct_named(m["value"] or "")[0]
         owner = [lin for lin, (h, end) in secs if h < i < end]
         lineage = owner[-1] if owner else ""
