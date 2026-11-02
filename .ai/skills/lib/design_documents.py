@@ -1584,7 +1584,7 @@ NONE_HELD = {("Reading", "Reads"), ("Settlement", "Earlier Reports"), ("Settleme
              ("Findings", BROKEN_RULES)}
 # @canon-spec specs/methodology/working-files.md § A Check's Report § Kinds of Builder Check
 # the checks every self-review requires, and those it requires for each item its phase gives
-EVERY_SELF_REVIEW = ("steers against the user's messages", "linked work", "review's questions")
+EVERY_SELF_REVIEW = ("steers against the user's messages", "linked work")
 USER_EDIT, WORKED_CASE, MISS_QUESTION, DIFFERENTIAL = "user edit", "worked case", "miss's question", "differential test"
 SCRIPTS = (".py", ".ps1", ".sh")
 
@@ -2308,13 +2308,15 @@ def required_checks(ctx):
     # an edit's place read as a citation, a part a keyed instance holds among them
     out += [(USER_EDIT, [p for p in (place_of("`%s`" % " § ".join(x for x in ps if x)) for ps in places(f.get("Places", ""))) if p])
             for k, _, f in entries[last + 1:] if k == "user-edit"]
+    # one item for each question a Miss of the phase names, in every self-review
+    asked = [(p, "Causes", "Cause: " + c.get("Cause", "")) for p, r in ctx["record"] for c in r["records"]["Causes"]
+             for m in c.get("Misses") or [] if isinstance(m, dict) and m.get("Kind") == "question not asked"]
+    out += [(MISS_QUESTION, asked)] if asked else []
     if ctx["round"]:
         path, rep = ctx["round"]
         worked = [(path, "Causes", "Cause: " + c.get("Cause", "")) for c in rep["records"]["Causes"] if c.get("Proposed Change")]
         worked += [(path, "Findings", "Finding: " + k) for k, w in last_words(rep).items() if w == "implementation flaw"]
-        asked = [(p, "Causes", "Cause: " + c.get("Cause", "")) for p, r in ctx["record"] for c in r["records"]["Causes"]
-                 if any(isinstance(m, dict) and m.get("Kind") == "question not asked" for m in c.get("Misses") or [])]
-        out += [(k, items) for k, items in ((WORKED_CASE, worked), (MISS_QUESTION, asked)) if items]
+        out += [(WORKED_CASE, worked)] if worked else []
     if ctx["applied"]:
         import code_checks
         skills, code = skill_dirs(ctx["root"]), code_checks.code_roots(ctx["root"]) or ([], [])
@@ -2349,9 +2351,14 @@ def builder_check_problems(rep, ctx):
         if not made:
             out.append((rule("Builder Checks"), "no Builder Check of %s, which its phase requires" % check))
             continue
-        checked = [p for b in made for p in place_list(b.get("Places Checked", ""))]
-        out += [(rule("Builder Checks"), "its Builder Checks of %s leave out %s" % (check, cite(p)))
-                for p in items if not covered(checked, p)]
+        # an item asked more than once, a Cause naming several questions, takes a check for each time
+        for p in dict.fromkeys(items):
+            n = sum(1 for b in made if covered(place_list(b.get("Places Checked", "")), p))
+            if not n:
+                out.append((rule("Builder Checks"), "its Builder Checks of %s leave out %s" % (check, cite(p))))
+            elif n < items.count(p):
+                out.append((rule("Builder Checks"), "%s names %d questions, and only %d of its Builder Checks of %s cite it"
+                            % (cite(p), items.count(p), n, check)))
     return out
 
 
