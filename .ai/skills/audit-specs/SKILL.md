@@ -599,6 +599,24 @@ Each operating rule that leaves no trace in the files the audits read is carried
     **Caught By:**
       - the user
 
+  - **Failure:** a steer recorded with no steer entry \
+    **Sections:**
+      - `specs/methodology/working-files.md § Steering Decision § When a Steer Is Recorded`
+
+    **Rule:** `specs/methodology/working-files.md § Steering Decision § When a Steer Is Recorded` \
+    **Leaves:** a Steering Decision no `steer` entry names \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a design revised past a completed run with no reassessment entry \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs` \
+    **Leaves:** a log holding no `reassessment` entry after the run's last round \
+    **Caught By:**
+      - the user
+
   - **Failure:** a nit judged harmless that harms the work \
     **Sections:**
       - `specs/AGENTS.md § Design, Refactor, Refine`
