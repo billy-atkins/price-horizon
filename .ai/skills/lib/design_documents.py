@@ -160,11 +160,31 @@ def declared_type(home, plural, root=None, key="Name"):
 
 
 def steer_type(root=None):
-    """The Steering Decision type as its declaration gives it -> (its fields in order, its Type field's values,
-    problems with the declaration)."""
+    """The Steering Decision type as its declaration gives it -> (its fields in order, the fields it requires always,
+    {field: its quoted values} for each field giving them, problems with the declaration)."""
     rows, problems = declared_type(STEER_HOME, "Steering Decisions", root)
-    types = next((tuple(re.findall(r'"([^"]+)"', row[4])) for row in rows if row[0] == "Type" and len(row) > 4), ())
-    return tuple(row[0] for row in rows), types, problems
+    values = {row[0]: tuple(re.findall(r'"([^"]+)"', row[4])) for row in rows if len(row) > 4 and '"' in row[4]}
+    return tuple(row[0] for row in rows), tuple(row[0] for row in rows if len(row) > 2 and row[2] == "yes"), values, problems
+
+
+# @canon-spec specs/methodology/working-files.md § Steering Decision
+# the field a Steering Decision holds where a `steer` entry names it, and its values naming the goals or a part of the
+# frame, a steer changing one of them material (specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once
+# § The Order of a Design's Parts)
+CHANGES = "Changes"
+MATERIAL = ("the goals", "the Scope", "the Assessed Areas", "the Approach", "the Frame Outcomes")
+
+
+def steer_changes(text):
+    """-> {Name: Changes} of each Steering Decision a design holds, an empty Changes where it holds none."""
+    return {dict(r).get("Name", "").strip(): dict(r).get(CHANGES, "").strip()
+            for r in records(section(text, "Steering Decisions")) or []}
+
+
+def material(entry, changes):
+    """Whether a log entry, (kind, count, {field: value}), is a `steer` entry whose Steering Decision's Changes, by
+    changes as steer_changes gives them, holds the goals or a part of the frame."""
+    return entry[0] == "steer" and changes.get(entry[2].get("Steering Decision", "").strip()) in MATERIAL
 
 
 def goal_type(root=None):
@@ -321,14 +341,15 @@ def named(value):
 
 
 # @canon-spec specs/methodology/working-files.md § A Design Document § The Record's Checks
-def read_entries(entries):
+def read_entries(entries, changes):
     """-> the indexes, among a design's log entries as log_entries gives them, of each `handed-off-judgment` entry whose
-    report the validation review reads: each but one standing after the log's last `plan-approval` entry with no
-    `entered` entry after that, as a report over applied work is bounded, so research logged after the plan's approval,
-    the frame frozen, leaves the validation as it stood, and a design sent back reads its research whole."""
+    report the validation review reads: each but one standing after the log's last `plan-approval` entry, where neither
+    an `entered` entry nor a `steer` entry material by changes, as steer_changes gives them, follows that approval. So
+    research logged after the plan's approval, the frame frozen, leaves the validation as it stood, while a design sent
+    back, or one whose goals or frame a steer changed after the approval, reads the research rebuilt for it."""
     approvals = [i for i, e in enumerate(entries) if e[0] == "plan-approval"]
     last = approvals[-1] if approvals else None
-    if last is not None and any(e[0] == "entered" for e in entries[last + 1:]):
+    if last is not None and any(e[0] == "entered" or material(e, changes) for e in entries[last + 1:]):
         last = None
     return [i for i, e in enumerate(entries[:last] if last is not None else entries) if e[0] == JUDGMENT]
 
@@ -349,7 +370,7 @@ def stamped_entry_lines(lines):
         if m:
             entries.append((m.group(1), int(m.group(2)), f))
             spans.append(it["lines"])
-    return {head + 1 + n for i in read_entries(entries) for n in spans[i]}
+    return {head + 1 + n for i in read_entries(entries, steer_changes("\n".join(lines))) for n in spans[i]}
 
 
 def content_hash(text, leave_out=UNSTAMPED, leave_out_sections=UNSTAMPED_SECTIONS):
@@ -405,27 +426,31 @@ def frame_parts(text):
     return dict(zip(parts[::2], (p.strip() for p in parts[1::2])))
 
 
-def check_steers(body):
-    """-> problems with a Steering Decisions section: a Records field, and each record its
-    type's fields in order, its Type one of the field's values, no two sharing a Name."""
+def check_steers(body, logged=()):
+    """-> problems with a Steering Decisions section: a Records field, and each record its type's fields in order,
+    those it requires always present, Changes present where a `steer` entry names the record, by logged, and absent
+    where none does, each field giving values holding one of them, no two sharing a Name."""
     items = records_read(body)
     if items is None:
         return ["Steering Decisions has no Records field"]
     if not items:
         return ["Steering Decisions holds no record"]
     problems, seen = [], set()
-    fields, types, declared = steer_type()
+    fields, required, given, declared = steer_type()
     if not fields:
         return [p for _, p in declared] or ["the Steering Decision type declares no fields"]
     for it in items:
         keys = [f["key"] for f in record_types.record_fields(it)]
-        if keys != list(fields):
-            problems.append("a steering decision's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
+        if keys != [k for k in fields if k in keys] or not set(required) <= set(keys):
+            problems.append("a steering decision's fields are %s, not %s in that order, those but %s required"
+                            % (", ".join(keys), ", ".join(fields), CHANGES))
             continue
         values = {f["key"]: str(record_types.value_of(f)).strip() for f in it["fields"]}
-        name, type_ = values["Name"], values.get("Type", "")
-        if type_ not in types:
-            problems.append("steering decision %s has a Type that is not one of %s: %s" % (name, ", ".join(types), type_))
+        name = values["Name"]
+        require(problems, "steering decision " + name, values, CHANGES, name in logged, "where a steer entry names it")
+        for k, v in values.items():
+            if given.get(k) and v not in given[k]:
+                problems.append("steering decision %s has a %s that is not one of %s: %s" % (name, k, ", ".join(given[k]), v))
         if name in seen:
             problems.append("two steering decisions share the Name " + name)
         seen.add(name)
@@ -823,7 +848,7 @@ def steer_table_problems(root):
     """-> problems with the Steering Decision, Design Goal, Assessed Area, Frame Outcome, Design Plan Step, Step
     Objective, Read Assessment, Design Log Entry and Retired Phrase types' declarations, and with Read Assessment
     Impacts', which this tooling reads their records' fields and values from."""
-    return steer_type(root)[2] + goal_type(root)[1] + step_type(root)[1] + log_type(root)[3] + retired_type(root)[2] \
+    return steer_type(root)[3] + goal_type(root)[1] + step_type(root)[1] + log_type(root)[3] + retired_type(root)[2] \
         + [p for plural in PLAN_TYPES for p in plan_type(plural, root)[2]] + impact_members(root)[1]
 
 
@@ -881,9 +906,13 @@ def check_form(design):
                 problems.append((name, values["Status"] + ", but its design frame's " + part + " is not yet stated"))
         for plural in (AREAS, OUTCOMES):
             problems += [(name, p) for p in check_frame_records(plural, frame.get(plural))]
+        # working-files.md § Design Log Entry: a steer entry names a Steering Decision the design holds
         body = section(text, "Steering Decisions")
-        for p in check_steers(body) if body is not None else []:
+        logged = [f.get("Steering Decision", "") for k, _, f in log_entries(text) if k == "steer"]
+        for p in check_steers(body, logged) if body is not None else []:
             problems.append((name, p))
+        for s in sorted(set(logged) - set(steer_changes(text))):
+            problems.append((name, "a steer entry names a Steering Decision the design does not hold: " + s))
         goals = section(text, "Design Goals")
         for p in check_goals(goals) if goals is not None else []:
             problems.append((name, p))
@@ -1175,7 +1204,7 @@ def reaches(a, b):
 def lineage_problems(design, text, plan=None):
     """-> each break of the lineage from research to the steps, the Lineage check of working-files.md § A Design
     Document § The Record's Checks, read against the Read Assessments of the reports of the handed-off judgments the design's log names,
-    but one whose entry stands after its last `plan-approval` entry with no `entered` entry after that: a place a step's What names reaching no Assessed Area whose Impact holds
+    but those read_entries leaves out: a place a step's What names reaching no Assessed Area whose Impact holds
     `changes`; such an Assessed Area no What reaches; an Assessed Area whose Impact and Assessment are not those of the
     latest Read Assessment of its Area, an Assessment naming a report the review does not read reported once for the
     report; and an Area whose latest Read Assessment holds an Impact other than `none` neither an Assessed Area nor, its
@@ -1189,7 +1218,7 @@ def lineage_problems(design, text, plan=None):
     root = repo_root()
     entries = log_entries(text)
     reports = [(rel_to(report_file(design, entries[i][0], entries[i][1]), root),
-                load_report(design, entries[i][0], entries[i][1])) for i in read_entries(entries)]
+                load_report(design, entries[i][0], entries[i][1])) for i in read_entries(entries, steer_changes(text))]
     latest = {}
     for path, rep in reports:
         for ra in rep["records"].get("Read Assessments", []):
@@ -1226,8 +1255,8 @@ def lineage_problems(design, text, plan=None):
             problems.append("assessed area %s's Assessment is %s, not %s, the report holding the latest Read Assessment of its Area"
                             % (cite(p), assessment[0], found[0]))
     problems += ["%d assessed area%s rest%s on %s, a report the validation review does not read: no handed-off-judgment "
-                 "entry of the design's log names it, or its entry stands after the last plan-approval entry with no entered entry "
-                 "after that"
+                 "entry of the design's log names it, or its entry stands after the last plan-approval entry with neither an "
+                 "entered entry nor a steer entry changing the goals or a part of the frame after that"
                  % (len(a), "" if len(a) == 1 else "s", "s" if len(a) == 1 else "", path) for path, a in unread.items()]
     held = {place_key(p) for p, _, _, _ in areas if p}
     items = (section(text, "Out of Scope") or "") + "\n" + (section(text, IMPACT) or "")
@@ -1249,8 +1278,7 @@ def names_of_text(value):
 def design_problems(design):
     """The validation review's checks on one design: its form, its records and the references within it, and the
     lineage from research to its steps, drawing only on the document, the reports of the handed-off judgments its log
-    names, but one whose entry stands after its last `plan-approval` entry with no `entered` entry after that, and the
-    canon's declarations of its form, per working-files.md § A
+    names, but those read_entries leaves out, and the canon's declarations of its form, per working-files.md § A
     Design Document § The Record's Checks; by validating, no goal, no part of its frame and no step section not yet stated. Any problem a
     declaration reports counts, so a type that cannot be read stops a stamp."""
     name, fields, _, text = read_design(design)
@@ -1915,6 +1943,19 @@ def form_problems(rep, ctx, types, parts):
             out.append((rule("Read Assessments"), "line %d, Read Assessment %s's Impact is not a list holding none alone, "
                         "or one or both of %s, one to an item" % (a["_line"] + 1, a.get("Area", ""),
                                                                    " and ".join(m for m in members if m != "none"))))
+    # a Search's and a Read Assessment's Goals, each held where its report's entry follows a steer entry, a Search's in
+    # a report of research alone, one holding Read Assessments, each item a goal's Name the design holds
+    for plural, one, key, condition, condition_text in (
+            ("Searches", "Search", "Search", ctx["steered"] and bool(recs["Read Assessments"]),
+             "where it stands in a report of research whose entry follows a steer entry"),
+            ("Read Assessments", "Read Assessment", "Area", ctx["steered"], "where its report's entry follows a steer entry")):
+        cond = []
+        for r in recs[plural] if not moved else []:
+            where = "line %d, %s %s" % (r["_line"] + 1, one, r.get(key, ""))
+            require(cond, where, r, "Goals", condition, condition_text)
+            cond += ["%s's Goals name %s, which is no design goal's Name" % (where, g)
+                     for g in names_of_text(r.get("Goals", "")) if g not in ctx["goals"]]
+        out += [(rule(plural), c) for c in cond]
     if reviewer or moved:
         return out
     cond = []
@@ -2222,11 +2263,23 @@ def phase_start(entries, applied):
                default=0)
 
 
-def phase_record(design, entries, applied, root):
-    """-> [(path, report)] for each report of the phase's record, its review entries' and its handed-off judgments'."""
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record
+def cut_off(entries, changes):
+    """-> where the reports binding the design start: after its last `steer` entry material by changes, as
+    steer_changes gives them, wherever it stands in the log, or at the log's start."""
+    return max([i + 1 for i, e in enumerate(entries) if material(e, changes)], default=0)
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record
+def phase_record(design, entries, applied, root, changes):
+    """-> [(path, report)] for each report of the phase's record: the reports binding the design, after its cut-off, a
+    report whose Settlement holds Moved Past aside, whose entries stand in the phase, its review entries' and its
+    handed-off judgments'."""
     review = REVIEWS[1] if applied else REVIEWS[0]
-    return [(rel_to(report_file(design, k, n), root), load_report(design, k, n))
-            for k, n, _ in entries[phase_start(entries, applied):] if k in (review, JUDGMENT)]
+    start = max(phase_start(entries, applied), cut_off(entries, changes))
+    held = [(rel_to(report_file(design, k, n), root), load_report(design, k, n))
+            for k, n, _ in entries[start:] if k in (review, JUDGMENT)]
+    return [(path, rep) for path, rep in held if not moved_past(rep)]
 
 
 def load_report(design, kind, n):
@@ -2436,6 +2489,8 @@ def report_context(root, design, design_text, kind, n, entries, reviewer=False):
     path = report_file(design, kind, n)
     commit = last_commit(root) if applied and kind == "self-review" and not reviewer else None
     rules = {p: ", ".join(r) or FORM_RULE for p, _, _, r in report_parts(root)}
+    # the report's own entry, where the log holds it already, or the entry it is to be appended as, after the rest
+    own = next((i for i, (k, m, _) in enumerate(entries) if k == kind and m == n), len(entries))
     held = []
 
     def assessed():
@@ -2454,7 +2509,9 @@ def report_context(root, design, design_text, kind, n, entries, reviewer=False):
             "judgment_settlements": judgment_settlements(design, entries) if kind in REVIEWS and not reviewer else [],
             "ground": search_ground(root, rel_to(design, root), design_text,
                                     re.findall(r"`([^`]+)`", fields.get("Target", "")), kept),
-            "record": phase_record(design, entries, applied, root) if not reviewer else [],
+            "record": phase_record(design, entries, applied, root, steer_changes(design_text)) if not reviewer else [],
+            "goals": {dict(r).get("Name", "").strip() for r in records(section(design_text, "Design Goals")) or []},
+            "steered": any(k == "steer" for k, _, _ in entries[:own]),
             "round": round_change_followed(design, entries, applied, root) if kind == "self-review" else None,
             "changes": work_changes(root, commit)[0] if commit else {},
             "rule": lambda part: rules.get(part, FORM_RULE)}

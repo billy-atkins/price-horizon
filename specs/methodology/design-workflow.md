@@ -141,27 +141,27 @@ A design's apply begins only as [`specs/methodology/working-files.md § A Design
   - **Name:** consecutive design flaw rounds \
     **Type:** number \
     **Initial Value:** 0 \
-    **Means:** the adversarial rounds in a row of the design's phase, this one among them, that the run of design flaws counts, as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has it counted; set back to zero by a round finding none, and by a reassessment or a send-back starting the design afresh at its frame
+    **Means:** the adversarial rounds in a row of the design's phase, this one among them, that the run of design flaws counts, as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has it counted; set back to zero by a round finding none, by a reassessment of the design's adversarial rounds, whatever it decides, and as a send-back or a reassessment of the send-backs takes the design to framing
 
   - **Name:** consecutive implementation flaw rounds \
     **Type:** number \
     **Initial Value:** 0 \
-    **Means:** the adversarial rounds in a row of the design's phase, this one among them, that the run of implementation flaws counts, as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has it counted; set back to zero by a round finding none, and by a reassessment or a send-back starting the design afresh at its frame
+    **Means:** the adversarial rounds in a row of the design's phase, this one among them, that the run of implementation flaws counts, as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has it counted; set back to zero by a round finding none, by a reassessment of the design's adversarial rounds, whatever it decides, and as a send-back or a reassessment of the send-backs takes the design to framing
 
   - **Name:** consecutive send-backs \
     **Type:** number \
     **Initial Value:** 0 \
-    **Means:** the applies of the design in a row, this one among them, that the run of send-backs counts, as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has it counted; set back to zero as an apply reaches awaiting the commit or applied; set back to zero too by a reassessment, of the send-backs or of the apply, that decides other than `go on`. The apply such a reassessment sends back is not counted
+    **Means:** the applies of the design in a row, this one among them, that the run of send-backs counts, as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has it counted; set back to zero as an apply reaches awaiting the commit or applied; set back to zero too by a reassessment of the send-backs, whatever it decides, and by a reassessment of the apply that decides other than `go on`. The apply such a reassessment sends back is not counted
 
   - **Name:** consecutive post-apply flaw rounds \
     **Type:** number \
     **Initial Value:** 0 \
-    **Means:** the post-apply rounds in a row of the apply, this one among them, that the run of post-apply flaws counts, as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has it counted; set back to zero by a round finding none and as an apply begins
+    **Means:** the post-apply rounds in a row of the apply, this one among them, that the run of post-apply flaws counts, as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has it counted; set back to zero by a round finding none, by a reassessment of the apply, whatever it decides, and as an apply begins
 
   - **Name:** consecutive rework audits \
     **Type:** number \
     **Initial Value:** 0 \
-    **Means:** the audits in a row of the apply, this one among them, that the run of rework audits counts, as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has it counted; set back to zero by an audit sending none and as an apply begins
+    **Means:** the audits in a row of the apply, this one among them, that the run of rework audits counts, as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has it counted; set back to zero by an audit sending none, by a reassessment of the apply, whatever it decides, and as an apply begins
 
   - **Name:** design flaw run length \
     **Type:** number \
@@ -195,16 +195,16 @@ A design's apply begins only as [`specs/methodology/working-files.md § A Design
 
   - **Name:** needs review? \
     **Type:** boolean \
-    **Means:** whether the design takes another adversarial round before the user's approval: the last round it settled is one [`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review) has another round follow, or its goals, its frame or its steps have moved since that round began (a change to the goals or the frame taking a fresh review, as [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame) has it), or it has settled none since it was last framed, or the user asked for another round
+    **Means:** whether the design takes another adversarial round before the user's approval: the last round it settled is one [`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review) has another round follow, or its goals or its frame have moved since that round began (a change to the goals or the frame taking a fresh review, as [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame) has it), or it has settled none since it was last framed, or the user asked for another round
 
   - **Name:** needs reframing? \
     **Type:** boolean \
-    **Means:** whether a steer the design took in changed its goals or its frame and the user has not yet approved the change, so they go back to the user for approval, the frame re-evaluated against goals that changed ([`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame))
+    **Means:** whether a steer the design took in changed its goals or its frame and the user has not yet approved the change, so they go back to the user for approval, the design rebuilt from the change ([`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame))
 
   - **Name:** review ended by approval? \
     **Type:** boolean \
     **Initial Value:** false \
-    **Means:** whether the user's approval of the plan, given before its adversarial review ended, ended it ([`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review § The Plan's Approval`](/specs/AGENTS.md#the-plans-approval)). The approval sets it in any state of the design's work. Only a reassessment's transitions fire on it, and each state finishes its own work first. It is set back to false only where the design is sent back, a reassessment starts it afresh or the user asks for another round. So a change after the approval keeps it, a reopen or a dependency's move among them, even one changing the goals or the frame
+    **Means:** whether the user's approval of the plan, given before its adversarial review ended, ended it ([`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review § The Plan's Approval`](/specs/AGENTS.md#the-plans-approval)). The approval sets it in any state of the design's work. Only a reassessment's transitions fire on it, and each state finishes its own work first. It is set back to false only where the design is sent back, a reassessment decides other than `go on`, or the user asks for another round. So a change after the approval keeps it, a reopen or a dependency's move among them, even one changing the goals or the frame
 
   - **Name:** plan approved? \
     **Type:** boolean \

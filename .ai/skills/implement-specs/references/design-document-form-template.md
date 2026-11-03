@@ -11,7 +11,7 @@
 
 ## The Problem
 
-{the product module, the specs it carries into code, and what the code lacks (`specs/methodology/working-files.md § A Design Document § A Design Changing Code`)}
+{what the code of the product module lacks, citing the specs it carries into code as the evidence (`specs/methodology/working-files.md § A Design Document § A Design Changing Code`)}
 
 ## Design Goals
 
@@ -58,7 +58,8 @@
     **Prompted By:** {what prompted the steer (`specs/methodology/working-files.md § Steering Decision`)} \
     **Type:** {a steer's type (`specs/methodology/working-files.md § Steering Decision § A Steer's Type`)} \
     **Steer:** {the user's words, quoted (`specs/methodology/working-files.md § Steering Decision`)} \
-    **Decision:** {the essence of what the steer decided (`specs/methodology/working-files.md § Steering Decision`)}
+    **Decision:** {the essence of what the steer decided (`specs/methodology/working-files.md § Steering Decision`)} \
+    **Changes:** {the highest part whose decision the steer changes, or `none` (`specs/methodology/working-files.md § Steering Decision`)}
 
 ## Design Plan Steps
 

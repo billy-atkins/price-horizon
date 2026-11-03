@@ -58,7 +58,8 @@
     **Prompted By:** {what prompted the steer (`specs/methodology/working-files.md § Steering Decision`)} \
     **Type:** {a steer's type (`specs/methodology/working-files.md § Steering Decision § A Steer's Type`)} \
     **Steer:** {the user's words, quoted (`specs/methodology/working-files.md § Steering Decision`)} \
-    **Decision:** {the essence of what the steer decided (`specs/methodology/working-files.md § Steering Decision`)}
+    **Decision:** {the essence of what the steer decided (`specs/methodology/working-files.md § Steering Decision`)} \
+    **Changes:** {the highest part whose decision the steer changes, or `none` (`specs/methodology/working-files.md § Steering Decision`)}
 
 ## Design Plan Steps
 
