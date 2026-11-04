@@ -499,6 +499,15 @@ Each operating rule that leaves no trace in the files the audits read is carried
     **Caught By:**
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: builder-checks-required]`
 
+  - **Failure:** a self-review of a `canon-specs` or `application-specs` design with no construct choice recorded \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/methodology/working-files.md § A Check's Report § Kinds of Builder Check` \
+    **Leaves:** a self-review's report recording no `construct choice` Builder Check \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: builder-checks-required]`
+
   - **Failure:** a draft on goals or a frame the user has not agreed \
     **Sections:**
       - `specs/AGENTS.md § Design, Refactor, Refine`
