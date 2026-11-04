@@ -544,7 +544,7 @@ Of a report holding Read Assessments: each place outside the design document tha
 
 Of a self-review:
 - a Trace of each Decision Table and State Machine a step's Objectives state whole, before the apply, or a section the diff changed holds, at it, naming each of its paths, a Decision Table's rows and a State Machine's transitions each named by its cells;
-- each Builder Check its phase requires, as [`§ A Check's Report § Kinds of Builder Check`](#kinds-of-builder-check) gives it;
+- each Builder Check required of it, as [`§ A Check's Report § Kinds of Builder Check`](#kinds-of-builder-check) gives it;
 - for one following a round's change, its Reads covering each place a Miss of the phase names;
 - its Script Output, written by `--append-entry`.
 
@@ -838,7 +838,7 @@ The outcome [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the F
 
 ### Kinds of Builder Check
 
-The checks only the builder makes, held by a Builder Check, each with when a self-review's phase requires it:
+The checks only the builder makes, held by a Builder Check, each with the self-reviews it is required in:
 
 **Reference Key:** Check Kind \
 **Required:** Means, Required
@@ -850,6 +850,7 @@ The checks only the builder makes, held by a Builder Check, each with when a sel
 | user edit | an edit a `user-edit` entry names checked against the design and the rest of the applied work, each concern brought to the user with the builder's recommendation, an Objective the edit leaves unmet among them, the user keeping the edit or having it adjusted | in every self-review, for each `user-edit` entry since the design's last `self-review` entry, citing its places |
 | worked case | a case worked through a Cause's change or an implementation flaw's settlement, read for what it means and not only for whether it passes its checks | in a self-review following a round's change, for each Cause holding a Proposed Change and each implementation flaw the round settles, citing it |
 | miss's question | a question a Miss names asked of the work, with the answer the work gave, showing what the builder's reading lacked | in every self-review of a phase holding a Miss naming a question, for each Question a Miss of the phase names, citing its Cause |
+| construct choice | the record of the count [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Self-Review`](/specs/AGENTS.md#the-self-review) has the builder make: each passage the count reached, with the form the count gives it. Where none of the work falls in the files [`specs/methodology/modeling-constructs.md § Purpose`](/specs/methodology/modeling-constructs.md#purpose) sets the constructs for, it holds the work's places and states that none falls in them | in every self-review of a design whose Kind is `canon-specs` or `application-specs` |
 | differential test | an ephemeral differential test ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)) of a script the diff changes, run in the files against its version at the last commit | in a self-review over applied work, for each script the diff changes, citing it |
 | cycle's changes | the trace of each line a Refactor and Refine cycle's changes show, as `.ai/skills/design-specs/` has a cycle trace them | where a cycle's changes are traced, citing each place `--show-refactor-and-refine-of-existing-specs` lists |
 
@@ -939,7 +940,7 @@ The checks only the builder makes, held by a Builder Check, each with when a sel
       - `.ai/skills/implement-specs/` `--append-entry`
 
   - **Name:** builder-checks-required \
-    **Tests:** a self-review's report holds each Builder Check its phase requires, covering each item it is required for, as [`§ A Check's Report § What the Design Script Checks`](#what-the-design-script-checks) has it \
+    **Tests:** a self-review's report holds each Builder Check required of it, covering each item it is required for, as [`§ A Check's Report § What the Design Script Checks`](#what-the-design-script-checks) has it \
     **Reads:**
       - `none`
 

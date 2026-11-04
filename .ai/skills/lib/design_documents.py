@@ -1614,6 +1614,8 @@ NONE_HELD = {("Reading", "Reads"), ("Settlement", "Earlier Reports"), ("Settleme
 # the checks every self-review requires, and those it requires for each item its phase gives
 EVERY_SELF_REVIEW = ("steers against the user's messages", "linked work")
 USER_EDIT, WORKED_CASE, MISS_QUESTION, DIFFERENTIAL = "user edit", "worked case", "miss's question", "differential test"
+# the check every self-review of a design of these Kinds requires
+CONSTRUCT_CHOICE, SPEC_KINDS = "construct choice", ("canon-specs", "application-specs")
 SCRIPTS = (".py", ".ps1", ".sh")
 
 
@@ -2354,9 +2356,10 @@ def path_name(text):
 
 
 def required_checks(ctx):
-    """-> [(Builder Check kind, the places its Places Checked must cover)] for each Builder Check a self-review's phase
-    requires, as § A Check's Report § Kinds of Builder Check gives it."""
+    """-> [(Builder Check kind, the places its Places Checked must cover)] for each Builder Check required of a
+    self-review, as § A Check's Report § Kinds of Builder Check gives it."""
     entries, out = ctx["entries"], [(k, []) for k in EVERY_SELF_REVIEW]
+    out += [(CONSTRUCT_CHOICE, [])] if ctx.get("design_kind") in SPEC_KINDS else []
     last = max((i for i, e in enumerate(entries) if e[0] == "self-review"), default=-1)
     # an edit's place read as a citation, a part a keyed instance holds among them
     out += [(USER_EDIT, [p for p in (place_of("`%s`" % " § ".join(x for x in ps if x)) for ps in places(f.get("Places", ""))) if p])
@@ -2397,12 +2400,12 @@ def trace_problems(rep, ctx):
 
 # @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: builder-checks-required]
 def builder_check_problems(rep, ctx):
-    """-> [(rule, message)]: a Builder Check a self-review's phase requires missing, or not covering its items."""
+    """-> [(rule, message)]: a Builder Check required of a self-review missing, or not covering its items."""
     out, rule = [], ctx["rule"]
     for check, items in required_checks(ctx):
         made = [b for b in rep["records"]["Builder Checks"] if b.get("Kind") == check]
         if not made:
-            out.append((rule("Builder Checks"), "no Builder Check of %s, which its phase requires" % check))
+            out.append((rule("Builder Checks"), "no Builder Check of %s, which is required of it" % check))
             continue
         # an item asked more than once, a Cause naming several questions, takes a check for each time
         for p in dict.fromkeys(items):
@@ -2477,7 +2480,7 @@ def cover_problems(rep, ctx):
 
 
 def report_context(root, design, design_text, kind, n, entries, reviewer=False):
-    """-> what a report's checks read of its design and its log: its kind and entry, the design's Name, whether it lies
+    """-> what a report's checks read of its design and its log: its kind and entry, the design's Name and Kind, whether it lies
     over applied work, whether its Traces give their Outcome, the Settlements of the judgments settled with a round, a Search's ground, the phase's record, the round whose change a
     self-review follows, the diff's changes over applied work, and the rules each part's Holds cites."""
     applied = over_applied(entries)
@@ -2502,7 +2505,7 @@ def report_context(root, design, design_text, kind, n, entries, reviewer=False):
         return held[0]
 
     return {"assessed": assessed,"root": root, "kind": kind, "entry": "%s-%d" % (kind, n), "design": fields.get("Name", design.stem),
-            "applied": applied, "reviewer": reviewer, "entries": entries, "design_rel": rel_to(design, root),
+            "design_kind": fields.get("Kind", "").strip(), "applied": applied, "reviewer": reviewer, "entries": entries, "design_rel": rel_to(design, root),
             "design_text": design_text, "steps": step_lines(design_text), "report_rel": rel_to(path, root),
             "folder": rel_to(path.parents[1], root) + "/",
             "trace_outcome": kind == "self-review" and not applied and not approvals,
@@ -2947,21 +2950,36 @@ def check_constructs(value):
     if is_design:
         design = read(target)
         text_of = at_last_commit(root, text_of, kept_changes(root, design))
-        for step, at, item in objectives_stating_constructs(design):
-            placed = construct_block(item)
-            if not placed:
-                findings.append((step, at, "working-files.md § Design Plan Step § Step Objective",
-                                 "an Objective stating a construct whole opens with no citation of its section"))
-                continue
-            path, lineage, block = placed
-            file_text, opens = in_place(text_of.get(path, ""), lineage, block)
-            span = range(opens, opens + len(block))
-            # the whole run, the cross-file checks among it, with the construct in its file; kept to its own lines
-            found, _, cands = constructs.run_checks(dict(text_of, **{path: file_text}))
-            at_line = lambda line: at + max(line - 1 - opens - 1, 0)
-            findings += [(step, at_line(line), rule, msg) for rule, p, line, msg in found if p == path and line - 1 in span]
-            candidates += [(step, at_line(line), name, context) for p, line, name, context in cands
-                           if p == path and line - 1 in span]
+        # the setup run_checks leaves in place, put back as it stood once the constructs are checked, or the check
+        # stops, so a check run after this one in the same process reads the specs as it would have
+        state = (record_types.TYPES, record_types._TEXT_OF, record_types.CONSTRUCT_KEYS, record_types.NAME_CITED,
+                 record_types.BLOCK_TYPES, record_types.FIELD_KEYS)
+        saved = [s.copy() for s in state]
+        hooks = ("CLOSED_SET", "FACTS_SECTION", "READ_FACT")
+        saved_hooks = [getattr(constructs, name) for name in hooks]
+        try:
+            for step, at, item in objectives_stating_constructs(design):
+                placed = construct_block(item)
+                if not placed:
+                    findings.append((step, at, "working-files.md § Design Plan Step § Step Objective",
+                                     "an Objective stating a construct whole opens with no citation of its section"))
+                    continue
+                path, lineage, block = placed
+                file_text, opens = in_place(text_of.get(path, ""), lineage, block)
+                span = range(opens, opens + len(block))
+                # the whole run, the cross-file checks among it, with the construct in its file; kept to its own lines
+                found, _, cands = constructs.run_checks(dict(text_of, **{path: file_text}))
+                at_line = lambda line: at + max(line - 1 - opens - 1, 0)
+                findings += [(step, at_line(line), rule, msg) for rule, p, line, msg in found
+                             if p == path and line - 1 in span]
+                candidates += [(step, at_line(line), name, context) for p, line, name, context in cands
+                               if p == path and line - 1 in span]
+        finally:
+            for s, kept in zip(state, saved):
+                s.clear()
+                s.update(kept)
+            for name, kept in zip(hooks, saved_hooks):
+                setattr(constructs, name, kept)
         for step, line, rule, msg in findings:
             print("%s:%d  [%s]  %s\n  %s" % (rel, line, step, rule, msg))
         for step, line, name, context in candidates:
