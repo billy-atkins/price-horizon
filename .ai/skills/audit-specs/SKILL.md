@@ -222,7 +222,7 @@ A report carries its review observations (`specs/methodology/glossary.md`) apart
 
 Each run writes one file to `.ai/tmp/audit-specs/`, named for the unit and the date. A run clears any earlier report for the same unit. That earlier report is stale output, which a skill cleans as `specs/methodology/working-files.md § The Working Files` has it.
 
-A finding in a working file's form is put right as `specs/methodology/working-files.md § The Working Files` has the file changed. Any other finding becomes a design document (`specs/methodology/working-files.md § A Design Document`) rather than an edit. The design goes through the Design, Refactor, Refine process (`specs/AGENTS.md § Design, Refactor, Refine`). `specs/AGENTS.md § Design, Refactor, Refine § Direct Edits` says when a small finding may be applied directly instead.
+A finding in a working file's form is put right as `specs/methodology/working-files.md § The Working Files` has the file changed. In a design's apply, its builder settles each other finding as `specs/AGENTS.md § Design, Refactor, Refine § An Audit` has an audit's findings settled. Outside a design's apply, any other finding becomes a design document (`specs/methodology/working-files.md § A Design Document`) rather than an edit. The design goes through the Design, Refactor, Refine process (`specs/AGENTS.md § Design, Refactor, Refine`). `specs/AGENTS.md § Design, Refactor, Refine § Direct Edits` says when a small finding may be applied directly instead.
 
 ## Running one
 
@@ -324,7 +324,7 @@ Each row describes, in the script's own terms, what the script checks for the se
 | A Name column opens a table exactly where a part of it is cited, by Name, from outside its construct's section | `specs/methodology/modeling-constructs.md § Constructs § Keyed Construct § Part Identifier` |
 | Each definition under `specs/methodology/modeling-constructs.md § Constructs` gives the Modifier, Extends and Implements the script's copy of it holds, its Modifier `Abstract` or `Interface`, its Extends citing one definition whose section comes before its own, multiple only for an interface extending interfaces, and given by every definition but Construct and an interface, and its Implements citing interfaces whose sections come before its own; no definition gives a field or a column a definition it extends gives, sets or bounds a member of no interface it implements, its bases' and the interfaces they extend among them, or sets a member a definition it extends sets; every Construct, Extends and Implements field cites its definition; every member Specified By Definition, the Locator among them, set by each concrete definition implementing its interface, and none Specified By Instance set by a definition; every interface's section after Construct's; no Modifier, Implements or member Specified By Definition stands outside a definition's section, but for the Modifier a record type's declaration gives; and no Construct field names an abstract definition or an interface | `specs/methodology/modeling-constructs.md § Defining Constructs`, `specs/methodology/modeling-constructs.md § Defining Constructs § Inheritance`, `specs/methodology/modeling-constructs.md § Defining Constructs § Modifiers`, `specs/methodology/modeling-constructs.md § Defining Constructs § Interfaces and Members`, `specs/methodology/modeling-constructs.md § Defining Constructs § References and Names`, `specs/methodology/modeling-constructs.md § Constructs § Keyed Construct` |
 
-**Scope.** The script's scope is the files that `specs/methodology/scope.md § What Spec of Record Governs` names, the working files aside. Those files are the root `AGENTS.md`, the documentation, every file under `specs/`, and each skill that `specs/methodology/skills.md` registers: its `SKILL.md`, its references and its scripts, with the code the skills' scripts share under `.ai/skills/lib/`. The documentation is `README.md` and the files under `docs/`. Code is aside too, since the skill does not read it. The working files are aside because they legitimately carry citations to things since moved or removed, and the script's pre-pass reads none of them. The Working-file form audit reads `.ai/follow-ups.md` instead, and runs the checks `specs/methodology/modeling-constructs.md § Fields` gives a block of fields and the check `specs/methodology/spec-style.md § Blank Lines` gives a blank line over it in its own run alone. `.ai/skills/design-specs/` and `.ai/skills/implement-specs/` check the plans they write. No check of this script reads the skills' output under `.ai/tmp/`, because that output is reports rather than rules. The reports a design's log names are read instead by the `--append-entry` and `--check-report` of `.ai/skills/design-specs/` and `.ai/skills/implement-specs/`, as `specs/methodology/working-files.md § A Check's Report § What the Design Script Checks` has them checked. The check keeping the working files out of version control reads the project's `.gitignore`. `--list-candidates` lists places for the Ordinals and counts audit, the Markup audit, the Glossary terms audit, the Construct choice and form audit, the Finished style audit and the Agent agnostic audit to read. For the Skill form audit, it lists an unregistered skill whose `SKILL.md` cites the methodology's rules, and a registered skill's script importing a module that is neither in the standard library, nor one of the skill's own helpers, nor the code the skills share. It also lists a skill's long sentence of chained clauses, and a path into the application specs in a skill. An audit whose unit names the script's scope for a full run uses this scope. The candidates print apart from the findings, since a list of places to read decides nothing (`specs/methodology/scope.md § Rules and Skills`).
+**Scope.** The script's scope is the files that `specs/methodology/scope.md § What Spec of Record Governs` names, the working files aside. Those files are the root `AGENTS.md`, the documentation, every file under `specs/`, and each skill that `specs/methodology/skills.md` registers: its `SKILL.md`, its references and its scripts, with the code the skills' scripts share under `.ai/skills/lib/`. The documentation is `README.md` and the files under `docs/`. Code is aside too, since the skill does not read it. The working files are aside because they legitimately carry citations to things since moved or removed, and the script's pre-pass reads none of them. The Working-file form audit reads `.ai/follow-ups.md` instead, and runs the checks `specs/methodology/modeling-constructs.md § Fields` gives a block of fields and the check `specs/methodology/spec-style.md § Blank Lines` gives a blank line over it in its own run alone. `.ai/skills/design-specs/` and `.ai/skills/implement-specs/` check the plans they write. No check of this script reads the skills' output under `.ai/tmp/`, because that output is reports rather than rules. The reports a design's log names are read instead by the `--log-entry`, `--check-handed-back` and `--check-settled-report` of `.ai/skills/design-specs/` and `.ai/skills/implement-specs/`, as `specs/methodology/working-files.md § A Check's Report § What the Design Script Checks` has them checked. The check keeping the working files out of version control reads the project's `.gitignore`. `--list-candidates` lists places for the Ordinals and counts audit, the Markup audit, the Glossary terms audit, the Construct choice and form audit, the Finished style audit and the Agent agnostic audit to read. For the Skill form audit, it lists an unregistered skill whose `SKILL.md` cites the methodology's rules, and a registered skill's script importing a module that is neither in the standard library, nor one of the skill's own helpers, nor the code the skills share. It also lists a skill's long sentence of chained clauses, and a path into the application specs in a skill. An audit whose unit names the script's scope for a full run uses this scope. The candidates print apart from the findings, since a list of places to read decides nothing (`specs/methodology/scope.md § Rules and Skills`).
 
 ## Operating rules carried out by a step
 
@@ -367,8 +367,8 @@ Each operating rule that leaves no trace in the files the audits read is carried
     **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Each Review's Model and Effort` \
     **Leaves:** a log entry naming no model and reasoning effort, refused as it is appended \
     **Caught By:**
-      - `.ai/skills/design-specs/` `--append-entry`
-      - `.ai/skills/implement-specs/` `--append-entry`
+      - `.ai/skills/design-specs/` `--log-entry`
+      - `.ai/skills/implement-specs/` `--log-entry`
       - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the validation review]`
 
   - **Failure:** a review's model and effort not offered \
@@ -499,12 +499,12 @@ Each operating rule that leaves no trace in the files the audits read is carried
     **Caught By:**
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: builder-checks-required]`
 
-  - **Failure:** a self-review of a `canon-specs` or `application-specs` design with no construct choice recorded \
+  - **Failure:** a self-review over applied work of a `canon-specs` or `application-specs` design with no construct choice recorded \
     **Sections:**
       - `specs/AGENTS.md § Design, Refactor, Refine`
 
     **Rule:** `specs/methodology/working-files.md § A Check's Report § Kinds of Builder Check` \
-    **Leaves:** a self-review's report recording no `construct choice` Builder Check \
+    **Leaves:** a self-review's report over applied work recording no `construct choice` Builder Check \
     **Caught By:**
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: builder-checks-required]`
 
@@ -579,12 +579,12 @@ Each operating rule that leaves no trace in the files the audits read is carried
     **Caught By:**
       - the user
 
-  - **Failure:** a stated Decision Table or State Machine left untraced \
+  - **Failure:** an applied Decision Table or State Machine left untraced \
     **Sections:**
       - `specs/AGENTS.md § Design, Refactor, Refine`
 
     **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § Tracing a Mechanism` \
-    **Leaves:** a self-review's report holding no Trace of the table or the machine, or a Trace leaving a path out \
+    **Leaves:** a self-review's report over applied work holding no Trace of a table or a machine a section the diff changed holds, or a Trace leaving a path out \
     **Caught By:**
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: traces-name-their-paths]`
 
@@ -764,8 +764,9 @@ Each operating rule that leaves no trace in the files the audits read is carried
       - `specs/AGENTS.md § Design, Refactor, Refine`
 
     **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Self-Review` \
-    **Leaves:** a construct's gap or overlap carried to the apply \
+    **Leaves:** a construct's gap or overlap in the applied text carried to the post-apply review \
     **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
       - `§ The audits [Audit: Construct choice and form]`
 
   - **Failure:** What Sets the Work not read again on resuming \
@@ -837,7 +838,7 @@ Each operating rule that leaves no trace in the files the audits read is carried
       - `specs/AGENTS.md § Design, Refactor, Refine`
 
     **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether the Goals and the Frame Name a Mechanism` \
-    **Leaves:** a Trace of a self-review before the adversarial review, or a Cause continuing an earlier one, stating no outcome of the table \
+    **Leaves:** a Trace of a self-review before the adversarial review, asked of a mechanism the steps change with no rows, or a Cause continuing an earlier one, stating no outcome of the table \
     **Caught By:**
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`
 
@@ -848,6 +849,7 @@ Each operating rule that leaves no trace in the files the audits read is carried
     **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether the Goals and the Frame Name a Mechanism` \
     **Leaves:** the self-review's report before an adversarial round with no Trace of a mechanism the test reaches, the round's report settling a decision drawing findings again with no Cause continuing an earlier one, or either holding an outcome the goals and the frame do not bear out \
     **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: traces-name-their-paths]`
       - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
       - the user
 
@@ -915,8 +917,8 @@ Each operating rule that leaves no trace in the files the audits read is carried
     **Leaves:** a step, a step Objective, a goal, a Frame Outcome, an Assessed Area, a steer, a log entry or a retired phrase out of its record type \
     **Caught By:**
       - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the validation review]`
-      - `.ai/skills/design-specs/` `--append-entry`
-      - `.ai/skills/implement-specs/` `--append-entry`
+      - `.ai/skills/design-specs/` `--log-entry`
+      - `.ai/skills/implement-specs/` `--log-entry`
 
   - **Failure:** log entries out of their count or their order \
     **Sections:**
@@ -926,8 +928,8 @@ Each operating rule that leaves no trace in the files the audits read is carried
     **Leaves:** log entries out of their count or their order \
     **Caught By:**
       - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the validation review]`
-      - `.ai/skills/design-specs/` `--append-entry`
-      - `.ai/skills/implement-specs/` `--append-entry`
+      - `.ai/skills/design-specs/` `--log-entry`
+      - `.ai/skills/implement-specs/` `--log-entry`
 
   - **Failure:** a design's dependencies out of sync with the workstack \
     **Sections:**
@@ -967,12 +969,12 @@ Each operating rule that leaves no trace in the files the audits read is carried
     **Caught By:**
       - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
 
-  - **Failure:** a table in an Objective no construct states whole \
+  - **Failure:** a construct or a table in an Objective \
     **Sections:**
       - `specs/methodology/working-files.md § Design Plan Step § Step Objective`
 
     **Rule:** `specs/methodology/working-files.md § Design Plan Step § Step Objective` \
-    **Leaves:** a table in a step Objective that is no Decision Table or State Machine it states whole \
+    **Leaves:** a step Objective holding a construct or a table \
     **Caught By:**
       - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the validation review]`
 
@@ -981,7 +983,7 @@ Each operating rule that leaves no trace in the files the audits read is carried
       - `specs/methodology/working-files.md § Design Plan Step § Step Objective`
 
     **Rule:** `specs/methodology/working-files.md § Design Plan Step § Step Objective` \
-    **Leaves:** an Objective stating how its step is implemented, or writing out text that is not itself the outcome \
+    **Leaves:** an Objective stating a means: how its step is implemented, a construct, a place in a file, a name the apply writes, or wording that is not the user's \
     **Caught By:**
       - `specs/methodology/working-files.md § Design Plan Step § Step Objective § Semantic Checks [Name: objective-states-an-outcome]`
       - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the builder's self-review]`
@@ -1169,8 +1171,8 @@ Each operating rule that leaves no trace in the files the audits read is carried
     **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review` \
     **Leaves:** a report out of its form as settling starts \
     **Caught By:**
-      - `.ai/skills/design-specs/` `--check-report`
-      - `.ai/skills/implement-specs/` `--check-report`
+      - `.ai/skills/design-specs/` `--check-handed-back`
+      - `.ai/skills/implement-specs/` `--check-handed-back`
 
   - **Failure:** a reviewer's part of a report changed by the builder \
     **Sections:**
@@ -1221,8 +1223,8 @@ Each operating rule that leaves no trace in the files the audits read is carried
     **Rule:** `specs/methodology/working-files.md § Design Log Entry` \
     **Leaves:** a log entry out of its type, refused as it is appended \
     **Caught By:**
-      - `.ai/skills/design-specs/` `--append-entry`
-      - `.ai/skills/implement-specs/` `--append-entry`
+      - `.ai/skills/design-specs/` `--log-entry`
+      - `.ai/skills/implement-specs/` `--log-entry`
       - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the validation review]`
 
   - **Failure:** a design applied over uncommitted changes \
