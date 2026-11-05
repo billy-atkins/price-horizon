@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """implement-specs' entry script: the design document tooling in .ai/skills/lib/design_documents.py,
 reading the design documents that change code, under .ai/plans/implement-specs/. Its actions
-are in its --help; --check-constructs among them is design-specs' to run, a code design stating no
-construct; --check-work runs the script checks of the code and of the specs in .ai/skills/lib/code_checks.py and
+are in its --help; --check-constructs among them reads applied spec files, which a code design's Target
+does not hold; --check-work runs the script checks of the code and of the specs in .ai/skills/lib/code_checks.py and
 spec_checks.py over the code a design changing it writes."""
 
 import sys

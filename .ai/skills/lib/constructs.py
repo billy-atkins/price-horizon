@@ -1,5 +1,5 @@
 """The construct checks: what modeling-constructs.md § Constructs lets a script decide. audit-specs runs them over
-the specs, and design-specs runs them through --check-constructs, on a design's constructs at drafting and on
+the specs, and design-specs runs them through --check-constructs, on
 the files an apply wrote, each through run_checks, the one copy (specs/methodology/skills.md § Authoring
 a Skill).
 

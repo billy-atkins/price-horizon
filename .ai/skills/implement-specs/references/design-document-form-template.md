@@ -25,7 +25,11 @@
 
 ### Scope
 
-{the cases the change governs, the sweep's method, and what the design relies on from each design its Depends On Designs names (`specs/methodology/working-files.md § A Design Document`)}
+{the cases the change governs and the sweep's method (`specs/methodology/working-files.md § A Design Document`)}
+
+**Reliances:** {this field only where the design relies on another design (`specs/methodology/working-files.md § A Design Document § Reliance`)}
+  - **Design:** {the Name of a design relied on (`specs/methodology/working-files.md § A Design Document § Reliance`)} \
+    **Relies On:** {what the design relies on from it (`specs/methodology/working-files.md § A Design Document § Reliance`)}
 
 ### Assessed Areas
 
@@ -91,7 +95,7 @@
 
 ## Design Log Entries
 
-{the entries `--append-entry` appends (`specs/methodology/working-files.md § Design Log Entry`)}
+{the entries `--log-entry` appends (`specs/methodology/working-files.md § Design Log Entry`)}
 
 ## Out of Scope
 
