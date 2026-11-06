@@ -59,6 +59,7 @@ Where an audit compares one passage against what the passage restates, the `desi
 | Skill form | `canon-specs` | `specs/methodology/skills.md § Authoring a Skill`, `specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code`, `specs/methodology/scope.md § Rules and Skills`, `specs/methodology/skills.md § Registered Skills`, `specs/methodology/working-files.md § The Working Files`, `specs/methodology/checks.md § Check`, `specs/methodology/checks.md § The Areas of Checking` |
 | Working-file form | `none` | `specs/methodology/working-files.md § The Working Files`, `specs/methodology/working-files.md § A Follow-up`, `specs/methodology/modeling-constructs.md § Fields`, `specs/methodology/spec-style.md § Markdown`, `specs/methodology/spec-style.md § Blank Lines` |
 | Diagram currency | `canon-specs`, `application-specs` | `specs/methodology/modeling-constructs.md § Diagrams`, `specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync § Materialized Views` |
+| Principles held | `canon-specs`, `application-specs` | `specs/AGENTS.md § Constitutional Principles` |
 
 Each audit reads its unit against every rule that the sections in its Enforces column state, or against the part of a section that the audit's text names (`specs/methodology/scope.md § Rules and Skills`). What an audit's own text adds is how to read, what is easy to miss, and how a finding is fixed (`specs/methodology/skills.md § Authoring a Skill`).
 
@@ -202,6 +203,12 @@ Of `specs/methodology/working-files.md § The Working Files`, the paragraphs on 
 
 Run this audit only once the script's diagram check passes. If the check fails, the work is fixing the citations, and there is nothing yet to compare. Then render the diagram through `.ai/skills/author-mermaid-diagram/`, and read every section the diagram's Sources list names. Read the picture against those sections, each label against the diagram's host file, and the list against where each thing the diagram draws lives. A source the uncommitted changes edited, read in their diff against the last commit, is where to look first. Of `specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync § Materialized Views`, this audit reads the paragraph on a diagram. A picture saying something its sources do not takes the report row for a summary that disagrees with what it summarizes. A source missing from the list, or a listed section that is only a summary of the home or broader than `specs/methodology/modeling-constructs.md § Diagrams` asks, takes the row for a required thing that is absent or sits on the wrong side.
 
+### Principles held
+
+This audit makes each semantic check whose Carried Out By names it, among those standing under `specs/AGENTS.md § Constitutional Principles` and under each principle. An audit names no design, so it cannot read what a change replaced, and it reads the files as they stand. What is easy to miss:
+- a unit amended rather than written, a clause or a case wedged beside text left as it was, each sentence of which reads true on its own;
+- a rule below the principles relaxing one by an exception for its own case, naming no principle.
+
 ## The report
 
 A run states the unit it covered and gives a verdict on it: current, current with named fixes, or drifted. A run in a design's apply reports its findings as any run does, and the builder triages them against the design's changes, as `specs/AGENTS.md § Design, Refactor, Refine § An Audit` has an audit read. Each finding is a row, in the shape this section gives for its kind of defect.
@@ -254,6 +261,7 @@ The unit each audit reads at a time:
 | Skill form | `specs/methodology/skills.md`, each registered skill, the code the skills share, each unregistered skill `--list-candidates` lists, the states of `specs/methodology/design-workflow.md § The Order of a Design's Work`, the Check Role records of `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles`, and each section a record section of `Script Checks` or `Semantic Checks` stands under |
 | Working-file form | `.ai/follow-ups.md` |
 | Diagram currency | per diagram, with every section its Sources list names |
+| Principles held | every spec, `specs/AGENTS.md` and each skill's files, each check it makes reading them by the Unit its record gives |
 
 `specs/architecture.md` roots the tree over the whole of `specs/`, so a directory summary run over it reaches `specs/index.md` and `specs/application/index.md`. `specs/index.md` sits above every other architecture-rooted tree, and `specs/application/index.md` above the application's.
 

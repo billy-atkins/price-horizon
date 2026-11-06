@@ -1,6 +1,119 @@
 # Spec of Record: Agent Instructions
 
-This file is the entry point to Spec of Record for these specs. Read it before any work on a file in Spec of Record's scope (`specs/methodology/scope.md § What Spec of Record Governs`). It sends each change to the procedure that governs it, and it holds the rules that reach every author. Read `specs/methodology/glossary.md` next, before anything else (`specs/methodology/scope.md § Progressive Disclosure`). `specs/architecture.md` describes the specs as a whole.
+This file is the entry point to Spec of Record for these specs. Read it before any work on a file in Spec of Record's scope (`specs/methodology/scope.md § What Spec of Record Governs`). It holds the constitutional principles, which rank above every other rule of Spec of Record. It sends each change to the procedure that governs it, and it holds the rules that reach every author. Read `specs/methodology/glossary.md` next, before anything else (`specs/methodology/scope.md § Progressive Disclosure`). `specs/architecture.md` describes the specs as a whole.
+
+## Constitutional Principles
+
+A constitutional principle (`specs/methodology/glossary.md`) is the highest level of rule in Spec of Record, and every other rule, a specification rule and an operating rule alike, is subordinate to it. It binds every agent and every file in Spec of Record's scope, code included. It is ambient: it always applies, and a place applying it needs no citation of it. Whether a place may cite it is left to the rules on which citations are allowed: `specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed` for the files its table names, and `specs/methodology/skills.md § Authoring a Skill` for a skill's text. No rule, skill or instruction below the principles relaxes one, exempts itself from one or overrides one.
+
+A principle stands on its own from its admission and governs all the work after it. An amendment to a constitution stands on its own the same way. The change admitting a principle states it and cites each of its checks wherever a review or a skill is to run that check. It brings no other passage into line. Each passage below the principles that conflicts with the principle is aligned afterward, by a migration the user hands on, spawned as a design or logged as a follow-up (`specs/methodology/working-files.md § A Design Document § Spawning a Change of Its Own`). Until that migration, new work follows the principle wherever such a passage conflicts with it.
+
+A rule may be a constitutional principle only where it meets every requirement this section's table tests. A reader applies each requirement to the rule as stated, its own text and every exception it makes, and never to the canon around it. So no principle needs the canon reconciled to be admitted. The table asks each requirement as one of its questions:
+- **Universal?** The rule holds for every change to every file in scope, with no exception.
+- **Binding rules of every kind?** The rule binds specification rules and operating rules alike, what the files hold and how the work on them is done. A rule reaching only one kind answers false.
+- **Held?** The rule is held, never weighed against the work in hand.
+- **Guarding against a pull?** The rule guards against a pull agents give in to.
+- **Brief with its why?** The rule is stated briefly, with its why.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Hit Policy:** First \
+**Conditions:** Universal?, Binding rules of every kind?, Held?, Guarding against a pull?, Brief with its why?
+
+| Universal? | Binding rules of every kind? | Held? | Guarding against a pull? | Brief with its why? | Stands |
+|---|---|---|---|---|---|
+| true | true | true | true | true | may be admitted among the principles |
+| - | - | - | - | - | keeps its home below the principles |
+
+Importance is none of the table's questions, so importance alone earns a rule no place among the principles, however much rests on it.
+
+### Revise, Never Patch
+
+Every change to a file in scope, the specs, the skills and the code alike, is a revision, and never a patch. A patch is a change wedged into what stood: a clause, an exception, a condition on one path or a case added beside text left as it was, so the result reads as amended rather than written. A revision rewrites a whole unit, as if writing it afresh. The unit is the natural division of the text that holds what the change alters: a sentence, a paragraph, a rule, a section, a record or a method in code. A revision reaches past its unit only to each other unit stating what that unit states. Falling short of the unit is a patch, and running past it rewrites units that are separate for a reason. A set of units is revised as one only where the set is the unit. So a kept history, a design's steers, its log and a check's report among them, has one record as its unit. A change to it revises one record at a time, in the order its records were made, and a record is still being made until its writer hands it on.
+
+Every fix is a revision at its unit, whatever its kind or its size, a tactical fix, a design fix and a nit's fix (`specs/methodology/glossary.md`) among them. The principle changes nothing else its home says of each kind of fix. A fix deciding a case revises the whole rule or section that should decide it and every case like it, and never names the case. A case the specs decide is decided in the specs, and the code is revised from them, as `specs/methodology/code.md § Changing Code` has governed code change only as its specs change. Every change the builder offers the user as an option is a revision, so no steer gives a patch authority. The principle does not reach an option that makes no change, such as leaving text standing or abandoning a design.
+
+The pull this principle resists is the wish to touch as little of what stood as the fix allows. Holding to it keeps the work correct, finished rather than redone, and ready for the next cold agent to carry on. A patch looks finished and is not. A fix naming its case leaves every case it does not list open, for a later round or a later bug to find. The next agent has only the text. A revision costs one research pass and one drafting, once, where a run of patches costs a round each.
+
+Before writing a change, at the moment the pull is strongest, ask whether a cold reader would believe the unit it changes written in one sitting, every case like the one in hand decided by it without being named, and every unit separate from it left as it stood. A change failing that test is a patch, and is revised.
+
+#### Semantic Checks
+
+**Records:**
+  - **Name:** change-revised-whole \
+    **Tests:** each change, read against what it replaced, rewrites whole the unit holding what it alters, and each other unit stating what that unit states, neither falling short of the unit, wedging a clause, an exception, a condition on one path or a case beside what stood, nor running past it into units separate from it, a kept history's earlier records among them, as this section has a change revised \
+    **Reads:**
+      - `canon-specs`
+      - `application-specs`
+      - `code`
+      - `documentation`
+      - `other`
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` Refactor and refine, then the reviews and the approval
+      - `.ai/skills/design-specs/` Check what you wrote, then the post-apply review, the audit and the commit
+      - `.ai/skills/implement-specs/` Design, Refactor, Refine, then the reviews
+      - `.ai/skills/implement-specs/` Check what you wrote, then the post-apply review, the audit and the commit
+
+    **Unit:** per change
+
+  - **Name:** case-decided-whole \
+    **Tests:** each fix deciding a case, read against what it replaced, revises the whole rule or section that should decide it and every case like it, and names no case, as this section has a case decided \
+    **Reads:**
+      - `canon-specs`
+      - `application-specs`
+      - `code`
+      - `documentation`
+      - `other`
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` Refactor and refine, then the reviews and the approval
+      - `.ai/skills/design-specs/` Check what you wrote, then the post-apply review, the audit and the commit
+      - `.ai/skills/implement-specs/` Design, Refactor, Refine, then the reviews
+      - `.ai/skills/implement-specs/` Check what you wrote, then the post-apply review, the audit and the commit
+
+    **Unit:** per fix
+
+  - **Name:** unit-reads-as-written \
+    **Tests:** each unit of text as it stands, where what a change to it replaced cannot be read, reads as written in one sitting rather than amended, as this section has a revision read \
+    **Reads:**
+      - `canon-specs`
+      - `application-specs`
+      - `code`
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` Refactor and refine, then the reviews and the approval
+      - `.ai/skills/implement-specs/` Design, Refactor, Refine, then the reviews
+      - `.ai/skills/audit-specs/` Principles held
+      - `.ai/skills/verify-spec-implementation/` Revise, Never Patch
+
+    **Unit:** per unit
+
+### Semantic Checks
+
+**Records:**
+  - **Name:** principle-meets-the-requirements \
+    **Tests:** each constitutional principle, read as stated, its own text and every exception it makes, meets every requirement this section gives a rule to be one \
+    **Reads:**
+      - `canon-specs`
+
+    **Carried Out By:**
+      - `.ai/skills/audit-specs/` Principles held
+
+    **Unit:** per principle
+
+  - **Name:** no-rule-relaxes-a-principle \
+    **Tests:** no rule, skill or instruction below the principles relaxes a principle, exempts itself from one or overrides one, as this section bars \
+    **Reads:**
+      - `canon-specs`
+      - `application-specs`
+
+    **Carried Out By:**
+      - `.ai/skills/audit-specs/` Principles held
+
+    **Unit:** per rule
 
 ## Writing specs
 
@@ -188,7 +301,7 @@ It reads the design document whole, its problem, its design goals, its design fr
 
 It judges the plan's structure first, by `specs/methodology/working-files.md § Design Plan Step § Step Objective § Semantic Checks [Name: objective-serves-its-goals]`, `specs/methodology/working-files.md § Design Plan Step § Step Objective § Semantic Checks [Name: objective-states-an-outcome]` and `specs/methodology/working-files.md § A Design Document § Frame Outcome § Semantic Checks [Name: outcome-upheld]`, asked of every step Objective and Frame Outcome. A round any of them fails reports those findings alone and judges the design no further. Its reviewer writes in its report's Title the field Stopped At, holding `the structure`, as `specs/methodology/working-files.md § A Check's Report` has a round stopped at the structure marked. A plan whose parts do not hold together fails whatever the rest of its design says, so a round reading the design's whole reach would spend itself on a design that must change first.
 
-Past the structure, it confirms or denies that the design's steps bring its goals, in the context of its frame, to fruition. It confirms or denies too that their Objectives let the implemented design be validated as accomplished, each Objective a state of the applied work that a reviewer can confirm or find unmet. The goals are its yardstick, the frame their context, and the steering decisions settled, not reopened. Its criteria are the plan's steps against the design goals and the design frame, and the canon's rules over the design's own composition, as `§ Design, Refactor, Refine § Settling a Round § The Test` holds every review to them. It looks hardest where the design decides, since that is where defects concentrate. It takes the design through the Design, Refactor, Refine process again, looking for Rube Goldberg machines and Potemkin villages (`specs/methodology/glossary.md`), and for a step patched where it should have been rewritten whole. It challenges whether the goals reach what the problem needs. A finding arguing that a goal misses it or reaches past it, or that the frame misses a place, is sorted as `§ Design, Refactor, Refine § Settling a Round § The Test` sorts it.
+Past the structure, it confirms or denies that the design's steps bring its goals, in the context of its frame, to fruition. It confirms or denies too that their Objectives let the implemented design be validated as accomplished, each Objective a state of the applied work that a reviewer can confirm or find unmet. The goals are its yardstick, the frame their context, and the steering decisions settled, not reopened. Its criteria are the plan's steps against the design goals and the design frame, and the canon's rules over the design's own composition, as `§ Design, Refactor, Refine § Settling a Round § The Test` holds every review to them. It looks hardest where the design decides, since that is where defects concentrate. It takes the design through the Design, Refactor, Refine process again, looking for Rube Goldberg machines and Potemkin villages (`specs/methodology/glossary.md`). It holds the change each step plans, and each round's change where it can read what that change replaced, to `§ Constitutional Principles § Revise, Never Patch § Semantic Checks [Name: change-revised-whole]` and `§ Constitutional Principles § Revise, Never Patch § Semantic Checks [Name: case-decided-whole]`. It holds the plan as it stands to `§ Constitutional Principles § Revise, Never Patch § Semantic Checks [Name: unit-reads-as-written]`. It challenges whether the goals reach what the problem needs. A finding arguing that a goal misses it or reaches past it, or that the frame misses a place, is sorted as `§ Design, Refactor, Refine § Settling a Round § The Test` sorts it.
 
 It judges whether the design's frame is in sync with its steers and its steps, and cites the goals it rests on. It judges whether each Frame Outcome is true of them. It judges these parts against what `specs/methodology/working-files.md § A Design Document` gives each to hold:
 - the Scope, for what the design relies on from each design its Depends On Designs names;
@@ -217,6 +330,7 @@ It reads the applied work against the frozen design and asks, in order:
 - whether the applied work meets each step's Objectives, the standing Objective (`specs/methodology/working-files.md § A Design Document § The Standing Objective`) among them, and changes nothing but the design's changes;
 - whether the applied work achieves each Frame Outcome, by `specs/methodology/working-files.md § A Design Document § Frame Outcome § Semantic Checks [Name: outcome-upheld]`;
 - whether the applied whole delivers the design goals;
+- whether each change the applied work makes holds to `§ Constitutional Principles § Revise, Never Patch § Semantic Checks [Name: change-revised-whole]` and `§ Constitutional Principles § Revise, Never Patch § Semantic Checks [Name: case-decided-whole]`;
 - whether its structure and wording hold, as `§ Design, Refactor, Refine § Refactor` and `§ Design, Refactor, Refine § Refine` judge a draft.
 
 Its criteria are the applied changes against each step's Objectives, the Frame Outcomes, the design goals, the design frame and the specs, and the canon's rules over the design's own composition, as `§ Design, Refactor, Refine § Settling a Round § The Test` holds every review to them. It runs every check `§ Design, Refactor, Refine § Who Checks What and Why § The Scope a Check Runs Over` scopes to the work, over the scope it gives each. It runs the script checks by the `--check-work` of the skill writing the design, the construct checks among them. It counts what the applied work adds or changes, each construct and each prose passage stating part of a rule (`specs/methodology/glossary.md`), in the files `specs/methodology/modeling-constructs.md § Purpose` sets the constructs for, by the count `specs/methodology/modeling-constructs.md § When to Use Which` sets. It reports as a finding each passage written in a form other than the one the count gives it. It reads a change that a `direct-edit` entry logs as the builder's writing. It reads a change in a `user-edit` entry's places as `§ Design, Refactor, Refine § Who Checks What and Why § Whose a Finding Is` has it read. It reopens nothing the design decided.
@@ -410,6 +524,8 @@ A Check Role is one check a design or its work goes through: who makes it, where
       - `specs/methodology/working-files.md § Design Plan Step § Step Objective § Semantic Checks [Name: objective-serves-its-goals]`
       - `specs/methodology/working-files.md § Design Plan Step § Step Objective § Semantic Checks [Name: objective-states-an-outcome]`
       - `specs/methodology/working-files.md § A Design Document § Frame Outcome § Semantic Checks [Name: outcome-upheld]`
+      - `§ Constitutional Principles § Revise, Never Patch § Semantic Checks [Name: change-revised-whole]`
+      - `§ Constitutional Principles § Revise, Never Patch § Semantic Checks [Name: case-decided-whole]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-laid-out]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-settled-once]`
@@ -448,6 +564,9 @@ A Check Role is one check a design or its work goes through: who makes it, where
       - `specs/methodology/working-files.md § Design Plan Step § Step Objective § Semantic Checks [Name: objective-serves-its-goals]`
       - `specs/methodology/working-files.md § Design Plan Step § Step Objective § Semantic Checks [Name: objective-states-an-outcome]`
       - `specs/methodology/working-files.md § A Design Document § Frame Outcome § Semantic Checks [Name: outcome-upheld]`
+      - `§ Constitutional Principles § Revise, Never Patch § Semantic Checks [Name: change-revised-whole]`
+      - `§ Constitutional Principles § Revise, Never Patch § Semantic Checks [Name: case-decided-whole]`
+      - `§ Constitutional Principles § Revise, Never Patch § Semantic Checks [Name: unit-reads-as-written]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-laid-out]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-anchored-in-the-design]`
@@ -479,6 +598,8 @@ A Check Role is one check a design or its work goes through: who makes it, where
 
     **Runs:**
       - `specs/methodology/working-files.md § A Design Document § Frame Outcome § Semantic Checks [Name: outcome-upheld]`
+      - `§ Constitutional Principles § Revise, Never Patch § Semantic Checks [Name: change-revised-whole]`
+      - `§ Constitutional Principles § Revise, Never Patch § Semantic Checks [Name: case-decided-whole]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-laid-out]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-anchored-in-the-design]`
@@ -496,7 +617,9 @@ A Check Role is one check a design or its work goes through: who makes it, where
       - `§ Design, Refactor, Refine § An Audit`
 
     **Runs:**
-      - `none`
+      - `§ Constitutional Principles § Revise, Never Patch § Semantic Checks [Name: unit-reads-as-written]`
+      - `§ Constitutional Principles § Semantic Checks [Name: principle-meets-the-requirements]`
+      - `§ Constitutional Principles § Semantic Checks [Name: no-rule-relaxes-a-principle]`
 
     **Leaves:**
       - Triaging its findings against a design's changes is the builder's, as `§ Design, Refactor, Refine § An Audit` has an audit read.
