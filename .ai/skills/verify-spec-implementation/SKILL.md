@@ -60,4 +60,5 @@ Each check names the section it enforces (`specs/methodology/scope.md § Rules a
 | Governed code and wiring | reading, from `--list-candidates` | `specs/methodology/code.md § Governed Code and Wiring Code` |
 | Tests | reading | `specs/methodology/code.md § Tests` |
 | American English in code | reading the code in every code root | `specs/methodology/code.md § Changing Code` |
+| Revise, Never Patch | reading the code in every code root, by `specs/AGENTS.md § Constitutional Principles § Revise, Never Patch § Semantic Checks [Name: unit-reads-as-written]` | `specs/AGENTS.md § Constitutional Principles § Revise, Never Patch` |
 | The technical overview's account of the code | reading | `specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync § Materialized Views` |
