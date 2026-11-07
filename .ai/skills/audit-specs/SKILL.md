@@ -556,12 +556,12 @@ Each operating rule that leaves no trace in the files the audits read is carried
       - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`
       - the user
 
-  - **Failure:** a differing verdict given no reason \
+  - **Failure:** a change settling short given no reason \
     **Sections:**
       - `specs/AGENTS.md § Design, Refactor, Refine`
 
-    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test` \
-    **Leaves:** the round's Settlement, holding no reason where the builder's verdict differs from the reviewer's or its change settles less than the reviewer's possible fix reaches \
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § Order and Lineage` \
+    **Leaves:** a Settlement holding no Departure Reason where its change settles less than the finding's possible fix reaches, which no field the script compares shows, a departure in verdict, in where a finding lies or in lineage being the script's `departures-reasoned` \
     **Caught By:**
       - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
       - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`

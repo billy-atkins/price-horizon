@@ -1,6 +1,7 @@
 # Design Document
 
 **Name:** {a slug (`specs/methodology/working-files.md § A Design Document`)} \
+**Version:** {1.0.0, then the version the design script works out from the log (`specs/methodology/working-files.md § A Design Document § The Design's Version`)} \
 **Status:** {a state (`specs/methodology/working-files.md § A Design Document § The States It Moves Through`)} \
 **Source:** {the user's words, quoted, or the finding (`specs/methodology/working-files.md § A Design Document`)} \
 **Kind:** {a kind of change (`specs/methodology/working-files.md § A Design Document § The Kinds of Change`)} \
@@ -29,7 +30,8 @@
 
 **Reliances:** {this field only where the design relies on another design (`specs/methodology/working-files.md § A Design Document § Reliance`)}
   - **Design:** {the Name of a design relied on (`specs/methodology/working-files.md § A Design Document § Reliance`)} \
-    **Relies On:** {what the design relies on from it (`specs/methodology/working-files.md § A Design Document § Reliance`)}
+    **Relies On:** {what the design relies on from it (`specs/methodology/working-files.md § A Design Document § Reliance`)} \
+    **Version:** {the version of the design relied on, as it stood when the reliance was stated (`specs/methodology/working-files.md § A Design Document § Reliance`)}
 
 ### Assessed Areas
 

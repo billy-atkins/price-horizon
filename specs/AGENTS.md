@@ -194,7 +194,7 @@ The frame's scope, the cases the change governs, is the actual scope of the chan
 
 Each area the sweep's assessments find bearing on the design goes where `specs/methodology/working-files.md § A Design Document § Assessed Area` sends it. Where an area goes is decided as `§ Design, Refactor, Refine § Who Decides` has the call made. Where the builder would leave out an area whose Impact holds `changes`, an application area of a canon design aside, it brings the assessment and its own reading to the user. The user's answer is a steer (`specs/methodology/working-files.md § Steering Decision`). An area the user leaves out is taken up again only where the goals or the frame change. No such answer sets an Impact. An area is assessed again only as `§ Design, Refactor, Refine § Measure Twice, Cut Once § Research` has an assessment stand. An area research turns up outside the frame takes the route `§ Design, Refactor, Refine § Settling a Round § The Test` gives a place outside the frame.
 
-The Frame Outcomes are settled before the draft, so that the draft is judged by the Frame Outcomes, rather than the Frame Outcomes fitted to the draft. Work the builder would add as the design goes on is held to the goals, as a review's findings are. Work that no goal reaches is a change of its own, however convenient folding it in would be. The builder hands that change to the user to spawn or log, as `specs/methodology/working-files.md § A Design Document § Spawning a Change of Its Own` has it, unless the user first widens the goals.
+The Frame Outcomes are settled before the draft, so that the draft is judged by the Frame Outcomes, rather than the Frame Outcomes fitted to the draft. Work the builder would add as the design goes on is held to the goals, as a review's findings are. Work that no goal reaches is a change of its own, however convenient folding it in would be. The builder hands that change to the user to spawn or log, as `specs/methodology/working-files.md § A Design Document § Spawning a Change of Its Own` has it, unless the user first widens the goals. A line of fixes reaching a tertiary finding or place stops there for the user's call, as `§ Design, Refactor, Refine § Settling a Round § Order and Lineage` has it. So no line creeps past the goals the user chose.
 
 #### Whether the Goals and the Frame Name a Mechanism
 
@@ -239,7 +239,7 @@ This section states what a change does, whatever activity makes it: a steer, a r
 
 A change at the goals reaches the research too. A cold agent assesses afresh each area an assessment names a changed goal for, and, for a goal added, runs that goal's Searches and assesses each area they match. Every other assessment stands. A change at the Scope has the research made again over the whole design.
 
-A material change at the goals or the frame, one altering what a part decides, is the user's. It is recorded as a steer, whatever prompted it, one found at `§ Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Group` or in the revision of what waited among them. Which reports, and so which Misses, still bind the design after its `steer` entry is set by `specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record`. A change leaving every decision as it stands, a tactical fix or a Refine rewording among them, rebuilds nothing. The change itself begins no phase and sets back no run. A send-back, and a reassessment deciding other than go on, begin a phase, as `specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record` has a phase begin. A send-back and every reassessment set back runs, as `specs/methodology/design-workflow.md § The Order of a Design's Work § Facts` has them set back.
+A material change at the goals or the frame, one altering what a part decides, is the user's. It is recorded as a steer, whatever prompted it, one found at `§ Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Group` or in the revision of what waited among them. A steer unbinds no report: which reports, and so which Misses, bind the design is set by its major version, as `specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record` has it. A change leaving every decision as it stands, a tactical fix or a Refine rewording among them, rebuilds nothing. The change itself begins no phase and sets back no run. A send-back, and a reassessment deciding other than go on, begin a phase, as `specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record` has a phase begin. A send-back and every reassessment set back runs, as `specs/methodology/design-workflow.md § The Order of a Design's Work § Facts` has them set back.
 
 Rebuilding from the changed part down costs one research pass and one drafting. A patch instead leaves parts built from what the change replaced, and later rounds find each one. A build tool works the same way, rebuilding each target after the targets it depends on.
 
@@ -251,7 +251,7 @@ Reading and searching to find what a change reaches, or what the design must fol
 
 The builder chooses what to research: its Searches, for a rule's reach, for the frame's sweep and for what restates a change, and the places it knows to read, by the reach of its zoom-out (`§ Design, Refactor, Refine § Measure Twice, Cut Once § The Zoom-Out`). It hands them to a cold agent, as `§ Design, Refactor, Refine § A Handed-off Judgment` has a judgment handed off, with the design document and a brief naming the research's cause. The cold agent records the places the builder named in its report's Reading. It runs the Searches and reads each matched and named place. It records a Read Assessment of each area within them (`specs/methodology/working-files.md § A Check's Report § Read Assessment`). The builder designs from the assessments, stating a step's Objectives from them. So the builder's context holds what bears on the design, and none of the text that does not. Whatever else the builder reads, the canon it applies, a review's report or a finding's evidence, is its own reading, and sets nothing.
 
-A place is assessed once, and its assessment stands. A place is first assessed when the builder researches it. A place a review's finding names that no assessment covers is first assessed as that finding is settled, that place alone, as `§ Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Group` has it. An area already assessed is assessed again only where a change at the goals or the Scope reaches it, as `§ Design, Refactor, Refine § Measure Twice, Cut Once § The Order of a Design's Parts` has a change reach the research, or where a review's finding shows the area's assessment wants a new perspective. The builder's brief then names the change or the finding. So a finding feeds an assessment, and an assessment the design, never the design an assessment. A step's revision, and a round's settlement leaving the goals and the Scope as they stand, assess nothing again but on such a finding. The frame freezes at the plan's approval, as `§ Design, Refactor, Refine § The Adversarial Review § The Plan's Approval` has a change to the frame undo the approval. An assessment made after it reaches the design only as a finding the user settles, as `§ Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Group` has it.
+A place is assessed once in each major version of the design, and its assessment stands within it. A reassessment changing the design starts the research afresh against the rebuilt goals, an earlier major version's assessments no longer standing (`§ Design, Refactor, Refine § Converging, or Not § The Runs`). A place is first assessed when the builder researches it. A place a review's finding names that no assessment covers is first assessed as that finding is settled, that place alone, as `§ Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Group` has it. An area already assessed is assessed again only where a change at the goals or the Scope reaches it, as `§ Design, Refactor, Refine § Measure Twice, Cut Once § The Order of a Design's Parts` has a change reach the research, or where a review's finding shows the area's assessment wants a new perspective. The builder's brief then names the change or the finding. So a finding feeds an assessment, and an assessment the design, never the design an assessment. A step's revision, and a round's settlement leaving the goals and the Scope as they stand, assess nothing again but on such a finding. The frame freezes at the plan's approval, as `§ Design, Refactor, Refine § The Adversarial Review § The Plan's Approval` has a change to the frame undo the approval. An assessment made after it reaches the design only as a finding the user settles, as `§ Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Group` has it.
 
 #### The Zoom-Out
 
@@ -279,7 +279,7 @@ The builder makes its self-review (`specs/methodology/glossary.md`) before each 
 
 Before its other checks, it asks each question `specs/methodology/working-files.md § A Check's Report § Kinds of Builder Check [Check Kind: miss's question]` requires of it. It reads what the review that follows reads, as that review's record in `§ Design, Refactor, Refine § Who Checks What and Why § Check Roles` cites its Work, fresh as `§ Design, Refactor, Refine § Reading Fresh` has a file read. It makes the judgments of the review that follows, as that review's section sets them, and before an adversarial round it judges the plan's structure first, as `§ Design, Refactor, Refine § The Adversarial Review` has the structure judged. At the apply, it runs the checks the post-apply review runs over the work, as `§ Design, Refactor, Refine § Who Checks What and Why § The Scope a Check Runs Over` scopes them, the construct checks of the skill writing the design among them, run on the applied text. At the apply, too, it counts what the applied text adds or changes, as `§ Design, Refactor, Refine § The Post-Apply Review` has the count made. Before the plan's approval it counts nothing (`specs/methodology/working-files.md § Design Plan Step § Step Objective`). It reports each thing it finds as a Finding quoting its evidence, as the review that follows reports one (`specs/methodology/working-files.md § A Check's Report § Finding`). Each passage written in a form other than the one the count gives it is such a Finding.
 
-Each pass proving the fixes after a check runs over the scope `§ Design, Refactor, Refine § Who Checks What and Why § The Scope a Check Runs Over` gives a pass. Its Reads hold that scope, and its count, its traces and its differential tests run over it. The builder fixes each flaw and each harmful nit a pass finds. The next pass runs over those fixes. A flaw whose fix would change the plan goes to the user instead, as `specs/methodology/design-workflow.md § The Order of a Design's Work § The Apply` has a pass's finding settled. Its reading of each place a Miss of the phase names, and each other Builder Check required of it, stand.
+Each pass proving the fixes after a check runs over the scope `§ Design, Refactor, Refine § Who Checks What and Why § The Scope a Check Runs Over` gives a pass. Its Reads hold that scope, and its count, its traces and its differential tests run over it. The builder fixes each flaw and each harmful nit a pass finds whose fix `§ Design, Refactor, Refine § Settling a Round § Whose Fix It Is` gives the builder, and the next pass runs over those fixes. Every other fix goes to the user, as `specs/methodology/design-workflow.md § The Order of a Design's Work § The Apply` has a pass's finding settled. Its reading of each place a Miss of the phase names, and each other Builder Check required of it, stand.
 
 Beside those, it makes the checks only the builder makes, each as `specs/methodology/working-files.md § A Check's Report § Kinds of Builder Check` has it, where that table requires it. Once a round's change is made, it reads each place named by a Miss (`specs/methodology/working-files.md § A Check's Report § Miss`) the phase's record holds, this round's among them where the record holds its report, since that miss shows what its reading lacked. It traces each mechanism as `§ Design, Refactor, Refine § Measure Twice, Cut Once § Tracing a Mechanism` has it. For code, it runs the local environment's tasks, as `specs/methodology/spec-placement.md § Environments` sets. At drafting, it reads the reach of the wording the design retires, by its design script's `--show-reach`. Before the post-apply review, it runs its design script's `--check-retired-wording` (`specs/methodology/working-files.md § Retired Phrase`). It runs `--check-changed-files` then too, for any file changed that is none of the design's changes (`specs/methodology/working-files.md § A Design Document § Applying and Committing`).
 
@@ -404,7 +404,12 @@ The builder counts each run apart. It counts a round's design flaws by the user'
 - the run of send-backs, applies in a row that each ended with the design sent back, at its length `send-back run length`, means the plan is not converging on what can be applied;
 - the run of passes, passes of the builder's self-review in a row over a check's fixes after the apply that each found a flaw or a harmful nit, at its length `pass run length`, means the fixes are not converging, and the plan rather than the writing may be wrong.
 
-The run of send-backs and the run of passes are the only runs counting an apply's cycles, since `specs/methodology/design-workflow.md § The Order of a Design's Work § The Apply` runs a post-apply round or an audit again only on the user's choice. A run of passes reaching its length brings the user to `specs/methodology/design-workflow.md § The Order of a Design's Work § The Apply [States.State: choosing after the passes]`. Accepting the last pass's fixes is among the choices there, since perfect work is rarely reached at a cost worth paying. Any other run reaching its length has the builder stop revising and take the design to the user, and the two step back and reassess. The builder brings its recommendation, which serves the goals as `§ Design, Refactor, Refine § Who Decides` has every recommendation serve them. Where the run is of design flaws, the recommendation holds its change to the frame, or to a goal where `§ Design, Refactor, Refine § Who Decides` has a goal changed. The builder also brings its case for why the work should now converge. The reassessment sets back the runs it reassesses, whatever it decides, then decides. A rescope, a split or a different approach changes the goals or the frame, and the design is rebuilt from that change with what was learned, as `§ Design, Refactor, Refine § Measure Twice, Cut Once § The Order of a Design's Parts` has a change rebuild. Abandoning the design ends it. Going on changes nothing, and the work goes on from where it stood.
+The run of send-backs and the run of passes are the only runs counting an apply's cycles, since `specs/methodology/design-workflow.md § The Order of a Design's Work § The Apply` runs a post-apply round or an audit again only on the user's choice. A run of passes reaching its length brings the user to `specs/methodology/design-workflow.md § The Order of a Design's Work § The Apply [States.State: choosing after the passes]`. Accepting the last pass's fixes is among the choices there, since perfect work is rarely reached at a cost worth paying. A reassessment is reached in two ways. Any other run reaching its length has the builder stop revising and take the design to the user. The user may also ask for one while the design is in-progress, approved or applying, the choice after passes that did not converge among them. Either way, the builder and the user step back and reassess. A design before its approval is reassessed where it stands. A design approved or applying goes back to in-progress to be reassessed as its send-backs are, by the one route `specs/methodology/working-files.md § A Design Document § The States It Moves Through` gives the user's word. A check then running is cut short. Its findings are settled and its entry appended as `specs/methodology/working-files.md § Design Log Entry § When an Entry Is Appended` has a check a reassessment interrupts settled, and its report is read as `specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record` reads a check cut short.
+
+The builder brings its recommendation, which serves the goals as `§ Design, Refactor, Refine § Who Decides` has every recommendation serve them. Where the run is of design flaws, the recommendation holds its change to the frame, or to a goal where `§ Design, Refactor, Refine § Who Decides` has a goal changed. The builder also brings its case for why the work should now converge. The reassessment sets back the runs it reassesses, whatever it decides, then decides:
+- **A rescope, a split or a different approach.** It changes the design, and starts a major version of it (`specs/methodology/working-files.md § A Design Document § The Design's Version`). The design is made afresh from its goals, as if a new design were spawned with what the old one learned. Every change made to that point is open to removal or adjustment. Its uncommitted changes are kept as a send-back keeps them (`specs/methodology/working-files.md § A Design Document § The States It Moves Through § A Send-back`), as the draft the rebuilt plan's apply revises or removes. Its research runs again against the rebuilt goals, as `§ Design, Refactor, Refine § Measure Twice, Cut Once § Research` has a major version researched afresh. Its lines of fixes and its runs count afresh, as `§ Design, Refactor, Refine § Settling a Round § Order and Lineage § A Finding's Order` orders a finding landing on an earlier major version's change. A design relying on it is to revise (`specs/methodology/working-files.md § A Design Document § Blocked and to Revise`).
+- **Abandoning.** It ends the design.
+- **Going on.** It makes nothing afresh, and sets back only the runs it reassessed. The work goes on by the route `specs/methodology/design-workflow.md § The Order of a Design's Work § The Work of a Design` gives it. A design before its approval returns to changing, or to framing while its goals and frame are not yet agreed. A design approved or applying returns to approved, keeping its approval, and its apply runs again over its kept changes once the user gives the go-ahead. The check it cut short runs again in its turn.
 
 ### Each Review's Model and Effort
 
@@ -423,10 +428,11 @@ The builder proposes a new branch's name and what the branch starts from. The br
 A call the canon gives the user stays the user's, and is settled as its home sets. The user's calls include:
 - a design flaw, as `§ Design, Refactor, Refine § Converging, or Not § A Design Flaw` has one triaged;
 - a review observation;
-- a breach in text the design only reads, as `§ Design, Refactor, Refine § Settling a Round § The Test` sorts one;
+- the fix of a finding that `§ Design, Refactor, Refine § Settling a Round § Whose Fix It Is` gives the user, before the apply and after it, a tertiary finding's fix and an unjustified finding's among them;
 - a finding the builder cannot settle within the goals and the frame, as `§ Design, Refactor, Refine § Settling a Round § The Round at Its Causes` has it brought;
 - a steer a round's change presses on, as `specs/methodology/working-files.md § Steering Decision § Revisiting a Steer` has it decided;
 - a post-apply review's finding lying in the plan, as `§ Design, Refactor, Refine § The Post-Apply Review § Placing a Finding` places one;
+- how each finding `specs/methodology/working-files.md § A Design Document § Changes After Approval` settles as it settles an audit's finding is settled: a post-apply review's finding outside the Target or handed on, and a self-review's finding left unfixed;
 - how each audit finding `§ Design, Refactor, Refine § Settling a Round § The Test` keeps is settled, as `specs/methodology/working-files.md § A Design Document § Changes After Approval` has it;
 - the design goals and the design frame, agreed to or adjusted as `§ Design, Refactor, Refine § The Goals and the Frame` has them, each answer a steer;
 - leaving out an area whose Impact holds `changes`, as `§ Design, Refactor, Refine § The Goals and the Frame` has the call brought;
@@ -435,10 +441,11 @@ A call the canon gives the user stays the user's, and is settled as its home set
 - the model and the effort each review runs on, as `§ Design, Refactor, Refine § Each Review's Model and Effort` has them chosen;
 - a construct's close call, where the count `specs/methodology/modeling-constructs.md § When to Use Which` sets leaves either form arguable;
 - the choice after passes that did not converge, as `specs/methodology/design-workflow.md § The Order of a Design's Work § The Apply [States.State: choosing after the passes]` has it made;
+- a reassessment, asked for while the design is in-progress, approved or applying, and what it decides, as `§ Design, Refactor, Refine § Converging, or Not § The Runs` has one reached and decided;
 - the choice of another audit or the commit, as `specs/methodology/design-workflow.md § The Order of a Design's Work § The Apply [States.State: awaiting the commit]` has it made.
 
 Every other call is the builder's, made on its own recommendation. Among them are:
-- an implementation flaw before approval;
+- the fix of a finding that `§ Design, Refactor, Refine § Settling a Round § Whose Fix It Is` gives the builder, before the apply and after it;
 - whether a nit is harmful, before the apply and after it, as `§ Design, Refactor, Refine § Converging, or Not § A Nit` has it judged;
 - where an area goes that the user's calls leave to it.
 
@@ -529,6 +536,9 @@ A Check Role is one check a design or its work goes through: who makes it, where
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-laid-out]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-settled-once]`
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: settlements-justified]`
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: orders-follow-their-lineage]`
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: departures-reasoned]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-keys-name-records]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-anchored-in-the-design]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]`
@@ -570,6 +580,7 @@ A Check Role is one check a design or its work goes through: who makes it, where
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-laid-out]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-anchored-in-the-design]`
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-keys-name-records]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: reads-assessed]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: places-in-their-form]`
@@ -603,6 +614,7 @@ A Check Role is one check a design or its work goes through: who makes it, where
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-laid-out]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-anchored-in-the-design]`
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-keys-name-records]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: reads-assessed]`
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: places-in-their-form]`
@@ -639,7 +651,7 @@ A Check Role is one check a design or its work goes through: who makes it, where
 
 ### Reading the Earlier Reports
 
-The earlier reports a review and the builder read are the reports binding the design, as `specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record` has a report bind, self-reviews among them, in whatever phase they stand. Each is read for what its check found and how its findings were settled. A report no longer binding the design is read only as research an Assessed Area cites, since what it read is no longer there. Where a report's settlement and the design differ, the design governs.
+The earlier reports a review and the builder read are the reports binding the design, as `specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record` has a report bind, self-reviews among them, in whatever phase they stand. Each is read for what its check found and how its findings were settled. A report no longer binding the design is read only as the record of how the design came to be, since what it read is no longer there. An earlier major version's report is read as the account of how the design came to its reassessment. Where a report's settlement and the design differ, the design governs.
 
 ### Weighing a Review's Findings
 
@@ -647,7 +659,7 @@ The adversarial review and the post-apply review each weigh their findings befor
 
 In the collecting pass, the reviewer collects every issue it finds. It marks each finding, and sets each review observation apart as `§ Design, Refactor, Refine § Who Checks What and Why § What a Review Reads` has it.
 
-In the weighing pass, the reviewer weighs each finding by `§ Design, Refactor, Refine § Settling a Round § The Test`. A finding it keeps is reported with its rationale and a possible fix. The rationale shows what goes wrong in the work if the finding is left. A finding landing on text an earlier round's change added names that round in its rationale. Where the finding's fix is a tactical fix (`specs/methodology/glossary.md`), the possible fix is that tactical fix. Otherwise the possible fix names the decision the finding touches and what that decision's revision must deliver. The reviewer leaves the revision to the builder, which makes it at the round's causes, as `§ Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose` has it. A finding it drops is reported as dropped, with the reason the reviewer changed its mind. A review observation is reported with the reviewer's reason for judging the work wrong, and with no fix.
+In the weighing pass, the reviewer weighs each finding by `§ Design, Refactor, Refine § Settling a Round § The Test`. A finding it keeps is reported with its rationale and a possible fix. The rationale shows what goes wrong in the work if the finding is left. A finding landing on an earlier change of the design's current major version names that change in its Lands On, as the builder's lineage traces it, whatever check made it: a round's change, a triage's fix, a nit's fix or a pass's (`specs/methodology/working-files.md § A Check's Report § Finding`). Where the finding's fix is a tactical fix (`specs/methodology/glossary.md`), the possible fix is that tactical fix. Otherwise the possible fix names the decision the finding touches and what that decision's revision must deliver. The reviewer leaves the revision to the builder, which makes it at the round's causes, as `§ Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose` has it. A finding it drops is reported as dropped, with the reason the reviewer changed its mind. A review observation is reported with the reviewer's reason for judging the work wrong, and with no fix.
 
 Between its passes, the reviewer reads the earlier reports, as `§ Design, Refactor, Refine § Reading the Earlier Reports` has them read. A finding the builder dropped in an earlier round among them is raised again only with an argument that round's settlement did not weigh.
 
@@ -659,14 +671,13 @@ A round's settling ends with its report holding its Causes and its Settlement, a
 
 #### The Test
 
-The builder addresses a review finding only where this test needs it addressed, or where the user asked for it. Each review's criteria, as its section states them, hold the design to its goals, its frame and its steps. They hold it to the canon's rules over the design's own composition alone, as the design's goals and frame may change those rules. So a breach in text the design only reads bears on no review's criteria. A design changing how the work is done is held to the rules `specs/methodology/working-files.md § A Design Document § A Form the Methodology Is Still Adding` holds it to.
-
-The test sorts each item a review reports, and each finding of an audit or of the builder's self-review it is applied to, by what the item bears on, never by the label its writer gave it. Its questions ask:
+The test sorts each item a review reports, and each finding of an audit or of the builder's self-review it is applied to, by what the item bears on, never by the label its writer gave it. Each review's criteria, as its section states them, hold the design to its goals, its frame and its steps. They hold it to the canon's rules only over the design's own composition, as the design's goals and frame may change those rules. So a breach in text the design only reads bears on no review's criteria, and justifies nothing. A design changing how the work is done is held to the rules `specs/methodology/working-files.md § A Design Document § A Form the Methodology Is Still Adding § A Design Changing the Process` holds it to. Whatever the test sorts a finding to, its Settlement holds the finding's two indicators (`specs/methodology/working-files.md § A Check's Report § Settlement`), and `§ Design, Refactor, Refine § Settling a Round § Whose Fix It Is` decides whose call its fix is. Its questions ask:
 - **An audit's finding not caused?** Whether the item is an audit's finding that the builder's triage holds the design did not cause, as `§ Design, Refactor, Refine § An Audit` has a finding triaged.
 - **Anchored in.** Where the item is anchored:
   - `the plan`, where it bears on a stated goal, Frame Outcome or step Objective inside the frame;
   - `the work's breach`, where it shows the design's own composition breaking the canon. Before the apply, that is text the design writes or its steps would leave wrong. After it, that is a breach `§ Design, Refactor, Refine § Who Checks What and Why § Whose a Finding Is` makes the work's, wherever its text lies, a place outside the frame taking the route this section gives one;
   - `neither`, where it bears on neither.
+- **Justified?** Whether a goal of the design can be named that the item's fix helps deliver, a goal the item shows wrong among them, or a rule of the canon that the design's own text breaks without the fix, and how the fix does so said specifically, however the item is framed.
 - **Goals or frame shown wrong?** Whether it shows the goals or the frame wrong, a goal missing what the problem needs or reaching past it among them, as `§ Design, Refactor, Refine § Converging, or Not § A Design Flaw` has a design flaw.
 - **Bloat?** Whether it asks for mechanism, such as a state, a field, a flag, a rule or a check, to cover a case that no goal's or Objective's words name, or a risk that a guard already in the canon or the design covers.
 - **May merit a change of its own?** Whether the builder judges that what it asks for may merit a change of its own.
@@ -675,31 +686,91 @@ The test sorts each item a review reports, and each finding of an audit or of th
   - an Objective that cannot be confirmed;
   - a case that a goal's or an Objective's own words name, missed by the work;
   - a reference or a value that is wrong.
-- **A call the user's?** Whether `§ Design, Refactor, Refine § Who Decides` gives the user the call it raises, a breach in text the design only reads among them.
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
 **Hit Policy:** First \
-**Conditions:** An audit's finding not caused?, Anchored in, Goals or frame shown wrong?, Bloat?, May merit a change of its own?, Shows a harm?, A call the user's? \
+**Conditions:** An audit's finding not caused?, Anchored in, Justified?, Goals or frame shown wrong?, Bloat?, May merit a change of its own?, Shows a harm? \
 **Input Values:**
   - Anchored in: "the plan", "the work's breach", "neither"
 
-| An audit's finding not caused? | Anchored in | Goals or frame shown wrong? | Bloat? | May merit a change of its own? | Shows a harm? | A call the user's? | The Item |
+| An audit's finding not caused? | Anchored in | Justified? | Goals or frame shown wrong? | Bloat? | May merit a change of its own? | Shows a harm? | The Item |
 |---|---|---|---|---|---|---|---|
 | true | - | - | - | - | - | - | not caused |
-| - | the work's breach | - | - | - | - | - | a review finding |
-| - | the plan | true | - | - | - | - | a design flaw |
-| - | the plan | - | true | true | - | - | a review observation |
-| - | the plan | - | true | - | - | - | dropped |
-| - | the plan | - | - | - | true | - | a review finding |
-| - | neither | - | - | - | - | true | a call the user's |
+| - | the work's breach | true | - | - | - | - | a review finding |
+| - | the plan | true | true | - | - | - | a design flaw |
+| - | the plan | - | - | true | true | - | a review observation |
+| - | the plan | - | - | true | - | - | dropped |
+| - | the plan | true | - | - | - | true | a review finding |
 | - | neither | - | - | - | - | - | a review observation |
 | - | - | - | - | - | - | - | dropped |
 
-A review finding and a design flaw are needed. The builder never drops a design flaw: it goes to the user, as `§ Design, Refactor, Refine § Who Decides` has the call brought, as do each call the user's and each review observation. An audit's finding the design did not cause is no review's, and is settled as `specs/methodology/working-files.md § A Design Document § Changes After Approval` settles one. A dropped finding holds no mark, so no count by mark, no Fact and no run reads it. It is listed as dropped in the round's settlement, or in the builder's triage of an audit, and counted in Dropped (`specs/methodology/working-files.md § Design Log Entry § What a Check Counts`).
+A review finding and a design flaw are needed, since each is justified. The builder never drops a design flaw: it goes to the user, as `§ Design, Refactor, Refine § Who Decides` has the call brought, as does each review observation, a breach in text the design only reads among them. An audit's finding the design did not cause is no review's, and is settled as `specs/methodology/working-files.md § A Design Document § Changes After Approval` settles one. A dropped finding holds no mark, so no count by mark, no Fact and no run reads it. It is listed as dropped in the round's settlement, or in the builder's triage of an audit, and counted in Dropped (`specs/methodology/working-files.md § Design Log Entry § What a Check Counts`).
 
 One rule routes a place outside the frame, whether the builder's research or a review's finding brings it. A place outside the frame that the change leaves wrong is handed on where the design already hands its work on, as `specs/methodology/working-files.md § A Check's Report § Where a Finding Lies` has a finding handed on. Any other place the change leaves wrong is a flaw in the frame. So is a case the change leaves right that a stated goal's own words reach. The builder brings such a flaw to the user, as a design flaw. Any other place outside the frame is nothing to the design. An argument that the frame take it in is a review observation, brought to the user as `§ Design, Refactor, Refine § Who Decides` has one brought.
 
-The builder weighs each finding the reviewer kept and each it dropped, taking in the reviewer's rationale and its possible fix. Where the builder's verdict on a finding differs from the reviewer's, the round's settlement says why. So it does where the round's change settles less than the reviewer's possible fix reaches.
+The builder weighs each finding the reviewer kept and each it dropped, taking in the reviewer's rationale and its possible fix. It weighs a departure from the reviewer as `§ Design, Refactor, Refine § Settling a Round § Order and Lineage` has one weighed.
+
+#### Order and Lineage
+
+Each finding a check holds, and each place changed by a change the builder makes, has an order, primary, secondary or tertiary, and a lineage, what it descends from. A finding's lineage is the earlier change of the design's current major version it lands on, if it lands on one. A changed place's lineage is the finding it settles, or the place of its own change it follows, as `specs/methodology/working-files.md § A Check's Report § Proposed Change § Changed Place` has it. So a line of fixes is read from the reports and never restated from memory. The builder assigns each as it settles the check, whatever check wrote the finding, before it makes or proposes any change. It records a finding's order and lineage in its Settlement (`specs/methodology/working-files.md § A Check's Report § Settlement`), and a place's in its Changed Place (`specs/methodology/working-files.md § A Check's Report § Proposed Change § Changed Place`).
+
+Where the builder departs from a finding's writer, in its verdict, in where it lies or in its lineage, the finding's order and its fix's authority are worked out from the stricter reading. The stricter reading is the one whose lineage lies deeper, whose placing is in the plan, or that gives the user the call. So a departure never makes an order shallower. Nor does it move a fix to the builder's own authority. The Settlement records the builder's reason for each departure, and for a change settling less than the finding's possible fix reaches.
+
+At a tertiary finding, or at a change reaching a tertiary place, the builder stops before it makes or proposes any change there, since `§ Design, Refactor, Refine § Settling a Round § Whose Fix It Is` gives the user its fix. It brings the user the call, as `§ Design, Refactor, Refine § Who Decides` has it brought, with the options `specs/methodology/working-files.md § A Check's Report § Settlement § User Decisions` marks as a Tertiary Option. The stop keeps a design from scope creep (`specs/methodology/glossary.md`). A place stating or reading the changed decision is never tertiary, so no tertiary call stops a change short of a unit `§ Constitutional Principles § Revise, Never Patch` has it reach.
+
+##### A Finding's Order
+
+A finding's lineage decides its order before what it bears on, whether it bears on the work a goal needs or on the design's own breach of a rule. Its questions mean these:
+- **Lands on a counted fix?** Whether it lands on a fix an earlier finding of the design's current major version drew, before the apply and after it. A tertiary finding's fix, made once the user widens the goals to take its line in, counts for no line. So a finding landing on it is primary, as is a finding landing on a change of an earlier major version. A steer changing the goals for other work leaves every line counting.
+- **On a secondary finding's fix?** Whether the fix it lands on was drawn by a secondary finding. A fix drawn by findings of more than one order is taken at the shallowest of them.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Lands on a counted fix?, On a secondary finding's fix?
+
+| Lands on a counted fix? | On a secondary finding's fix? | Order |
+|---|---|---|
+| false | - | primary |
+| true | false | secondary |
+| true | true | tertiary |
+
+##### A Changed Place's Order
+
+Each place a change changes is ordered by what it changes. So is a place a settlement changes with no cause carrying the change, as an audit's triage, a nit fixed after the apply and a pass's fix do. A place names its lineage as `specs/methodology/working-files.md § A Check's Report § Proposed Change § Changed Place` has it. Its questions mean these:
+- **Changes the decision its findings touch?** Whether the place holds the decision the change's findings touch.
+- **States or reads that decision?** Whether the place states or reads that decision elsewhere, so the change aligns it. A place answering false to both is changed only because an aligning change was made.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Changes the decision its findings touch?, States or reads that decision?
+
+| Changes the decision its findings touch? | States or reads that decision? | Order |
+|---|---|---|
+| true | - | primary |
+| false | true | secondary |
+| false | false | tertiary |
+
+#### Whose Fix It Is
+
+Whose call a finding's fix is, before the apply and after it, an audit's finding and a pass's among them, is decided by what requires the finding, its order and what its fix changes. Its questions mean these:
+- **Another call the user's?** Whether a call `§ Design, Refactor, Refine § Who Decides` gives the user, other than this table's, reaches the finding, a design flaw, a review observation, a finding lying in the plan and the settling of an audit's finding among them.
+- **Justified?** Asked as `§ Design, Refactor, Refine § Settling a Round § The Test` asks it.
+- **Tertiary?** Whether the finding is tertiary, or a change settling it reaches a tertiary place, as `§ Design, Refactor, Refine § Settling a Round § Order and Lineage` orders each.
+- **Its fix changes the plan?** False before the apply, since the rounds before it revise the plan as the builder's work. After the apply, answered as `§ Design, Refactor, Refine § The Post-Apply Review § Placing a Finding` answers it.
+
+Where the builder departs from a finding's writer, each question is answered from the reading `§ Design, Refactor, Refine § Settling a Round § Order and Lineage` gives a departure.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Hit Policy:** First \
+**Conditions:** Another call the user's?, Justified?, Tertiary?, Its fix changes the plan?
+
+| Another call the user's? | Justified? | Tertiary? | Its fix changes the plan? | Fix Authority |
+|---|---|---|---|---|
+| true | - | - | - | the user's |
+| - | false | - | - | the user's |
+| - | - | true | - | the user's |
+| - | - | - | true | the user's |
+| - | - | - | - | the builder's |
+
+Its outcome is one of `specs/methodology/working-files.md § A Check's Report § Settlement § Fix Authorities`. A fix the table gives the user is made only on the user's decision, however its finding is framed. Where a finding is left unfixed, its Settlement records whose call left it, as `specs/methodology/working-files.md § A Check's Report § Settlement` has it.
 
 #### The Round at Its Causes
 
@@ -707,7 +778,7 @@ The builder settles every finding the test keeps within the design goals and the
 
 ##### Group
 
-The builder confirms that each finding's quoted evidence stands in the files by searching for it, before acting on the finding, since a review can be confidently wrong. Before grouping, it reads the earlier reports, as `§ Design, Refactor, Refine § Reading the Earlier Reports` has them read. It hands to a cold agent each place a finding of the round names that no Read Assessment covers, for a first assessment. It hands on too each area a finding shows wants a new perspective, for an assessment again, the brief naming the finding. Each is assessed as `§ Design, Refactor, Refine § Measure Twice, Cut Once § Research` has a place assessed. Before the plan's approval, it takes those assessments into the frame, as `§ Design, Refactor, Refine § The Goals and the Frame` has an assessed area taken in. Only then does it find the round's causes, from the findings, the assessments and the earlier reports. So it judges a flaw's scope from what the places a finding names hold rather than from the line it quotes. In an adversarial round, it reads no place a finding names.
+The builder confirms that each finding's quoted evidence stands in the files by searching for it, before acting on the finding, since a review can be confidently wrong. Before grouping, it reads the earlier reports, as `§ Design, Refactor, Refine § Reading the Earlier Reports` has them read, and assigns each finding its order and lineage from them, as `§ Design, Refactor, Refine § Settling a Round § Order and Lineage` has it. It hands to a cold agent each place a finding of the round names that no Read Assessment of the design's current major version covers, for a first assessment. It hands on too each area a finding shows wants a new perspective, for an assessment again, the brief naming the finding. Each is assessed as `§ Design, Refactor, Refine § Measure Twice, Cut Once § Research` has a place assessed. Before the plan's approval, it takes those assessments into the frame, as `§ Design, Refactor, Refine § The Goals and the Frame` has an assessed area taken in. Only then does it find the round's causes, from the findings, the assessments and the earlier reports. So it judges a flaw's scope from what the places a finding names hold rather than from the line it quotes. In an adversarial round, it reads no place a finding names.
 
 In a post-apply round, the frame stands frozen. A finding naming a new place whose Impact holds `changes` is settled as `specs/methodology/working-files.md § A Design Document § Changes After Approval` settles a finding outside the Target, and goes to the user. A finding naming a new place whose Impact holds `applies` alone is fixed following that place. The builder reads fresh, as `§ Design, Refactor, Refine § Reading Fresh` has a file read, what the round's change rewrites and what that writing follows, a new place among it wherever its assessment is other than `none`. It records that reading in the round's Settling Reads, as `specs/methodology/working-files.md § A Check's Report § The Reading and the Settlement` has it.
 
@@ -717,7 +788,7 @@ Of each finding the test keeps that is marked a design flaw or an implementation
 
 ##### Weigh by the Goals
 
-`§ Design, Refactor, Refine § Settling a Round § The Test` decides which findings are needed, and `§ Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose` the revision each needed finding's cause takes. Of whatever a change the builder would propose adds beyond those revisions, the builder asks one question: does a goal fail in the applied text without it? What no goal fails without, the change leaves out. Each flaw the round holds is settled by the one change the round proposes at its causes, a design flaw once the user has triaged it. Each addition no goal needs is an edge the next round reviews.
+`§ Design, Refactor, Refine § Settling a Round § The Test` decides which findings are needed, each justified by the goal its fix helps deliver or the rule the design's own text breaks without it. `§ Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose` decides the revision each needed finding's cause takes. Of each place a change the builder would propose reaches beyond those revisions, the builder asks the same: does a goal fail in the applied text without it, or does the design's own text break a rule of the canon without it? The change leaves out what neither needs, since each such addition is an edge the next round reviews. It orders what it keeps as `§ Design, Refactor, Refine § Settling a Round § Order and Lineage` orders a change's places. Each flaw the round holds is settled by the one change the round proposes at its causes, a design flaw once the user has triaged it.
 
 ##### Weigh the Steers
 
@@ -727,9 +798,9 @@ The builder weighs the steers that the causes press on, as `specs/methodology/wo
 
 The builder states the round's causes, each flaw's miss beside its cause, and the one change it proposes at them, with each finding's settlement under it. As it states them, it shows the user each Miss of the round with the question or the place it names, and the number of Misses the phase holds. A cause holding only nits is settled as `§ Design, Refactor, Refine § Converging, or Not § A Nit` has nits settled. In a post-apply round, a cause lying in the plan goes to the user, as `§ Design, Refactor, Refine § The Post-Apply Review § Placing a Finding` places a finding. Of the other causes, one whose fix is a tactical fix (`specs/methodology/glossary.md`) has that fix made at every place its defect stands. The settlement gives the reason its fix is a tactical one. Every other cause has the decision it lies in revised by Design, Refactor, Refine from that decision's problem, as `§ Design, Refactor, Refine § Design` starts a draft. The revision is written whole, as `§ Design, Refactor, Refine § Measure Twice, Cut Once § A Rule Written Whole` has a rule written. Each clause wedged in opens a path the next round finds, so a revision made now costs less than the rounds a patch would bring. Where the goals or the frame let findings in, their revision comes first.
 
-A round goes to the user when it holds a call that `§ Design, Refactor, Refine § Who Decides` gives the user, a design flaw or a steer the round's change presses on among them.
+A round goes to the user when it holds a call that `§ Design, Refactor, Refine § Who Decides` gives the user, a design flaw, a steer the round's change presses on or a tertiary finding's fix among them.
 
-The round's change is the least of the revisions at its causes, weighed by what the revised work holds. It is the revision delivering the goals with the fewest rules, as `specs/methodology/glossary.md` has elegance, and with the least text. It is never weighed by how little of the decision as it stands it changes, nor by the text each finding needs. A change removing text, or citing the home that holds the fact, comes before one adding text. Where a finding lands on text that an earlier round's change added, the builder first weighs again, by `§ Design, Refactor, Refine § Settling a Round § The Test`, the finding that change settled. Where that finding is not needed, the least change removes what the earlier change added, which settles both findings. A steer the earlier change carried out is weighed as `specs/methodology/working-files.md § Steering Decision § Revisiting a Steer` has it.
+The round's change is the least of the revisions at its causes, weighed by what the revised work holds. It is the revision delivering the goals with the fewest rules, as `specs/methodology/glossary.md` has elegance, and with the least text. It is never weighed by how little of the decision as it stands it changes, nor by the text each finding needs. A change removing text, or citing the home that holds the fact, comes before one adding text. Where a finding lands on an earlier change, the builder first weighs again, by `§ Design, Refactor, Refine § Settling a Round § The Test`, each finding up the line it lies on, back to the primary finding at its root, as `§ Design, Refactor, Refine § Settling a Round § Order and Lineage` traces a line. Where a finding up the line is not needed, the least change removes what its fix added and each fix below it, which settles every finding on the line from there down. A steer an earlier change carried out is weighed as `specs/methodology/working-files.md § Steering Decision § Revisiting a Steer` has it.
 
 ##### Change and Prove
 
