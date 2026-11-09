@@ -54,7 +54,7 @@ CODE_PLANS = "implement-specs"  # the plans folder of the designs changing code,
 # @canon-spec specs/methodology/working-files.md § A Design Document
 FIELDS = ("Name", "Version", "Status", "Source", "Kind", "Target", "Spawned By", "Depends On Designs", "Validated")
 # @canon-spec specs/methodology/working-files.md § A Design Document § The Design's Version
-# a design holding no version is read as 1.0.0, and no design is brought to the field
+# a design holding no version is read as 0.1.0, the version's default, left out
 UNVERSIONED = tuple(f for f in FIELDS if f != "Version")
 # @canon-spec specs/methodology/working-files.md § A Design Document
 # a design written before Depends On Designs keeps its Depends On until it is next taken up, read as its Depends On Designs
@@ -64,9 +64,6 @@ DEPENDS_ON, OLD_DEPENDS_ON = "Depends On Designs", "Depends On"
 STAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z sha256:[0-9a-f]{16}$")
 # @canon-spec specs/methodology/working-files.md § A Stamp
 TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
-# @canon-spec specs/methodology/working-files.md § A Design Document § A Form the Methodology Is Still Adding
-# a design validated by hand, its record using a form the methodology is still adding
-BY_HAND = "by hand"
 # @canon-spec specs/methodology/working-files.md § A Design Document
 # @canon-spec specs/methodology/working-files.md § A Stamp
 UNSTAMPED = ("Validated", "Status")
@@ -184,15 +181,26 @@ def steer_changes(text):
             for r in records(section(text, "Steering Decisions")) or []}
 
 
+def set_names(entry):
+    """-> the Names of the Steering Decisions a `steer` entry names, the set it marks, separated by semicolons."""
+    return [n.strip().strip("`") for n in entry[2].get("Steering Decision", "").split(";") if n.strip()]
+
+
 def material(entry, changes):
-    """Whether a log entry, (kind, count, {field: value}), is a `steer` entry whose Steering Decision's Changes, by
-    changes as steer_changes gives them, holds the goals or a part of the frame."""
-    return entry[0] == "steer" and changes.get(entry[2].get("Steering Decision", "").strip()) in MATERIAL
+    """Whether a log entry, (kind, count, {field: value}), is a `steer` entry marking a set whose highest Changes, by
+    changes as steer_changes gives them, holds the goals or a part of the frame: one of its Steering Decisions' Changes
+    does."""
+    return entry[0] == "steer" and any(changes.get(n) in MATERIAL for n in set_names(entry))
 
 
 # @canon-spec specs/methodology/working-files.md § A Design Document § The Design's Version
 VERSION = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
-FIRST_VERSION = (1, 0, 0)
+# a design starts in initial development, at 0.1.0, the version's default, left out in the header and on an entry; the
+# user's agreement to its goals raises it to 1.0.0
+FIRST_VERSION = (0, 1, 0)
+AGREED_VERSION = (1, 0, 0)
+# the entry the user's agreement to the goals appends
+GOALS_AGREED = "goals-agreed"
 
 
 def parse_version(value):
@@ -214,11 +222,15 @@ def starts_major(entry):
 # @canon-spec specs/methodology/working-files.md § A Design Document § The Design's Version
 def raised(version, entry, changes):
     """-> the version after a log entry raises it, the counter its part of the design gives raised and each counter
-    after it cleared: a reassessment starting a major version raises the major, a steer material by changes the minor, a
-    plan-change the revision, and any other entry nothing."""
+    after it cleared: in initial development, the major 0, a goals-agreed entry raises the version to 1.0.0 and a
+    reassessment nothing, a design with no report having nothing to make afresh; after it, a reassessment starting a
+    major version raises the major and a goals-agreed entry nothing; a steer marking a set material by changes raises the
+    minor, once for the set, a plan-change the revision, and any other entry nothing."""
     major, minor, revision = version
     if starts_major(entry):
-        return major + 1, 0, 0
+        return (major + 1, 0, 0) if major else version
+    if entry[0] == GOALS_AGREED:
+        return version if major else AGREED_VERSION
     if material(entry, changes):
         return major, minor + 1, 0
     if entry[0] == "plan-change":
@@ -228,7 +240,7 @@ def raised(version, entry, changes):
 
 def versions(entries, changes):
     """-> the design's version after each of its log entries, worked out by the entries raising it in the order they
-    stand, from 1.0.0."""
+    stand, from 0.1.0."""
     out, version = [], FIRST_VERSION
     for e in entries:
         version = raised(version, e, changes)
@@ -237,27 +249,64 @@ def versions(entries, changes):
 
 
 def design_version(entries, changes):
-    """-> the design's version its log gives, 1.0.0 for a log holding no entry."""
+    """-> the design's version its log gives, 0.1.0 for a log holding no entry."""
     return (versions(entries, changes) or [FIRST_VERSION])[-1]
+
+
+# @canon-spec specs/methodology/working-files.md § Design Log Entry
+def entry_version(entry):
+    """-> the version an entry is stamped at, its Design Version, or 0.1.0, the default, where it holds none: the
+    version of the design its work read, a check's taken from its report, and any other's the version as it was
+    appended."""
+    return parse_version(entry[2].get(VERSIONED, "")) or FIRST_VERSION
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record
+def major_starts(entries):
+    """-> the indexes of the entries raising the major as a reassessment: each `reassessment` entry deciding other than
+    `go on` with a `goals-agreed` entry before it, a reassessment in initial development raising nothing."""
+    out, agreed = [], False
+    for i, e in enumerate(entries):
+        agreed = agreed or e[0] == GOALS_AGREED
+        if starts_major(e) and agreed:
+            out.append(i)
+    return out
 
 
 # @canon-spec specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record
 def major_start(entries):
     """-> where the design's current major version starts among its log entries: after its last `reassessment` entry
-    deciding other than `go on`, or at the log's start. Each entry from there holds the current major version, the version the
-    log gives being the one each held Design Version must be."""
-    return max([i + 1 for i, e in enumerate(entries) if starts_major(e)], default=0)
+    raising the major, or at the log's start."""
+    return max([i + 1 for i in major_starts(entries)], default=0)
+
+
+def current_major(entries):
+    """-> the major of the version the log gives, which no steer or plan-change raises: 0 in initial development, 1
+    from the first goals-agreed entry, raised once by each reassessment raising the major."""
+    return (1 if any(e[0] == GOALS_AGREED for e in entries) else 0) + len(major_starts(entries))
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record
+def of_current_major(entries):
+    """-> the indexes of the log entries of the design's current major version, by the major of the version each is
+    stamped at, so research handed off before a reassessment and handed back after it is of the major version it read."""
+    major = current_major(entries)
+    return [i for i, e in enumerate(entries) if entry_version(e)[0] == major]
 
 
 # @canon-spec specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record
 def cut_short(entries):
-    """-> the (kind, count) of each check a `reassessment` entry's Cuts Short names, a check a reassessment on the user's
-    word cut short, whose report binds nothing."""
+    """-> the (kind, count) of each check a `reassessment` entry's or a `steer` entry's Cuts Short names, separated by
+    semicolons: a check a reassessment on the user's word, or the user's call at a set's close, cut short, whose report
+    binds nothing."""
     out = set()
     for k, _, f in entries:
-        m = re.fullmatch(r"([a-z-]+?)-(\d+)", f.get("Cuts Short", "").strip().strip("`")) if k == "reassessment" else None
-        if m:
-            out.add((m.group(1), int(m.group(2))))
+        if k not in ("reassessment", "steer"):
+            continue
+        for named_ in f.get("Cuts Short", "").split(";"):
+            m = re.fullmatch(r"([a-z-]+?)-(\d+)", named_.strip().strip("`"))
+            if m:
+                out.add((m.group(1), int(m.group(2))))
     return out
 
 
@@ -265,7 +314,28 @@ def binding(entries):
     """-> the indexes of the log entries whose reports may bind the design, by the two questions of § Over Applied Work,
     and a Phase's Record a report's place in the log answers alone: of the current major version, and not cut short."""
     cut = cut_short(entries)
-    return [i for i in range(major_start(entries), len(entries)) if (entries[i][0], entries[i][1]) not in cut]
+    return [i for i in of_current_major(entries) if (entries[i][0], entries[i][1]) not in cut]
+
+
+# the script checks of the log the design script carries out, by the rules naming them
+GOALS_AGREED_RULE = "specs/methodology/working-files.md § Design Log Entry § Script Checks [Name: goals-agreed-before-checks]"
+ENTRY_AT_VERSION_READ = "specs/methodology/working-files.md § Design Log Entry § Script Checks [Name: entry-at-the-version-read]"
+
+
+# @canon-spec specs/methodology/working-files.md § Design Log Entry § Script Checks [Name: goals-agreed-before-checks]
+def agreed_before(entries, i):
+    """Whether a `goals-agreed` entry stands before the entry at index i in the major version it stands in: after the
+    last reassessment raising the major before it, or from the log's start."""
+    start = max([s + 1 for s in major_starts(entries[:i])], default=0)
+    return any(e[0] == GOALS_AGREED for e in entries[start:i])
+
+
+def gate_problems(entries, checks):
+    """-> problems with the log's order over the whole log: each check's entry, one of the kinds in checks, with no
+    `goals-agreed` entry before it in its major version, so no report is of major version 0 and the goals come before
+    the research they direct."""
+    return ["log entry %s-%d is a check's entry with no goals-agreed entry before it in its major version (%s)"
+            % (k, n, GOALS_AGREED_RULE) for i, (k, n, _) in enumerate(entries) if k in checks and not agreed_before(entries, i)]
 
 
 def goal_type(root=None):
@@ -436,11 +506,12 @@ def named(value):
 # @canon-spec specs/methodology/working-files.md § A Design Document § The Record's Checks
 def read_entries(entries, changes):
     """-> the indexes, among a design's log entries as log_entries gives them, of each `handed-off-judgment` entry whose
-    report the validation review reads: each of the design's current major version, cut short by no reassessment, but
-    one standing after the log's last `plan-approval` entry, where neither an `entered` entry nor a `steer` entry
-    material by changes, as steer_changes gives them, follows that approval. So a place is assessed once in each major version,
-    research logged after the plan's approval, the frame frozen, leaves the validation as it stood, and a design sent
-    back, or one whose goals or frame a steer changed after the approval, reads the research rebuilt for it."""
+    report the validation review reads: each of the design's current major version, cut short by no reassessment and
+    no set of steers, but one standing after the log's last `plan-approval` entry, where neither an `entered` entry nor
+    a `steer` entry material by changes, as steer_changes gives them, follows that approval. So the validation reads
+    the research binding the design, shared among agents by area or assessing an area again for a cause; research
+    logged after the plan's approval, the frame frozen, leaves the validation as it stood; and a design sent back, or
+    one whose goals or frame a set of steers changed after the approval, reads the research rebuilt for it."""
     approvals = [i for i, e in enumerate(entries) if e[0] == "plan-approval" and i >= major_start(entries)]
     last = approvals[-1] if approvals else None
     if last is not None and any(e[0] == "entered" or material(e, changes) for e in entries[last + 1:]):
@@ -949,26 +1020,34 @@ def check_form(design):
         keys, values = [k for k, _ in fields], dict(fields)
         if keys not in (list(FIELDS), list(UNVERSIONED)):
             problems.append((name, "its fields are %s, not %s" % (", ".join(keys), ", ".join(FIELDS))))
-        # working-files.md § A Design Document § The Design's Version: the header's Version, and each entry's Design
-        # Version, the one the log gives, and never written at 1.0.0, its default
+        # working-files.md § A Design Document § The Design's Version: the header's Version the one the log gives, and
+        # each entry's Design Version the version of the design its work read: a check's a version the log held before
+        # it, any other's the version as it was appended; neither written at 0.1.0, its default
+        # @canon-spec specs/methodology/working-files.md § Design Log Entry § Script Checks [Name: entry-at-the-version-read]
         entries, changes = log_entries(text), steer_changes(text)
         given = versions(entries, changes)
         if "Version" in values and parse_version(values["Version"]) is None:
             problems.append((name, "Version is not major.minor.revision: " + values["Version"]))
         elif "Version" in values and parse_version(values["Version"]) == FIRST_VERSION:
-            problems.append((name, "Version is written at its default, 1.0.0"))
+            problems.append((name, "Version is written at its default, %s" % version_text(FIRST_VERSION)))
         elif "Version" in values and parse_version(values["Version"]) != design_version(entries, changes):
             problems.append((name, "Version is %s, where its log gives %s" % (values["Version"], version_text(design_version(entries, changes)))))
-        for (kind, n, f), version in zip(entries, given):
-            if "Design Version" not in f:
-                continue
-            if parse_version(f["Design Version"]) is None:
+        checks = {k for k, fs in log_type()[2].items() if "Model" in fs}
+        for i, ((kind, n, f), version) in enumerate(zip(entries, given)):
+            stamped = parse_version(f["Design Version"]) if "Design Version" in f else FIRST_VERSION
+            if stamped is None:
                 problems.append((name, "log entry %s-%d's Design Version is not major.minor.revision: %s" % (kind, n, f["Design Version"])))
-            elif parse_version(f["Design Version"]) == FIRST_VERSION:
-                problems.append((name, "log entry %s-%d's Design Version is written at its default, 1.0.0" % (kind, n)))
-            elif parse_version(f["Design Version"]) != version:
+            elif "Design Version" in f and stamped == FIRST_VERSION:
+                problems.append((name, "log entry %s-%d's Design Version is written at its default, %s" % (kind, n, version_text(FIRST_VERSION))))
+            elif kind in checks and stamped not in [FIRST_VERSION] + given[:i]:
+                problems.append((name, "log entry %s-%d's Design Version is %s, a version its log never held before it, "
+                                 "where a check's entry stands at the version its report read (%s)"
+                                 % (kind, n, version_text(stamped), ENTRY_AT_VERSION_READ)))
+            elif kind not in checks and stamped != version:
                 problems.append((name, "log entry %s-%d's Design Version is %s, where its log gives %s"
-                                 % (kind, n, f["Design Version"], version_text(version))))
+                                 % (kind, n, version_text(stamped), version_text(version))))
+        # working-files.md § Design Log Entry § Script Checks [Name: goals-agreed-before-checks], read over the whole log
+        problems += [(name, p) for p in gate_problems(entries, checks)]
         # working-files.md § A Design Document: the Name is the design's slug, and its file is {Name}.md
         if values.get("Name") and kebab(values["Name"]) != values["Name"]:
             problems.append((name, "Name is not a slug: " + values["Name"]))
@@ -987,11 +1066,10 @@ def check_form(design):
         unknown = values.get("Status") == "not-started" and target.lower() == "none"
         if not unknown and not all(re.fullmatch(r"`[^`]+`", p.strip()) for p in (target.split(";") if target else [""])):
             problems.append((name, "Target is not paths in backticks separated by semicolons: " + target))
+        # working-files.md § A Design Document § A Form the Methodology Is Still Adding: no design is validated by hand
         validated = values.get("Validated", "")
-        if validated.lower() not in ("none", BY_HAND) and not STAMP.match(validated):
-            problems.append((name, "Validated is neither none, %s nor a stamp: %s" % (BY_HAND, validated)))
-        elif validated == BY_HAND:
-            pass
+        if validated.lower() != "none" and not STAMP.match(validated):
+            problems.append((name, "Validated is neither none nor a stamp: %s" % validated))
         elif values.get("Status") == "approved" and not STAMP.match(validated):
             problems.append((name, "approved, but no validation review has stamped it"))
         elif values.get("Status") == "approved" and validated.split(" ")[1] != content_hash(text):
@@ -1016,7 +1094,7 @@ def check_form(design):
             problems += [(name, p) for p in check_frame_records(plural, frame.get(plural))]
         # working-files.md § Design Log Entry: a steer entry names a Steering Decision the design holds
         body = section(text, "Steering Decisions")
-        logged = [f.get("Steering Decision", "") for k, _, f in log_entries(text) if k == "steer"]
+        logged = [n for e in log_entries(text) if e[0] == "steer" for n in set_names(e)]
         for p in check_steers(body, logged) if body is not None else []:
             problems.append((name, p))
         for s in sorted(set(logged) - set(steer_changes(text))):
@@ -1122,7 +1200,7 @@ def scope_reliance(read, folder):
 # @canon-spec specs/methodology/working-files.md § A Design Document § Reliance
 def reliance_versions(read, folder):
     """-> {design: {design relied on: the version its Reliance was stated at}}, a Reliance holding no Version read as
-    1.0.0, each design named as scope_reliance names it."""
+    0.1.0, its default, so a Reliance stated in that design's initial development reads major 0, each design named as scope_reliance names it."""
     base = Path(folder).resolve().name
     out = {}
     for name, _, _, text in read:
@@ -1451,6 +1529,12 @@ def design_problems(design):
     name, fields, _, text = read_design(design)
     found = check_form(design)[1] + steer_table_problems(None)
     found += [(name, p) for p in lineage_problems(design, text)]
+    # working-files.md § A Check's Report § Script Checks [Name: research-covers-its-matches], over the research reports
+    # the validation review reads
+    entries = log_entries(text)
+    read_ = research_indexes(design, entries, read_entries(entries, steer_changes(text)))
+    found += [(name, "%s (%s)" % (msg, rule)) for rule, msg in
+              union_coverage_problems(repo_root(), design, text, entries, among=read_)]
     if dict(fields).get("Status") not in ("approved", "applying", "complete"):
         found += [(name, "its design frame's %s is not yet stated" % p) for p in FRAME if frame_parts(text).get(p) == NOT_YET_STATED]
         if (section(text, "Design Goals") or "").strip() == NOT_YET_STATED:
@@ -1700,7 +1784,7 @@ def stamp_validation(value):
 # @canon-spec specs/methodology/working-files.md § A Design Document § The Design's Version
 def with_version(text, version):
     """-> a design's text with its header's Version set to version, the field added right after its Name where it holds
-    none, and left out at 1.0.0, its default."""
+    none, and left out at 0.1.0, its default."""
     head, sep, rest = text.partition("\n## ")
     if version == version_text(FIRST_VERSION):
         head = re.sub(r"( \\)?\n\*\*Version:\*\* \S+( \\)?$", lambda m: m.group(2) or "", head, count=1, flags=re.M)
@@ -1749,18 +1833,33 @@ def log_entry(value):
     body = section(text, LOG)
     count = 1 + len(re.findall(r"^\s*- \*\*Entry:\*\* %s-\d+(?: \\)?\s*$" % re.escape(kind), body or "", re.M))
     # a check's entry, one holding a Model, names its report, which stands in the design's folder before the entry does
+    read_version = None
     if "Model" in kinds[kind]:
         root = repo_root()
         report_path = report_file(design, kind, count)
         if not report_path.is_file():
             return report("log-entry, not logged", [(design.stem, "a check's entry whose report does not stand in "
                                                           "the design's folder: " + rel_to(report_path, root))])
+        # working-files.md § Design Log Entry § Script Checks [Name: goals-agreed-before-checks]: no check's entry
+        # before the agreement of its major version's goals
+        so_far = log_entries(text)
+        if not agreed_before(so_far + [(kind, count, {})], len(so_far)):
+            return report("log-entry, not logged", [(GOALS_AGREED_RULE, "a check's entry with no goals-agreed entry "
+                                                     "before it in the design's current major version")])
         # a self-review's Script Output
         if kind == "self-review":
             write_script_output(report_path, self_review_output(root, design, text))
         problems, found = entry_report_problems(root, design, text, kind, count)
         if problems:
             return report("log-entry, not logged", problems)
+        # the entry stamped at the version its report read, one the log held
+        # @canon-spec specs/methodology/working-files.md § Design Log Entry § Script Checks [Name: entry-at-the-version-read]
+        read_version = report_version(found)
+        held = [FIRST_VERSION] + versions(so_far, steer_changes(text))
+        if read_version is not None and read_version not in held:
+            return report("log-entry, not logged", [(ENTRY_AT_VERSION_READ, "%s's Reading holds Design Version %s, a "
+                                                     "version the design's log never held"
+                                                     % (rel_to(report_path, root), version_text(read_version)))])
         taken = report_counts(found)
         # the kind's fields in the type's order, each count the report's; a field the kind does not give kept, so it
         # is refused as one out of its type
@@ -1770,11 +1869,13 @@ def log_entry(value):
     if problems:
         return report("log-entry, not logged", [(design.stem, p) for p in problems])
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    # working-files.md § A Design Document § The Design's Version: the version after this entry raises it, stamped on
-    # the entry and written to the header, each left out at 1.0.0, its default
+    # working-files.md § A Design Document § The Design's Version: the version after this entry raises it, written to
+    # the header, and stamped on the entry, a check's at the version its report read; each left out at 0.1.0, its
+    # default
     version = version_text(design_version(log_entries(text) + [(kind, count, dict(fields))], steer_changes(text)))
     text = with_version(text, version)
-    stamp = [] if version == version_text(FIRST_VERSION) else ["  **%s:** %s" % (VERSIONED, version)]
+    at = version_text(read_version) if read_version is not None else version
+    stamp = [] if at == version_text(FIRST_VERSION) else ["  **%s:** %s" % (VERSIONED, at)]
     # modeling-constructs.md § Fields: the entry a record, an item two spaces beyond its key, each line a line opening
     # a field's key follows ending with a space and a backslash
     own = ["- **Entry:** %s-%d" % (kind, count), "  **Timestamp:** " + now] + stamp + ["  **%s:** %s" % f for f in fields]
@@ -1821,7 +1922,9 @@ JUDGMENT = "handed-off-judgment"
 # @canon-spec specs/methodology/working-files.md § Design Log Entry
 # the kinds of the entry naming the builder's triage of an audit
 AUDITS = ("audit-specs", "verify-spec-implementation")
-# the Reading's field, a review's and every other report's; and the Settlement's fields, in their order
+# the Reading's fields: the version of the design the check read, first, written by whoever writes the Reading; then a
+# review's field or every other report's; and the Settlement's fields, in their order
+READ_VERSION = "Design Version"
 REVIEW_READING, OWN_READING = "Reviewer Readings", "Reads"
 SETTLEMENT_FIELDS = ("Earlier Reports", "Settling Reads", "Settlements")
 # the parts a reviewer writes, and the parts holding records, each by its type's Plural Name
@@ -1986,6 +2089,14 @@ def read_report(text):
     return out
 
 
+# @canon-spec specs/methodology/working-files.md § A Check's Report § The Reading and the Settlement
+def report_version(rep):
+    """-> the version of the design a report's check read, its Reading's Design Version, or None where it holds none,
+    a report written before the field."""
+    value = next((str(record_types.value_of(f)) for f in rep["blocks"].get("Reading", []) if f["key"] == READ_VERSION), "")
+    return parse_version(value.strip().strip("`"))
+
+
 def place_of(text):
     """-> (path, lineage or None, selector or None) for one citation with its path, as
     specs/methodology/sourcing-and-citation.md § Writing a Citation writes one, alone in its text; else None."""
@@ -2117,8 +2228,8 @@ def form_problems(rep, ctx, types, parts):
     """-> [(rule, message)]: a report out of the form § A Check's Report gives it: its title, its parts in their order
     and those its kind and its settling require, its Reading's and its Settlement's fields, and each record of the type
     its part or field cites, with each field its conditions require and no other; and ctx["reviewer"] holds the
-    reviewer's part alone to the form. A round the user ended, by an approval or a steer, is settled with no
-    Causes."""
+    reviewer's part alone to the form. A round the user ended, by the plan's approval or by a set of steers changing
+    the goals or the frame, is settled with no Causes."""
     import spec_checks
     if not rep["in_form"]:
         return [(FORM_RULE, "the report does not open with its title, %s" % REPORT_TITLE)]
@@ -2157,10 +2268,14 @@ def form_problems(rep, ctx, types, parts):
     if ctx.get("ended") and "Causes" in held:
         out.append((rule("Causes"), "it holds a Causes part, though the user ended its round"))
     # its Reading's field, and its Settlement's fields, in their order
+    # a report the log holds already, written before its Reading held the version read, read under the fields it was
+    # written with
     keys = [f["key"] for f in rep["blocks"].get("Reading", [])]
-    want = [REVIEW_READING if review else OWN_READING]
-    if "Reading" in held and keys != want:
-        out.append((rule("Reading"), "its Reading's fields are %s, not %s" % (", ".join(keys) or "none", want[0])))
+    want = [READ_VERSION, REVIEW_READING if review else OWN_READING]
+    if "Reading" in held and keys != want and not (ctx.get("logged") and keys == want[1:]):
+        out.append((rule("Reading"), "its Reading's fields are %s, not %s" % (", ".join(keys) or "none", ", ".join(want))))
+    elif "Reading" in held and READ_VERSION in keys and report_version(rep) is None:
+        out.append((rule("Reading"), "its Reading's %s is not major.minor.revision" % READ_VERSION))
     cond = []
     if "Settlement" in held and not reviewer:
         keys = [f["key"] for f in rep["blocks"].get("Settlement", [])]
@@ -2337,9 +2452,12 @@ def users_call(s, rep, report_rel, kind):
     settles a design flaw, a review observation, set aside or not caused, its Lies In or a finding's the plan or handed
     on, its findings tertiary or a change settling them reaching a tertiary place, or a change settling them made, its
     Places or its Cause's Proposed Change recording it, where its Required By is nothing."""
+    # a finding dropped has no fix, so no call on one is given anyone
+    if s.get("Verdict") == "dropped":
+        return None
     change = own_places(s) + cause_change(s, rep, report_rel)
     found = findings_of(rep, s)
-    if kind in AUDITS and s.get("Verdict") != "dropped":
+    if kind in AUDITS:
         return "the report is the builder's triage of an audit, its entry's kind %s" % kind
     # a departure from a finding's writer never moves its fix to the builder's own authority (specs/AGENTS.md § Design,
     # Refactor, Refine § Settling a Round § Order and Lineage): the writer's Verdict and Lies In read beside the builder's
@@ -2372,6 +2490,8 @@ def justified_problems(rep, ctx):
                 require(cond, where, s, key, key in named, "where its Required By names the %s" % key.split()[1].lower())
         out += [(rule, "%s's Justifying Goals name %s, which is no design goal's Name" % (where, g))
                 for g in names_of_text(s.get("Justifying Goals", "")) if g not in ctx["goals"]]
+        # a Fix Authority held only where the finding is kept, a dropped finding having no fix
+        require(cond, where, s, "Fix Authority", s.get("Verdict") != "dropped", "where its Verdict is other than dropped")
         why = users_call(s, rep, ctx["report_rel"], ctx["kind"])
         if why and s.get("Fix Authority") == AUTHORITIES[0]:
             out.append((rule, "%s holds Fix Authority %s, where Whose Fix It Is gives the user the call: %s"
@@ -2480,7 +2600,8 @@ def order_problems(rep, ctx, named):
     """-> [(rule, message)]: a Settlement or a Changed Place stating an order other than its lineage gives, as § A
     Check's Report § What the Design Script Checks works it out: a Settlement's from its own Lands On and from the Lands
     On of each finding it settles, taking the deeper. A Lands On counts only where the report it cites is of the
-    design's current major version, cut short by no reassessment, and the change it names counts for a line, one taken in by
+    design's current major version, cut short by no reassessment and no set of steers, and the change it names counts
+    for a line, one taken in by
     widening the goals starting its line again."""
     out, settling, causing = [], ctx["rule"]("Settlement"), ctx["rule"]("Causes")
     reports = dict(named, **{ctx["report_rel"]: rep})
@@ -2561,6 +2682,13 @@ def key_problems(rep, ctx, named):
             if isinstance(change, dict) and "Search" in change and change["Search"] not in keys("Searches", "Search"):
                 out.append((causing, "Cause %s's Proposed Change cites a Search the report does not hold: %s" % (c.get("Cause", ""), change["Search"])))
     reports = dict(named, **{ctx["report_rel"]: rep})
+    # a report of research names among its Earlier Reports the round being settled, whose report stands handed back in
+    # the design's folder while its entry waits on the settling's end, so a cause naming that round's finding is read
+    # from the report so named
+    if rep["records"]["Read Assessments"]:
+        for path in earlier_paths(rep) - set(reports):
+            if path.startswith(ctx["folder"]) and (Path(ctx["root"]) / path).is_file():
+                reports[path] = read_report(read(Path(ctx["root"]) / path))
     for place in cited_places(strip_fences(rep["text"])):
         path, part, selector = place
         if not path.startswith(ctx["folder"]) or not part or not selector or ": " not in selector:
@@ -2651,10 +2779,13 @@ def search_problems(rep, ctx):
     """-> [(rule, message)]: each match of a Search's Pattern, run again over its ground, in a place its Places do not
     cover. A reviewer's Search, its key naming its Reviewer Reading
     before it, is run again by --check-handed-back alone, before the round's change is made. A Search in a report of
-    research, one holding Read Assessments, takes the design document out of its ground, the builder writing the
-    research's assessments into it."""
+    research, one holding Read Assessments, is held here to nothing, research-covers-its-matches holding it over the
+    union of the binding research."""
     out = []
-    research = bool(rep["records"].get("Read Assessments"))
+    # a Search in a report of research, one holding Read Assessments, is held to its matches over the union of the
+    # design's binding research, as research-covers-its-matches has it, its own Places recording only its share
+    if rep["records"].get("Read Assessments"):
+        return []
     reviewers = tuple(as_record(r).get("Reviewer", "") + "-" for r in rep["raw"].get(REVIEW_READING, []) if r and r[0][0] is not None)
     for s in rep["records"]["Searches"]:
         if not ctx["reviewer"] and s.get("Search", "").startswith(tuple(r for r in reviewers if r != "-")):
@@ -2665,7 +2796,7 @@ def search_problems(rep, ctx):
             continue
         listed = place_list(s.get("Places", ""))
         out += ["Search %s's Pattern matches in %s, which its Places do not cover" % (s.get("Search", ""), cite(p))
-                for p in matched if not covered(listed, p) and not (research and p[0] == ctx["design_rel"])]
+                for p in matched if not covered(listed, p)]
     return [(ctx["rule"]("Searches"), p) for p in out]
 
 
@@ -2698,19 +2829,17 @@ def search_matches(s, ctx):
 
 # @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: reads-assessed]
 def reads_assessed_problems(rep, ctx):
-    """-> [(rule, message)]: in a report holding Read Assessments, a place outside the design document that one of its
-    Searches matched, run again over its ground, or a place its Reads holds, the places the builder named, lying within
-    no Read Assessment's Area, as § A Check's Report has one place cover another."""
+    """-> [(rule, message)]: in a report holding Read Assessments, a place outside the design document its Reads holds,
+    the places the builder named, lying within no Read Assessment's Area of its own, as § A Check's Report has one place
+    cover another; its Searches' matches are held over the union of the binding research by
+    research-covers-its-matches."""
     assessed = rep["records"]["Read Assessments"]
     if not assessed:
         return []
     areas = [p for p in (place_of(a.get("Area", "")) for a in assessed) if p]
     reads = place_list(next((record_types.value_of(f) for f in rep["blocks"].get("Reading", []) if f["key"] == OWN_READING), ""))
-    places, out = [], []
-    for s in rep["records"]["Searches"]:
-        matched = search_matches(s, ctx)
-        places += [(p, "Search %s matched" % s.get("Search", "")) for p in ([] if isinstance(matched, re.error) else matched)]
-    places += [(p, "its Reads hold") for p in reads]
+    out = []
+    places = [(p, "its Reads hold") for p in reads]
     seen = set()
     for place, how in places:
         if place[0] == ctx["design_rel"] or place_key(place) in seen or covered(areas, place):
@@ -2786,7 +2915,8 @@ def phase_record(design, entries, applied, root):
 # @canon-spec specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record
 def carried_reports(entries):
     """-> [(kind, n)] for each check's entry over an apply the design was sent back from whose report binds the design
-    still: one of the current major version, cut short by no reassessment, standing after that apply entry and before the next
+    still: one of the current major version, cut short by no reassessment and no set of steers, standing after that
+    apply entry and before the next
     entered entry, no post-apply-review entry standing after a later apply entry."""
     out, held = [], set(binding(entries))
     for a, (k, _, _) in enumerate(entries):
@@ -2814,7 +2944,7 @@ def named_reports(design, entries, root):
     records a key a report cites must name."""
     kinds = log_type()[2]
     return {rel_to(report_file(design, k, n), root): load_report(design, k, n)
-            for k, n, _ in entries[major_start(entries):] if "Model" in kinds.get(k, ())}
+            for k, n, _ in (entries[i] for i in of_current_major(entries)) if "Model" in kinds.get(k, ())}
 
 
 def round_change_followed(design, entries, applied, root):
@@ -3024,28 +3154,32 @@ def cover_problems(rep, ctx):
     return [p for unit in units for p in unit(rep, ctx)]
 
 
-def steer_cut(design_text, kind, n):
-    """Whether a steer given while a check ran or was settled cut it short, read from the whole log -> True, False, or
-    None where the log cannot tell. The check's entry not yet appended, a Steering Decision the design holds that no
-    `steer` entry names is such a steer, its entry waiting on the check's. The check's entry appended, a `steer` entry
-    standing right after it, past the entries of the judgments settled with it, leaves it undecided, since a steer
-    given once the check was settled stands there too."""
-    full = log_entries(design_text)
+# @canon-spec specs/methodology/working-files.md § Design Log Entry
+def steer_cut(design_text, kind, n, read_at=None):
+    """Whether a set of steers ended a round, read from the version and the log's order together -> True, False, or None
+    where the log cannot tell: a set whose highest Changes holds the goals or a part of the frame, its steer entry
+    standing before the round's entry, or before the entry the round is to be appended as, and its version past
+    read_at, the version the round's report read. A Steering Decision recorded and named by no steer entry ends
+    nothing. A round whose report holds no version read, one written before the field, is read as its entry stamps it,
+    a steer entry standing right after it, past the judgments settled with it, leaving it undecided."""
+    full, changes = log_entries(design_text), steer_changes(design_text)
     own = next((i for i, (k, m, _) in enumerate(full) if k == kind and m == n), None)
-    if own is None:
-        named = {f.get("Steering Decision", "").strip() for k, _, f in full if k == "steer"}
-        return bool(set(steer_changes(design_text)) - named - {""})
-    after = [k for k, _, _ in full[own + 1:]]
-    while after and after[0] == JUDGMENT:
-        after.pop(0)
-    return None if after and after[0] == "steer" else False
+    if read_at is None:
+        if own is None:
+            return None
+        after = [k for k, _, _ in full[own + 1:]]
+        while after and after[0] == JUDGMENT:
+            after.pop(0)
+        return None if after and after[0] == "steer" else False
+    before = full if own is None else full[:own]
+    return any(material(e, changes) and entry_version(e) > read_at for e in before)
 
 
 # @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: orders-follow-their-lineage]
 def counted_reports(root, design, entries):
     """-> the reports of the checks' entries among these of the design's current major version, cut short by no
-    reassessment, whose changes count in a later finding's order; a steer changing the goals leaves every line
-    counting."""
+    reassessment and no set of steers, whose changes count in a later finding's order; a set of steers changing the
+    goals leaves every line counting."""
     kinds = log_type()[2]
     return {rel_to(report_file(design, entries[i][0], entries[i][1]), root) for i in binding(entries)
             if "Model" in kinds.get(entries[i][0], ())}
@@ -3079,9 +3213,10 @@ def report_context(root, design, design_text, kind, n, entries, reviewer=False):
 
     return {"assessed": assessed, "design_path": design,
             # a round the user ended: an adversarial round whose phase holds the approval before its entry, or one a
-            # steer given while it ran or was settled cut short
+            # set of steers changing the goals or the frame ended while it ran or was settled
             # True, False, or None where a logged round's steer leaves it undecided, held then to neither rule of Causes
-            "ended": kind == REVIEWS[0] and (any(i < own for i in approvals) or steer_cut(design_text, kind, n)),
+            "ended": kind == REVIEWS[0] and (any(i < own for i in approvals) or steer_cut(
+                design_text, kind, n, report_version(read_report(read(path))) if path.is_file() else None)),
             "root": root, "kind": kind, "entry": "%s-%d" % (kind, n), "design": fields.get("Name", design.stem),
             "design_kind": fields.get("Kind", "").strip(), "applied": applied, "reviewer": reviewer, "entries": entries, "design_rel": rel_to(design, root),
             "design_text": design_text, "steps": step_lines(design_text), "report_rel": rel_to(path, root),
@@ -3114,6 +3249,7 @@ def entry_report_problems(root, design, design_text, kind, n, report_text=None):
     path = report_file(design, kind, n)
     rep = read_report(read(path) if report_text is None else report_text)
     ctx = report_context(root, design, design_text, kind, n, entries)
+    ctx["logged"] = own is not None
     # a report the log holds already, settled before each field none of its Settlements holds: one holding no Order
     # read as it stands and refused for neither its assessment nor its order, and one holding no Required By refused for
     # neither indicator
@@ -3133,7 +3269,139 @@ def entry_report_problems(root, design, design_text, kind, n, report_text=None):
             problems += justified_problems(rep, ctx)
         if not ctx["settled_before_departures"]:
             problems += departure_problems(rep, ctx)
+        # the checks run only as an entry is appended: a research report's causes, and the coverage of the binding
+        # research where the entry is the one it sits at
+        if own is None:
+            problems += cause_problems(rep, ctx, design, entries, named)
+            if coverage_due(design, kind, entries):
+                problems += union_coverage_problems(root, design, design_text, entries, ctx)
     return [(rule, "%s: %s" % (ctx["report_rel"], msg)) for rule, msg in problems], rep
+
+
+# the script checks of research the design script carries out, by the rules naming them
+CAUSE_RULE = WF + " § A Check's Report § Script Checks [Name: reassessments-name-their-cause]"
+RESEARCH_COVERS_RULE = WF + " § A Check's Report § Script Checks [Name: research-covers-its-matches]"
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Read Assessment
+# the field a Read Assessment names the cause of assessing an area again in
+ASSESSED_AGAIN_FOR = "Assessed Again For"
+
+
+def earlier_paths(rep):
+    """-> the paths of the reports a report's Settlement lists in its Earlier Reports."""
+    value = next((record_types.value_of(f) for f in rep["blocks"].get("Settlement", []) if f["key"] == "Earlier Reports"), "")
+    return {p[0] for p in place_list(value)}
+
+
+def research_indexes(design, entries, among):
+    """-> the indexes among `among` of the `handed-off-judgment` entries whose reports hold Read Assessments, research."""
+    return [i for i in among if entries[i][0] == JUDGMENT
+            and load_report(design, entries[i][0], entries[i][1])["records"]["Read Assessments"]]
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: reassessments-name-their-cause]
+def cause_problems(rep, ctx, design, entries, named):
+    """-> [(rule, message)]: in a research report whose entry is being appended, each Read Assessment assessing again an
+    Area a binding research report the log holds already assesses, holding no Assessed Again For, or naming a cause that
+    earlier report could have weighed: a set counts where its steer entry stands after the earlier report's entry or
+    its version is past the version the earlier report read, and a finding where it is of a report the earlier report's
+    Earlier Reports does not name, read from the report it names, one a check's entry of the current major version
+    names or this report's Earlier Reports lists. Two reports overlap on the same Area alone."""
+    if ctx["kind"] != JUDGMENT or not rep["records"]["Read Assessments"]:
+        return []
+    root, by_area = ctx["root"], {}
+    for i in research_indexes(design, entries, binding(entries)):
+        k, n, _ = entries[i]
+        erep = load_report(design, k, n)
+        for a in erep["records"]["Read Assessments"]:
+            p = place_of(a.get("Area", ""))
+            if p:
+                by_area.setdefault(place_key(p), []).append((i, rel_to(report_file(design, k, n), root), erep))
+    own_earlier, out = earlier_paths(rep), []
+
+    def why_not(cause, i, epath, erep):
+        steer = re.fullmatch(r"steer-(\d+)", cause)
+        if steer:
+            j = next((x for x, e in enumerate(entries) if e[0] == "steer" and e[1] == int(steer.group(1))), None)
+            if j is None:
+                return "names %s, a set's entry the design's log does not hold" % cause
+            read_at = report_version(erep) or entry_version(entries[i])
+            if j > i or entry_version(entries[j]) > read_at:
+                return None
+            return ("names %s, a set %s could have weighed: its entry stands before that report's, and its version is not "
+                    "past the version that report read" % (cause, epath))
+        place = place_of("`%s`" % cause.strip("`"))
+        if not place or place[1] != "Findings" or not (place[2] or "").startswith("Finding: "):
+            return "names %s, neither a set's steer entry nor a finding cited as a place" % cause
+        fpath, key = place[0], place[2][len("Finding: "):]
+        source = named.get(fpath)
+        if source is None and fpath in own_earlier and (root / fpath).is_file():
+            source = read_report(read(root / fpath))
+        if source is None:
+            return ("names a finding of %s, a report neither a check's entry of the design's current major version nor "
+                    "its Earlier Reports names" % fpath)
+        if key not in {f.get("Finding") for f in source["records"]["Findings"]}:
+            return "names Finding %s, which %s does not hold" % (key, fpath)
+        if fpath == epath or fpath in earlier_paths(erep):
+            return "names a finding of %s, which %s could have weighed, its Earlier Reports naming it" % (fpath, epath)
+        return None
+
+    for a in rep["records"]["Read Assessments"]:
+        p = place_of(a.get("Area", ""))
+        earlier = by_area.get(place_key(p), []) if p else []
+        if not earlier:
+            continue
+        where = "Read Assessment %s" % cite(p)
+        cause = a.get(ASSESSED_AGAIN_FOR, "").strip().strip("`")
+        if not cause:
+            out.append((CAUSE_RULE, "%s assesses again an Area %s already assess%s, and names no cause in its %s"
+                        % (where, ", ".join(e[1] for e in earlier), "es" if len(earlier) == 1 else "", ASSESSED_AGAIN_FOR)))
+            continue
+        out += [(CAUSE_RULE, "%s %s" % (where, why)) for why in dict.fromkeys(
+            why_not(cause, i, epath, erep) for i, epath, erep in earlier) if why]
+    return out
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: research-covers-its-matches]
+def coverage_due(design, kind, entries):
+    """Whether the entry of a check of this kind, appended after these, sits where the binding research is read
+    together: the builder's first check after research is taken in, other than a handed-off judgment's, a round whose
+    settling took research in after the plan's last approval among them."""
+    checks = {k for k, fs in log_type()[2].items() if "Model" in fs}
+    if kind == JUDGMENT or kind not in checks:
+        return False
+    research = research_indexes(design, entries, binding(entries))
+    last_other = max((i for i, e in enumerate(entries) if e[0] in checks and e[0] != JUDGMENT), default=-1)
+    return bool(research) and research[-1] > last_other
+
+
+# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: research-covers-its-matches]
+def union_coverage_problems(root, design, design_text, entries, ctx=None, among=None):
+    """-> [(rule, message)]: each match outside the design document of a Search any of the design's binding research
+    reports holds, its Pattern run again over its ground, lying within no Read Assessment's Area of any of them; among,
+    where given, the indexes of the research entries read, else every binding research report."""
+    idx = research_indexes(design, entries, binding(entries)) if among is None else among
+    reports = [(rel_to(report_file(design, entries[i][0], entries[i][1]), root),
+                load_report(design, entries[i][0], entries[i][1])) for i in idx]
+    if not reports:
+        return []
+    if ctx is None:
+        fields = dict(read_design(design)[1])
+        kept = [] if over_applied(entries) else kept_changes(root, design_text)
+        ctx = {"ground": search_ground(root, rel_to(design, root), design_text,
+                                       re.findall(r"`([^`]+)`", fields.get("Target", "")), kept),
+               "steps": step_lines(design_text), "design_rel": rel_to(design, root)}
+    areas = [p for _, rep in reports for a in rep["records"]["Read Assessments"] for p in [place_of(a.get("Area", ""))] if p]
+    out, seen = [], set()
+    for path, rep in reports:
+        for s in rep["records"]["Searches"]:
+            matched = search_matches(s, ctx)
+            for p in [] if isinstance(matched, re.error) else matched:
+                if p[0] == ctx["design_rel"] or covered(areas, p) or place_key(p) in seen:
+                    continue
+                seen.add(place_key(p))
+                out.append((RESEARCH_COVERS_RULE, "Search %s of %s matches in %s, which no binding research report's "
+                            "Read Assessment's Area covers" % (s.get("Search", ""), path, cite(p))))
+    return out
 
 
 def self_review_output(root, design, design_text):

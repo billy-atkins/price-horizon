@@ -444,7 +444,7 @@ Each operating rule that leaves no trace in the files the audits read is carried
     **Caught By:**
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`
 
-  - **Failure:** a dropped finding raised again with no new argument \
+  - **Failure:** a finding judged wrong raised again with no new argument \
     **Sections:**
       - `specs/AGENTS.md § Design, Refactor, Refine`
 
@@ -616,12 +616,30 @@ Each operating rule that leaves no trace in the files the audits read is carried
     **Caught By:**
       - the user
 
-  - **Failure:** a steer recorded with no steer entry \
+  - **Failure:** a set of steers closed with no steer entry \
     **Sections:**
       - `specs/methodology/working-files.md § Steering Decision § When a Steer Is Recorded`
 
     **Rule:** `specs/methodology/working-files.md § Steering Decision § When a Steer Is Recorded` \
-    **Leaves:** a Steering Decision no `steer` entry names \
+    **Leaves:** a Steering Decision no `steer` entry names once its set has closed \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a steer acted on before its set closes \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Who Decides § A Set of Steers` \
+    **Leaves:** a design rebuilt, or a round ended, from a steer whose set's `steer` entry stands later, or a set closed with a question of the builder's still open, which the log shows only as the order of the work \
+    **Caught By:**
+      - the user
+
+  - **Failure:** work running at a set's close stopped or continued without the user's call \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Who Decides § A Set of Steers` \
+    **Leaves:** a set's entry whose Running Work names no call on work then running, or a check cut short that no Cuts Short names \
     **Caught By:**
       - the user
 
@@ -688,6 +706,55 @@ Each operating rule that leaves no trace in the files the audits read is carried
     **Leaves:** a marked finding naming no goal, Frame Outcome or step Objective and citing no rule it breaks, or naming one the design does not hold \
     **Caught By:**
       - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-anchored-in-the-design]`
+
+  - **Failure:** a reviewer's kept finding dropped on the builder's own call \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test` \
+    **Leaves:** a dropped Settlement departing from its writer's kept verdict, holding a Departure Reason and no User Decision, which no field the script compares tells from a drop the user made \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
+      - the user
+
+  - **Failure:** a Settlement missing its indicators \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test` \
+    **Leaves:** a Settlement holding no Required By, or not the Justifying Goals or Justifying Rules it names, or, where its finding is kept, no Fix Authority \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: settlements-justified]`
+
+  - **Failure:** a tertiary fix made without the user's call \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § Order and Lineage` \
+    **Leaves:** a tertiary Settlement, or one whose change reaches a tertiary place, holding a Fix Authority other than the user's or no User Decision \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: settlements-justified]`
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: orders-follow-their-lineage]`
+
+  - **Failure:** an order left unassigned or made shallower \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § Order and Lineage` \
+    **Leaves:** a Settlement or a Changed Place holding no Order, or one shallower than its lineage gives \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]`
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: orders-follow-their-lineage]`
+
+  - **Failure:** a departure given no reason \
+    **Sections:**
+      - `specs/AGENTS.md § Design, Refactor, Refine`
+
+    **Rule:** `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § Order and Lineage` \
+    **Leaves:** a Settlement departing from a finding it settles, in verdict, in where it lies or in lineage, holding no Departure Reason \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: departures-reasoned]`
 
   - **Failure:** a finding settled or dropped against the test \
     **Sections:**
@@ -928,6 +995,37 @@ Each operating rule that leaves no trace in the files the audits read is carried
       - `.ai/skills/design-specs/` `--log-entry`
       - `.ai/skills/implement-specs/` `--log-entry`
 
+  - **Failure:** a logged entry edited, moved or inserted after its event \
+    **Sections:**
+      - `specs/methodology/working-files.md § Design Log Entry`
+
+    **Rule:** `specs/methodology/working-files.md § Design Log Entry` \
+    **Leaves:** the log, an entry's record of its event changed or standing where its event did not happen \
+    **Caught By:**
+      - `specs/methodology/working-files.md § Design Log Entry § Script Checks [Name: entry-at-the-version-read]`
+      - the user
+
+  - **Failure:** a check cut short left unsettled \
+    **Sections:**
+      - `specs/methodology/working-files.md § Design Log Entry § When an Entry Is Appended`
+
+    **Rule:** `specs/methodology/working-files.md § Design Log Entry § When an Entry Is Appended` \
+    **Leaves:** a Cuts Short naming an entry the log never holds, or a report holding a finding no Settlement settles \
+    **Caught By:**
+      - `specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-settled-once]`
+      - the user
+
+  - **Failure:** a design's own working files left out of the form its apply lands \
+    **Sections:**
+      - `specs/methodology/working-files.md § The Working Files`
+
+    **Rule:** `specs/methodology/working-files.md § The Working Files` \
+    **Leaves:** the design's working files in a form no longer in force, which its later checks refuse \
+    **Caught By:**
+      - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the validation review]`
+      - `.ai/skills/design-specs/` `--log-entry`
+      - `.ai/skills/implement-specs/` `--log-entry`
+
   - **Failure:** log entries out of their count or their order \
     **Sections:**
       - `specs/methodology/working-files.md § Design Log Entry`
@@ -1066,7 +1164,7 @@ Each operating rule that leaves no trace in the files the audits read is carried
       - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`
       - the user
 
-  - **Failure:** a steer changing the goals or the frame applied unconfirmed \
+  - **Failure:** a set of steers changing the goals or the frame applied unconfirmed \
     **Sections:**
       - `specs/AGENTS.md § Design, Refactor, Refine`
       - `specs/methodology/working-files.md § Steering Decision § When a Steer Is Recorded`
