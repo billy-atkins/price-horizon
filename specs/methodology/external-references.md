@@ -105,6 +105,14 @@
     **Relation:** adopts \
     **Covers:** a date and time in UTC
 
+  - **Name:** Semantic Versioning \
+    **Title:** Semantic Versioning, Tom Preston-Werner \
+    **Version:** 2.0.0 \
+    **URL:** `https://semver.org/spec/v2.0.0.html` \
+    **Access:** free \
+    **Relation:** adopts \
+    **Covers:** a design's version: the version core and its three counters, initial development at major version zero, 1.0.0 defining the public interface, what raises each counter, and precedence
+
   - **Name:** UML \
     **Title:** Unified Modeling Language, the Object Management Group \
     **Version:** 2.5.1 \
