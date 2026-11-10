@@ -1,7 +1,7 @@
 """The construct checks: what modeling-constructs.md § Constructs lets a script decide. audit-specs runs them over
-the specs, and design-specs runs them through --check-constructs, on
-the files an apply wrote, each through run_checks, the one copy (specs/methodology/skills.md § Authoring
-a Skill).
+the specs, the design script's --check-design over each construct a design's step holds in its Draft, before the apply,
+and design-specs' --check-constructs on the files an apply wrote, each through run_checks, the one copy
+(specs/methodology/skills.md § Authoring a Skill).
 
 A construct is found by its declaration, a **Construct:** field, and read from the block the
 declaration opens: its fields, then its tables. Each check here decides structure from the files

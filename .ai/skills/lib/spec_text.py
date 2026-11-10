@@ -189,15 +189,14 @@ RECORD_SELECTOR = re.compile(r'^(.*?)\s+\[(.*)\]$')
 
 
 def strip_fences(text):
-    """Blank out fenced blocks so examples inside them are not linted as live content."""
-    out, inside = [], False
-    for line in text.split("\n"):
-        if line.startswith("```"):
-            inside = not inside
-            out.append("")
-        else:
-            out.append("" if inside else line)
-    return "\n".join(out)
+    """Blank out fenced blocks so examples inside them are not linted as live content: each line of a fenced block, its
+    fences among them, as layout.py's one reading of GFM's blocks finds it, a fence indented within a list item, as a
+    step's Draft stands, among them, and a fence's closing one of its character at least as long (spec-style.md
+    § Markdown). An indented code block's lines stand."""
+    import layout  # layout reads this module's helpers as it loads, so its reading is fetched as it is called
+
+    fenced = {i for i, el in enumerate(layout.elements(text)) if el is not None and el.fenced}
+    return "\n".join("" if i in fenced else line for i, line in enumerate(text.split("\n")))
 
 
 def headings(text):

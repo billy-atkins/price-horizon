@@ -26,7 +26,7 @@
 
 ### Scope
 
-{the cases the change governs and the sweep's method (`specs/methodology/working-files.md § A Design Document`)}
+{the cases the change governs, each citing the goals it rests on, and the sweep's method (`specs/methodology/working-files.md § A Design Document`)}
 
 **Reliances:** {this field only where the design relies on another design (`specs/methodology/working-files.md § A Design Document § Reliance`)}
   - **Design:** {the Name of a design relied on (`specs/methodology/working-files.md § A Design Document § Reliance`)} \
@@ -76,6 +76,12 @@
     **What:** {places (`specs/methodology/working-files.md § Design Plan Step`)} \
     **Why:** {why the step is needed (`specs/methodology/working-files.md § Design Plan Step`)} \
     **Depends On Steps:** {none, or a list of steps' Names, one to an item (`specs/methodology/working-files.md § Design Plan Step`)} \
+    **Draft:** {this field only where the step carries a Draft, its fenced blocks beneath the key (`specs/methodology/working-files.md § Design Plan Step § A Draft`)}
+
+      ```{markdown, or the code's language}
+      {the means its builder works out (`specs/methodology/working-files.md § Design Plan Step § A Draft`)}
+      ```
+
     **Objectives:**
       - **Name:** {a slug (`specs/methodology/working-files.md § Design Plan Step § Step Objective`)} \
         **Goals:**
