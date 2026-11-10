@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """The design document tooling the skills writing design documents share: the validation review, which holds a
-design document to its form, its references within and the lineage from research to its steps, drawing only on
-the document, the reports of the handed-off judgments its log names that read_entries gives, and the
-canon's declarations of its form, and stamps a design that passes; and the builder's tools, which append a design's log entries, check the headings a proposal
-cites, a Target against its Kind and the constructs a file in scope states, through the construct checks in
-constructs.py, for its self-review at the apply, show and check the wording a design retires, list the files changed outside
+design document to its form, its references within, the lineage from research to its steps and each construct a
+step's Draft holds, through the construct checks in constructs.py, before the apply, drawing only on the document, the
+reports of the handed-off judgments its log names that read_entries gives, the canon's declarations of its form and,
+for a Draft's constructs, the specs as they stand, and stamps a design that passes; and the builder's tools, which
+append a design's log entries, check the headings a proposal cites, a Target against its Kind and the constructs a
+file in scope states, through the same checks, for its self-review at the apply, show and check the wording a design
+retires, list the files changed outside
 its Target, check the work against the specs' and the code's script checks in spec_checks.py and code_checks.py, check
 the workstack, show a validation, list the parts of a design naming one of its parts, write citations' links, and
 show what a
@@ -344,12 +346,6 @@ def goal_type(root=None):
     return tuple(row[0] for row in rows), problems
 
 
-def step_type(root=None):
-    """The Design Plan Step type as its declaration gives it -> (its fields in order, problems with the declaration)."""
-    rows, problems = declared_type(STEP_HOME, "Design Plan Steps", root)
-    return tuple(row[0] for row in rows), problems
-
-
 def log_type(root=None):
     """The Design Log Entry type as its declaration gives it -> ({field: its quoted values, or () for any text},
     {field: whether it holds a count}, {kind: its fields beside Entry and Timestamp, in the type's order}, problems
@@ -388,10 +384,10 @@ def retired_type(root=None):
     return tuple(row[0] for row in rows), tuple(row[0] for row in rows if len(row) > 2 and row[2] == "yes"), problems
 
 
-# the record types of a design's frame and of a step's Objectives, and of a report's Read Assessments, each by its home,
-# its Plural Name and its Reference Key, read from its declaration as the others are
-PLAN_TYPES = {AREAS: (AREA_HOME, "Area"), OUTCOMES: (OUTCOME_HOME, "Name"), "Step Objectives": (OBJECTIVE_HOME, "Name"),
-              "Read Assessments": (ASSESSMENT_HOME, "Area")}
+# the record types of a design's frame, of its steps and of a step's Objectives, and of a report's Read Assessments, each
+# by its home, its Plural Name and its Reference Key, read from its declaration as the others are
+PLAN_TYPES = {AREAS: (AREA_HOME, "Area"), OUTCOMES: (OUTCOME_HOME, "Name"), "Design Plan Steps": (STEP_HOME, "Name"),
+              "Step Objectives": (OBJECTIVE_HOME, "Name"), "Read Assessments": (ASSESSMENT_HOME, "Area")}
 
 
 def plan_type(plural, root=None):
@@ -675,10 +671,12 @@ def typed(it, fields, required):
 
 def read_steps(text):
     """-> the design's steps as its Design Plan Steps section holds them, read through the one reader, each {"name",
-    "fields" {key: field}, "line", "lines", "item", "objectives"}, its lines 0-based in the design's text and its
+    "fields" {key: field}, "line", "lines", "item", "objectives", "draft"}, its lines 0-based in the design's text and its
     Objectives' lines apart, each Objective {"name", "fields", "line", "lines", "state", "item"}, its lines any block
     nested beneath its State among them (modeling-constructs.md § Fields § A Nested Construct), which objective_constructs
-    reports, and "state" the State's line followed by that block's; or None where the section holds no Records field."""
+    reports, and "state" the State's line followed by that block's, and "draft" the fenced blocks its Draft holds, each as
+    record_types._read_fenced gives it, its lines in the design's text; or None where the section holds no Records
+    field."""
     lines = text.split("\n")
     start = next((i for i, l in enumerate(lines) if re.match(r"^## Design Plan Steps\s*$", l)), None)
     if start is None:
@@ -700,9 +698,11 @@ def read_steps(text):
                                "fields": values_of(ob), "line": at + ob["line"], "lines": own, "item": ob,
                                "state": [at + state["line"]] + under if state is not None else own})
         held = {n for ob in objectives for n in ob["lines"]}
+        draft = (values["Draft"]["blocks"] if "Draft" in values else None) or []
         steps.append({"name": str(record_types.value_of(it["fields"][0])).strip() if it["fields"] else "",
                       "fields": values, "line": at + it["line"], "item": it, "objectives": objectives,
-                      "lines": [at + n for n in it["lines"] if at + n not in held]})
+                      "lines": [at + n for n in it["lines"] if at + n not in held],
+                      "draft": [dict(b, line=at + b["line"], lines=[at + n for n in b["lines"]]) for b in draft]})
     return steps
 
 
@@ -718,10 +718,11 @@ def objective_constructs(objective, text):
 
 def check_steps(body, text=None):
     """-> problems with a Design Plan Steps section: `Not yet drafted.`, or a Records field and each record its type's
-    fields in order, Objectives a list of Step Objective records and the last field, Depends On Steps `none` or a list
-    of Names, its Name a slug, no two sharing a Name, each Objective its type's fields in order, its Goals and its
-    Upholds Frame Outcomes each a list of Names, its Name a slug, and no construct and no table in it; and each step a step cites one the section holds. check_form holds the Names to the parts the
-    design holds."""
+    fields in order, each it requires among them, Objectives a list of Step Objective records and the last field, a
+    Draft, where one stands, fenced blocks alone, Depends On Steps `none` or a list of Names, its Name a slug, no two
+    sharing a Name, each Objective its type's fields in order, its Goals and its Upholds Frame Outcomes each a list of
+    Names, its Name a slug, and no construct and no table in it; and each step a step cites one the section holds.
+    check_form holds the Names to the parts the design holds, and a Draft's constructs to their forms."""
     if body.strip() == NOT_YET_DRAFTED:
         return []
     steps = read_steps(text) if text is not None else None
@@ -732,7 +733,7 @@ def check_steps(body, text=None):
         steps = [{"name": "", "fields": values_of(it), "item": it, "objectives": []} for it in items]
     if not steps:
         return ["Design Plan Steps holds no record"]
-    fields, declared = step_type()
+    fields, required, declared = plan_type("Design Plan Steps")
     if not fields:
         return [p for _, p in declared] or ["the Design Plan Step type declares no fields"]
     ob_fields, ob_required, ob_declared = plan_type("Step Objectives")
@@ -740,7 +741,7 @@ def check_steps(body, text=None):
     for step in steps:
         it = step["item"]
         keys = [f["key"] for f in record_types.record_fields(it)]
-        if keys != list(fields):
+        if not typed(it, fields, required):
             problems.append("a design plan step's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
             continue
         name = step["name"]
@@ -754,6 +755,11 @@ def check_steps(body, text=None):
         last = it["fields"][-1]
         if last["inline"] or not last["items"]:
             problems.append("design plan step %s's %s is not a list" % (name, fields[-1]))
+        # working-files.md § Design Plan Step § A Draft: a Draft's value its fenced blocks, as modeling-constructs.md
+        # § Fields has them
+        draft = step["fields"].get("Draft")
+        if draft is not None and (draft["value"] or draft["items"] is not None or not draft["blocks"]):
+            problems.append("design plan step %s's Draft is not fenced blocks beneath its key" % name)
         if "Depends On Steps" in step["fields"] and names_of(step["fields"]["Depends On Steps"]) is None:
             problems.append("design plan step %s's Depends On Steps is neither none nor a list of steps' Names, one to an item" % name)
         if text is None:
@@ -848,10 +854,10 @@ def read_plan(text):
                           names_of(v["Impact"]) or [] if "Impact" in v else [],
                           str(record_types.value_of(v["Assessment"])).strip() if "Assessment" in v else ""))
     steps, objectives = read_steps(text) or [], {}
-    fields, ob_fields = step_type()[0], plan_type("Step Objectives")[0]
+    (fields, required, _), ob_fields = plan_type("Design Plan Steps"), plan_type("Step Objectives")[0]
     whole = bool(steps)
     for step in steps:
-        whole = whole and [f["key"] for f in record_types.record_fields(step["item"])] == list(fields) and bool(step["objectives"])
+        whole = whole and typed(step["item"], fields, required) and bool(step["objectives"])
         for ob in step["objectives"]:
             v = ob["fields"]
             whole = whole and list(v) == list(ob_fields)
@@ -864,7 +870,7 @@ def read_plan(text):
 def reference_problems(text, plan):
     """-> problems with the references within a design, the References check of working-files.md § A Design Document § The Record's Checks:
     each Name a Frame Outcome's Goals, a step's Depends On Steps, and a step Objective's Goals and Upholds Frame
-    Outcomes hold, and each goal its Approach cites, naming a part the design holds; no Name two kinds of part take; each goal served by a step Objective
+    Outcomes hold, and each goal the Scope's cases and its Approach cite, naming a part the design holds; no Name two kinds of part take; each goal served by a step Objective
     and each Frame Outcome upheld by one, once each step and each Objective holds its type's fields; and no step
     depending on itself through the steps it depends on, nor standing before a step it depends on."""
     problems = []
@@ -878,9 +884,11 @@ def reference_problems(text, plan):
                  for n, k in kinds.items() if len(k) > 1]
     for name, named_goals in outcomes.items():
         problems += ["frame outcome %s's Goals names %s, no goal the design holds" % (name, g) for g in named_goals if g not in goals]
-    cited = re.findall(r"§ Design Goals \[Name: ([^\]`]+)\]", frame_parts(text).get("Approach") or "")
-    problems += ["the Approach cites the goal %s, which the design does not hold" % g
-                 for g in dict.fromkeys(c.strip() for c in cited) if g not in goals]
+    frame = frame_parts(text)
+    for part in ("Scope", "Approach"):
+        cited = re.findall(r"§ Design Goals \[Name: ([^\]`]+)\]", frame.get(part) or "")
+        problems += ["the %s cites the goal %s, which the design does not hold" % (part, g)
+                     for g in dict.fromkeys(c.strip() for c in cited) if g not in goals]
     depends = {}
     for s in plan["steps"]:
         field = s["fields"].get("Depends On Steps")
@@ -1007,7 +1015,7 @@ def steer_table_problems(root):
     """-> problems with the Steering Decision, Design Goal, Assessed Area, Frame Outcome, Design Plan Step, Step
     Objective, Read Assessment, Design Log Entry and Retired Phrase types' declarations, and with Read Assessment
     Impacts', which this tooling reads their records' fields and values from."""
-    return steer_type(root)[3] + goal_type(root)[1] + step_type(root)[1] + log_type(root)[3] + retired_type(root)[2] \
+    return steer_type(root)[3] + goal_type(root)[1] + log_type(root)[3] + retired_type(root)[2] \
         + [p for plural in PLAN_TYPES for p in plan_type(plural, root)[2]] + impact_members(root)[1]
 
 
@@ -1122,7 +1130,32 @@ def check_form(design):
         table, table_problems = layout.rules(base if (base / layout.HOME).is_file() else repo_root())
         problems += [(name, msg) for _, _, _, msg in table_problems]
         problems += [(name, "line %d: %s" % (line, msg)) for _, line, msg in layout.findings(text, table) + record_types.block_findings(text)]
+        # working-files.md § A Design Document § The Record's Checks: each construct a step's Draft holds, by the
+        # construct checks
+        problems += [(name, p) for p in draft_problems(design, text, base if (base / layout.HOME).is_file() else repo_root())]
     return len(designs), problems
+
+
+# @canon-spec specs/methodology/working-files.md § Design Plan Step § A Draft
+def draft_problems(design, text, root):
+    """-> problems with the constructs each step's Draft holds: the construct checks' findings over each of its
+    `markdown` blocks, each read as a file of its own, by its block's path, beside the specs as they stand, which give
+    what it reads and does not declare, as constructs.run_checks reads every file; a block of code is checked by none.
+    The checks run only where a Draft holds a `markdown` block."""
+    blocks = [(s["name"], b) for s in read_steps(text) or [] for b in s["draft"] if b["info"] == layout.MARKDOWN_INFO]
+    if not blocks:
+        return []
+    try:
+        rel = Path(design).resolve().relative_to(Path(root).resolve()).as_posix()
+    except ValueError:
+        rel = Path(design).name
+    text_of, held = dict(spec_texts(root)), {}
+    for step, b in blocks:
+        path = record_types.block_path(rel, b["line"])
+        text_of[path], held[path] = b["text"], (step, b["line"])
+    found, _, _ = constructs.run_checks(text_of)
+    return ["design plan step %s's Draft, line %d: %s: %s" % (held[path][0], held[path][1] + 1 + line, rule, msg)
+            for rule, path, line, msg in sorted(found, key=lambda f: (str(f[1]), f[2] or 0)) if path in held]
 
 
 # @canon-spec specs/methodology/working-files.md § A Design Document § The Kinds of Change
@@ -1521,9 +1554,10 @@ def names_of_text(value):
 
 
 def design_problems(design):
-    """The validation review's checks on one design: its form, its records and the references within it, and the
-    lineage from research to its steps, drawing only on the document, the reports of the handed-off judgments its log
-    names, but those read_entries leaves out, and the canon's declarations of its form, per working-files.md § A
+    """The validation review's checks on one design: its form, its records, the references within it, the lineage from
+    research to its steps and each construct a step's Draft holds, drawing only on the document, the reports of the
+    handed-off judgments its log names, but those read_entries leaves out, the canon's declarations of its form and, for
+    a Draft's constructs, the specs as they stand, per working-files.md § A
     Design Document § The Record's Checks; by validating, no goal, no part of its frame and no step section not yet stated. Any problem a
     declaration reports counts, so a type that cannot be read stops a stamp."""
     name, fields, _, text = read_design(design)
@@ -3755,8 +3789,8 @@ def kept_changes(root, design_text):
 
 def check_constructs(value):
     """--check-constructs: the construct checks a file in scope takes, read as the audit reads them, the specs alone,
-    since a design states outcomes and holds no construct (working-files.md § Design Plan Step § Step Objective);
-    -> 1 where a finding is reported, else 0, and 2 for a path that is no file in scope, a design among them."""
+    since a design's Drafts are checked by the design check (working-files.md § A Design Document § The Record's
+    Checks); -> 1 where a finding is reported, else 0, and 2 for a path that is no file in scope, a design among them."""
     root, target = repo_root(), Path(value).resolve()
     try:
         rel = target.relative_to(root).as_posix()
@@ -3767,7 +3801,7 @@ def check_constructs(value):
         return 2
     text_of = spec_texts(root)
     if rel not in text_of:
-        sys.stderr.write("no file in scope, and a design holds no construct to check: %s\n" % value)
+        sys.stderr.write("no file in scope; a design's Drafts are checked by --check-design: %s\n" % value)
         return 2
     print("== check-constructs " + rel)
     found, _, cands = constructs.run_checks(text_of)
@@ -4068,7 +4102,7 @@ FLAGS = (
     ("--check-target-kind", "DESIGN", check_target_kind,
      "confirm every file a design document's Target names is of the kind its Kind field declares, and that it names no working file"),
     ("--check-design", "DESIGN", check_design,
-     "run the validation review on one design document, writing no stamp: its form, its records, the references within it and the lineage from research to its steps, drawing only on the document, the reports of the handed-off judgments of its current major version its log names, as working-files.md § A Design Document § The Record's Checks bounds them, and the canon's declarations of its form; the builder runs it at validating before each adversarial round"),
+     "run the validation review on one design document, writing no stamp: its form, its records, the references within it, the lineage from research to its steps and, by the construct checks, each construct a step's Draft holds, drawing only on the document, the reports of the handed-off judgments of its current major version its log names, as working-files.md § A Design Document § The Record's Checks bounds them, the canon's declarations of its form and, for a Draft's constructs, the specs as they stand; the builder runs it at validating before each adversarial round"),
     ("--check-workstack", "PLANS_DIR", check_workstack,
      "report what is out of sync in the workstack: a Status out of sync with what a design depends on, an approved design whose Depends On Designs names a finished design or whose Scope relies on one, a Depends On Designs naming no design, and a loop; the builder runs it before each validation; reads the skill's plans folder, and those beside it, unless given a directory"),
     ("--show-workstack", "PLANS_DIR", show_workstack,
@@ -4098,7 +4132,7 @@ FLAGS = (
     ("--refresh-links", "ROOT", refresh_links,
      "write and refresh the link every citation in a file a person reads on GitHub carries, README.md, the files under docs/ and every spec but specs/AGENTS.md; the apply runs it once the text its steps call for is written; reads the repository holding the current directory unless given a root"),
     ("--check-constructs", "FILE", check_constructs,
-     "run the construct checks on a file in scope, the file's constructs as the audit checks them, the specs alone, since a design states outcomes and holds no construct; candidates are listed apart; the builder runs it on the applied files at its self-review at the apply"),
+     "run the construct checks on a file in scope, the file's constructs as the audit checks them, the specs alone, since a design's Drafts are checked by --check-design; candidates are listed apart; the builder runs it on the applied files at its self-review at the apply"),
     ("--show-refactor-and-refine-of-existing-specs", "BASELINE", show_refactor_and_refine_of_existing_specs,
      "show what a Refactor and Refine cycle over existing specs changed since the baseline commit, for a reader to trace: lines now repeated, lost and new, each with the files holding it; decides nothing; run from the repository's root on a tree with the cycle's changes applied"),
 )

@@ -135,12 +135,15 @@ def read_block(lines, i, indent, end=None, problems=None, consumed=None, first=F
     line i, a line opening a field's key, or a record's first line where `first` is given: each field's key, its value
     running to the next line opening a field's key or to the block's end, each line between continuing it, without the
     space and the backslash ending a line, and the list beneath a key, its items at the key's indentation or beyond,
-    each item ending as spec-style.md § Markdown has a list item end. A list or a table
-    ends the block's paragraph, and a field opening the next paragraph is the block's. A block standing two spaces
-    beyond a field's key after its text and one blank line is the field's nested block, as modeling-constructs.md
-    § Fields § A Nested Construct has one stand. -> ([field], the line after the block), each field {"key", "value",
-    "line", "lines", "items", "inline", "nested"}, "nested" as _read_nested gives it, or None; the reader's checks are
-    appended to `problems` as (rule, 0-based line, message), and the lines read to `consumed`."""
+    each item ending as spec-style.md § Markdown has a list item end, or the fenced blocks beneath a key holding no
+    text, each fence two spaces beyond the key, each block one code block toward the block of fields, so none of its
+    lines is read as a field, a record or a list item of it. A list, a table or a fenced block ends the block's
+    paragraph, and a field opening the next paragraph is the block's. A block standing two spaces beyond a field's key
+    after its text and one blank line is the field's nested block, as modeling-constructs.md § Fields § A Nested
+    Construct has one stand. -> ([field], the line after the block), each field {"key", "value", "line", "lines",
+    "items", "inline", "nested", "blocks"}, "nested" as _read_nested gives it, or None, and "blocks" as _read_fenced
+    gives each, or None; the reader's checks are appended to `problems` as (rule, 0-based line, message), and the
+    lines read to `consumed`."""
     end = len(lines) if end is None else end
     problems = [] if problems is None else problems
     fields = []
@@ -160,20 +163,30 @@ def read_block(lines, i, indent, end=None, problems=None, consumed=None, first=F
         text = _own_line(lines, j, end, problems, consumed)
         value_text = FIELD_LINE.match(text)
         field = {"key": m["key"], "value": ((value_text["value"] if value_text else m["value"]) or "").strip(),
-                 "line": j, "lines": [j], "items": None, "inline": bool((m["value"] or "").strip()), "nested": None}
+                 "line": j, "lines": [j], "items": None, "inline": bool((m["value"] or "").strip()), "nested": None,
+                 "blocks": None}
         fields.append(field)
         j += 1
-        # the value's continuation lines, then the list beneath the key, or the block nested beneath its text
+        # the value's continuation lines, then the list beneath the key, the fenced blocks beneath it, or the block nested
+        # beneath its text
         while j < end:
             line = lines[j]
+            beneath = field["items"] is None and not field["value"]
             if not line.strip():
                 k = _next_nonblank(lines, j, end)
                 if k < end and _is_item(lines[k]) and _indent(lines[k]) >= indent and (field["items"] or not opens_key(lines[k])):
                     j = k
                     continue
+                if beneath and k < end and _fence(lines[k]) and _indent(lines[k]) == indent + 2:
+                    j = k
+                    continue
                 if field["items"] is None and k < end and opens_key(lines[k]) and _indent(lines[k]) == indent + 2:
                     field["nested"], j = _read_nested(lines, k, indent + 2, end, problems, consumed)
                 break
+            if beneath and _fence(line) and _indent(line) == indent + 2:
+                block, j = _read_fenced(lines, j, end, consumed)
+                field["blocks"] = (field["blocks"] or []) + [block]
+                continue
             if _is_item(line) and _indent(line) >= indent:
                 item, j = read_item(lines, j, end, problems, consumed)
                 if field["items"] is None:
@@ -189,6 +202,31 @@ def read_block(lines, i, indent, end=None, problems=None, consumed=None, first=F
             j += 1
         first = False
     return fields, j
+
+
+def _fence(line):
+    """-> the layout.FENCE match where the line, past its indentation, opens a fenced block, else None."""
+    return layout.FENCE.match(line.expandtabs(4).lstrip(" "))
+
+
+def _read_fenced(lines, k, end, consumed):
+    """modeling-constructs.md § Fields: a fenced block of a field's value, opening with its fence at line k and closing
+    at the first line after it that is a fence of the same character at least as long, or at `end` ->
+    ({"line", "lines", "info", "text"}, the line after it): its 0-based lines, its fences among them, the info string's
+    first word, and the lines between its fences dedented by the opening fence's indentation, as layout.markdown_blocks
+    reads a `markdown` block's file."""
+    m = _fence(lines[k])
+    char, length, at = m.group(1)[0], len(m.group(1)), _indent(lines[k])
+    info = (m.group(2).strip().split(" ") or [""])[0]
+    n = k + 1
+    while n < end and not re.fullmatch(r"\s*%s{%d,}\s*" % (re.escape(char), length), lines[n]):
+        n += 1
+    close = min(n, end - 1)
+    held = [l.expandtabs(4) for l in lines[k + 1:n]]
+    text = "\n".join(l[at:] if l[:at].strip() == "" else l.lstrip(" ") for l in held)
+    if consumed is not None:
+        consumed.update(range(k, close + 1))
+    return {"line": k, "lines": list(range(k, close + 1)), "info": info, "text": text}, close + 1
 
 
 # @canon-spec specs/methodology/modeling-constructs.md § Fields § A Nested Construct
