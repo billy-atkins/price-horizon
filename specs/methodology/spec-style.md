@@ -37,12 +37,12 @@ Clear prose is measured by the effort it costs its primary reader. The shorter p
 |---|---|---|---|
 | The product specs | a product owner | an agent | the domain and the product's own terms, and no implementation vocabulary |
 | The technical specs | a software engineer | an agent | common engineering terms, and the product specs it cites |
-| "The methodology", "[`specs/architecture.md`](/specs/architecture.md)", "`specs/index.md`", "`specs/application/index.md`" | a practitioner, a software engineer designing a project's specs | an agent | software engineering and the standards the canon registers, and no term of the methodology's own until it is defined |
+| "The methodology", "[`specs/main.md`](/specs/main.md)", "[`specs/architecture.md`](/specs/architecture.md)", "`specs/index.md`", "`specs/application/index.md`" | a practitioner, a software engineer designing a project's specs | an agent | software engineering and the standards the canon registers, and no term of the methodology's own until it is defined |
 | "The agent instructions", "The skills" | a cold agent | a software engineer | only what the step cites |
 | The documentation | a person evaluating the project's work, an engineering leader among them | a software engineer deciding whether to adopt it | software engineering, and nothing of the project's own until it is introduced |
 | The working files | the user steering the work | a cold agent reviewing it | the work in hand and its own record |
 
-The working files are written to this section like any other file, but no audit reads them for it, as [`specs/methodology/scope.md § Rules and Skills`](/specs/methodology/scope.md#rules-and-skills) records. Each serves the work in progress, and none is committed ([`specs/methodology/working-files.md § The Working Files`](/specs/methodology/working-files.md#the-working-files)).
+The working files are written to this section like any other file, but no audit reads them for it, as [`specs/methodology/scope.md § Rules and Skills`](/specs/methodology/scope.md#rules-and-skills) records. Each serves the work in progress, and none is committed ([`specs/methodology/working-files/main.md § The Working Files`](/specs/methodology/working-files/main.md#the-working-files)).
 
 A software engineer designs the agent instructions and the skills, deciding what they say and approving them. An agent writes them for a cold agent. In the end, they are judged by how an agent behaves under them.
 

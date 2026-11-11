@@ -27,15 +27,15 @@ Governed code names each spec it carries out or checks with app-spec annotations
 
 ## Changing Code
 
-What governed code does changes only as its specs change, so the specs stay the record of what the code does. Apart from its annotation lines alone, governed code is never edited outside a design changing code, which the user approves ([`specs/methodology/working-files.md § A Design Document § A Design Changing Code`](/specs/methodology/working-files.md#a-design-changing-code)). Each of these reaches the code through such a design:
-- a change to what the code must do that no spec yet states, which starts in the specs as a design document the user approves ([`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document));
+What governed code does changes only as its specs change, so the specs stay the record of what the code does. Apart from its annotation lines alone, governed code is never edited outside a design changing code, which the user approves ([`specs/methodology/working-files/main.md § A Design Document § A Design Changing Code`](/specs/methodology/working-files/main.md#a-design-changing-code)). Each of these reaches the code through such a design:
+- a change to what the code must do that no spec yet states, which starts in the specs as a design document the user approves ([`specs/methodology/working-files/main.md § A Design Document`](/specs/methodology/working-files/main.md#a-design-document));
 - carrying applied specs into code for the first time;
 - fixing code that does not do what its specs state;
 - restructuring governed code.
 
 Making cloud infrastructure changes in the console guarantees drift. That is why every change goes through Terraform's natural process of write, plan and apply, which keeps the Terraform configuration and the infrastructure in sync.
 
-**Annotation lines alone.** An edit to annotation lines alone changes nothing the code does. A retitled heading asks such an edit of every annotation naming it ([`specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code`](/specs/methodology/sourcing-and-citation.md#citing-from-code)). The edit rides with the design that retitles the heading, whose Target names the files the edit touches. A change to the annotation's form is rolled out by a design changing code of its own, as a design leaving code out of sync hands that work on ([`specs/methodology/working-files.md § A Design Document § A Change Needing Both Kinds`](/specs/methodology/working-files.md#a-change-needing-both-kinds)).
+**Annotation lines alone.** An edit to annotation lines alone changes nothing the code does. A retitled heading asks such an edit of every annotation naming it ([`specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code`](/specs/methodology/sourcing-and-citation.md#citing-from-code)). The edit rides with the design that retitles the heading, whose Target names the files the edit touches. A change to the annotation's form is rolled out by a design changing code of its own, as a design leaving code out of sync hands that work on ([`specs/methodology/working-files/main.md § A Design Document § A Change Needing Both Kinds`](/specs/methodology/working-files/main.md#a-change-needing-both-kinds)).
 
 **Wiring code.** Wiring code changes as any other file does: as a direct edit when the change is a small tactical fix ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)) the user approves ([`specs/AGENTS.md § Design, Refactor, Refine § Direct Edits`](/specs/AGENTS.md#direct-edits)), or within a design changing code.
 

@@ -30,7 +30,11 @@ def linked_files(root):
     out = []
     for top in LINKED_ROOTS:
         p = root / top
-        if p.is_dir():
+        if top == "specs":
+            # the specifications' files as the index walk finds them (spec_text.indexed)
+            import spec_text
+            out += [f for f in spec_text.indexed(root, "specs") if f.name not in UNLINKED_NAMES]
+        elif p.is_dir():
             out += [f for f in p.rglob("*.md") if f.name not in UNLINKED_NAMES]
     out += [root / f for f in LINKED_FILES if (root / f).is_file()]
     return sorted(out)

@@ -11,11 +11,11 @@ its Target, check the work against the specs' and the code's script checks in sp
 the workstack, show a validation, list the parts of a design naming one of its parts, write citations' links, and
 show what a
 Refactor and Refine cycle changed. A check's entry is appended only once its report, in the design's folder, holds the
-form working-files.md § A Check's Report gives it and its records cover what § A Check's Report § What the Design
+form working-files/main.md § A Check's Report gives it and its records cover what § A Check's Report § What the Design
 Script Checks has the design script check of them, its counts taken from it; a reviewer's part of a review's report, and a handed-off judgment's report, is
 checked by the same units before it is taken in.
 
-A design document must hold the form working-files.md sets, and the workstack its lineage draws must hold
+A design document must hold the form working-files/main.md sets, and the workstack its lineage draws must hold
 together. Its actions are flags per specs/methodology/skills.md § Authoring a Skill. The exit status is 0 when
 every check passes, 1 when one finds a problem, and 2 for a usage error.
 
@@ -35,87 +35,87 @@ import json
 import re
 import subprocess
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import citation_links
 import constructs
 import layout
 import record_types
 from spec_text import REGISTRY, lineages, parse_citation, read, registry, scope_paths, sections, skill_dirs, spec_texts
-from spec_text import strip_fences, tracked
+from spec_text import indexed, strip_fences, tracked
 from spec_text import resolve as resolve_citation
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document § The Kinds of Change
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § The Kinds of Change
 KINDS = ("canon-specs", "application-specs", "code", "documentation", "other")
 KIND_LIST = ", ".join(KINDS[:-1]) + " or " + KINDS[-1]
-# working-files.md § A Design Document and § Steering Decision
+# working-files/main.md § A Design Document and § Steering Decision
 PLANS = ".ai/plans/design-specs"  # set by the entry script calling main
-# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files/main.md § A Design Document
 CODE_PLANS = "implement-specs"  # the plans folder of the designs changing code, whose kind is code
-# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files/main.md § A Design Document
 FIELDS = ("Name", "Version", "Status", "Source", "Kind", "Target", "Spawned By", "Depends On Designs", "Validated")
-# @canon-spec specs/methodology/working-files.md § A Design Document § The Design's Version
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § The Design's Version
 # a design holding no version is read as 0.1.0, the version's default, left out
 UNVERSIONED = tuple(f for f in FIELDS if f != "Version")
-# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files/main.md § A Design Document
 # a design written before Depends On Designs keeps its Depends On until it is next taken up, read as its Depends On Designs
 DEPENDS_ON, OLD_DEPENDS_ON = "Depends On Designs", "Depends On"
-# working-files.md § A Stamp: a UTC timestamp and a content hash; a design document's
+# working-files/main.md § A Stamp: a UTC timestamp and a content hash; a design document's
 # Validated stamp leaves out the Validated and Status fields.
 STAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z sha256:[0-9a-f]{16}$")
-# @canon-spec specs/methodology/working-files.md § A Stamp
+# @canon-spec specs/methodology/working-files/main.md § A Stamp
 TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
-# @canon-spec specs/methodology/working-files.md § A Design Document
-# @canon-spec specs/methodology/working-files.md § A Stamp
+# @canon-spec specs/methodology/working-files/main.md § A Design Document
+# @canon-spec specs/methodology/working-files/main.md § A Stamp
 UNSTAMPED = ("Validated", "Status")
-# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files/main.md § A Design Document
 LOG = "Design Log Entries"
-# @canon-spec specs/methodology/working-files.md § A Stamp
+# @canon-spec specs/methodology/working-files/main.md § A Stamp
 UNSTAMPED_SECTIONS = (LOG,)  # an entry appended after the stamp leaves it current
-# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files/main.md § A Design Document
 IMPACT = "Impact on the Application Specs"  # a canon design's, and no other design's
-# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files/main.md § A Design Document
 RETIRED = "Retired Phrases"
-# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files/main.md § A Design Document
 SECTIONS = ("The Problem", "Design Goals", "The Design Frame", "Steering Decisions", "Design Plan Steps", RETIRED, IMPACT, LOG, "Out of Scope")
-# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files/main.md § A Design Document
 # the log is required once its first entry is appended, so a design with none holds no section
 OPTIONAL = ("Steering Decisions", RETIRED, LOG)
-# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files/main.md § A Design Document
 # the goals, required as the frame is, but in a design complete or abandoned
 UNTIL_FINISHED = ("Design Goals",)
-# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files/main.md § A Design Document
 # the design frame's level-three headings, in order, and the text a part not yet stated holds, which no design
 # approved or further holds; two of them record sections
 FRAME = ("Scope", "Assessed Areas", "Approach", "Frame Outcomes")
 AREAS, OUTCOMES = "Assessed Areas", "Frame Outcomes"
 NOT_YET_STATED = "Not yet stated."
-# @canon-spec specs/methodology/working-files.md § A Design Document
+# @canon-spec specs/methodology/working-files/main.md § A Design Document
 # the text a step section holds until drafting states the steps, which no design approved or further holds
 NOT_YET_DRAFTED = "Not yet drafted."
-# @canon-spec specs/methodology/working-files.md § Steering Decision
+# @canon-spec specs/methodology/working-files/main.md § Steering Decision
 # where the Steering Decision type is declared: its fields and its Type's values are read from that declaration,
 # this tooling holding no copy of them
-STEER_HOME = ("specs/methodology/working-files.md", "Steering Decision")
-# @canon-spec specs/methodology/working-files.md § Design Goal
-GOAL_HOME = ("specs/methodology/working-files.md", "Design Goal")
-# @canon-spec specs/methodology/working-files.md § Design Plan Step
-STEP_HOME = ("specs/methodology/working-files.md", "Design Plan Step")
-# @canon-spec specs/methodology/working-files.md § Design Log Entry
-LOG_HOME = ("specs/methodology/working-files.md", "Design Log Entry")
-# @canon-spec specs/methodology/working-files.md § Retired Phrase
-RETIRED_HOME = ("specs/methodology/working-files.md", "Retired Phrase")
-# @canon-spec specs/methodology/working-files.md § A Design Document § Assessed Area
-AREA_HOME = ("specs/methodology/working-files.md", "A Design Document § Assessed Area")
-# @canon-spec specs/methodology/working-files.md § A Design Document § Frame Outcome
-OUTCOME_HOME = ("specs/methodology/working-files.md", "A Design Document § Frame Outcome")
-# @canon-spec specs/methodology/working-files.md § Design Plan Step § Step Objective
-OBJECTIVE_HOME = ("specs/methodology/working-files.md", "Design Plan Step § Step Objective")
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Read Assessment
-ASSESSMENT_HOME = ("specs/methodology/working-files.md", "A Check's Report § Read Assessment")
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Read Assessment § Read Assessment Impacts
-IMPACTS_HOME = ("specs/methodology/working-files.md", "A Check's Report § Read Assessment § Read Assessment Impacts")
+STEER_HOME = ("specs/methodology/working-files/main.md", "Steering Decision")
+# @canon-spec specs/methodology/working-files/main.md § Design Goal
+GOAL_HOME = ("specs/methodology/working-files/main.md", "Design Goal")
+# @canon-spec specs/methodology/working-files/main.md § Design Plan Step
+STEP_HOME = ("specs/methodology/working-files/main.md", "Design Plan Step")
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry
+LOG_HOME = ("specs/methodology/working-files/main.md", "Design Log Entry")
+# @canon-spec specs/methodology/working-files/main.md § Retired Phrase
+RETIRED_HOME = ("specs/methodology/working-files/main.md", "Retired Phrase")
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Assessed Area
+AREA_HOME = ("specs/methodology/working-files/main.md", "A Design Document § Assessed Area")
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Frame Outcome
+OUTCOME_HOME = ("specs/methodology/working-files/main.md", "A Design Document § Frame Outcome")
+# @canon-spec specs/methodology/working-files/main.md § Design Plan Step § Step Objective
+OBJECTIVE_HOME = ("specs/methodology/working-files/main.md", "Design Plan Step § Step Objective")
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Read Assessment
+ASSESSMENT_HOME = ("specs/methodology/working-files/main.md", "A Check's Report § Read Assessment")
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Read Assessment § Read Assessment Impacts
+IMPACTS_HOME = ("specs/methodology/working-files/main.md", "A Check's Report § Read Assessment § Read Assessment Impacts")
 
 
 def declaration(home, root=None):
@@ -169,7 +169,7 @@ def steer_type(root=None):
     return tuple(row[0] for row in rows), tuple(row[0] for row in rows if len(row) > 2 and row[2] == "yes"), values, problems
 
 
-# @canon-spec specs/methodology/working-files.md § Steering Decision
+# @canon-spec specs/methodology/working-files/main.md § Steering Decision
 # the field a Steering Decision holds where a `steer` entry names it, and its values naming the goals or a part of the
 # frame, a steer changing one of them material (specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once
 # § The Order of a Design's Parts)
@@ -195,7 +195,7 @@ def material(entry, changes):
     return entry[0] == "steer" and any(changes.get(n) in MATERIAL for n in set_names(entry))
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document § The Design's Version
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § The Design's Version
 VERSION = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
 # a design starts in initial development, at 0.1.0, the version's default, left out in the header and on an entry; the
 # user's agreement to its goals raises it to 1.0.0
@@ -215,13 +215,13 @@ def version_text(version):
     return "%d.%d.%d" % version
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document § The Design's Version
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § The Design's Version
 def starts_major(entry):
     """Whether a log entry, (kind, count, {field: value}), is a `reassessment` entry deciding other than `go on`."""
     return entry[0] == "reassessment" and entry[2].get("Decision", "").strip() != "go on"
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document § The Design's Version
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § The Design's Version
 def raised(version, entry, changes):
     """-> the version after a log entry raises it, the counter its part of the design gives raised and each counter
     after it cleared: in initial development, the major 0, a goals-agreed entry raises the version to 1.0.0 and a
@@ -255,7 +255,7 @@ def design_version(entries, changes):
     return (versions(entries, changes) or [FIRST_VERSION])[-1]
 
 
-# @canon-spec specs/methodology/working-files.md § Design Log Entry
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry
 def entry_version(entry):
     """-> the version an entry is stamped at, its Design Version, or 0.1.0, the default, where it holds none: the
     version of the design its work read, a check's taken from its report, and any other's the version as it was
@@ -263,7 +263,7 @@ def entry_version(entry):
     return parse_version(entry[2].get(VERSIONED, "")) or FIRST_VERSION
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Over Applied Work, and a Phase's Record
 def major_starts(entries):
     """-> the indexes of the entries raising the major as a reassessment: each `reassessment` entry deciding other than
     `go on` with a `goals-agreed` entry before it, a reassessment in initial development raising nothing."""
@@ -275,7 +275,7 @@ def major_starts(entries):
     return out
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Over Applied Work, and a Phase's Record
 def major_start(entries):
     """-> where the design's current major version starts among its log entries: after its last `reassessment` entry
     raising the major, or at the log's start."""
@@ -288,7 +288,7 @@ def current_major(entries):
     return (1 if any(e[0] == GOALS_AGREED for e in entries) else 0) + len(major_starts(entries))
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Over Applied Work, and a Phase's Record
 def of_current_major(entries):
     """-> the indexes of the log entries of the design's current major version, by the major of the version each is
     stamped at, so research handed off before a reassessment and handed back after it is of the major version it read."""
@@ -296,7 +296,7 @@ def of_current_major(entries):
     return [i for i, e in enumerate(entries) if entry_version(e)[0] == major]
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Over Applied Work, and a Phase's Record
 def cut_short(entries):
     """-> the (kind, count) of each check a `reassessment` entry's or a `steer` entry's Cuts Short names, separated by
     semicolons: a check a reassessment on the user's word, or the user's call at a set's close, cut short, whose report
@@ -320,11 +320,11 @@ def binding(entries):
 
 
 # the script checks of the log the design script carries out, by the rules naming them
-GOALS_AGREED_RULE = "specs/methodology/working-files.md § Design Log Entry § Script Checks [Name: goals-agreed-before-checks]"
-ENTRY_AT_VERSION_READ = "specs/methodology/working-files.md § Design Log Entry § Script Checks [Name: entry-at-the-version-read]"
+GOALS_AGREED_RULE = "specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: goals-agreed-before-checks]"
+ENTRY_AT_VERSION_READ = "specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: entry-at-the-version-read]"
 
 
-# @canon-spec specs/methodology/working-files.md § Design Log Entry § Script Checks [Name: goals-agreed-before-checks]
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: goals-agreed-before-checks]
 def agreed_before(entries, i):
     """Whether a `goals-agreed` entry stands before the entry at index i in the major version it stands in: after the
     last reassessment raising the major before it, or from the log's start."""
@@ -365,7 +365,7 @@ def log_type(root=None):
     return values, counts, kinds, problems
 
 
-# @canon-spec specs/methodology/working-files.md § Design Log Entry
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry
 # the field an entry holds its design's version in, right after its Timestamp, stamped by --log-entry
 VERSIONED = "Design Version"
 
@@ -439,9 +439,9 @@ def records(body):
     return [[(f["key"], str(record_types.value_of(f))) for f in it["fields"]] if it["fields"] is not None else [] for it in items]
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document § The States It Moves Through
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § The States It Moves Through
 STATES = ("not-started", "in-progress", "approved", "applying", "complete", "abandoned")
-# @canon-spec specs/methodology/working-files.md § A Design Document § The States It Moves Through
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § The States It Moves Through
 # the states its Trigger Classes table makes a design finish in
 FINISHED = ("complete", "abandoned")
 KEY = r"\*\*([A-Z][A-Za-z ]*):\*\*"
@@ -470,7 +470,7 @@ def is_design(f):
 def read_designs(folder):
     """-> every design the workstack draws on: those in folder, named by file name, and those in each
     other skill's plans folder beside it, named by that folder's name, a slash and the file name, their
-    Spawned By and Depends On Designs named the same way, per working-files.md § A Design Document."""
+    Spawned By and Depends On Designs named the same way, per working-files/main.md § A Design Document."""
     folder = Path(folder).resolve()
     out = [read_design(f) for f in sorted(folder.glob("*.md")) if is_design(f)] if folder.is_dir() else []
     for other in sorted(p for p in folder.parent.iterdir() if p.is_dir() and p != folder):
@@ -499,7 +499,7 @@ def named(value):
     return [n.strip().strip("`") for n in value.split(";") if n.strip()]
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document § The Record's Checks
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § The Record's Checks
 def read_entries(entries, changes):
     """-> the indexes, among a design's log entries as log_entries gives them, of each `handed-off-judgment` entry whose
     report the validation review reads: each of the design's current major version, cut short by no reassessment and
@@ -515,7 +515,7 @@ def read_entries(entries, changes):
     return [i for i in binding(entries) if (last is None or i < last) and entries[i][0] == JUDGMENT]
 
 
-# @canon-spec specs/methodology/working-files.md § A Stamp
+# @canon-spec specs/methodology/working-files/main.md § A Stamp
 def stamped_entry_lines(lines):
     """-> the 0-based lines of each log entry naming a report the validation review reads, which a design's stamp takes
     in, though it leaves out the rest of its Design Log Entries."""
@@ -535,7 +535,7 @@ def stamped_entry_lines(lines):
 
 
 def content_hash(text, leave_out=UNSTAMPED, leave_out_sections=UNSTAMPED_SECTIONS):
-    """working-files.md § A Stamp: SHA-256 of the text as UTF-8, line endings a line feed,
+    """working-files/main.md § A Stamp: SHA-256 of the text as UTF-8, line endings a line feed,
     the lines holding the left-out fields dropped, and each left-out section, its heading through the next heading
     of its level, but for each log entry naming a report the validation review reads; its first 16 hexadecimal
     characters."""
@@ -639,7 +639,7 @@ def check_goals(body):
             problems.append("a design goal's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
             continue
         name = str(record_types.value_of(it["fields"][0])).strip()
-        # working-files.md § Design Goal: a Name in kebab-case, as a design document's Name is
+        # working-files/main.md § Design Goal: a Name in kebab-case, as a design document's Name is
         if kebab(name) != name:
             problems.append("a design goal's Name is not in kebab-case: " + name)
         if name in seen:
@@ -651,7 +651,7 @@ def check_goals(body):
 
 def names_of(field):
     """-> the Names a field naming parts of the design holds, a list, one Name to an item, or `none`; None where it
-    holds text on its key's line other than `none`, or nothing, so it is no such list (working-files.md § Design Goal)."""
+    holds text on its key's line other than `none`, or nothing, so it is no such list (working-files/main.md § Design Goal)."""
     if field["items"] is None:
         return [] if field["value"].strip().strip("`") == "none" else None
     if field["value"] or any(it["fields"] is not None for it in field["items"]):
@@ -708,7 +708,7 @@ def read_steps(text):
 
 def objective_constructs(objective, text):
     """-> the 1-based lines of the design opening each construct or table a step Objective holds, which it holds none
-    of (working-files.md § Design Plan Step § Step Objective): a **Construct:** field, or a table's first line."""
+    of (working-files/main.md § Design Plan Step § Step Objective): a **Construct:** field, or a table's first line."""
     lines = text.split("\n")
     own = sorted(set(objective["lines"]) | set(objective["state"]))
     table = lambda n: lines[n].lstrip().startswith("|")
@@ -745,7 +745,7 @@ def check_steps(body, text=None):
             problems.append("a design plan step's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
             continue
         name = step["name"]
-        # working-files.md § Design Plan Step: a Name in kebab-case, as a design document's Name is
+        # working-files/main.md § Design Plan Step: a Name in kebab-case, as a design document's Name is
         if kebab(name) != name:
             problems.append("a design plan step's Name is not in kebab-case: " + name)
         if name in seen:
@@ -755,7 +755,7 @@ def check_steps(body, text=None):
         last = it["fields"][-1]
         if last["inline"] or not last["items"]:
             problems.append("design plan step %s's %s is not a list" % (name, fields[-1]))
-        # working-files.md § Design Plan Step § A Draft: a Draft's value its fenced blocks, as modeling-constructs.md
+        # working-files/main.md § Design Plan Step § A Draft: a Draft's value its fenced blocks, as modeling-constructs.md
         # § Fields has them
         draft = step["fields"].get("Draft")
         if draft is not None and (draft["value"] or draft["items"] is not None or not draft["blocks"]):
@@ -790,8 +790,8 @@ def check_steps(body, text=None):
     return problems
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document § Assessed Area
-# @canon-spec specs/methodology/working-files.md § A Design Document § Frame Outcome
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Assessed Area
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Frame Outcome
 def check_frame_records(plural, body):
     """-> problems with the frame's Assessed Areas or Frame Outcomes: `Not yet stated.`, or a Records field and each
     record its type's fields in order, an Assessed Area's Area one place used once, its Impact a list of the members of
@@ -866,9 +866,9 @@ def read_plan(text):
     return {"goals": goals, "outcomes": outcomes, "steps": steps, "objectives": objectives, "areas": areas, "whole": whole}
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document § The Record's Checks
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § The Record's Checks
 def reference_problems(text, plan):
-    """-> problems with the references within a design, the References check of working-files.md § A Design Document § The Record's Checks:
+    """-> problems with the references within a design, the References check of working-files/main.md § A Design Document § The Record's Checks:
     each Name a Frame Outcome's Goals, a step's Depends On Steps, and a step Objective's Goals and Upholds Frame
     Outcomes hold, and each goal the Scope's cases and its Approach cite, naming a part the design holds; no Name two kinds of part take; each goal served by a step Objective
     and each Frame Outcome upheld by one, once each step and each Objective holds its type's fields; and no step
@@ -1028,10 +1028,10 @@ def check_form(design):
         keys, values = [k for k, _ in fields], dict(fields)
         if keys not in (list(FIELDS), list(UNVERSIONED)):
             problems.append((name, "its fields are %s, not %s" % (", ".join(keys), ", ".join(FIELDS))))
-        # working-files.md § A Design Document § The Design's Version: the header's Version the one the log gives, and
+        # working-files/main.md § A Design Document § The Design's Version: the header's Version the one the log gives, and
         # each entry's Design Version the version of the design its work read: a check's a version the log held before
         # it, any other's the version as it was appended; neither written at 0.1.0, its default
-        # @canon-spec specs/methodology/working-files.md § Design Log Entry § Script Checks [Name: entry-at-the-version-read]
+        # @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: entry-at-the-version-read]
         entries, changes = log_entries(text), steer_changes(text)
         given = versions(entries, changes)
         if "Version" in values and parse_version(values["Version"]) is None:
@@ -1054,9 +1054,9 @@ def check_form(design):
             elif kind not in checks and stamped != version:
                 problems.append((name, "log entry %s-%d's Design Version is %s, where its log gives %s"
                                  % (kind, n, version_text(stamped), version_text(version))))
-        # working-files.md § Design Log Entry § Script Checks [Name: goals-agreed-before-checks], read over the whole log
+        # working-files/main.md § Design Log Entry § Script Checks [Name: goals-agreed-before-checks], read over the whole log
         problems += [(name, p) for p in gate_problems(entries, checks)]
-        # working-files.md § A Design Document: the Name is the design's slug, and its file is {Name}.md
+        # working-files/main.md § A Design Document: the Name is the design's slug, and its file is {Name}.md
         if values.get("Name") and kebab(values["Name"]) != values["Name"]:
             problems.append((name, "Name is not a slug: " + values["Name"]))
         elif values.get("Name") and values["Name"] != name:
@@ -1067,14 +1067,14 @@ def check_form(design):
             problems.append((name, "Name is empty"))
         if values.get("Kind", "") not in KINDS:
             problems.append((name, "Kind is not %s: %s" % (KIND_LIST, values.get("Kind", ""))))
-        # working-files.md § A Design Document § A Design Changing Code: the folder sets the kind
+        # working-files/main.md § A Design Document § A Design Changing Code: the folder sets the kind
         if values.get("Kind") and (values["Kind"] == "code") != (design.parent.name == CODE_PLANS):
             problems.append((name, "Kind is code for a design under .ai/plans/%s/ and for no other: %s" % (CODE_PLANS, values["Kind"])))
         target = values.get("Target", "")
         unknown = values.get("Status") == "not-started" and target.lower() == "none"
         if not unknown and not all(re.fullmatch(r"`[^`]+`", p.strip()) for p in (target.split(";") if target else [""])):
             problems.append((name, "Target is not paths in backticks separated by semicolons: " + target))
-        # working-files.md § A Design Document § A Form the Methodology Is Still Adding: no design is validated by hand
+        # working-files/main.md § A Design Document § A Form the Methodology Is Still Adding: no design is validated by hand
         validated = values.get("Validated", "")
         if validated.lower() != "none" and not STAMP.match(validated):
             problems.append((name, "Validated is neither none nor a stamp: %s" % validated))
@@ -1100,7 +1100,7 @@ def check_form(design):
                 problems.append((name, values["Status"] + ", but its design frame's " + part + " is not yet stated"))
         for plural in (AREAS, OUTCOMES):
             problems += [(name, p) for p in check_frame_records(plural, frame.get(plural))]
-        # working-files.md § Design Log Entry: a steer entry names a Steering Decision the design holds
+        # working-files/main.md § Design Log Entry: a steer entry names a Steering Decision the design holds
         body = section(text, "Steering Decisions")
         logged = [n for e in log_entries(text) if e[0] == "steer" for n in set_names(e)]
         for p in check_steers(body, logged) if body is not None else []:
@@ -1112,7 +1112,7 @@ def check_form(design):
             problems.append((name, p))
         if goals is not None and goals.strip() == NOT_YET_STATED and values.get("Status") in ("approved", "applying", "complete"):
             problems.append((name, values["Status"] + ", but its design goals are not yet stated"))
-        # specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame and specs/methodology/working-files.md § Design Plan Step § Step Objective: the frame and the steps cite the goals they rest on by Names the
+        # specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame and specs/methodology/working-files/main.md § Design Plan Step § Step Objective: the frame and the steps cite the goals they rest on by Names the
         # design holds
         held = {dict(rec).get("Name", "").strip() for rec in records(goals) or []}
         steps = section(text, "Design Plan Steps")
@@ -1130,13 +1130,13 @@ def check_form(design):
         table, table_problems = layout.rules(base if (base / layout.HOME).is_file() else repo_root())
         problems += [(name, msg) for _, _, _, msg in table_problems]
         problems += [(name, "line %d: %s" % (line, msg)) for _, line, msg in layout.findings(text, table) + record_types.block_findings(text)]
-        # working-files.md § A Design Document § The Record's Checks: each construct a step's Draft holds, by the
+        # working-files/main.md § A Design Document § The Record's Checks: each construct a step's Draft holds, by the
         # construct checks
         problems += [(name, p) for p in draft_problems(design, text, base if (base / layout.HOME).is_file() else repo_root())]
     return len(designs), problems
 
 
-# @canon-spec specs/methodology/working-files.md § Design Plan Step § A Draft
+# @canon-spec specs/methodology/working-files/main.md § Design Plan Step § A Draft
 def draft_problems(design, text, root):
     """-> problems with the constructs each step's Draft holds: the construct checks' findings over each of its
     `markdown` blocks, each read as a file of its own, by its block's path, beside the specs as they stand, which give
@@ -1158,10 +1158,10 @@ def draft_problems(design, text, root):
             for rule, path, line, msg in sorted(found, key=lambda f: (str(f[1]), f[2] or 0)) if path in held]
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document § The Kinds of Change
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § The Kinds of Change
 def kind_of(path, skills):
     """canon-specs, application-specs, or None for any other file; skills, the registered skills' directories and lib."""
-    if path in ("specs/AGENTS.md", "specs/architecture.md") or path.startswith("specs/methodology/"):
+    if path in ("specs/AGENTS.md", "specs/main.md", "specs/architecture.md") or path.startswith("specs/methodology/"):
         return "canon-specs"
     if any(path.startswith(".ai/skills/" + n + "/") for n in skills):
         return "canon-specs"
@@ -1170,7 +1170,7 @@ def kind_of(path, skills):
     return None
 
 
-# @canon-spec specs/methodology/working-files.md § The Working Files
+# @canon-spec specs/methodology/working-files/main.md § The Working Files
 WORKING_FILES = (".ai/plans/", ".ai/follow-ups.md", ".ai/tmp/")  # a working file is of no kind of change
 
 
@@ -1213,10 +1213,10 @@ def check_kind(design, root):
     return len(designs), problems
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document § Reliance
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Reliance
 def scope_reliance(read, folder):
     """-> {design: [design]}: each design a design's Scope relies on, the Design of each Reliance record its Scope's
-    Reliances field holds, named as a design in folder reads it, per working-files.md § A Design Document § Reliance."""
+    Reliances field holds, named as a design in folder reads it, per working-files/main.md § A Design Document § Reliance."""
     base = Path(folder).resolve().name
     known = {name for name, _, _, _ in read}
     out = {}
@@ -1229,8 +1229,8 @@ def scope_reliance(read, folder):
     return out
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document § Blocked and to Revise
-# @canon-spec specs/methodology/working-files.md § A Design Document § Reliance
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Blocked and to Revise
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Reliance
 def reliance_versions(read, folder):
     """-> {design: {design relied on: the version its Reliance was stated at}}, a Reliance holding no Version read as
     0.1.0, its default, so a Reliance stated in that design's initial development reads major 0, each design named as scope_reliance names it."""
@@ -1249,12 +1249,12 @@ def reliance_versions(read, folder):
     return out
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document § Blocked and to Revise
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Blocked and to Revise
 def check_stack(folder):
     """-> (report lines, [(file name, problem)]): the workstack each design document's
     Spawned By and Depends On Designs draw, each design its Scope relies on that has finished, or now stands at a later
     major version than its Reliance's Version, to take in, and where its
-    Status is out of sync with what it depends on, per working-files.md § A Design Document § Blocked and to Revise."""
+    Status is out of sync with what it depends on, per working-files/main.md § A Design Document § Blocked and to Revise."""
     read = read_designs(folder)
     designs = {name: dict(fields) for name, fields, _, _ in read}
     checked = {name: validation(text, fields)[0] for name, fields, _, text in read}
@@ -1399,19 +1399,25 @@ def resolve(path, root):
     if exact.is_file():
         return exact, ""
     tail = "/" + path.lstrip("./")
+    # the specifications' files as the index walk finds them, and every other Markdown file under the root
+    walked = [p for p in indexed(root, "specs")]
     hits = sorted(
-        p for p in root.rglob("*.md")
+        p for p in walked + [p for p in root.rglob("*.md") if not p.relative_to(root).as_posix().startswith("specs/")]
         if p.as_posix().endswith(tail) and ".ai/tmp" not in p.as_posix()
     )
     if len(hits) == 1:
         return hits[0], ""
+    # a document laid out as a folder, named by its bare file name, is its main file (spec-placement.md § Where a
+    # File Goes); a bare main.md names no one document, every folder's main file sharing the name
+    if not hits and path.endswith(".md") and PurePosixPath(path).name != "main.md":
+        return resolve(path[:-3] + "/main.md", root)
     if not hits:
         return None, "no such file"
     names = ", ".join(h.relative_to(root).as_posix() for h in hits[:3])
     return None, "ambiguous shorthand, %d files match: %s" % (len(hits), names)
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document § The States It Moves Through § A Send-back
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § The States It Moves Through § A Send-back
 def check_citations(proposal, root, kept=(), extra=""):
     """-> [(ok, path, target, note)] for each cross-file citation, in order, of the proposal and of extra, each file
     read as it stands, or at the last commit where kept, the paths a send-back's or a reassessment's kept changes
@@ -1477,10 +1483,10 @@ def reaches(a, b):
     return within(a, b) or within(b, a)
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document § Assessed Area
-# @canon-spec specs/methodology/working-files.md § A Design Document § The Record's Checks
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Assessed Area
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § The Record's Checks
 def lineage_problems(design, text, plan=None):
-    """-> each break of the lineage from research to the steps, the Lineage check of working-files.md § A Design
+    """-> each break of the lineage from research to the steps, the Lineage check of working-files/main.md § A Design
     Document § The Record's Checks, read against the Read Assessments of the reports of the handed-off judgments the design's log names,
     but those read_entries leaves out: a place a step's What names reaching no Assessed Area whose Impact holds
     `changes`; such an Assessed Area no What reaches; an Assessed Area whose Impact and Assessment are not those of the
@@ -1557,13 +1563,13 @@ def design_problems(design):
     """The validation review's checks on one design: its form, its records, the references within it, the lineage from
     research to its steps and each construct a step's Draft holds, drawing only on the document, the reports of the
     handed-off judgments its log names, but those read_entries leaves out, the canon's declarations of its form and, for
-    a Draft's constructs, the specs as they stand, per working-files.md § A
+    a Draft's constructs, the specs as they stand, per working-files/main.md § A
     Design Document § The Record's Checks; by validating, no goal, no part of its frame and no step section not yet stated. Any problem a
     declaration reports counts, so a type that cannot be read stops a stamp."""
     name, fields, _, text = read_design(design)
     found = check_form(design)[1] + steer_table_problems(None)
     found += [(name, p) for p in lineage_problems(design, text)]
-    # working-files.md § A Check's Report § Script Checks [Name: research-covers-its-matches], over the research reports
+    # working-files/main.md § A Check's Report § Script Checks [Name: research-covers-its-matches], over the research reports
     # the validation review reads
     entries = log_entries(text)
     read_ = research_indexes(design, entries, read_entries(entries, steer_changes(text)))
@@ -1578,7 +1584,7 @@ def design_problems(design):
     return found
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document § The States It Moves Through § A Send-back
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § The States It Moves Through § A Send-back
 def check_cited_headings(proposal):
     """--check-cited-headings: each heading a proposal cites resolved against the files as they stand, or, for a design
     whose send-back's or reassessment's changes are kept, against the files at the last commit, each Area its current
@@ -1741,12 +1747,12 @@ def check_workstack(value):
 
 
 # @canon-spec specs/methodology/design-workflow.md § The Order of a Design's Work § Facts
-# @canon-spec specs/methodology/working-files.md § A Design Document § Blocked and to Revise
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Blocked and to Revise
 def release_dependents(value):
     """--release-dependents DESIGN: as a design finishes, removes it from each Depends On Designs naming it, in its plans
     folder and those beside it, and moves each approved design among those back to in-progress, appending its `entered`
     entry before its Status is written; reads no design's Scope, which keeps what the design relied on for its builder
-    to take in, per working-files.md § A Design Document § Blocked and to Revise; -> 0, 1 where the design has not
+    to take in, per working-files/main.md § A Design Document § Blocked and to Revise; -> 0, 1 where the design has not
     finished or an `entered` entry is refused, 2 where it is not found."""
     design = design_file(value)
     if design is None:
@@ -1815,7 +1821,7 @@ def stamp_validation(value):
     return 0
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document § The Design's Version
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § The Design's Version
 def with_version(text, version):
     """-> a design's text with its header's Version set to version, the field added right after its Name where it holds
     none, and left out at 0.1.0, its default."""
@@ -1835,9 +1841,9 @@ def write_design(design, raw, new):
     design.write_bytes((new.replace("\n", "\r\n") if "\r\n" in raw else new).encode("utf-8"))
 
 
-# @canon-spec specs/methodology/working-files.md § Design Log Entry
-# @canon-spec specs/methodology/working-files.md § Design Log Entry § Script Checks [Name: counts-taken-from-the-report]
-# @canon-spec specs/methodology/working-files.md § Design Log Entry § When an Entry Is Appended
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: counts-taken-from-the-report]
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry § When an Entry Is Appended
 def log_entry(value):
     """--log-entry DESIGN KIND [FIELD=VALUE ...]: appends an entry to the design's log, its count among its kind and
     the UTC time it is appended, refusing one out of its type; a check's entry only once its report stands in the
@@ -1874,7 +1880,7 @@ def log_entry(value):
         if not report_path.is_file():
             return report("log-entry, not logged", [(design.stem, "a check's entry whose report does not stand in "
                                                           "the design's folder: " + rel_to(report_path, root))])
-        # working-files.md § Design Log Entry § Script Checks [Name: goals-agreed-before-checks]: no check's entry
+        # working-files/main.md § Design Log Entry § Script Checks [Name: goals-agreed-before-checks]: no check's entry
         # before the agreement of its major version's goals
         so_far = log_entries(text)
         if not agreed_before(so_far + [(kind, count, {})], len(so_far)):
@@ -1887,7 +1893,7 @@ def log_entry(value):
         if problems:
             return report("log-entry, not logged", problems)
         # the entry stamped at the version its report read, one the log held
-        # @canon-spec specs/methodology/working-files.md § Design Log Entry § Script Checks [Name: entry-at-the-version-read]
+        # @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: entry-at-the-version-read]
         read_version = report_version(found)
         held = [FIRST_VERSION] + versions(so_far, steer_changes(text))
         if read_version is not None and read_version not in held:
@@ -1903,7 +1909,7 @@ def log_entry(value):
     if problems:
         return report("log-entry, not logged", [(design.stem, p) for p in problems])
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    # working-files.md § A Design Document § The Design's Version: the version after this entry raises it, written to
+    # working-files/main.md § A Design Document § The Design's Version: the version after this entry raises it, written to
     # the header, and stamped on the entry, a check's at the version its report read; each left out at 0.1.0, its
     # default
     version = version_text(design_version(log_entries(text) + [(kind, count, dict(fields))], steer_changes(text)))
@@ -1936,8 +1942,8 @@ def log_entry(value):
 
 # ---------------------------------------------------------------- a check's report
 
-WF = "specs/methodology/working-files.md"
-# @canon-spec specs/methodology/working-files.md § A Check's Report
+WF = "specs/methodology/working-files/main.md"
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report
 # where a report's form is declared: its parts are read from that declaration and its record types through the one
 # reader of the record types the specs declare
 REPORT_HOME = (WF, "A Check's Report")
@@ -1945,7 +1951,7 @@ FORM_RULE = WF + " § A Check's Report"
 COUNT_RULE = WF + " § Design Log Entry § What a Check Counts"
 FIELDS_RULE = "specs/methodology/modeling-constructs.md § Fields"
 BLANK_LINES_RULE = "specs/methodology/spec-style.md § Blank Lines"
-# @canon-spec specs/methodology/working-files.md § A Check's Report
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report
 REPORT_TITLE = "# Check's Report"
 # the title's fields, and the one an adversarial review's report whose round stopped at the structure holds, with its
 # one value
@@ -1953,7 +1959,7 @@ TITLE_FIELDS = ("Design", "Entry")
 STOPPED_AT, THE_STRUCTURE = "Stopped At", "the structure"
 REVIEWS = ("adversarial-review", "post-apply-review")
 JUDGMENT = "handed-off-judgment"
-# @canon-spec specs/methodology/working-files.md § Design Log Entry
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry
 # the kinds of the entry naming the builder's triage of an audit
 AUDITS = ("audit-specs", "verify-spec-implementation")
 # the Reading's fields: the version of the design the check read, first, written by whoever writes the Reading; then a
@@ -1961,46 +1967,51 @@ AUDITS = ("audit-specs", "verify-spec-implementation")
 READ_VERSION = "Design Version"
 REVIEW_READING, OWN_READING = "Reviewer Readings", "Reads"
 SETTLEMENT_FIELDS = ("Earlier Reports", "Settling Reads", "Settlements")
-# the parts a reviewer writes, and the parts holding records, each by its type's Plural Name
-# a cold agent doing research writes its Read Assessments too
-REVIEWER_PARTS = ("Reading", "Findings", "Searches", "Read Assessments")
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Who Writes Each Part
+# the parts a cold agent writes in a review's or a handed-off judgment's report, its Title among them, the parts the
+# builder and the design script write in it, and the parts holding records, each by its type's Plural Name
+REVIEWER_PARTS = ("Title", "Reading", "Findings", "Searches", "Read Assessments", "Traces", "Builder Checks")
+BUILDER_PARTS = ("Hand-back", "Script Output", "Causes", "Settlement")
+HAND_BACK = "Hand-back"
+# a Hand-back line: a part's name and the fingerprint of its text, and, for a review's Searches, the lines it covers
+FINGERPRINT = re.compile(r"^- (?P<part>[A-Z][A-Za-z -]*?): (?P<sha>[0-9a-f]{64})(?:, (?P<n>\d+) lines)?$")
 RECORD_PARTS = ("Findings", "Searches", "Read Assessments", "Traces", "Builder Checks", "Causes")
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Finding
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Finding
 # a Finding's fields naming the parts of the design it bears on, by their Names, and the one citing the rules it breaks
 ANCHORS = {"Affected Goals": "goals", "Affected Frame Outcomes": "outcomes", "Affected Step Objectives": "objectives"}
 BROKEN_RULES = "Broken Rules"
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Verdicts
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Verdicts
 MARKS = ("design flaw", "implementation flaw", "nit")
 FLAWS = MARKS[:2]
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Settlement § Orders
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Settlement § Orders
 ORDERS = ("primary", "secondary", "tertiary")
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Settlement § Requirements
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Settlement § Requirements
 # what requires a Settlement's findings, by the Justifying fields each member names
 REQUIRED_BY = {"the goals": ("Justifying Goals",), "the rules": ("Justifying Rules",),
                "the goals and the rules": ("Justifying Goals", "Justifying Rules"), "nothing": ()}
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Settlement § Fix Authorities
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Settlement § Fix Authorities
 AUTHORITIES = ("the builder's", "the user's")
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Settlement
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Settlement
 # a finding's lineage, a Finding's as its writer traces it and a Settlement's as the builder settles it, and the field
 # holding the builder's reason for a departure from a finding's writer
 LANDS_ON, DEPARTURE_REASON = "Lands On", "Departure Reason"
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Settlement § User Decisions
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Settlement § User Decisions
 # the decision taking a tertiary line in, whose fix counts for no line
 WIDEN = "widen the goals"
-# @canon-spec specs/methodology/working-files.md § A Check's Report § What the Design Script Checks
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § What the Design Script Checks
 # the fields a Settlement holds with its two indicators, none of which a report settled before them holds
 INDICATORS = ("Required By", "Fix Authority", "User Decision")
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Settlement § User Decisions
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Settlement § User Decisions
 # the decisions under which no fix of a Settlement's findings is made
 UNFIXED = ("left as it stands", "sent back", "carried by the approval", "carried by a steer", "cut at the secondary",
            "hand on")
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
 # the fields a Settlement holds with its assessment and its order, none of which a report settled before them holds
 ASSESSED = ("Justifying Goals", "Justifying Rules", "Assessment", "Order", "Places") + INDICATORS
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Verdicts
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Verdicts
 # each count of a check's entry, by the last word in its report it counts
 COUNTED = {"Design Flaws": "design flaw", "Implementation Flaws": "implementation flaw", "Nits": "nit", "Dropped": "dropped"}
-# @canon-spec specs/methodology/working-files.md § A Check's Report
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report
 # the fields holding places, by the Plural Name of the type giving them or the part holding them; the one holding a
 # single place, and those holding `none` where they hold no place
 PLACE_FIELDS = {"Reading": ("Reads",), "Settlement": ("Earlier Reports", "Settling Reads"),
@@ -2014,7 +2025,7 @@ NONE_HELD = {("Reading", "Reads"), ("Settlement", "Earlier Reports"), ("Settleme
              ("Reviewer Readings", "Collecting Reads"),
              ("Reviewer Readings", "Earlier Reports"), ("Reviewer Readings", "Weighing Reads"), ("Searches", "Places"),
              ("Findings", BROKEN_RULES)}
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Kinds of Builder Check
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Kinds of Builder Check
 # the checks every self-review requires, and those it requires for each item its phase gives
 EVERY_SELF_REVIEW = ("steers against the user's messages", "linked work")
 USER_EDIT, WORKED_CASE, MISS_QUESTION, DIFFERENTIAL = "user edit", "worked case", "miss's question", "differential test"
@@ -2054,9 +2065,20 @@ def report_parts(root=None):
     return out
 
 
-def canon_rule(rule):
-    """-> a rule the shared readers name by its file's name alone, cited with its path."""
-    return rule if rule.startswith("specs/") else "specs/methodology/" + rule
+# @canon-spec specs/methodology/spec-placement.md § Where a File Goes
+def canon_rule(rule, root=None):
+    """-> a rule the shared readers name by its file's name alone, cited with its path: a document laid out as a folder
+    named by its bare file name resolves to its main file, and a bare `main.md`, which every folder's main file shares,
+    names no one document and is left as written."""
+    if rule.startswith("specs/"):
+        return rule
+    name, sep, rest = rule.partition(" § ")
+    if name == "main.md":
+        return rule
+    base = Path(root) if root is not None else Path(__file__).resolve().parents[3]
+    if not (base / "specs/methodology" / name).is_file() and (base / "specs/methodology" / name[:-3] / "main.md").is_file():
+        return f"specs/methodology/{name[:-3]}/main.md{sep}{rest}"
+    return "specs/methodology/" + rule
 
 
 def report_types(root):
@@ -2081,7 +2103,7 @@ def read_report(text):
     [(part, 0-based line)], "blocks" {part: [field]}, "raw" {plural: records as the one reader gives them}, "records"
     {plural: [record]}, "settlements", "lines", "problems" [(rule, 1-based line, message)]}. A report not opening with
     its title is one written before the form, read as holding no records. A Weighs Again, the field's name before Lands
-    On, is read as its Lands On, as working-files.md § A Check's Report § What the Design Script Checks has a logged
+    On, is read as its Lands On, as working-files/main.md § A Check's Report § What the Design Script Checks has a logged
     report read."""
     text = re.sub(r"^(\s*(?:- )?)\*\*Weighs Again:\*\*", r"\1**%s:**" % LANDS_ON, text.replace("\r\n", "\n"), flags=re.M)
     lines = text.split("\n")
@@ -2123,7 +2145,7 @@ def read_report(text):
     return out
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § The Reading and the Settlement
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § The Reading and the Settlement
 def report_version(rep):
     """-> the version of the design a report's check read, its Reading's Design Version, or None where it holds none,
     a report written before the field."""
@@ -2163,7 +2185,7 @@ def cite(place):
     return "`%s%s%s`" % (path, " § " + lineage if lineage else "", " [%s]" % selector if selector else "")
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § A Value Holding Places
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § A Value Holding Places
 def covers(a, b):
     """Whether place a covers place b: a file each of its sections, a section each section beneath it, and a part a
     keyed instance holds itself alone, each matched as it is cited."""
@@ -2180,7 +2202,7 @@ def covered(listed, place):
     return any(covers(a, place) for a in listed)
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: places-in-their-form]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: places-in-their-form]
 def places_problems(rep, types):
     """-> [(rule, message)]: each value holding places in a report out of the form § A Check's Report gives it, a list
     of citations with their paths, one to an item, or one such citation alone; `none` where its field holds it."""
@@ -2231,7 +2253,7 @@ def last_words(rep):
     return out
 
 
-# @canon-spec specs/methodology/working-files.md § Design Log Entry § Script Checks [Name: counts-taken-from-the-report]
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: counts-taken-from-the-report]
 def report_counts(rep):
     """-> each count of a check's entry from its report, each Finding counted once, by the Verdict of the
     Settlement settling it."""
@@ -2257,7 +2279,7 @@ def cause_key(value, report_rel):
     return None
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
 def form_problems(rep, ctx, types, parts):
     """-> [(rule, message)]: a report out of the form § A Check's Report gives it: its title, its parts in their order
     and those its kind and its settling require, its Reading's and its Settlement's fields, and each record of the type
@@ -2435,7 +2457,7 @@ def form_problems(rep, ctx, types, parts):
     return out
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-laid-out]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-laid-out]
 def layout_problems(rep, root):
     """-> [(rule, message)]: the report laid out otherwise than modeling-constructs.md § Fields and spec-style.md
     § Blank Lines have a block of fields laid out."""
@@ -2443,7 +2465,7 @@ def layout_problems(rep, root):
     return [(FIELDS_RULE if "Fields" in rule else BLANK_LINES_RULE, "line %d: %s" % (line, msg)) for rule, line, msg in found]
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-settled-once]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: findings-settled-once]
 def settled_problems(rep, ctx):
     """-> [(rule, message)]: a Finding settled by no Settlement, or by more than one."""
     times = collections.Counter(k for s in rep["settlements"] for k in settled_findings(s))
@@ -2473,7 +2495,7 @@ def own_places(s):
     return [p for p in (s.get("Places") if isinstance(s.get("Places"), list) else []) if isinstance(p, dict)]
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: settlements-justified]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: settlements-justified]
 def findings_of(rep, s):
     """-> the Findings of a report a Settlement settles, in the order the report holds them."""
     keys = set(settled_findings(s))
@@ -2509,7 +2531,7 @@ def users_call(s, rep, report_rel, kind):
     return None
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: settlements-justified]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: settlements-justified]
 def justified_problems(rep, ctx):
     """-> [(rule, message)]: a Settlement holding Justifying Goals or Justifying Rules other than its Required By names,
     or naming in its Justifying Goals a goal the design does not hold; one holding its Fix Authority the builder's where
@@ -2535,7 +2557,7 @@ def justified_problems(rep, ctx):
     return out + [(rule, c) for c in cond]
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: departures-reasoned]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: departures-reasoned]
 def departure_problems(rep, ctx):
     """-> [(rule, message)]: a Settlement departing from a finding it settles, in Verdict, in Lies In or in Lands On,
     holding no Departure Reason. A Lands On is compared by the place it cites, `none` or no Lands On naming none, and a
@@ -2557,7 +2579,7 @@ def departure_problems(rep, ctx):
     return out
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
 def legacy_places(message):
     """-> whether a record check's message is one a Proposed Change's Places draws where written as a list of paths,
     as a report settled before a Changed Place was a record writes it."""
@@ -2629,7 +2651,7 @@ def place_order_problems(value, settles, where, rule):
     return out
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: orders-follow-their-lineage]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: orders-follow-their-lineage]
 def order_problems(rep, ctx, named):
     """-> [(rule, message)]: a Settlement or a Changed Place stating an order other than its lineage gives, as § A
     Check's Report § What the Design Script Checks works it out: a Settlement's from its own Lands On and from the Lands
@@ -2679,7 +2701,7 @@ def order_problems(rep, ctx, named):
     return out
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-keys-name-records]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-keys-name-records]
 def key_problems(rep, ctx, named):
     """-> [(rule, message)]: a key the report cites naming no record a report of the design's current major version holds, this
     report among them: a Finding a Settlement settles, the Cause it lies in and the Search a Proposed Change cites, each
@@ -2738,7 +2760,7 @@ def key_problems(rep, ctx, named):
 
 def text_at(root, path, kept):
     """-> a file's text as a search reads it: at the last commit where a send-back's kept changes stand, as
-    working-files.md § A Design Document § The States It Moves Through § A Send-back has a reading made, else as it
+    working-files/main.md § A Design Document § The States It Moves Through § A Send-back has a reading made, else as it
     stands; None where it cannot be read."""
     if path in kept:
         shown = subprocess.run(["git", "show", "HEAD:" + path], capture_output=True, cwd=root)
@@ -2769,7 +2791,7 @@ def line_places(path, text, steps=None):
     return lambda n: (path, "Design Plan Steps", "Name: " + steps[n]) if n in steps else (path, holding.get(n), None)
 
 
-# @canon-spec specs/methodology/working-files.md § A Design Document § The Kinds of Change
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § The Kinds of Change
 def file_kind(path, skills, code):
     """-> a file's kind of change, or None for a working file; code, the code roots and the paths excluded from them."""
     if is_working_file(path):
@@ -2783,7 +2805,7 @@ def file_kind(path, skills, code):
     return kind_of(path, skills) or "other"
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § What the Design Script Checks
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § What the Design Script Checks
 def search_ground(root, design_rel, design_text, target, kept):
     """-> a function giving a Search's ground as {path: text}, read once: the design document and the files of each
     kind of those its Target names, with, for canon-specs, every file of Spec of Record's scope but code, and, for
@@ -2808,7 +2830,7 @@ def search_ground(root, design_rel, design_text, target, kept):
     return ground
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]
 def search_problems(rep, ctx):
     """-> [(rule, message)]: each match of a Search's Pattern, run again over its ground, in a place its Places do not
     cover. A reviewer's Search, its key naming its Reviewer Reading
@@ -2861,7 +2883,7 @@ def search_matches(s, ctx):
     return found
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: reads-assessed]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: reads-assessed]
 def reads_assessed_problems(rep, ctx):
     """-> [(rule, message)]: in a report holding Read Assessments, a place outside the design document its Reads holds,
     the places the builder named, lying within no Read Assessment's Area of its own, as § A Check's Report has one place
@@ -2883,7 +2905,7 @@ def reads_assessed_problems(rep, ctx):
     return out
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-anchored-in-the-design]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: findings-anchored-in-the-design]
 def anchor_problems(rep, ctx):
     """-> [(rule, message)]: a Finding whose Verdict is a mark naming in its Affected Goals, Affected Frame Outcomes and
     Affected Step Objectives no part of the design and citing in its Broken Rules no rule it breaks, or naming a goal, a
@@ -2915,7 +2937,7 @@ def log_entries(text):
     return out
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Over Applied Work, and a Phase's Record
 def over_applied(entries):
     """Whether an entry appended after these lies over applied work: after the design's last apply entry, with no
     entered entry after that."""
@@ -2923,7 +2945,7 @@ def over_applied(entries):
     return bool(applies) and not any(e[0] == "entered" for e in entries[applies[-1] + 1:])
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Over Applied Work, and a Phase's Record
 def phase_start(entries, applied):
     """-> where the phase an entry appended after these stands in starts: a post-apply review's after the design's last
     apply entry, and an adversarial review's after its last reassessment entry deciding other than go on or its last
@@ -2935,7 +2957,7 @@ def phase_start(entries, applied):
                default=0)
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Over Applied Work, and a Phase's Record
 def phase_record(design, entries, applied, root):
     """-> [(path, report)] for each report of the phase's record: the reports binding the design whose entries stand in
     the phase, its review entries' and its handed-off judgments', of the current major version and none cut short; no steer
@@ -2946,7 +2968,7 @@ def phase_record(design, entries, applied, root):
             for i, (k, n, _) in enumerate(entries) if i >= start and i in held and k in (review, JUDGMENT)]
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Over Applied Work, and a Phase's Record
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Over Applied Work, and a Phase's Record
 def carried_reports(entries):
     """-> [(kind, n)] for each check's entry over an apply the design was sent back from whose report binds the design
     still: one of the current major version, cut short by no reassessment and no set of steers, standing after that
@@ -2972,7 +2994,7 @@ def load_report(design, kind, n):
     return read_report(read(path)) if path.is_file() else read_report("")
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § What the Design Script Checks
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § What the Design Script Checks
 def named_reports(design, entries, root):
     """-> {path: report} for each report a check's entry of the design's current major version names, the reports whose
     records a key a report cites must name."""
@@ -3018,7 +3040,7 @@ def constructs_in(path, text, lines1=None):
 
 def traced_constructs(ctx, reads=None):
     """-> [(the places citing it, construct, its paths)] for each Decision Table and State Machine a self-review's phase
-    records a Trace of (working-files.md § A Check's Report § What the Design Script Checks): before the apply, each
+    records a Trace of (working-files/main.md § A Check's Report § What the Design Script Checks): before the apply, each
     standing in a section a step's What names, in the files as they stand, its Trace holding the mechanism test's
     Outcome and no paths; over applied work, each a section the diff changed holds, its paths traced; for a self-review
     proving the fixes, given its Reads, only those its Reads cover, its Reads holding the reach of those fixes."""
@@ -3086,7 +3108,7 @@ def required_checks(ctx, reads=None):
     return out
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: traces-name-their-paths]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: traces-name-their-paths]
 def trace_problems(rep, ctx):
     """-> [(rule, message)]: a construct a self-review's phase traces with no Trace, or a Trace leaving out a path."""
     out, rule = [], ctx["rule"]
@@ -3108,7 +3130,7 @@ def own_reads(rep):
     return place_list(next((record_types.value_of(f) for f in rep["blocks"].get("Reading", []) if f["key"] == OWN_READING), ""))
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: builder-checks-required]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: builder-checks-required]
 def builder_check_problems(rep, ctx):
     """-> [(rule, message)]: a Builder Check required of a self-review missing, or not covering its items."""
     out, rule = [], ctx["rule"]
@@ -3128,7 +3150,7 @@ def builder_check_problems(rep, ctx):
     return out
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: reads-cover-the-misses]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: reads-cover-the-misses]
 def miss_read_problems(rep, ctx):
     """-> [(rule, message)]: a place a Miss of the phase names that the Reads of a self-review following a round's
     change leave out."""
@@ -3145,7 +3167,7 @@ def settlement_block(rep):
     return {f["key"]: record_types.value_of(f) for f in rep["blocks"].get("Settlement", [])}
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: earlier-reports-listed]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: earlier-reports-listed]
 def earlier_report_problems(rep, ctx):
     """-> [(rule, message)]: a report of the phase's record a round's Earlier Reports leave out."""
     earlier = place_list(settlement_block(rep).get("Earlier Reports", ""))
@@ -3153,7 +3175,7 @@ def earlier_report_problems(rep, ctx):
             for p, _ in ctx["record"] if not covered(earlier, (p, None, None))]
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: settling-reads-cover-the-evidence]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: settling-reads-cover-the-evidence]
 def settling_read_problems(rep, ctx):
     """-> [(rule, message)]: a place the Evidence of a marked Finding names that a round's Settling Reads leave out and
     no Read Assessment's Area covers, of the reports of the handed-off judgments the design's log names."""
@@ -3165,7 +3187,7 @@ def settling_read_problems(rep, ctx):
             for p in sorted(evidence, key=place_key) if not covered(reads, p)]
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: tactical-fixes-cover-their-searches]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: tactical-fixes-cover-their-searches]
 def tactical_fix_problems(rep, ctx):
     """-> [(rule, message)]: a place a tactical fix's Search found that its Places leave out."""
     out, searches = [], {s.get("Search"): s for s in rep["records"]["Searches"]}
@@ -3188,7 +3210,7 @@ def cover_problems(rep, ctx):
     return [p for unit in units for p in unit(rep, ctx)]
 
 
-# @canon-spec specs/methodology/working-files.md § Design Log Entry
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry
 def steer_cut(design_text, kind, n, read_at=None):
     """Whether a set of steers ended a round, read from the version and the log's order together -> True, False, or None
     where the log cannot tell: a set whose highest Changes holds the goals or a part of the frame, its steer entry
@@ -3209,7 +3231,7 @@ def steer_cut(design_text, kind, n, read_at=None):
     return any(material(e, changes) and entry_version(e) > read_at for e in before)
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: orders-follow-their-lineage]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: orders-follow-their-lineage]
 def counted_reports(root, design, entries):
     """-> the reports of the checks' entries among these of the design's current major version, cut short by no
     reassessment and no set of steers, whose changes count in a later finding's order; a set of steers changing the
@@ -3239,7 +3261,7 @@ def report_context(root, design, design_text, kind, n, entries, reviewer=False):
     def assessed():
         """-> the Area of each Read Assessment in the report of a handed-off judgment the design's log names, read once."""
         if not held:
-            # the research of the current major version alone stands (working-files.md § A Design Document § Assessed Area)
+            # the research of the current major version alone stands (working-files/main.md § A Design Document § Assessed Area)
             held.append([p for k, m, _ in (entries[i] for i in binding(entries)) if k == JUDGMENT
                          for a in load_report(design, k, m)["records"]["Read Assessments"]
                          for p in [place_of(a.get("Area", ""))] if p])
@@ -3306,6 +3328,8 @@ def entry_report_problems(root, design, design_text, kind, n, report_text=None):
         # the checks run only as an entry is appended: a research report's causes, and the coverage of the binding
         # research where the entry is the one it sits at
         if own is None:
+            if kind in REVIEWS + (JUDGMENT,):
+                problems += cold_parts_problems(rep, kind)
             problems += cause_problems(rep, ctx, design, entries, named)
             if coverage_due(design, kind, entries):
                 problems += union_coverage_problems(root, design, design_text, entries, ctx)
@@ -3315,7 +3339,7 @@ def entry_report_problems(root, design, design_text, kind, n, report_text=None):
 # the script checks of research the design script carries out, by the rules naming them
 CAUSE_RULE = WF + " § A Check's Report § Script Checks [Name: reassessments-name-their-cause]"
 RESEARCH_COVERS_RULE = WF + " § A Check's Report § Script Checks [Name: research-covers-its-matches]"
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Read Assessment
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Read Assessment
 # the field a Read Assessment names the cause of assessing an area again in
 ASSESSED_AGAIN_FOR = "Assessed Again For"
 
@@ -3332,7 +3356,7 @@ def research_indexes(design, entries, among):
             and load_report(design, entries[i][0], entries[i][1])["records"]["Read Assessments"]]
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: reassessments-name-their-cause]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: reassessments-name-their-cause]
 def cause_problems(rep, ctx, design, entries, named):
     """-> [(rule, message)]: in a research report whose entry is being appended, each Read Assessment assessing again an
     Area a binding research report the log holds already assesses, holding no Assessed Again For, or naming a cause that
@@ -3395,7 +3419,7 @@ def cause_problems(rep, ctx, design, entries, named):
     return out
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: research-covers-its-matches]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: research-covers-its-matches]
 def coverage_due(design, kind, entries):
     """Whether the entry of a check of this kind, appended after these, sits where the binding research is read
     together: the builder's first check after research is taken in, other than a handed-off judgment's, a round whose
@@ -3408,7 +3432,7 @@ def coverage_due(design, kind, entries):
     return bool(research) and research[-1] > last_other
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: research-covers-its-matches]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: research-covers-its-matches]
 def union_coverage_problems(root, design, design_text, entries, ctx=None, among=None):
     """-> [(rule, message)]: each match outside the design document of a Search any of the design's binding research
     reports holds, its Pattern run again over its ground, lying within no Read Assessment's Area of any of them; among,
@@ -3499,13 +3523,13 @@ def report_of(value):
     return (design, path.parent.name, int(path.stem)) if design.is_file() else None
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: findings-anchored-in-the-design]
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: places-in-their-form]
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: reads-assessed]
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-in-its-form]
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-keys-name-records]
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: report-laid-out]
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: findings-anchored-in-the-design]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: places-in-their-form]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: reads-assessed]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-keys-name-records]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-laid-out]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]
 def check_handed_back(value):
     """--check-handed-back REPORT: a review's report, before its settlement, or a handed-off judgment's, before the builder
     takes it in, the cold agent's part held to its form, its Searches run again, each place it read assessed where it
@@ -3522,12 +3546,109 @@ def check_handed_back(value):
     design_text = read(design).replace("\r\n", "\n")
     rep = read_report(read(Path(value)))
     ctx = report_context(root, design, design_text, kind, n, log_entries(design_text), reviewer=True)
+    return report("check-handed-back " + rel_to(value, root), handed_back_problems(root, design, kind, n, value))
+
+
+def handed_back_problems(root, design, kind, n, value):
+    """-> [(rule, message)]: a review's or a handed-off judgment's report as its cold agent hands it back, its parts held
+    to their form and no part held that the builder or the design script writes."""
+    design_text = read(design).replace("\r\n", "\n")
+    rep = read_report(read(Path(value)))
+    ctx = report_context(root, design, design_text, kind, n, log_entries(design_text), reviewer=True)
     problems = form_problems(rep, ctx, report_types(root), report_parts(root))
     if rep["in_form"]:
         problems += layout_problems(rep, root) + places_problems(rep, report_types(root)) + search_problems(rep, ctx)
         problems += reads_assessed_problems(rep, ctx) + anchor_problems(rep, ctx)
         problems += key_problems(rep, ctx, named_reports(design, ctx["entries"], root))
-    return report("check-handed-back " + rel_to(value, root), problems)
+        problems += [(COLD_PARTS_KEPT, "a part its cold agent does not write, the builder's or the design script's: " + p)
+                     for p, _ in rep["parts"] if p in BUILDER_PARTS]
+    return problems
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: cold-parts-kept]
+COLD_PARTS_KEPT = WF + " § A Check's Report § Script Checks [Name: cold-parts-kept]"
+
+
+def part_texts(text):
+    """-> {part: [its lines, trailing blank lines dropped]} of a report: its Title, the lines from its title to its first
+    part's heading, and each part, its heading among its lines."""
+    lines = text.replace("\r\n", "\n").split("\n")
+    heads = sorted((h, lineage) for lineage, (h, _) in sections(text).items() if " § " not in lineage)
+    out = {}
+    bounds = [(0, "Title")] + [(h, p) for h, p in heads]
+    for k, (h, p) in enumerate(bounds):
+        end = bounds[k + 1][0] if k + 1 < len(bounds) else len(lines)
+        part = [l.rstrip() for l in lines[h:end]]
+        while part and not part[-1]:
+            part.pop()
+        out[p] = part
+    return out
+
+
+def fingerprint(lines):
+    """-> the SHA-256 of lines joined by line feeds, as UTF-8."""
+    return hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()
+
+
+def hand_back_part(text, kind):
+    """-> the Hand-back part's lines for a report as its cold agent handed it back: a fingerprint of each part it wrote,
+    in the report's order, a review's Searches with the count of the lines it covers."""
+    out = ["## " + HAND_BACK, ""]
+    for p, lines in part_texts(text).items():
+        if p not in REVIEWER_PARTS:
+            continue
+        if p == "Searches" and kind in REVIEWS:
+            out.append("- %s: %s, %d lines" % (p, fingerprint(lines), len(lines)))
+        else:
+            out.append("- %s: %s" % (p, fingerprint(lines)))
+    return out
+
+
+def cold_parts_problems(rep, kind):
+    """-> [(rule, message)]: a report a cold agent wrote, taken up by the builder: a Hand-back holding a fingerprint of
+    each part the cold agent wrote, each part still matching it, a review's Searches matching it over the lines it
+    covers, so the builder's own Searches after them aside, and no part the cold agent writes added after the take-up."""
+    texts = part_texts(rep["text"])
+    if HAND_BACK not in texts:
+        return [(COLD_PARTS_KEPT, "it holds no Hand-back part: a report a cold agent wrote is taken up by "
+                                  "--take-up-report before the builder writes its parts")]
+    held, out = {}, []
+    for line in texts[HAND_BACK][1:]:
+        m = FINGERPRINT.match(line.strip())
+        if m:
+            held[m["part"]] = (m["sha"], int(m["n"]) if m["n"] else None)
+        elif line.strip():
+            out.append((COLD_PARTS_KEPT, "a Hand-back line that is no part's fingerprint: " + line.strip()))
+    for p, (sha, n) in held.items():
+        now = texts.get(p)
+        if now is None:
+            out.append((COLD_PARTS_KEPT, "the %s part its cold agent handed back is removed" % p))
+        elif fingerprint(now if n is None else now[:n]) != sha:
+            out.append((COLD_PARTS_KEPT, "the %s part no longer holds what its cold agent handed back" % p))
+    for p in texts:
+        if p in REVIEWER_PARTS and p not in held:
+            out.append((COLD_PARTS_KEPT, "a part its cold agent writes, added after the builder took the report up: " + p))
+    return out
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: cold-parts-kept]
+def take_up_report(value):
+    """--take-up-report REPORT: the builder takes up a review's or a handed-off judgment's report its cold agent handed
+    back: the hand-back check run again and, where it passes, the report's Hand-back part written, a fingerprint of each
+    part the cold agent wrote; -> 1 where it reports, writing nothing, 0 where it writes the part, 2 for a usage error."""
+    root = repo_root()
+    found = report_of(value) if Path(value).is_file() else None
+    if found is None or found[1] not in REVIEWS + (JUDGMENT,):
+        sys.stderr.write("--take-up-report takes a review's or a handed-off judgment's report at its path in a design's "
+                         "folder, .ai/tmp/<skill-name>/<design>/reports/<kind>/{n}.md: %s\n" % value)
+        return 2
+    design, kind, n = found
+    problems = handed_back_problems(root, design, kind, n, value)
+    if problems:
+        return report("take-up-report, not taken up " + rel_to(value, root), problems)
+    text = read(Path(value)).replace("\r\n", "\n").rstrip("\n")
+    Path(value).write_text(text + "\n\n" + "\n".join(hand_back_part(text, kind)) + "\n", encoding="utf-8")
+    return report("take-up-report " + rel_to(value, root), [])
 
 
 def check_settled_report(value):
@@ -3562,8 +3683,8 @@ def retired_phrases(text):
     return out
 
 
-# @canon-spec specs/methodology/working-files.md § Design Log Entry
-# @canon-spec specs/methodology/working-files.md § Retired Phrase
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry
+# @canon-spec specs/methodology/working-files/main.md § Retired Phrase
 def places(value):
     """-> [(path, section or None)] for a Places or a Stays Right value: places separated by semicolons, each a path,
     its section after it, written as `path` § Section, as the citation `path § Section`, or bare."""
@@ -3607,7 +3728,9 @@ def scope_files(root):
     paths = found.stdout.split("\n") if found.returncode == 0 else \
         [s for s in scope if (root / s).is_file()] + \
         [p.relative_to(root).as_posix() for s in scope if (root / s).is_dir() for p in (root / s).rglob("*") if p.is_file()]
-    return sorted(p for p in paths if p and not is_working_file(p))
+    # the specifications' files as the index walk finds them, so a file no index names is the index check's to report
+    walked = {p.relative_to(root).as_posix() for p in indexed(root, "specs")}
+    return sorted(p for p in paths if p and not is_working_file(p) and (not p.startswith("specs/") or p in walked))
 
 
 def show_reach(value):
@@ -3763,7 +3886,7 @@ def refresh_links(value):
     return 0
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § What the Design Script Checks
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § What the Design Script Checks
 # the constructs a self-review traces by its paths, the ones a construct's own block decides
 WHOLE = ("Decision Table", "State Machine")
 
@@ -3778,7 +3901,7 @@ def repo_root():
 
 def kept_changes(root, design_text):
     """-> the paths the checkout holds changed against the last commit, where the design is not applying, so its
-    reading is the last commit's, as working-files.md § A Design Document § The States It Moves Through § A Send-back
+    reading is the last commit's, as working-files/main.md § A Design Document § The States It Moves Through § A Send-back
     has a reading made while kept changes stand; else none."""
     if re.search(r"^\*\*Status:\*\* applying(?: \\)?\s*$", design_text, re.M):
         return []
@@ -3789,7 +3912,7 @@ def kept_changes(root, design_text):
 
 def check_constructs(value):
     """--check-constructs: the construct checks a file in scope takes, read as the audit reads them, the specs alone,
-    since a design's Drafts are checked by the design check (working-files.md § A Design Document § The Record's
+    since a design's Drafts are checked by the design check (working-files/main.md § A Design Document § The Record's
     Checks); -> 1 where a finding is reported, else 0, and 2 for a path that is no file in scope, a design among them."""
     root, target = repo_root(), Path(value).resolve()
     try:
@@ -3844,7 +3967,7 @@ if lib == "commit":
     sys.meta_path.insert(0, Commit())
 else:
     sys.path.insert(0, lib)
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import code_checks, spec_checks, spec_text
 tree = Path(repo) if commit == "-" else spec_text.CommitTree(repo, commit)
 groups = [(h, [list(c) for c in rows]) for h, rows, _ in spec_checks.candidate_groups(tree)]
@@ -4098,11 +4221,11 @@ FLAGS = (
     ("--check-cited-headings", "PROPOSAL", check_cited_headings,
      "confirm every cross-file citation in the proposal points to a heading that exists"),
     ("--check-design-form", "DESIGN", check_design_form,
-     "confirm a design document holds the form working-files.md sets"),
+     "confirm a design document holds the form working-files/main.md sets"),
     ("--check-target-kind", "DESIGN", check_target_kind,
      "confirm every file a design document's Target names is of the kind its Kind field declares, and that it names no working file"),
     ("--check-design", "DESIGN", check_design,
-     "run the validation review on one design document, writing no stamp: its form, its records, the references within it, the lineage from research to its steps and, by the construct checks, each construct a step's Draft holds, drawing only on the document, the reports of the handed-off judgments of its current major version its log names, as working-files.md § A Design Document § The Record's Checks bounds them, the canon's declarations of its form and, for a Draft's constructs, the specs as they stand; the builder runs it at validating before each adversarial round"),
+     "run the validation review on one design document, writing no stamp: its form, its records, the references within it, the lineage from research to its steps and, by the construct checks, each construct a step's Draft holds, drawing only on the document, the reports of the handed-off judgments of its current major version its log names, as working-files/main.md § A Design Document § The Record's Checks bounds them, the canon's declarations of its form and, for a Draft's constructs, the specs as they stand; the builder runs it at validating before each adversarial round"),
     ("--check-workstack", "PLANS_DIR", check_workstack,
      "report what is out of sync in the workstack: a Status out of sync with what a design depends on, an approved design whose Depends On Designs names a finished design or whose Scope relies on one, a Depends On Designs naming no design, and a loop; the builder runs it before each validation; reads the skill's plans folder, and those beside it, unless given a directory"),
     ("--show-workstack", "PLANS_DIR", show_workstack,
@@ -4116,11 +4239,13 @@ FLAGS = (
     ("--stamp-validation", "DESIGN", stamp_validation,
      "run the validation review on one design document and, if it passes, write its validation stamp, taking in each log entry naming a report the review reads; the builder runs it at validating on the way to the user's approval"),
     ("--log-entry", "DESIGN KIND [FIELD=VALUE ...]", log_entry,
-     "append an entry to a design document's log, its count among its kind and the UTC time it is appended, refusing a kind, a field or a value out of the Design Log Entry type; for a check's entry, reading its report at reports/<kind>/{n}.md in the design's folder, writing a self-review's script checks' output into it, refusing the entry where the report is out of its form, its layout or the form of its values holding places, leaves a finding unsettled or settles one twice, cites a key naming no record, holds a Search whose matches its Places do not cover, holds Read Assessments leaving a place its Searches matched or its Reads hold unassessed, holds a marked Finding anchored in no part of the design, or holds records not covering what working-files.md § A Check's Report § What the Design Script Checks has the script check of them, and taking the entry's counts from it, refusing any the builder gives; the builder appends every entry through it"),
+     "append an entry to a design document's log, its count among its kind and the UTC time it is appended, refusing a kind, a field or a value out of the Design Log Entry type; for a check's entry, reading its report at reports/<kind>/{n}.md in the design's folder, writing a self-review's script checks' output into it, refusing the entry where the report is out of its form, its layout or the form of its values holding places, leaves a finding unsettled or settles one twice, cites a key naming no record, holds a Search whose matches its Places do not cover, holds Read Assessments leaving a place its Searches matched or its Reads hold unassessed, holds a marked Finding anchored in no part of the design, or holds records not covering what working-files/main.md § A Check's Report § What the Design Script Checks has the script check of them, and taking the entry's counts from it, refusing any the builder gives; the builder appends every entry through it"),
     ("--check-handed-back", "REPORT", check_handed_back,
-     "check a review's report at its path in a design's folder before its settlement, or a handed-off judgment's before the builder takes it in: the cold agent's part, its title, its Reading, its Findings, its Searches and its Read Assessments, held to the form working-files.md § A Check's Report gives it and to its layout, its values holding places in their form, each Search run again, each place it matched or read lying within a Read Assessment's Area where it holds Read Assessments, and each marked Finding naming the parts of the design it bears on, or the rules it breaks; writes no file; the cold agent runs it before handing the report back, and the builder as settling starts"),
+     "check a review's report at its path in a design's folder before its settlement, or a handed-off judgment's before the builder takes it in: the cold agent's part, its title, its Reading, its Findings, its Searches and its Read Assessments, held to the form working-files/main.md § A Check's Report gives it and to its layout, its values holding places in their form, each Search run again, each place it matched or read lying within a Read Assessment's Area where it holds Read Assessments, and each marked Finding naming the parts of the design it bears on, or the rules it breaks; writes no file; the cold agent runs it before handing the report back, and the builder as settling starts"),
+    ("--take-up-report", "REPORT", take_up_report,
+     "take up a review's or a handed-off judgment's report its cold agent handed back, as working-files/main.md § A Check's Report § Who Writes Each Part § The Report's Workflow has it: the hand-back check run again and, where it passes, the report's Hand-back part written, a fingerprint of each part the cold agent wrote; where it reports, nothing is written and the report goes back to its cold agent"),
     ("--check-settled-report", "REPORT", check_settled_report,
-     "check a check's report at its path in a design's folder once it is settled, by every check --log-entry runs on it as it logs the check's entry: its form, its layout, its values holding places in their form, each finding settled once, each key naming a record, each Search's matches covered, each place it matched or read assessed where it holds Read Assessments, each marked Finding anchored in the design, and its records covering what working-files.md § A Check's Report § What the Design Script Checks has the script check of them; writes no file, a self-review's report read with the Script Output --log-entry would write into it; the builder runs it as a check's settling ends, before logging its entry"),
+     "check a check's report at its path in a design's folder once it is settled, by every check --log-entry runs on it as it logs the check's entry: its form, its layout, its values holding places in their form, each finding settled once, each key naming a record, each Search's matches covered, each place it matched or read assessed where it holds Read Assessments, each marked Finding anchored in the design, and its records covering what working-files/main.md § A Check's Report § What the Design Script Checks has the script check of them; writes no file, a self-review's report read with the Script Output --log-entry would write into it; the builder runs it as a check's settling ends, before logging its entry"),
     ("--show-reach", "DESIGN", show_reach,
      "list each line in Spec of Record's scope holding a phrase the design's Retired Phrases record, outside its Stays Right, marking those outside the Target; the builder runs it at drafting"),
     ("--check-retired-wording", "DESIGN", check_retired_wording,

@@ -21,4 +21,4 @@ What is easy to miss, as `specs/methodology/skills.md § Authoring a Skill` has 
 - a script's copy of values the canon states carrying no canon-spec annotation, and one pointing to an area its values do not come from;
 - an annotation citing a check its unit does not carry out.
 
-Of `specs/methodology/working-files.md § The Working Files`, this audit reads the paragraphs on a skill's scratch space and on its plans. It reads them against what the skill's text says of where the skill's output and plans go. Working-file form reads the rest.
+Of `specs/methodology/working-files/main.md § The Working Files`, this audit reads the paragraphs on a skill's scratch space and on its plans. It reads them against what the skill's text says of where the skill's output and plans go. Working-file form reads the rest.

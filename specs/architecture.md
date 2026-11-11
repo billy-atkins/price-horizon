@@ -6,6 +6,7 @@ The specifications are layered, each layer describing a different kind of thing,
 specs/
 ├── AGENTS.md             the entry point to Spec of Record
 ├── index.md
+├── main.md               in every directory under specs/: what its specs share
 ├── architecture.md       this overview
 ├── methodology/          the rules for writing specs, and for the code the specs govern
 │   ├── index.md
@@ -21,6 +22,8 @@ At the top of `specs/` sits [`specs/AGENTS.md`](/specs/AGENTS.md), Spec of Recor
 - the kinds a change can be, and the skills every change and every check is sent to, each forking on whether the canon or the application specs are touched, and the skills designing, writing and checking code;
 - where to find a rule mid-step;
 - the rules reaching every author: how work is designed, reviewed and approved, who makes each check, how each check's findings are settled, a review's rounds at their causes, and whose call each fix is, and how what a change reaches is kept in sync with it.
+
+The entry point is agent instructions, and stands apart from the main file of `specs/`, [`specs/main.md`](/specs/main.md), a spec holding what the core canon's specs share.
 
 [`specs/methodology/scope.md § The Shape of the Scope`](/specs/methodology/scope.md#the-shape-of-the-scope) draws the whole scope, down to each methodology file, and each directory's own `index.md` lists what it holds, so this tree names only the layers and the files that establish them. The methodology has its own overview, [`specs/methodology/architecture.md`](/specs/methodology/architecture.md), and the application one for each half, [`specs/application/product/architecture.md`](/specs/application/product/architecture.md) and [`specs/application/technical/architecture.md`](/specs/application/technical/architecture.md).
 

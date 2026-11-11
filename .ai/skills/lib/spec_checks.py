@@ -21,9 +21,9 @@ from record_types import (
     CONSTRUCT_KEYS, FACT_HOME, FIELD_KEYS, FIELD_LINE, KEY_VALUE, LAST_TOP_LEVEL, NAME_CITED, RECORD_FORM,
     TYPES, _TEXT_OF, basic_tables, block_findings, block_path, cited_value_findings, closed_set, closed_set_findings,
     _indent, construct_keys, declared_types, derive, nested_lines, opens_key, parse_records, part_citation, read_block, read_fact,
-    read_for_records, record_citation, row_citation, type_of, value_of)
+    is_form_template, read_for_records, record_citation, row_citation, type_of, value_of)
 from spec_text import (
-    HEADING, REGISTRY, REGISTRY_RULE, SCOPE_HOME, headings, lineages, md_files, parse_citation, read, registry, resolve, scope_paths,
+    HEADING, REGISTRY, REGISTRY_RULE, SCOPE_HOME, headings, indexed, lineages, md_files, methodology_files, parse_citation, read, registry, resolve, scope_paths,
     sections, skill_dirs, strip_fences, tracked)
 
 
@@ -36,6 +36,7 @@ SCOPE_TREE = "specs/methodology/scope.md"
 SPECS_AGENTS = "specs/AGENTS.md"
 # @canon-spec specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed
 SPECS_ARCHITECTURE = "specs/architecture.md"  # in specs/AGENTS.md's layer
+SPECS_MAIN = "specs/main.md"  # in specs/AGENTS.md's layer, a spec of the core canon
 GLOSSARY = "specs/methodology/glossary.md"
 GLOSSARY_RULE = "glossary.md § Writing an Entry"
 ABBREVIATION_RULE = "glossary.md § Using an Abbreviation"
@@ -53,7 +54,7 @@ SKIPPED_STEP_HOME = "specs/methodology/scope.md § Rules and Skills § Skipped S
 SKIPPED_STEPS_AT = "Operating rules carried out by a step"
 DIAGRAMS_RULE = "modeling-constructs.md § Diagrams"
 IMAGE = re.compile(r"!\[[^\]]*\][(\[]|<img\b", re.I)
-WORKING_FILES = "specs/methodology/working-files.md"
+WORKING_FILES = "specs/methodology/working-files/main.md"
 WORKING_FILES_RULE = "working-files.md § The Working Files"
 SCRIPT_SUFFIXES = {".py", ".ps1", ".sh"}
 # @canon-spec specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed
@@ -73,9 +74,9 @@ FENCE = re.compile(r'^```', re.M)
 ORDINALS_RULE = "spec-style.md § Ordinals and Counts"
 NUMBERED_LEAD_IN = re.compile(r'^\*\*\d+[.)]\s')
 NUMBERED_ITEM = re.compile(r'^\s*\d+[.)]\s')
-# @canon-spec specs/methodology/working-files.md § The Working Files
+# @canon-spec specs/methodology/working-files/main.md § The Working Files
 WORKING_FILE = re.compile(r'\.ai/(?:plans\b|follow-ups\.md|tmp\b)')
-WORKING_FILES_HOME = "specs/methodology/working-files.md"
+WORKING_FILES_HOME = "specs/methodology/working-files/"
 
 IMPACTS_CITED = ("specs/methodology/spec-placement.md § Open Question",)
 
@@ -93,8 +94,15 @@ MAPPING = "sourcing-and-citation.md § External Reference § A Mapping onto a St
 DEPARTS_FOR = ("the standard's gap", "the canon's form", "no need yet")
 # the registered standards' Names, read from their records as a check begins; a mapping's first header names one
 STANDARDS = set()
-# spec-placement.md § Environments: the environments file, and the closed set of kinds
+# spec-placement.md § Environments: the environments document, one file or a folder named for it, and the closed set
+# of kinds
 ENVIRONMENTS = "specs/application/technical/environments.md"
+ENVIRONMENTS_FOLDER = "specs/application/technical/environments/"
+
+
+def in_environments(r):
+    """Whether `r` is a file of the environments document, its one file or a file of the folder named for it."""
+    return r == ENVIRONMENTS or r.startswith(ENVIRONMENTS_FOLDER)
 # @canon-spec specs/methodology/spec-placement.md § Environments
 KINDS = ("local", "integration", "shared", "production")
 # spec-style.md § Bold Lead-ins and § Emphasis: bold marks only a field or a lead-in
@@ -206,7 +214,9 @@ def _record_findings(host, body, found, r, offset):
                 found.append((spec["home"], r, at(i), f"the {k} field written at its default value, {v}"))
             if k in spec["section_values"] and v not in spec["section_values"][k]:
                 found.append((spec["home"], r, at(i), f"the {k} field holds a value its type does not allow: {v}"))
-        if spec["last_top_level"] and (" § " in lineage or end != len(lines)):
+        # spec-placement.md § Open Question: the last top-level section binds a document kept as one file, never
+        # the main.md a folder's shared records sit in
+        if spec["last_top_level"] and not r.endswith("/main.md") and (" § " in lineage or end != len(lines)):
             found.append((spec["home"], r, at(h), f"the {title} section is not its file's last top-level section"))
         records, problems = parse_records(body, lineage, spec["section_fields"])
         for rule, i, msg in problems:
@@ -283,17 +293,30 @@ def _check_records(records, spec, host, r, at, found, scope):
 
 
 
-def environment_findings(r, body, found):
+def environment_findings(r, body, found, text_of=None):
     """spec-placement.md § Environments: each environment's section opens with one Kind
     field from the closed set, on a line of its own, and holds no other; exactly one
-    environment is local; and its tool and task tables carry the headers the rule sets."""
-    if r != ENVIRONMENTS:
+    environment is local; and its tool and task tables carry the headers the rule sets.
+    A document laid out as a folder is judged whole at its main.md, each of its files read in `text_of`."""
+    if r == ENVIRONMENTS:
+        files = {r: body}
+    elif r == ENVIRONMENTS_FOLDER + "main.md":
+        files = {p: b for p, b in (text_of or {}).items() if p.startswith(ENVIRONMENTS_FOLDER)}
+    else:
         return
     rule = "spec-placement.md § Environments"
+    local = sum(_environments_in(p, b, found, rule) for p, b in sorted(files.items()))
+    if local != 1:
+        found.append((rule, r, 0, f"{local} environments are local, not exactly one"))
+
+
+def _environments_in(r, body, found, rule):
+    """One file's environments, checked -> how many are local: a file's top-level sections, or, in the document's one
+    file or its main.md where it has one top-level section, that section's children."""
     lines, local, opening = body.split("\n"), 0, set()
     secs = sorted(sections(body).items(), key=lambda x: x[1][0])
-    # the environments are the file's top-level sections, or, where it has one, its children
-    depth = 1 if sum(" § " not in lin for lin, _ in secs) == 1 else 0
+    whole = r == ENVIRONMENTS or r.endswith("/main.md")
+    depth = 1 if whole and sum(" § " not in lin for lin, _ in secs) == 1 else 0
     for lineage, (h, end) in secs:
         if lineage.count(" § ") != depth:
             continue
@@ -313,8 +336,7 @@ def environment_findings(r, body, found):
             found.append((rule, r, i + 1, "a tools table not headed Tool, Version and Purpose with at least one install column after them"))
         if cells[:1] == ["Task"] and cells not in (["Task", "Command", "Does"], ["Task", "Command", "Does", "Runs On"]):
             found.append((rule, r, i + 1, "a tasks table not headed Task, Command and Does, with Runs On after them where a task needs it"))
-    if local != 1:
-        found.append((rule, r, 0, f"{local} environments are local, not exactly one"))
+    return local
 
 
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Basic Table
@@ -396,7 +418,7 @@ def field_findings(r, body, found):
         elif place == "record section":
             ok = spec is not None and not indent and not dash
         elif place == "environment":
-            ok = r == ENVIRONMENTS and not indent and not dash
+            ok = in_environments(r) and not indent and not dash
         elif place == "construct":
             # modeling-constructs.md § Defining Constructs § Declaring a Construct: a field of the construct's block
             ok = not indent and not dash
@@ -577,15 +599,15 @@ def layer_of(rel):
     for name, prefix in LAYER.items():
         if rel.startswith(prefix):
             return name
-    if rel in (SPECS_AGENTS, SPECS_ARCHITECTURE):
+    if rel in (SPECS_AGENTS, SPECS_MAIN, SPECS_ARCHITECTURE):
         return "agents"
     return "project" if rel == "AGENTS.md" else None
 
 
 def direction(src_layer, path, rel, line, found, section=True):
-    """A citation never points down a layer except from specs/AGENTS.md or specs/architecture.md; application and
+    """A citation never points down a layer except from specs/AGENTS.md, specs/main.md or specs/architecture.md; application and
     methodology never cite each other in either direction, but for a Construct field citing its construct's definition,
-    which the caller leaves out; an application spec never cites specs/AGENTS.md or specs/architecture.md; and no spec
+    which the caller leaves out; an application spec never cites specs/AGENTS.md, specs/main.md or specs/architecture.md; and no spec
     cites a section of the project's root AGENTS.md, though a plain mention of it is no citation of its content. Shared
     by both forms."""
     dst_layer = layer_of(path)
@@ -617,10 +639,10 @@ def mapping_rule_findings(root):
         return out
     alt = "|".join(re.escape(n) for n in names)
     named = re.compile(r"\b(?i:(?:depart(?:s|ed|ing|ures?)?|differ(?:s|ed|ing|ences?)?|deviat(?:es?|ed|ing|ions?)) from|unlike|contrary to) (?P<n>" + alt + r")\b")
-    for path in sorted((root / "specs/methodology").glob("*.md")):
-        if path.name in ("architecture.md", "index.md"):
-            continue
+    for path in methodology_files(root):
         rel = path.relative_to(root).as_posix()
+        if rel == "specs/methodology/architecture.md":
+            continue
         lines = strip_fences(read(path)).split("\n")
         for n, line in enumerate(lines, 1):
             if line.startswith("|"):
@@ -645,7 +667,7 @@ def example_pointer_findings(root):
     out, rule = [], "scope.md § Progressive Disclosure"
     tree = root / "specs/methodology/examples"
     named = set()
-    for path in [root / "specs/AGENTS.md", *sorted((root / "specs/methodology").glob("*.md"))]:
+    for path in [root / SPECS_AGENTS, root / SPECS_MAIN, *methodology_files(root)]:
         if not path.exists():
             continue
         rel = path.relative_to(root).as_posix()
@@ -723,7 +745,7 @@ def check(root, warned=None):
                 found.append((ORDINALS_RULE, r, i, "bold lead-in carries a number"))
             elif NUMBERED_ITEM.match(line):
                 found.append((ORDINALS_RULE, r, i, "list item carries a number"))
-            if r.startswith("specs/") and r not in (WORKING_FILES_HOME, SPECS_AGENTS):
+            if r.startswith("specs/") and not r.startswith(WORKING_FILES_HOME) and r != SPECS_AGENTS:
                 for m in WORKING_FILE.finditer(line):
                     found.append(("sourcing-and-citation.md § Which Citations Are Allowed", r, i,
                                   f"names a working file: {m.group(0)}"))
@@ -838,7 +860,7 @@ def check(root, warned=None):
         # worked example. The fence is found in the raw text: strip_fences() blanks it.
         if r.startswith("specs/"):
             diagram_findings(r, body, text_of, known, lineage, found)
-            environment_findings(r, body, found)
+            environment_findings(r, body, found, text_of)
             for m in re.finditer(r'^```mermaid\s*\n(.*?)^```', body, re.S | re.M):
                 # a diagram opens with a config front matter block, so scan the whole
                 # fence rather than its first line
@@ -883,6 +905,7 @@ def check(root, warned=None):
 
     found += canon_spec_findings(root)
     found += script_check_carried_out_findings(root)
+    found += form_template_findings(root)
     found += mapping_rule_findings(root)
     found += example_pointer_findings(root)
     found += scope_findings(root)
@@ -1022,9 +1045,10 @@ def coverage_findings(root):
         if not any(p == path and (s == target or target.startswith(s + " § ")) for p, s in cited):
             found.append((COVERAGE_RULE, AUDIT_SKILL, 0,
                           f"no registered skill's Workflow step cites the section stating operating rules {path} § {target}"))
-    for f in [root / SPECS_AGENTS] + sorted((root / "specs/methodology").glob("*.md")):
+    for f in [root / SPECS_AGENTS, root / SPECS_MAIN] + methodology_files(root):
         rel = f.relative_to(root).as_posix()
-        if not f.exists() or f.name in ("architecture.md", "index.md"):
+        # scope.md § Rules and Skills: no form template takes a check, told by its name
+        if not f.exists() or f.relative_to(root).as_posix() == "specs/methodology/architecture.md" or is_form_template(f.name):
             continue
         lins = sections(read(f))
         # checks.md § Check: a check's records stand under the section stating the rule it enforces
@@ -1345,7 +1369,7 @@ def style_and_agent_candidates(root):
             continue
         for n, s in long_sentences(read(f)):
             out.append((rel, n, "a long sentence of chained clauses, which may need a second read", s.strip()))
-        if rel in (SPECS_AGENTS, SPECS_ARCHITECTURE) or rel.startswith("specs/methodology/"):
+        if rel in (SPECS_AGENTS, SPECS_MAIN, SPECS_ARCHITECTURE) or rel.startswith("specs/methodology/"):
             for n, path in application_paths(read(f)):
                 out.append((rel, n, "a path into the application specs, which may be an example from inside the house", path))
     return out
@@ -1430,7 +1454,7 @@ def abbreviation_findings(root):
     got = glossary_terms(root)
     names = [abbreviation for _, _, abbreviation, _, _, _, _ in got[1] if abbreviation] if got else []
     found = []
-    app = sorted((root / "specs" / "application").rglob("*.md"))
+    app = sorted(indexed(root, "specs/application"))
     for f in app:
         for n, line in enumerate(read(f).split("\n"), 1):
             for m in RECORDED_ABBREVIATION.finditer(line):
@@ -1575,6 +1599,94 @@ CHECK_HOMES = (SCRIPT_CHECK_HOME, "specs/methodology/checks.md § Semantic Check
 SCRIPT_CHECK_CARRIED_OUT = "skills.md § Authoring a Skill § Script Checks [Name: script-check-carried-out]"
 
 
+# scope.md § Form Templates: the record of the check holding a form template in the core canon to its form; a
+# placeholder, a token in braces; a field a template lays out, its key and its placeholder; a citation a placeholder
+# holds, its file and its section; and a heading
+FORM_TEMPLATE_RULE = "scope.md § Form Templates § Script Checks [Name: form-template-in-its-form]"
+PLACEHOLDER = re.compile(r"\{[^{}]*\}")
+TEMPLATE_FIELD = re.compile(r"^\s*(?:- )?\*\*([^*]+):\*\*\s*(\{.*\})")
+PLACEHOLDER_CITE = re.compile(r"`(specs/[^`§]+?\.md) § ([^`\[]+?)(?: \[[^`]*\])?`")
+TEMPLATE_HEADING = re.compile(r"^#{1,6} \S")
+
+
+def _form_parts(root, path, lineage):
+    """The headings a form's table of parts gives, in its order: the first literal of each Heading cell of the table
+    keyed by Part in the section `lineage` of `path` -> [heading], or None where the section holds no such table."""
+    f = root / path
+    if not f.is_file():
+        return None
+    text = read(f)
+    span = sections(text).get(lineage)
+    if not span:
+        return None
+    lines = text.split("\n")[span[0]:span[1]]
+    head = next((i for i, l in enumerate(lines) if l.startswith("| Part | Heading |")), None)
+    if head is None:
+        return None
+    parts = []
+    for l in lines[head + 2:]:
+        if not l.startswith("|"):
+            break
+        m = re.search(r"`([^`]+)`", l.strip().strip("|").split("|")[1])
+        if m:
+            parts.append(m.group(1).strip())
+    return parts
+
+
+# @canon-spec specs/methodology/scope.md § Form Templates § Script Checks [Name: form-template-in-its-form]
+def form_template_findings(root):
+    """scope.md § Form Templates: each form template in the core canon, a file under specs/ whose name ends
+    `-form-template`, cites a section in its first placeholder; each heading it lays out, outside a fence, is a part's
+    heading that section's table of parts gives, in the table's order; and each field it lays out with a placeholder
+    citing a record type's section is a field that type declares, in the type's order, a record's first field opening
+    the next record."""
+    homes = {spec["home"]: spec for spec in TYPES.values()}
+    out = []
+    for f in md_files(root):
+        rel = f.relative_to(root).as_posix()
+        if not rel.startswith("specs/") or not f.stem.endswith("-form-template"):
+            continue
+        body = read(f)
+        first = PLACEHOLDER.search(body)
+        cite = PLACEHOLDER_CITE.search(first.group(0)) if first else None
+        if not cite:
+            out.append((FORM_TEMPLATE_RULE, rel, 1, "a form template whose first placeholder cites no section stating its form"))
+            continue
+        parts = _form_parts(root, cite.group(1), cite.group(2).strip())
+        lines, fenced, at = body.split("\n"), False, -1
+        order = {}
+        for i, line in enumerate(lines):
+            if line.lstrip().startswith("```"):
+                fenced = not fenced
+            if fenced:
+                continue
+            if parts is not None and TEMPLATE_HEADING.match(line):
+                heading = line.strip()
+                if heading not in parts:
+                    out.append((FORM_TEMPLATE_RULE, rel, i + 1, f"a heading no part of its form gives: {heading}"))
+                elif parts.index(heading) <= at:
+                    out.append((FORM_TEMPLATE_RULE, rel, i + 1, f"a heading out of its form's order: {heading}"))
+                else:
+                    at = parts.index(heading)
+            m = TEMPLATE_FIELD.match(line)
+            if not m:
+                continue
+            key = m.group(1).strip()
+            for path, lineage in PLACEHOLDER_CITE.findall(m.group(2)):
+                spec = homes.get(f"{path} § {lineage.strip()}")
+                if not spec:
+                    continue
+                declared = list(spec["fields"]) + [k for k in spec["section_fields"] if k not in spec["fields"]]
+                if key not in declared:
+                    out.append((FORM_TEMPLATE_RULE, rel, i + 1, f"a field its record type does not declare: {key}"))
+                    continue
+                k = declared.index(key)
+                if k and order.get(spec["home"], -1) > k:
+                    out.append((FORM_TEMPLATE_RULE, rel, i + 1, f"a field out of its record type's order: {key}"))
+                order[spec["home"]] = k
+    return out
+
+
 # @canon-spec specs/methodology/skills.md § Authoring a Skill § Script Checks [Name: script-check-carried-out]
 def script_check_carried_out_findings(root):
     """Each Script Check record standing in the specs, a record in a fenced block aside, cited by a canon-spec
@@ -1587,7 +1699,7 @@ def script_check_carried_out_findings(root):
     out = []
     for f in md_files(root):
         rel = f.relative_to(root).as_posix()
-        if not rel.startswith("specs/"):
+        if not rel.startswith("specs/") or is_form_template(rel):
             continue
         body = read(f)
         for lineage, (h, _) in sections(body).items():
@@ -1644,9 +1756,13 @@ def scope_findings(root):
         full = path
         if not (root / full.rstrip("/")).exists():
             found.append((rule, SCOPE_TREE, 0, f"the tree names {full}, which does not exist"))
-        if full.startswith("specs/methodology/") and full.count("/") == 2 and not name.endswith("/"):
+        if full.startswith("specs/methodology/") and full != "specs/methodology/" and "/" not in full[len("specs/methodology/"):].rstrip("/"):
             listed.add(name)
-    actual = {p.name for p in (root / "specs/methodology").glob("*.md")}
+    # the methodology's top level as its index names it, a folder by its name ending `/`, and the index itself; its
+    # main.md aside, which the tree states once for every directory under specs/
+    idx = root / "specs/methodology/index.md"
+    actual = set(re.findall(r'^\|\s*`([^`]+)`', read(idx), re.M)) | {"index.md"} if idx.is_file() else set()
+    actual.discard("main.md")
     for n in sorted(actual - listed):
         found.append((rule, SCOPE_TREE, 0, f"the tree does not name specs/methodology/{n}"))
     for n in sorted(listed - actual):
