@@ -7,10 +7,10 @@ A skill is part of Spec of Record when it is registered here, and only then. A s
 
 | Skill | The Rules It Serves |
 |---|---|
-| `audit-specs` | [`specs/AGENTS.md`](/specs/AGENTS.md), [`specs/main.md`](/specs/main.md), `specs/methodology/` |
+| `audit-specs` | [`specs/AGENTS.md`](/specs/AGENTS.md), the main file of `specs/`, `specs/methodology/` |
 | `author-mermaid-diagram` | [`specs/methodology/modeling-constructs.md § Diagrams`](/specs/methodology/modeling-constructs.md#diagrams) |
 | `configure-spec-of-record` | [`§ Setting Up an Agent`](#setting-up-an-agent), [`specs/methodology/design-workflow.md § A Review's Effort`](/specs/methodology/design-workflow.md#a-reviews-effort) |
-| `design-specs` | [`specs/AGENTS.md`](/specs/AGENTS.md), [`specs/main.md`](/specs/main.md), `specs/methodology/` |
+| `design-specs` | [`specs/AGENTS.md`](/specs/AGENTS.md), the main file of `specs/`, `specs/methodology/` |
 | `implement-specs` | [`specs/methodology/code.md`](/specs/methodology/code.md), [`specs/methodology/spec-placement.md § Personas`](/specs/methodology/spec-placement.md#personas), [`specs/methodology/spec-placement.md § A Product Module`](/specs/methodology/spec-placement.md#a-product-module), [`specs/methodology/spec-placement.md § Environments`](/specs/methodology/spec-placement.md#environments), [`specs/methodology/working-files/main.md § A Design Document`](/specs/methodology/working-files/main.md#a-design-document), [`specs/methodology/design-workflow.md`](/specs/methodology/design-workflow.md) |
 | `verify-spec-implementation` | [`specs/methodology/code.md`](/specs/methodology/code.md), [`specs/methodology/spec-placement.md § The Technical Stack`](/specs/methodology/spec-placement.md#the-technical-stack), [`specs/methodology/spec-placement.md § What an Overview Describes`](/specs/methodology/spec-placement.md#what-an-overview-describes), [`specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync § Materialized Views`](/specs/methodology/sourcing-and-citation.md#materialized-views) |
 

@@ -1386,7 +1386,16 @@ def check_stack(folder):
 CITATION = re.compile(r'(?<!`)(?P<d>`+)(?!`)(?P<path>[\w./-]+\.md)\s+§\s+(?P<target>(?:[^`]|(?!(?P=d)(?!`))`+)+?)(?<!`)(?P=d)(?!`)')
 
 
-def resolve(path, root):
+def folder_file(folder, target=""):
+    """-> the file of a document laid out as a folder holding the section `target` names, its main file tried first
+    where it holds one; with no target, its main file where it holds one; else None."""
+    files = sorted((p for p in folder.glob("*.md") if p.name != "index.md"), key=lambda p: (p.name != "main.md", p.name))
+    if not target:
+        return next((p for p in files if p.name == "main.md"), None)
+    return next((p for p in files if target in lineages(read(p))), None)
+
+
+def resolve(path, root, target=""):
     """-> (Path, note). A proposal is prose, so it may name a file in shorthand.
 
     An exact path wins. Otherwise the path is treated as a suffix, which is how a
@@ -1407,10 +1416,15 @@ def resolve(path, root):
     )
     if len(hits) == 1:
         return hits[0], ""
-    # a document laid out as a folder, named by its bare file name, is its main file (spec-placement.md § Where a
-    # File Goes); a bare main.md names no one document, every folder's main file sharing the name
-    if not hits and path.endswith(".md") and PurePosixPath(path).name != "main.md":
-        return resolve(path[:-3] + "/main.md", root)
+    # a document laid out as a folder, named by its bare file name, is read through its files: the one holding the
+    # section named, its main file first where it holds one (spec-placement.md § Where a File Goes); a bare main.md
+    # names no one document, every folder's main file sharing the name, and a folder's index.md is never a document
+    if not hits and path.endswith(".md") and PurePosixPath(path).name not in ("main.md", "index.md"):
+        index, _ = resolve(path[:-3] + "/index.md", root)
+        # a section none of its files holds is reported at its main file, where it holds one, as no such heading
+        found = index is not None and (folder_file(index.parent, target) or folder_file(index.parent))
+        if found:
+            return found, ""
     if not hits:
         return None, "no such file"
     names = ", ".join(h.relative_to(root).as_posix() for h in hits[:3])
@@ -1432,7 +1446,7 @@ def check_citations(proposal, root, kept=(), extra=""):
             continue
         seen.add((path, target))
 
-        target_file, note = resolve(path, root)
+        target_file, note = resolve(path, root, target)
         if target_file is None:
             results.append((False, path, target, note))
             continue
@@ -2068,16 +2082,20 @@ def report_parts(root=None):
 # @canon-spec specs/methodology/spec-placement.md § Where a File Goes
 def canon_rule(rule, root=None):
     """-> a rule the shared readers name by its file's name alone, cited with its path: a document laid out as a folder
-    named by its bare file name resolves to its main file, and a bare `main.md`, which every folder's main file shares,
-    names no one document and is left as written."""
+    named by its bare file name resolves to the file of its folder holding the section named, its main file first
+    where it holds one, and a bare `main.md`, which every folder's main file shares, names no one document and is left
+    as written."""
     if rule.startswith("specs/"):
         return rule
     name, sep, rest = rule.partition(" § ")
     if name == "main.md":
         return rule
     base = Path(root) if root is not None else Path(__file__).resolve().parents[3]
-    if not (base / "specs/methodology" / name).is_file() and (base / "specs/methodology" / name[:-3] / "main.md").is_file():
-        return f"specs/methodology/{name[:-3]}/main.md{sep}{rest}"
+    folder = base / "specs/methodology" / name[:-3]
+    if not (base / "specs/methodology" / name).is_file() and folder.is_dir():
+        found = folder_file(folder, rest)
+        if found:
+            return f"specs/methodology/{name[:-3]}/{found.name}{sep}{rest}"
     return "specs/methodology/" + rule
 
 

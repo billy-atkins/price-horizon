@@ -5,7 +5,6 @@
 
 | File | Description |
 |---|---|
-| `main.md` | What every worked example under this directory shares |
 | `document-form.md` | A rule of a field's form in a style file of an invented methodology, with its script check standing under it, and the unit of the invented skill's script carrying it out, written whole as a file would hold it |
 | `model-semantics.md` | A rule of a construct's soundness in the file of an invented methodology defining the construct, with its script check standing under it, and the unit of the invented skill's script carrying it out, written whole as a file would hold it |
 | `content-meaning.md` | A rule of what a title names, which the Headings and Captions sections of a style file of an invented methodology use, in a section of its own beside them, with its semantic check, its Unit and its Candidates, standing under it, written whole as a file would hold it |

@@ -5,7 +5,6 @@
 
 | File | Description |
 |---|---|
-| `main.md` | What every form template of a check's report shares |
 | `review-report-form-template.md` | A review's report, of an adversarial or a post-apply review |
 | `research-report-form-template.md` | A report of research, a judgment handed off to a cold agent |
 | `judgment-report-form-template.md` | The report of a judgment handed off to a cold agent other than research |

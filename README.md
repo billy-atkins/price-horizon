@@ -84,7 +84,6 @@ specs/
   AGENTS.md                 the entry point, where every change starts
   architecture.md           the overview of the specifications as a whole
   index.md                  the map of the specifications
-  main.md                   what the canon's specifications share
   methodology/              the rules of Spec of Record
     glossary.md             the terms the methodology gives a meaning of its own
     architecture.md         the overview of the rules
@@ -97,7 +96,7 @@ specs/
 docs/                       user documentation, still to come
 ```
 
-Every directory under `specs/` holds an `index.md` listing what it holds, and a `main.md` holding what its specs share. An overview, an `architecture.md`, describes how the files of its directory fit together, and the glossary defines each term the methodology gives a meaning of its own. The `AGENTS.md` files are the agent instructions, what an AI agent reads before it works here.
+Every directory under `specs/` holds an `index.md` listing what it holds, and a `main.md` only where it has content to hold. An overview, an `architecture.md`, describes how the files of its directory fit together, and the glossary defines each term the methodology gives a meaning of its own. The `AGENTS.md` files are the agent instructions, what an AI agent reads before it works here.
 
 Each part is written for its reader. The product specifications are written for a product owner, and the technical specifications for a software engineer. The methodology specifications are written for a practitioner: a software engineer designing a project's specifications. The agent instructions and the skills are written for an AI agent arriving with no context but what it reads, and any agent can follow them.
 

@@ -5,7 +5,6 @@
 
 | File | Description |
 |---|---|
-| `main.md` | What every worked example under this directory shares |
 | `fact/` | Facts sections, each written whole as a file would hold it |
 | `dag/` | DAGs, each written whole as a file would hold it |
 | `state-machine/` | State Machines, each written whole as a file would hold it |

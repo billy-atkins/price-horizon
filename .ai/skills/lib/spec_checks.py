@@ -36,7 +36,7 @@ SCOPE_TREE = "specs/methodology/scope.md"
 SPECS_AGENTS = "specs/AGENTS.md"
 # @canon-spec specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed
 SPECS_ARCHITECTURE = "specs/architecture.md"  # in specs/AGENTS.md's layer
-SPECS_MAIN = "specs/main.md"  # in specs/AGENTS.md's layer, a spec of the core canon
+SPECS_MAIN = "specs/main.md"  # where specs/ holds one: in specs/AGENTS.md's layer, a spec of the core canon
 GLOSSARY = "specs/methodology/glossary.md"
 GLOSSARY_RULE = "glossary.md § Writing an Entry"
 ABBREVIATION_RULE = "glossary.md § Using an Abbreviation"
@@ -297,11 +297,13 @@ def environment_findings(r, body, found, text_of=None):
     """spec-placement.md § Environments: each environment's section opens with one Kind
     field from the closed set, on a line of its own, and holds no other; exactly one
     environment is local; and its tool and task tables carry the headers the rule sets.
-    A document laid out as a folder is judged whole at its main.md, each of its files read in `text_of`."""
+    A document laid out as a folder is judged whole once, at its index.md, which every folder holds, across each of its
+    other files read in `text_of`, its main.md among them where it holds one."""
     if r == ENVIRONMENTS:
         files = {r: body}
-    elif r == ENVIRONMENTS_FOLDER + "main.md":
-        files = {p: b for p, b in (text_of or {}).items() if p.startswith(ENVIRONMENTS_FOLDER)}
+    elif r == ENVIRONMENTS_FOLDER + "index.md":
+        files = {p: b for p, b in (text_of or {}).items()
+                 if p.startswith(ENVIRONMENTS_FOLDER) and not p.endswith("/index.md")}
     else:
         return
     rule = "spec-placement.md § Environments"
@@ -605,9 +607,9 @@ def layer_of(rel):
 
 
 def direction(src_layer, path, rel, line, found, section=True):
-    """A citation never points down a layer except from specs/AGENTS.md, specs/main.md or specs/architecture.md; application and
+    """A citation never points down a layer except from specs/AGENTS.md, the main file of specs/ or specs/architecture.md; application and
     methodology never cite each other in either direction, but for a Construct field citing its construct's definition,
-    which the caller leaves out; an application spec never cites specs/AGENTS.md, specs/main.md or specs/architecture.md; and no spec
+    which the caller leaves out; an application spec never cites specs/AGENTS.md, the main file of specs/ or specs/architecture.md; and no spec
     cites a section of the project's root AGENTS.md, though a plain mention of it is no citation of its content. Shared
     by both forms."""
     dst_layer = layer_of(path)
@@ -1758,11 +1760,10 @@ def scope_findings(root):
             found.append((rule, SCOPE_TREE, 0, f"the tree names {full}, which does not exist"))
         if full.startswith("specs/methodology/") and full != "specs/methodology/" and "/" not in full[len("specs/methodology/"):].rstrip("/"):
             listed.add(name)
-    # the methodology's top level as its index names it, a folder by its name ending `/`, and the index itself; its
-    # main.md aside, which the tree states once for every directory under specs/
+    # the methodology's top level as its index names it, a folder by its name ending `/`, and the index itself, its
+    # main.md among them where it holds one, the tree drawing a main file only where one stands
     idx = root / "specs/methodology/index.md"
     actual = set(re.findall(r'^\|\s*`([^`]+)`', read(idx), re.M)) | {"index.md"} if idx.is_file() else set()
-    actual.discard("main.md")
     for n in sorted(actual - listed):
         found.append((rule, SCOPE_TREE, 0, f"the tree does not name specs/methodology/{n}"))
     for n in sorted(listed - actual):

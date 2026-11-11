@@ -17,7 +17,7 @@ Read `specs/AGENTS.md` and the glossary before any step. Descend only as far as 
 
 ### Find the application's code
 
-Read the code roots the technical specs' stack document, `stack.md` or the main file of a folder named for it, names, per `specs/methodology/spec-placement.md § The Technical Stack`. The script reads them the same way. A project with no stack document, or with none naming a code root, has no code this skill can find. Present that to the user as a gap in the specs, and verify nothing.
+Read the code roots the technical specs' stack document, `stack.md` or the files of a folder named for it, names, per `specs/methodology/spec-placement.md § The Technical Stack`. The script reads them the same way. A project with no stack document, or with none naming a code root, has no code this skill can find. Present that to the user as a gap in the specs, and verify nothing.
 
 ### Run the script first
 

@@ -192,7 +192,7 @@ What each kind bounds a change to:
 
 | Kind | Bounds the change to |
 |---|---|
-| `canon-specs` | [`specs/AGENTS.md`](/specs/AGENTS.md), [`specs/main.md`](/specs/main.md), [`specs/architecture.md`](/specs/architecture.md), the files under `specs/methodology/`, a registered skill's directory, and `.ai/skills/lib/` |
+| `canon-specs` | [`specs/AGENTS.md`](/specs/AGENTS.md), the main file of `specs/`, [`specs/architecture.md`](/specs/architecture.md), the files under `specs/methodology/`, a registered skill's directory, and `.ai/skills/lib/` |
 | `application-specs` | the files under `specs/application/` |
 | `code` | the application's code, within the code roots the technical stack names ([`specs/methodology/spec-placement.md § The Technical Stack`](/specs/methodology/spec-placement.md#the-technical-stack)), which the application specs govern ([`specs/methodology/code.md`](/specs/methodology/code.md)); a design changing code's only kind |
 | `documentation` | the documentation, `README.md` and the files under `docs/` |
