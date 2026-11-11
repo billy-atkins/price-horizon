@@ -19,7 +19,7 @@ Check is an abstract record type ([`specs/methodology/modeling-constructs.md § 
 |---|---|---|---|---|---|
 | Name | yes | yes | | text | the check's name, by which a citation names its record |
 | Tests | no | yes | | text | what holds where the check passes, in a sentence, saying which of its section's rules it holds to |
-| Reads | no | yes | | text | a list, the kinds of file the check reads, each item a kind of change [`specs/methodology/working-files.md § A Design Document § The Kinds of Change`](/specs/methodology/working-files.md#the-kinds-of-change) names, or `none`, for the working files, a design document among them, which are of no kind ([`specs/methodology/working-files.md § The Working Files`](/specs/methodology/working-files.md#the-working-files)) |
+| Reads | no | yes | | text | a list, the kinds of file the check reads, each item a kind of change [`specs/methodology/working-files/main.md § A Design Document § The Kinds of Change`](/specs/methodology/working-files/main.md#the-kinds-of-change) names, or `none`, for the working files, a design document among them, which are of no kind ([`specs/methodology/working-files/main.md § The Working Files`](/specs/methodology/working-files/main.md#the-working-files)) |
 | Carried Out By | no | yes | | text | a list, an item to each skill carrying the check out over its own units: the skill's directory, then its script's flag, or the step or the reading of the skill doing so; never a design script's `--check-work`, which runs the checks over a design's work as [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § The Scope a Check Runs Over`](/specs/AGENTS.md#the-scope-a-check-runs-over) has them run |
 
 ## Script Check

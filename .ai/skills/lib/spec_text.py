@@ -329,11 +329,43 @@ def scope_paths(root):
     return ["AGENTS.md", "README.md", "docs", "specs"] + [".ai/skills/" + n for n in skill_dirs(root)]
 
 
+# @canon-spec specs/methodology/scope.md § Progressive Disclosure
+# @canon-spec specs/methodology/spec-placement.md § Where a File Goes
+def indexed(root, folder="specs"):
+    """The files the index tables name, walked from `folder`'s index.md down -> [path]: each index.md, then each file
+    its rows name in their order, a row naming a subdirectory, its name ending `/`, walked in turn. A row naming what is
+    not there is the index check's to report, which alone walks the filesystem."""
+    idx = root / folder / "index.md"
+    if not idx.is_file():
+        return []
+    out = [idx]
+    for name in re.findall(r'^\|\s*`([^`]+)`', read(idx), re.M):
+        if name.endswith("/"):
+            out += indexed(root, f"{folder}/{name.rstrip('/')}")
+        elif (root / folder / name).is_file():
+            out.append(root / folder / name)
+    return out
+
+
+# the worked examples, which keep a tree of their own (scope.md § Progressive Disclosure)
+EXAMPLES = "specs/methodology/examples/"
+
+
+def methodology_files(root):
+    """The methodology's own files, as the index walk finds them: each file under specs/methodology/ its index tables
+    name, a document laid out as a folder's files among them, its worked examples and each index.md aside -> [path]."""
+    return [p for p in indexed(root, "specs/methodology")
+            if p.name != "index.md" and not p.relative_to(root).as_posix().startswith(EXAMPLES)]
+
+
 def md_files(root):
+    """The Markdown files in scope: the specifications' as the index walk finds them, and every other scope path's."""
     out = []
     for s in scope_paths(root):
         p = root / s
-        if p.is_file() and p.suffix == ".md":
+        if s == "specs":
+            out += indexed(root, "specs")
+        elif p.is_file() and p.suffix == ".md":
             out.append(p)
         elif p.is_dir():
             out += [f for f in p.rglob("*.md")]

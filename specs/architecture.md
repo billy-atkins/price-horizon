@@ -22,6 +22,8 @@ At the top of `specs/` sits [`specs/AGENTS.md`](/specs/AGENTS.md), Spec of Recor
 - where to find a rule mid-step;
 - the rules reaching every author: how work is designed, reviewed and approved, who makes each check, how each check's findings are settled, a review's rounds at their causes, and whose call each fix is, and how what a change reaches is kept in sync with it.
 
+The entry point is agent instructions, and stands apart from the main file of `specs/`, a spec holding what the core canon's specs share, held only where it has content to hold.
+
 [`specs/methodology/scope.md § The Shape of the Scope`](/specs/methodology/scope.md#the-shape-of-the-scope) draws the whole scope, down to each methodology file, and each directory's own `index.md` lists what it holds, so this tree names only the layers and the files that establish them. The methodology has its own overview, [`specs/methodology/architecture.md`](/specs/methodology/architecture.md), and the application one for each half, [`specs/application/product/architecture.md`](/specs/application/product/architecture.md) and [`specs/application/technical/architecture.md`](/specs/application/technical/architecture.md).
 
 **`specs/methodology/`.** The rules for writing a specification here, and for the code the specs govern, described in its own overview, [`specs/methodology/architecture.md`](/specs/methodology/architecture.md), with the skills carrying its rules out.

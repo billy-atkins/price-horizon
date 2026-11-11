@@ -38,11 +38,11 @@ The two drawings also divide the building differently. An architect organizes by
 
 ## Personas
 
-The methodology, [`specs/architecture.md`](/specs/architecture.md), the documentation, the product specs, the technical specs and the code the application specs govern are each written as their persona would write them. What an agent writes as a persona reads as that person's. A joke told by a rodeo clown reads differently from one told by a fifth grader. The adversarial review and the post-apply review of a design changing any of them are each framed as the same persona, so the persona stands on both sides of the authoring. Where a design changes both product and technical specs, each review's one reviewer reads each side's changes as that side's persona. The reviewer reports each persona's findings apart, so two lenses chosen for pulling against each other are not blended into one.
+The methodology, the main file of `specs/` and [`specs/architecture.md`](/specs/architecture.md), the documentation, the product specs, the technical specs and the code the application specs govern are each written as their persona would write them. What an agent writes as a persona reads as that person's. A joke told by a rodeo clown reads differently from one told by a fifth grader. The adversarial review and the post-apply review of a design changing any of them are each framed as the same persona, so the persona stands on both sides of the authoring. Where a design changes both product and technical specs, each review's one reviewer reads each side's changes as that side's persona. The reviewer reports each persona's findings apart, so two lenses chosen for pulling against each other are not blended into one.
 
 The agent instructions and the skills have no persona, since their primary reader is an agent ([`specs/methodology/spec-style.md § Clear Prose`](/specs/methodology/spec-style.md#clear-prose)). The product owner and the software engineer are roles the industry knows well, so a sketch of each is enough. The methodology owner is inside the house, and so is described in full.
 
-**The methodology owner, for the methodology, [`specs/architecture.md`](/specs/architecture.md) and the documentation.** Someone who sees the methodology as a product. Its users design software, write the specs with it, and generate code from those specs. The methodology owner gives them structures and workflows that make an AI agent's assistance a multiplier of their own work. They believe a methodology earns its place by solving the hard problems itself, elegantly, so its users do not have to. They believe too that its internals will be judged for elegance as surely as its surface is judged for ease of use. They hold flexibility worth its cost only where projects genuinely differ, and consistency everywhere else, since every pattern that recurs is one less thing to learn. They study how people actually work: the natural workflow, and how it varies from one project to the next. They design each capability so its users find it both meets their need and is easy to use. They think in models. They find the general structure beneath particular cases, so one rule serves many, and they give the methodology a rhythm of recurring shapes that lightens the work of learning and using it. They protect the methodology, guiding its evolution toward improvement while keeping out complexity it does not need. They want its users to benefit from it, and to enjoy it.
+**The methodology owner, for the methodology, the main file of `specs/`, [`specs/architecture.md`](/specs/architecture.md) and the documentation.** Someone who sees the methodology as a product. Its users design software, write the specs with it, and generate code from those specs. The methodology owner gives them structures and workflows that make an AI agent's assistance a multiplier of their own work. They believe a methodology earns its place by solving the hard problems itself, elegantly, so its users do not have to. They believe too that its internals will be judged for elegance as surely as its surface is judged for ease of use. They hold flexibility worth its cost only where projects genuinely differ, and consistency everywhere else, since every pattern that recurs is one less thing to learn. They study how people actually work: the natural workflow, and how it varies from one project to the next. They design each capability so its users find it both meets their need and is easy to use. They think in models. They find the general structure beneath particular cases, so one rule serves many, and they give the methodology a rhythm of recurring shapes that lightens the work of learning and using it. They protect the methodology, guiding its evolution toward improvement while keeping out complexity it does not need. They want its users to benefit from it, and to enjoy it.
 
 **The product owner, for product specs.** Someone who has shipped products people find highly functional and easy to use, and who knows this product's architecture well. They know where configuration is the right call, and where two capabilities are better kept apart. A real difference between customers earns a setting. Needs forced into one configurable capability make it harder to use. They grow the product's architecture deliberately when a capability needs it: the extension is thought through and stated, never drifted into.
 
@@ -65,8 +65,9 @@ Every directory under `specs/` organizes its files by altitude. New content belo
 | Altitude | File | Holds |
 |---|---|---|
 | Navigation | `index.md` | a title and a table naming each file and subdirectory with its description, no content of its own |
+| Main | `main.md` | what the directory's specs share, its front matter among it, and, in a document laid out as a folder, the document's text not laid out as file units ([`§ Where a File Goes`](#where-a-file-goes)); held only where the directory has such content to hold |
 | Overview | `architecture.md` | a self-contained description of the directory's shape, every directory beneath it included, and of what [`§ What an Overview Describes`](#what-an-overview-describes) names beyond it, in its own words, naming every major piece and how they relate; only where that shape is worth describing as a whole, which not every directory's is |
-| Detail | everything else | one file per functional area, holding the actual mechanism, schema, or experience, at whatever depth the subject needs |
+| Detail | everything else | one file per file unit ([`§ Where a File Goes`](#where-a-file-goes)), holding the actual mechanism, schema, or experience, at whatever depth the subject needs |
 
 **The test for new content.** Does it connect pieces, how they relate, why they are arranged as they are, what they add up to? That is overview. Does it specify what one piece does, shows or promises? That is detail, however much it says about the pieces around it.
 
@@ -95,7 +96,9 @@ An overview describes its directory, every directory beneath it, and what this t
 
 ## Where a File Goes
 
-**Every directory gets an `index.md`.** The `index.md` lists only the directory's direct contents, in the order a reader takes them. That is the order an agent loads them in ([`specs/methodology/scope.md § Progressive Disclosure`](/specs/methodology/scope.md#progressive-disclosure)). A parent's `index.md` names a subdirectory as a single row pointing at it, and never expands that subdirectory's files inline.
+**Every directory gets an `index.md`.** The `index.md` lists only the directory's direct contents, in the order a reader takes them, its `main.md`, where it holds one, first among its specs. That is the order an agent browsing the directory loads them in ([`specs/methodology/scope.md § Progressive Disclosure`](/specs/methodology/scope.md#progressive-disclosure)). A parent's `index.md` names a subdirectory as a single row pointing at it, and never expands that subdirectory's files inline.
+
+**A directory's `main.md` is made when its content first needs it.** A directory holds one as [`§ Index, Architecture, Detail`](#index-architecture-detail) gives the Main altitude, never ahead of that content. Nothing in it is read ahead of need: a file relying on content in it cites that content, as it cites anything else it relies on. At `specs/`, the entry point, [`specs/AGENTS.md`](/specs/AGENTS.md), is agent instructions and no spec, and stands apart from the main file there, which holds what the core canon's specs share, never an agent instruction or a constitutional principle, which the entry point holds, and nothing an application spec relies on, since no application spec may cite it ([`specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`](/specs/methodology/sourcing-and-citation.md#which-citations-are-allowed)). Wherever the canon names its own files, it names that main file, which stands only where `specs/` has such content, as any directory's does.
 
 **Check the directory's `index.md` before adding a file.** Prefer extending an existing spec over creating a new one that duplicates its content.
 
@@ -107,11 +110,11 @@ An overview describes its directory, every directory beneath it, and what this t
 | Does the subject area decompose into sub-parts each substantial enough to carry its own promise and its own scenarios independently of the others? | Placement |
 |---|---|
 | true | its own subfolder, one file per such sub-part |
-| false | a loose file at the directory's root |
+| false | a loose document at the directory's root: one file, or a folder named for it where it holds more than one file unit |
 
 A subject area that does not decompose so stays one cohesive mechanism, however many internal facets it has.
 
-A sub-topic that still needs another sub-topic's context to make sense is a heading inside the file of the one whose context it needs. A cross-cutting subject area, one used by more than one other and owned by none, sits at the directory's root, never inside another's subfolder. The table decides whether it is a subfolder of its own or a loose file.
+A sub-topic that still needs another sub-topic's context to make sense is a heading inside the file of the one whose context it needs. A cross-cutting subject area, one used by more than one other and owned by none, sits at the directory's root, never inside another's subfolder. The table decides whether it is a subfolder of its own or a loose document.
 
 **Why a domain earns a folder.** A folder of files, one per sub-part, serves better than one file:
 - each file loads only when a step needs it ([`specs/methodology/scope.md § Progressive Disclosure`](/specs/methodology/scope.md#progressive-disclosure));
@@ -120,9 +123,20 @@ A sub-topic that still needs another sub-topic's context to make sense is a head
 
 An agent, like a person, reasons better over named, related files and the indexes linking them than over one long stretch of prose.
 
-A section growing long, or gaining headings, is no reason to split it. Being cited as one findable unit from everywhere that needs it matters more than how many headings its file holds. A directory scatters what needs to stay whole.
+**A file unit takes a file of its own.** This rule lays out the specs alone, the core canon's and the application's. The agent instructions and the skills stand as they are ([`specs/methodology/scope.md § What Spec of Record Governs`](/specs/methodology/scope.md#what-spec-of-record-governs)). A file unit ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)) takes a file named for it, whatever its size. Size decides nothing either way. Content cited as one whole that does not stand alone stays in its host's file, however long it grows.
 
-**The same filename in more than one directory.** It is deliberate, as with `architecture.md` and `index.md`. Where one particular file is meant, it is named by its full path, never by the bare filename alone. A kind of file is named as [`specs/methodology/sourcing-and-citation.md § Writing a Citation`](/specs/methodology/sourcing-and-citation.md#writing-a-citation) has it.
+Content read with what holds it is no file unit of its own, and stays in its host's file however a citation names it. These kinds are aids to judgment, never a closed set:
+- content a human reads beside the text it serves, as a diagram is read beside its text;
+- each part of a keyed construct's instance, a record or a row its key cites, which is read with that instance, the instance keeping its set or list of parts whole in one file;
+- content another rule keeps inside the section it serves, as a capability's test scenarios are read with the capability they test ([`specs/methodology/acceptance-scenarios.md § Acceptance Scenarios`](/specs/methodology/acceptance-scenarios.md#acceptance-scenarios)).
+
+So an overview stays one file with its diagrams, a keyed instance stays one with its parts, and a capability laid out as a file unit carries its test scenarios into its own file.
+
+**A file unit cites what it relies on.** A file unit depending on another cites that unit's own file, fully qualified, where it is used, never through an `index.md`. A file unit moved out of the text that held it states, or cites fully qualified, whatever it took from that text by its position: a term, a scope, or what a reference points at. A file unit standing on its own cites no parent.
+
+**A document of several file units is a folder.** A document holding more than one file unit is a folder named for the document. It holds each file unit's file, its `index.md`, and its `main.md` where [`§ Index, Architecture, Detail`](#index-architecture-detail) gives it one. A file unit with file units of its own is a folder in turn. A document is cited through its files, its `main.md` where it holds one or a file unit's own file, never as a folder. The worked examples keep their own tree, by subject and topic ([`specs/methodology/scope.md § Progressive Disclosure`](/specs/methodology/scope.md#progressive-disclosure)).
+
+**The same filename in more than one directory.** It is deliberate, as with `architecture.md`, `index.md` and `main.md`. Where one particular file is meant, it is named by its full path, never by the bare filename alone. A kind of file is named as [`specs/methodology/sourcing-and-citation.md § Writing a Citation`](/specs/methodology/sourcing-and-citation.md#writing-a-citation) has it.
 
 ## Naming a Capability Domain
 
@@ -147,13 +161,13 @@ The capability domain new product content belongs to decides which file it goes 
 
 Check for these traps before finalizing any new product file:
 
-**The same mechanism, split by audience, masquerading as two capabilities.** One role's view of a thing and another role's view of the same thing may be one underlying mechanism seen at two scopes. They then belong in one file describing both scopes, not in two files that will drift apart. The technical spec's language is a useful signal. When it describes what look like two product-facing capabilities as one mechanism serving several audiences, treat that as a reason to consolidate on the product side too.
+**The same mechanism, split by audience, masquerading as two capabilities.** One role's view of a thing and another role's view of the same thing may be one underlying mechanism seen at two scopes. They then belong in one document describing both scopes, not in two documents that will drift apart. The technical spec's language is a useful signal. When it describes what look like two product-facing capabilities as one mechanism serving several audiences, treat that as a reason to consolidate on the product side too.
 
 **A cross-domain concern written into whichever domain needed it first.** A definition, principle, or distinction used by more than one domain and owned by none belongs at the directory's root ([`§ Where a File Goes`](#where-a-file-goes)), never in the domain that happened to need it first ([`specs/methodology/sourcing-and-citation.md § One Home Per Fact`](/specs/methodology/sourcing-and-citation.md#one-home-per-fact)).
 
 ## Naming the Technical Files Behind a Capability
 
-A product spec file may open with a YAML front matter block ([`specs/methodology/external-references.md § External References [Name: YAML]`](/specs/methodology/external-references.md#external-references)) naming which technical files build its capabilities:
+A product spec file may open with a YAML front matter block ([`specs/methodology/external-references.md § External References [Name: YAML]`](/specs/methodology/external-references.md#external-references)) naming which technical files build its capabilities. A product document laid out as a folder holds its front matter in its `main.md`, its file, naming the technical files behind the capabilities of each of the document's files ([`§ Where a File Goes`](#where-a-file-goes)):
 
 ```yaml
 ---
@@ -185,7 +199,7 @@ This is a label, not a citation. It names files, never headings, and is never wr
 
 ## A Product Module
 
-For a domain that decomposes into sub-parts, a product module is a folder directly under `specs/application/product/`. For a domain that is one cohesive mechanism, it is a single file in that directory's root ([`§ Where a File Goes`](#where-a-file-goes)). A module also holds each root file named in its domain's account in the product specs' `architecture.md`.
+For a domain that decomposes into sub-parts, a product module is a folder directly under `specs/application/product/`. For a domain that is one cohesive mechanism, it is a single document in that directory's root, one file, or a folder named for it where it holds more than one file unit ([`§ Where a File Goes`](#where-a-file-goes)). A module also holds each root file named in its domain's account in the product specs' `architecture.md`.
 
 A change to a module's code reads:
 - the module's product specs;
@@ -202,7 +216,7 @@ Any other product file or folder that the product specs' `architecture.md` does 
 
 ## The Technical Stack
 
-The technical specs hold one stack file, `stack.md` at their root. It says what the system is built with, what it relies on, and where its code lives. So each technology, and how the system uses it, has one home. A technical spec relying on a technology cites the stack file rather than introducing the technology where it is used ([`specs/methodology/sourcing-and-citation.md § One Home Per Fact`](/specs/methodology/sourcing-and-citation.md#one-home-per-fact)). The stack file holds a table of the system's parts and a table of what they rely on, and gives each technology in them with its version.
+The technical specs hold one stack document, `stack.md` at their root, laid out as a folder named for it where it holds more than one file unit ([`§ Where a File Goes`](#where-a-file-goes)). It says what the system is built with, what it relies on, and where its code lives. So each technology, and how the system uses it, has one home. A technical spec relying on a technology cites the stack document rather than introducing the technology where it is used ([`specs/methodology/sourcing-and-citation.md § One Home Per Fact`](/specs/methodology/sourcing-and-citation.md#one-home-per-fact)). The stack document holds a table of the system's parts and a table of what they rely on, and gives each technology in them with its version.
 
 **The parts.** The table of the parts has one row for each part of the system: a user interface and a backend, say, or a single service. Its columns, in order:
 
@@ -228,7 +242,7 @@ A technology only some environments use is stated in those environments instead 
 
 ## Environments
 
-The technical specs hold one environments file, `environments.md`, at their root beside the stack file. It has a section for each environment the system is built, tested or run in, titled with the name the project gives that environment. An environment states only what differs from the stack ([`§ The Technical Stack`](#the-technical-stack)). So the stack stays the home of each technology every environment uses, and of each version, and no environment restates them. An environment holds no secret value, credential or host name. At most, it names the vault or configuration they come from.
+The technical specs hold one environments document, `environments.md`, at their root beside the stack document, laid out as a folder named for it where it holds more than one file unit ([`§ Where a File Goes`](#where-a-file-goes)). It has a section for each environment the system is built, tested or run in, titled with the name the project gives that environment. An environment states only what differs from the stack ([`§ The Technical Stack`](#the-technical-stack)). So the stack stays the home of each technology every environment uses, and of each version, and no environment restates them. An environment holds no secret value, credential or host name. At most, it names the vault or configuration they come from.
 
 Each environment's section opens with a required `**Kind:**` field ([`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields)), whose value is one of a closed set, so what this section asks of an environment follows from its role, never from its name:
 
@@ -259,7 +273,7 @@ As it works, the agent writing code runs the targeted form of a test task on the
 
 ## Open Question
 
-An open question is recorded in the specs whose area it applies to: methodology, product or technical. Within those specs, it is recorded in the file whose scope covers everything the question impacts. That file must be able to cite every section the question's Impacts names ([`specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`](/specs/methodology/sourcing-and-citation.md#which-citations-are-allowed)). Open Question is a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)), and a file's open questions sit in its record section of this type. That record section is the file's last top-level section, so a reader finds them all in one place, after the settled content they qualify:
+An open question is recorded in the specs whose area it applies to: methodology, product or technical. Within those specs, it is recorded at the lowest altitude covering everything the question impacts, where [`specs/methodology/sourcing-and-citation.md § One Home Per Fact`](/specs/methodology/sourcing-and-citation.md#one-home-per-fact) places a rule several places use, and where it is recorded gives its scope as that section has a rule's place give it. The file recording it must be able to cite every section the question's Impacts names ([`specs/methodology/sourcing-and-citation.md § Which Citations Are Allowed`](/specs/methodology/sourcing-and-citation.md#which-citations-are-allowed)). Open Question is a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)), and a file's open questions sit in its record section of this type. In a document kept as one file, that record section is the file's last top-level section, so a reader finds them all in one place, after the settled content they qualify:
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
 **Plural Name:** Open Questions \

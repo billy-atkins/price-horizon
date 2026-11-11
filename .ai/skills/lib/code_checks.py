@@ -3,15 +3,19 @@ over the application's code and .ai/skills/design-specs/' and .ai/skills/impleme
 work (specs/methodology/skills.md § Authoring a Skill): the app-spec annotations checked against
 specs/methodology/code.md § Citing the Specs From Code and the form it cites, and places listed for the reading to look.
 
-The application's code is the code roots, less what is excluded, that the technical specs' stack.md names, per
+The application's code is the code roots, less what is excluded, that the technical specs' stack document names, its
+stack.md or the files of a folder named for it, per
 specs/methodology/spec-placement.md § The Technical Stack. A check reads the tree it is given as its root, the working
 tree or the last commit read through spec_text.CommitTree. Standard library only, and spec_text.py.
 """
 import re
 
-from spec_text import lineages
+from spec_text import indexed, lineages
 
 STACK = "specs/application/technical/stack.md"
+# the stack document laid out as a folder, its code roots in whichever of its files holds them, its main.md where it
+# holds one among them
+STACK_FOLDER = "specs/application/technical/stack/"
 # @canon-spec specs/methodology/code.md § Citing the Specs From Code
 SPECS = ("specs/application/product/", "specs/application/technical/")
 RULE = "code.md § Citing the Specs From Code"
@@ -24,17 +28,23 @@ FORM = re.compile(r"^\s*(?://(?![/!])|#+|--|;+|%+|<!--|/\*(?![*!]))\s*@app-spec 
 
 
 def code_roots(root):
-    """-> ([code roots], [excluded paths]) from the stack file's table, or None without one."""
-    f = root / STACK
-    if not f.is_file():
+    """-> ([code roots], [excluded paths]) from the stack document's table, read from stack.md or across the files of
+    the folder named for it, or None without one."""
+    f, folder = root / STACK, root / STACK_FOLDER
+    if f.is_file():
+        files = [f]
+    elif folder.is_dir():
+        files = sorted(folder.rglob("*.md"), key=lambda p: (p.name != "main.md", p.as_posix()))
+    else:
         return None
     tables, cur = [], []
-    for line in f.read_text(encoding="utf-8").splitlines() + [""]:
-        if line.startswith("|"):
-            cur.append(line)
-        elif cur:
-            tables.append(cur)
-            cur = []
+    for f in files:
+        for line in f.read_text(encoding="utf-8").splitlines() + [""]:
+            if line.startswith("|"):
+                cur.append(line)
+            elif cur:
+                tables.append(cur)
+                cur = []
     rows = next((t for t in tables if "Code Roots" in [c.strip() for c in t[0].strip("|").split("|")]), None)
     if not rows:
         return None
@@ -124,7 +134,7 @@ def list_candidates(root):
         cited.update(marks)
     whole = {c for c in cited if " § " not in c}
     for base in SPECS:
-        for spec in sorted((root / base).rglob("*.md")):
+        for spec in sorted(indexed(root, base.rstrip("/"))):
             rel = spec.relative_to(root).as_posix()
             if spec.name == "index.md" or rel in whole:
                 continue

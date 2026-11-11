@@ -192,7 +192,7 @@ What each kind bounds a change to:
 
 | Kind | Bounds the change to |
 |---|---|
-| `canon-specs` | [`specs/AGENTS.md`](/specs/AGENTS.md), [`specs/architecture.md`](/specs/architecture.md), the files under `specs/methodology/`, a registered skill's directory, and `.ai/skills/lib/` |
+| `canon-specs` | [`specs/AGENTS.md`](/specs/AGENTS.md), the main file of `specs/`, [`specs/architecture.md`](/specs/architecture.md), the files under `specs/methodology/`, a registered skill's directory, and `.ai/skills/lib/` |
 | `application-specs` | the files under `specs/application/` |
 | `code` | the application's code, within the code roots the technical stack names ([`specs/methodology/spec-placement.md § The Technical Stack`](/specs/methodology/spec-placement.md#the-technical-stack)), which the application specs govern ([`specs/methodology/code.md`](/specs/methodology/code.md)); a design changing code's only kind |
 | `documentation` | the documentation, `README.md` and the files under `docs/` |
@@ -554,7 +554,7 @@ The kinds of entry, each with the fields it gives beside Entry, Timestamp and De
 
 ### When an Entry Is Appended
 
-Each entry is appended when [`§ Design Log Entry`](#design-log-entry)'s kinds table has it appended, at the skill's step where its event ends, never in a pass after the work. A check's entry is appended by the step running the check, as its settling ends with its report in hand. The design script's `--check-settled-report` checks the settled report first. Its `--log-entry` refuses a check's entry whose report does not stand where [`§ Design Log Entry § The Report an Entry Names`](#the-report-an-entry-names) has it, or fails those checks. No check's entry is appended before the `goals-agreed` entry of its major version, since no check's report stands before the agreement of the goals it is judged against ([`§ A Design Document § The Design's Version`](#the-designs-version)). Whatever moves the work on while a check runs or is settled, the user's approval, a set of steers, a send-back or a reassessment among them, the check's report settles each of its findings before its entry is appended, each Settlement saying what became of them ([`§ A Check's Report § Settlement`](#settlement)), and its Led To is the state the work went into. So every check that handed back a report has its entry, and no entry is appended while its report holds a finding it does not settle. A reassessment, on the user's word or brought by a run reaching its length, or a set of steers, that cut a check short names that check's entry in its Cuts Short. Work stopped before it handed anything back takes no entry of its own: the Running Work of the set's entry or of the reassessment's records the call, so the log shows the work ran and was stopped. An approval given in reassessing is a `plan-approval` entry in place of a `reassessment` one.
+Each entry is appended when [`§ Design Log Entry`](#design-log-entry)'s kinds table has it appended, at the skill's step where its event ends, never in a pass after the work. A check's entry is appended by the step running the check, as its settling ends with its report in hand. A report a cold agent wrote is taken up and settled as [`§ A Check's Report § Who Writes Each Part § The Report's Workflow`](#the-reports-workflow) has it, and the design script's `--check-settled-report` checks the settled report first. Its `--log-entry` refuses a check's entry whose report does not stand where [`§ Design Log Entry § The Report an Entry Names`](#the-report-an-entry-names) has it, or fails those checks. No check's entry is appended before the `goals-agreed` entry of its major version, since no check's report stands before the agreement of the goals it is judged against ([`§ A Design Document § The Design's Version`](#the-designs-version)). Whatever moves the work on while a check runs or is settled, the user's approval, a set of steers, a send-back or a reassessment among them, the check's report settles each of its findings before its entry is appended, each Settlement saying what became of them ([`§ A Check's Report § Settlement`](#settlement)), and its Led To is the state the work went into. So every check that handed back a report has its entry, and no entry is appended while its report holds a finding it does not settle. A reassessment, on the user's word or brought by a run reaching its length, or a set of steers, that cut a check short names that check's entry in its Cuts Short. Work stopped before it handed anything back takes no entry of its own: the Running Work of the set's entry or of the reassessment's records the call, so the log shows the work ran and was stopped. An approval given in reassessing is a `plan-approval` entry in place of a `reassessment` one.
 
 ### The Report an Entry Names
 
@@ -601,11 +601,11 @@ Each count of a check's entry is taken from its report, never given by the build
 ## A Check's Report
 
 A check's report records what a check of a design found and how its findings were settled, what the builder's own work in the check read, searched, traced and asked, and, for research, how each area the cold agent doing it read bears on the design. So nothing a later step, a later round, a review or a session taking the design up fresh needs lies in one agent's context alone, and the design script checks each record against what it works out from the files. This section is the one home of a report's form. The form reaches every report a design's log entry names. It reaches no audit run's own report, which keeps its own skill's form and folder, and no file a log entry does not name. A report is one of three, the Report its entry's row of [`§ Design Log Entry`](#design-log-entry)'s kinds table gives:
-- a review's report, written by the cold reviewer, the builder adding its settlement;
-- the builder's own report, of its Design, Refactor, Refine pass, its self-review or a judgment it handed off;
+- a review's report, recording a cold reviewer's check of the design;
+- the builder's own report, recording its Design, Refactor, Refine pass, its self-review, or a judgment it handed off to a cold agent;
 - the builder's triage of an audit, holding each audit finding it settles as a finding of its own.
 
-The three tell who writes a report and which checks read it. Each takes its parts from one table and its records from the same record types. A report holds these parts, in this order, each part's Holds citing the rule whose result it holds. A part not required where it holds nothing is left out with its heading, so a round that found nothing passes. A report holds no summary of its counts, since its log entry takes them from it:
+The three tell whose check a report records and which checks read it, never who writes a part, which [`§ A Check's Report § Who Writes Each Part`](#who-writes-each-part) gives for every kind of report. Each takes its parts from one table and its records from the same record types. A report holds these parts, in this order, each part's Holds citing the rule whose result it holds. A part not required where it holds nothing is left out with its heading, so a round that found nothing passes. A report holds no summary of its counts, since its log entry takes them from it:
 
 **Reference Key:** Part \
 **Required:** Heading, Required, Holds
@@ -619,6 +619,7 @@ The three tell who writes a report and which checks read it. Each takes its part
 | Read Assessments | `## Read Assessments`, a record section of Read Assessments | where the report is a judgment's doing research | each area the cold agent doing the research assessed, as [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § Research`](/specs/AGENTS.md#research) has research assessed |
 | Traces | `## Traces`, a record section of Traces | where the builder traced a mechanism | each trace, as [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § Tracing a Mechanism`](/specs/AGENTS.md#tracing-a-mechanism) has a mechanism traced and [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether the Goals and the Frame Name a Mechanism`](/specs/AGENTS.md#whether-the-goals-and-the-frame-name-a-mechanism) has its test asked |
 | Builder Checks | `## Builder Checks`, a record section of Builder Checks | where the builder made a check of its own | each check only the builder makes, as [`§ A Check's Report § Kinds of Builder Check`](#kinds-of-builder-check) has it recorded |
+| Hand-back | `## Hand-back`, text | once the builder takes up a report a cold agent wrote | a fingerprint of each part the cold agent wrote, as [`§ A Check's Report § Who Writes Each Part`](#who-writes-each-part) has the builder take a report up |
 | Script Output | `## Script Output`, text | where the report is a self-review's | the output of the design script's checks the self-review runs for its phase, as [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Self-Review`](/specs/AGENTS.md#the-self-review) gives them, written by `--log-entry` |
 | Causes | `## Causes`, a record section of Causes | where the round is one [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes`](/specs/AGENTS.md#the-round-at-its-causes) settles at its causes and a finding it settles, its own or a handed-off judgment's settled with it, takes a mark | the round's causes, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose`](/specs/AGENTS.md#propose) has them stated |
 | Settlement | `## Settlement` | once the report's entry is appended | the earlier reports read and the builder's reading at settling, as [`specs/AGENTS.md § Design, Refactor, Refine § Reading the Earlier Reports`](/specs/AGENTS.md#reading-the-earlier-reports) and [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Group`](/specs/AGENTS.md#group) have them read before grouping, and how each finding was settled, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose`](/specs/AGENTS.md#propose), [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test`](/specs/AGENTS.md#the-test), [`specs/AGENTS.md § Design, Refactor, Refine § Who Decides`](/specs/AGENTS.md#who-decides) and [`§ A Design Document § Changes After Approval`](#changes-after-approval) have it recorded |
@@ -627,16 +628,61 @@ The three tell who writes a report and which checks read it. Each takes its part
 
 ### Who Writes Each Part
 
-The reviewer's part of a review's report is its Title, its Reading, its Findings and the Searches it ran. The builder adds its own Searches after the reviewer's, the Causes and the Settlement, and changes no record the reviewer wrote. The Script Output part is the design script's, and no hand writes it. A Search is run again:
+A report is written by more than one hand, each writing only its own parts, and no hand changes a record another wrote. Which hand writes each part of each kind of report:
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Hit Policy:** First \
+**Conditions:** Kind of report, Part \
+**Input Values:**
+  - Kind of report: "a review's", "research", "another handed-off judgment's", "a Design, Refactor, Refine pass's", "a self-review's", "an audit's triage"
+
+| Kind of report | Part | Written by |
+|---|---|---|
+| - | "Script Output" | the design script, as the report's entry is appended |
+| - | "Causes" | the builder |
+| - | "Settlement" | the builder |
+| - | "Hand-back" | the design script, as the builder takes the report up |
+| "a review's" | "Searches" | the cold reviewer, the builder adding its own after the reviewer's |
+| "a review's", "research", "another handed-off judgment's" | - | the cold agent |
+| - | - | the builder |
+
+The Reading's Design Version is written by the agent that read the design's header, with the rest of the Reading, never by the builder at settling nor by `--log-entry` as the entry is appended, since either can come after a set of steers has raised the version. A Search is run again:
 - by `--check-handed-back` before the round's change is made, where it is a reviewer's, its key opening with its Reviewer Reading's key and a hyphen;
 - by `--check-handed-back` and `--log-entry` alike, where it stands in a report of research;
 - by `--log-entry`, where it is any other.
 
-A reviewer runs `--check-handed-back` on its report before handing it back, as [`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review) and [`specs/AGENTS.md § Design, Refactor, Refine § The Post-Apply Review`](/specs/AGENTS.md#the-post-apply-review) have it, and puts right what it reports. A report handed back out of its form goes back to its reviewer with what the flag reports, or, where the agent in use cannot continue a reviewer, its round is run again with the same brief. In a report of research, the cold agent doing it writes its Title, its Reading, its Searches and its Read Assessments, and no hand changes a Read Assessment after.
+#### The Report's Workflow
+
+Writing a report moves from hand to hand, each move taken once the check before it passes:
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine` \
+**Table Name:** States
+
+| State | Description | Initial | Terminal |
+|---|---|---|---|
+| being written | its first hand writes its parts: the cold agent of a review or of a judgment handed off, or the builder of a report it writes alone | Yes | No |
+| handed back | the cold agent's check passed, and the builder has yet to take the report up | No | No |
+| with the builder | the builder took the report up, and writes its parts | No | No |
+| settled | the builder's check of the whole report passed | No | No |
+| entered | the report's entry is appended, and the design script has written its part | No | Yes |
+
+**Table Name:** Transitions
+
+| From | To | Trigger | Guard |
+|---|---|---|---|
+| being written | handed back | `--check-handed-back` reports no problem | a cold agent writes the report |
+| being written | settled | `--check-settled-report` reports no problem | the builder writes the report alone |
+| handed back | with the builder | `--take-up-report` reports no problem | none |
+| handed back | being written | `--take-up-report` reports a problem | none |
+| with the builder | settled | `--check-settled-report` reports no problem | none |
+| settled | with the builder | the builder changes the report | none |
+| settled | entered | `--log-entry` appends the report's entry | none |
+
+`--check-handed-back` holds the cold agent's parts to the form and refuses any other part the report holds. `--take-up-report` runs that check again and, where it passes, writes the report's Hand-back part, a fingerprint of each part the cold agent wrote. `--check-settled-report` holds the whole report to the form and confirms that each part the cold agent wrote still matches its fingerprint, the builder's own Searches after a review's Searches aside. A report `--take-up-report` refuses goes back to its cold agent with what the flag reports, or, where the agent in use cannot continue it, its check is run again with the same brief.
 
 ### The Reading and the Settlement
 
-The Reading opens with the field Design Version: the version of the design the check read, from the design's header as the check began. The agent that read the header writes it with the rest of the Reading, never the builder at settling or `--log-entry` at appending, since either can come after a set of steers has raised the version. It is left out at 0.1.0, its default. Where the report is a review's, the Reading then holds the field Reviewer Readings, a list of [`§ A Check's Report § Reviewer Reading`](#reviewer-reading) records, one for each reviewer. Where the report is any other check's, it holds the field Reads: the places the check read, or `none` where it read nothing. A report of research's Reads holds the places the builder named. The Settlement holds these fields, in this order:
+The Reading opens with the field Design Version: the version of the design the check read, from the design's header as the check began. It is left out at 0.1.0, its default. Where the report is a review's, the Reading then holds the field Reviewer Readings, a list of [`§ A Check's Report § Reviewer Reading`](#reviewer-reading) records, one for each reviewer. Where the report is any other check's, it holds the field Reads: the places the check read, or `none` where it read nothing. A report of research's Reads holds the places the builder named. The Settlement holds these fields, in this order:
 - Earlier Reports, places, `none` where the round's phase holds no report before it; in a report of research handed off while a round is settled, that round's report among them, as [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § Research`](/specs/AGENTS.md#research) has research name it;
 - Settling Reads, places, the builder's reading at settling, held where the report is a review's, `none` where no Finding holds a mark;
 - Settlements, a list of [`§ A Check's Report § Settlement`](#settlement) records, held where the report holds a Finding.
@@ -1121,6 +1167,21 @@ The checks only the builder makes, held by a Builder Check, each with the self-r
 ### Script Checks
 
 **Records:**
+  - **Name:** cold-parts-kept \
+    **Tests:** a report a cold agent wrote holds, as it is handed back, no part the builder or the design script writes; and, once the builder takes it up, a Hand-back holding a fingerprint of each part the cold agent wrote, each such part still matching it, the builder's own Searches after a review's Searches aside, as [`§ A Check's Report § Who Writes Each Part`](#who-writes-each-part) has each hand write only its own parts \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--take-up-report`
+      - `.ai/skills/design-specs/` `--check-settled-report`
+      - `.ai/skills/design-specs/` `--check-handed-back`
+      - `.ai/skills/design-specs/` `--log-entry`
+      - `.ai/skills/implement-specs/` `--take-up-report`
+      - `.ai/skills/implement-specs/` `--check-settled-report`
+      - `.ai/skills/implement-specs/` `--check-handed-back`
+      - `.ai/skills/implement-specs/` `--log-entry`
+
   - **Name:** report-in-its-form \
     **Tests:** each report a check's entry names holds the parts the form requires of it, in their order, its Reading and its Settlement holding the fields [`§ A Check's Report § The Reading and the Settlement`](#the-reading-and-the-settlement) gives them, and each record of the type its part or field cites, with each field its conditions require and no other, a possible fix in one of its forms among them \
     **Reads:**

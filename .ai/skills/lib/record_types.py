@@ -393,11 +393,18 @@ def block_path(r, start):
     return f"{r}#L{start + 1}"
 
 
+# @canon-spec specs/methodology/scope.md § Form Templates
+def is_form_template(r):
+    """scope.md § Form Templates: whether file `r` is a form template, a skill's or the core canon's, told by its name
+    ending `-form-template` wherever it sits."""
+    return PurePosixPath(r.split("#L")[0]).stem.endswith("-form-template")
+
+
 def read_for_records(r):
     """modeling-constructs.md § Constructs § Record Form: whether file `r` is one whose record types and records are read,
-    a file of the canon or an application spec, but a skill's form template, told by its name ending `-form-template`
-    (skills.md § Authoring a Skill), whose fields are placeholders a copy fills."""
-    return r.startswith("specs/") or (r.startswith(".ai/skills/") and not PurePosixPath(r).stem.endswith("-form-template"))
+    a file of the canon or an application spec, but a form template, a skill's or the core canon's, whose fields are
+    placeholders a copy fills."""
+    return (r.startswith("specs/") or r.startswith(".ai/skills/")) and not is_form_template(r)
 
 
 def type_of(title, r):

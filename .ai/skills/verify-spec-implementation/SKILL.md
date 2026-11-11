@@ -17,7 +17,7 @@ Read `specs/AGENTS.md` and the glossary before any step. Descend only as far as 
 
 ### Find the application's code
 
-Read the code roots the technical specs' `stack.md` names, per `specs/methodology/spec-placement.md § The Technical Stack`. The script reads them the same way. A project with no stack file, or with none naming a code root, has no code this skill can find. Present that to the user as a gap in the specs, and verify nothing.
+Read the code roots the technical specs' stack document, `stack.md` or the files of a folder named for it, names, per `specs/methodology/spec-placement.md § The Technical Stack`. The script reads them the same way. A project with no stack document, or with none naming a code root, has no code this skill can find. Present that to the user as a gap in the specs, and verify nothing.
 
 ### Run the script first
 
@@ -45,7 +45,7 @@ The technical specs' `architecture.md` describes the code carrying out the appli
 
 ### Report, and settle as an audit
 
-Write the report to `.ai/tmp/verify-spec-implementation/`, one file per run, clearing an earlier report of the same scope, per `specs/methodology/working-files.md § The Working Files`. Name each finding with its file, its line, what it fails, and the rule or spec it fails. Report what you noticed beyond the checks you ran as review observations (`specs/methodology/glossary.md`), apart from the findings and uncounted. A run in a design changing code's apply reports its findings as any run does. Its report is the builder's, who triages each finding against the design's changes, as `specs/AGENTS.md § Design, Refactor, Refine § An Audit` has an audit read, and settles it with the user by `specs/methodology/working-files.md § A Design Document § Changes After Approval`, applying `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test` where that section applies it. A finding the design did not cause goes to the user by that section's first row, the test dropping none. The builder brings each review observation with its triage.
+Write the report to `.ai/tmp/verify-spec-implementation/`, one file per run, clearing an earlier report of the same scope, per `specs/methodology/working-files/main.md § The Working Files`. Name each finding with its file, its line, what it fails, and the rule or spec it fails. Report what you noticed beyond the checks you ran as review observations (`specs/methodology/glossary.md`), apart from the findings and uncounted. A run in a design changing code's apply reports its findings as any run does. Its report is the builder's, who triages each finding against the design's changes, as `specs/AGENTS.md § Design, Refactor, Refine § An Audit` has an audit read, and settles it with the user by `specs/methodology/working-files/main.md § A Design Document § Changes After Approval`, applying `specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test` where that section applies it. A finding the design did not cause goes to the user by that section's first row, the test dropping none. The builder brings each review observation with its triage.
 
 ## The checks
 

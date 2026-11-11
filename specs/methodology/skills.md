@@ -7,11 +7,11 @@ A skill is part of Spec of Record when it is registered here, and only then. A s
 
 | Skill | The Rules It Serves |
 |---|---|
-| `audit-specs` | [`specs/AGENTS.md`](/specs/AGENTS.md), `specs/methodology/` |
+| `audit-specs` | [`specs/AGENTS.md`](/specs/AGENTS.md), the main file of `specs/`, `specs/methodology/` |
 | `author-mermaid-diagram` | [`specs/methodology/modeling-constructs.md § Diagrams`](/specs/methodology/modeling-constructs.md#diagrams) |
 | `configure-spec-of-record` | [`§ Setting Up an Agent`](#setting-up-an-agent), [`specs/methodology/design-workflow.md § A Review's Effort`](/specs/methodology/design-workflow.md#a-reviews-effort) |
-| `design-specs` | [`specs/AGENTS.md`](/specs/AGENTS.md), `specs/methodology/` |
-| `implement-specs` | [`specs/methodology/code.md`](/specs/methodology/code.md), [`specs/methodology/spec-placement.md § Personas`](/specs/methodology/spec-placement.md#personas), [`specs/methodology/spec-placement.md § A Product Module`](/specs/methodology/spec-placement.md#a-product-module), [`specs/methodology/spec-placement.md § Environments`](/specs/methodology/spec-placement.md#environments), [`specs/methodology/working-files.md § A Design Document`](/specs/methodology/working-files.md#a-design-document), [`specs/methodology/design-workflow.md`](/specs/methodology/design-workflow.md) |
+| `design-specs` | [`specs/AGENTS.md`](/specs/AGENTS.md), the main file of `specs/`, `specs/methodology/` |
+| `implement-specs` | [`specs/methodology/code.md`](/specs/methodology/code.md), [`specs/methodology/spec-placement.md § Personas`](/specs/methodology/spec-placement.md#personas), [`specs/methodology/spec-placement.md § A Product Module`](/specs/methodology/spec-placement.md#a-product-module), [`specs/methodology/spec-placement.md § Environments`](/specs/methodology/spec-placement.md#environments), [`specs/methodology/working-files/main.md § A Design Document`](/specs/methodology/working-files/main.md#a-design-document), [`specs/methodology/design-workflow.md`](/specs/methodology/design-workflow.md) |
 | `verify-spec-implementation` | [`specs/methodology/code.md`](/specs/methodology/code.md), [`specs/methodology/spec-placement.md § The Technical Stack`](/specs/methodology/spec-placement.md#the-technical-stack), [`specs/methodology/spec-placement.md § What an Overview Describes`](/specs/methodology/spec-placement.md#what-an-overview-describes), [`specs/methodology/sourcing-and-citation.md § Keeping Specs in Sync § Materialized Views`](/specs/methodology/sourcing-and-citation.md#materialized-views) |
 
 ## Authoring a Skill
@@ -34,13 +34,9 @@ A skill captures a procedure this repo has already worked out, so the next agent
 
 **Instructions only some paths need go in a `references/` child directory.** Each path has a file of its own, read at the step that forks to it, so a path that does not need the instructions never loads them. Where a skill forks on the kind of specification, its references for the kinds are `references/app-specs.md` and `references/canon-specs.md`.
 
-**A form template a step fills goes in `references/` too.** The form template is a file of its own, named for the form it holds, with `-form-template` ending the name before its extension: `design-document-form-template.md`. A reader listing `references/` then tells a form template from instructions without opening it. The form template is read at the step that fills it, so the form is copied rather than recalled. It holds the form's parts in order, each with a placeholder, a token in braces:
-- for a value, the token says what kind of value replaces it, `{a few words}`, and the braces are replaced along with the token;
-- for a section kept only in some cases, the token says when the section is kept, and is removed with its braces once the section is kept.
+**A form template a step fills goes in `references/` too.** It takes the form [`specs/methodology/scope.md § Form Templates`](/specs/methodology/scope.md#form-templates) gives every form template.
 
-The form template leaves the rule setting the form to that rule's home.
-
-**A skill's scratch space, and its plans, are directories of its own among the working files.** They take the form [`specs/methodology/working-files.md § The Working Files`](/specs/methodology/working-files.md#the-working-files) gives them.
+**A skill's scratch space, and its plans, are directories of its own among the working files.** They take the form [`specs/methodology/working-files/main.md § The Working Files`](/specs/methodology/working-files/main.md#the-working-files) gives them.
 
 **A script's actions are flags named verb-target.** A flag is named as a skill is: `--check-design-form`, `--show-workstack`. An agent then reads what a run does from the flag alone. The target says what the action acts on, and the verb what kind of action it is:
 - a check reports what is wrong;

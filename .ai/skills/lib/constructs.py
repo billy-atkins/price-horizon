@@ -99,10 +99,16 @@ FIELD_TABLES = {
     # @canon-spec specs/methodology/modeling-constructs.md § Constructs § DAG
     "Constructs § DAG": (
         ("Runs When", "yes", "", "text"),
+        ("Reads", "no", "none", "text"),
     ),
     "Constructs § State Machine": (
         ("Protocol", "no", "No", '"Yes", "No"'),
         ("Recorded In", "no", "none", "text"),
+        ("Reads", "no", "none", "text"),
+    ),
+    # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Constraint
+    "Constructs § Constraint": (
+        ("Reads", "no", "none", "text"),
     ),
     # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
     "Constructs § Record Form": (
@@ -726,7 +732,7 @@ def declarations(body, sections, problems=None):
     return out
 
 
-# @canon-spec specs/methodology/working-files.md § A Check's Report § Script Checks [Name: traces-name-their-paths]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: traces-name-their-paths]
 def paths(name, fields, tables):
     """-> the paths a Decision Table or a State Machine allows, each named by its cells separated by commas: a Decision
     Table's rows by their condition cells, which tell its rows apart, and the rows of a State Machine's Transitions
@@ -863,8 +869,11 @@ def construct_findings(r, body, found, sections):
         # a construct extending another holds a part of one: its tables are checked for their form alone
         if extends(fields):
             continue
+        # a DAG's guards and timeouts also read the facts its Reads cites, typed by their records
+        read = construct_reads(r, dict((k, v) for _, k, v in fields))[0] if name == "DAG" else {}
+        own = with_reads(facts, {n: d for n, d in read.items() if d})
         {"State Machine": _machine, "Decision Table": _decision_table,
-         "DAG": _dag}[name](r, line, name, fields, tables, found, table_facts if name == "Decision Table" else facts)
+         "DAG": _dag}[name](r, line, name, fields, tables, found, table_facts if name == "Decision Table" else own)
 
 
 def _record_type(r, line, fields, tables, found):
@@ -1399,16 +1408,14 @@ def trigger_key(trigger):
 
 
 def _fact_scopes(text_of, sections, strip_fences):
-    """Each file's facts in scope, as a guard's are -> {file: {name: Type}}: its own file's first, else the one other
-    files declare alike, a name other files declare with differing Types held with no Type, read and not checked."""
-    own, every = {}, {}
-    for r, body in text_of.items():
-        facts = facts_of(fact_records(strip_fences(body), sections(body)))
-        own[r] = {n: re.sub(r'\s+', " ", t) for n, (t, _, _) in facts.items()}
-        for n, t in own[r].items():
-            every.setdefault(n, set()).add(t)
-    alike = {n: next(iter(ts)) if len({_parsed(t) or t for t in ts}) == 1 else None for n, ts in every.items()}
-    return {r: {**alike, **facts} for r, facts in own.items()}
+    """Each file's own facts -> {file: {name: (Type, Values, May Be Absent)}}, its Facts sections'; a construct reads a
+    fact another file declares through its Reads alone, never by the fact's name."""
+    return {r: facts_of(fact_records(strip_fences(body), sections(body))) for r, body in text_of.items()}
+
+
+def _kinds(facts):
+    """{name: (Type, …) or None} -> {name: the kind its Type gives, or None where it has none}."""
+    return {n: kind_of_type(re.sub(r'\s+', " ", d[0])) if d else None for n, d in facts.items()}
 
 
 def _trigger_problems(trigger, kinds):
@@ -1428,8 +1435,8 @@ def _trigger_problems(trigger, kinds):
 
 
 def occurrence_findings(text_of, found, sections, strip_fences, citation, resolve):
-    """§ Constructs § State Machine and § Time: each trigger written in FEEL in its form, judged with the facts in scope
-    as a guard's are; no protocol machine taken on time or a condition; and each Trigger Classes table in its form, its rows
+    """§ Constructs § State Machine and § Time: each trigger written in FEEL in its form, judged with the facts in scope,
+    its file's and those its Reads cites, each Reads item in its form; no protocol machine taken on time or a condition; and each Trigger Classes table in its form, its rows
     whole, its classes triggers, a member citing another machine's class reaching it, and no state taking a class and
     one of its members. `citation` and `resolve` are the citation check's own."""
     machine = f"{RULE} § State Machine"
@@ -1441,12 +1448,15 @@ def occurrence_findings(text_of, found, sections, strip_fences, citation, resolv
                 machines[(r, lineage)] = tables[1].get("classes")
     for r, body in text_of.items():
         live, secs = strip_fences(body), sections(body)
-        kinds = {n: kind_of_type(t) if t is not None else None for n, t in scopes.get(r, {}).items()}
         claimed = set()
         for line, name, fields, tables, lineage in declarations(live, secs):
             values = dict((k, v) for _, k, v in fields)
             if name != "State Machine" or len(tables) != 2:
                 continue
+            read, bad = construct_reads(r, values)
+            for item in bad:
+                found.append((machine, r, line, f"a Reads item that is not a name, a colon and a citation: {item}"))
+            kinds = _kinds(with_reads(scopes.get(r, {}), read))
             transitions = tables[1]
             off = 1 if transitions["header"][:1] == ["Name"] else 0
             protocol = values.get("Protocol") == "Yes"
@@ -1573,45 +1583,35 @@ def effect_findings(text_of, found, sections, strip_fences, citation, resolve):
 def guard_value_findings(text_of, found, sections, strip_fences):
     """§ Constructs § State Machine: a guard testing a fact for a word, by `=`, `!=` or `in`, wherever FEEL's grammar puts
     it, tests one of the fact's Values, a quoted list or a closed set its Values cite; the fact is the one the machine's
-    own file declares, or else the one other files declare alike, a name declared otherwise in several left to reading."""
-    by_name = {}
-    for r, body in text_of.items():
-        for f, d in facts_of(fact_records(strip_fences(body), sections(body))).items():
-            by_name.setdefault(f, {})[r] = quoted_values(d[1])
+    own file declares or the one its Reads cites, never one found in other files by its name alone."""
     for r, body in text_of.items():
         own = facts_of(fact_records(strip_fences(body), sections(body)))
         for line, name, fields, tables, lineage in declarations(strip_fences(body), sections(body)):
             if name != "State Machine" or len(tables) != 2 or "Guard" not in tables[1]["header"]:
                 continue
+            facts = with_reads(own, construct_reads(r, dict((k, v) for _, k, v in fields))[0])
             g = tables[1]["header"].index("Guard")
             for ln, row in tables[1]["rows"]:
                 text = row[g] if g < len(row) else NONE_CELL
                 if text.strip() == NONE_CELL:
                     continue
-                for fact, word in expressions.compared(text, {f: None for f in by_name}) or []:
-                    if fact in own:
-                        values = quoted_values(own[fact][1])
-                    else:
-                        kinds = {tuple(v) if v is not None else None for v in by_name.get(fact, {}).values()}
-                        values = list(next(iter(kinds))) if len(kinds) == 1 and None not in kinds else None
+                for fact, word in expressions.compared(text, {f: None for f in facts}) or []:
+                    values = quoted_values(facts[fact][1]) if facts.get(fact) else None
                     if values is not None and word not in values:
                         found.append((f"{RULE} § State Machine", r, ln, f"a guard testing {fact} for a value outside its Values: {word}"))
 
 
 def guard_fact_findings(text_of, found, sections, strip_fences):
     """§ Constructs § State Machine: a fact an exclusive choice's guard compares a fact with, in a test the checks read,
-    is one a guard of its choice tests, a Facts section of any file declares, or `exit`, of the kind of the fact it is
-    compared with; a guard in any other of FEEL's forms is read."""
-    declared = {}
+    is one a guard of its choice tests, its machine's file declares or its Reads cites, or `exit`, of the kind of the fact
+    it is compared with; a guard in any other of FEEL's forms is read."""
     for r, body in text_of.items():
-        live = strip_fences(body)
-        for f, d in facts_of(fact_records(live, sections(body))).items():
-            declared.setdefault(f, d)
-    kind_of = {f: kind_of_type(t) for f, (t, _, _) in declared.items()}
-    for r, body in text_of.items():
+        own = facts_of(fact_records(strip_fences(body), sections(body)))
         for line, name, fields, tables, lineage in declarations(strip_fences(body), sections(body)):
             if name != "State Machine" or len(tables) != 2:
                 continue
+            declared = with_reads(own, construct_reads(r, dict((k, v) for _, k, v in fields))[0])
+            kind_of = _kinds(declared)
             off = 1 if tables[1]["header"][:1] == ["Name"] else 0
             for rows in _choice_groups(tables[1], off).values():
                 if len(rows) < 2:
@@ -1636,7 +1636,7 @@ def guard_fact_findings(text_of, found, sections, strip_fences):
                                     found.append((f"{RULE} § State Machine", r, ln, f"{m}, in a guard testing {fact}"))
                         for f in {f for t in c[1] if t[0] == "sym" for f in t[2]}:
                             if f not in tested and f not in declared:
-                                found.append((f"{RULE} § State Machine", r, ln, f"a guard comparing a fact with one no guard of its choice tests and no Facts record declares: {f}"))
+                                found.append((f"{RULE} § State Machine", r, ln, f"a guard comparing a fact with one no guard of its choice tests, its file declares or its Reads cites: {f}"))
                             elif kinds.get(f) and kinds.get(fact) and kinds[f] != kinds[fact]:
                                 found.append((f"{RULE} § State Machine", r, ln, f"a guard comparing a {kinds[fact]} fact with a {kinds[f]} one: {f}"))
 
@@ -1765,6 +1765,29 @@ FACTS_SECTION = None
 # and the resolver of a fact a Decision Table reads from another file, (the table's file, the citation, the fact's
 # name) -> (Type, Values, May Be Absent), or None
 READ_FACT = None
+
+
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Constraint
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § DAG
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
+def construct_reads(r, values):
+    """A DAG's, a State Machine's or a Constraint's Reads, each item a fact's name, a colon and the citation of the
+    Facts record declaring it, in the file `r` or another -> ({name: (Type, Values, May Be Absent), or None where the
+    citation reaches no record of it}, [each item in no such form])."""
+    out, bad = {}, []
+    for item in [] if values.get("Reads", "none").strip() == "none" else values["Reads"].split("\n"):
+        mm = READS_ITEM.fullmatch(item.strip())
+        if not mm or not _is_name(mm.group(1).strip()):
+            bad.append(item)
+            continue
+        cites = CITATION.findall(item)
+        out[mm.group(1).strip()] = READ_FACT(r, cites[0], mm.group(1).strip()) if READ_FACT and len(cites) == 1 else None
+    return out, bad
+
+
+def with_reads(own, read):
+    """A construct's facts in scope: its file's own `own`, then each its Reads cites that its file does not declare."""
+    return dict(own, **{n: d for n, d in read.items() if n not in own})
 
 
 def fact_records(body, sections):
@@ -2252,8 +2275,9 @@ def _dag(r, line, name, fields, tables, found, facts=None):
 
 
 def dag_findings(text_of, found, sections, strip_fences, citation, resolve):
-    """§ Constructs § DAG, across files: each task's work `none`, `none, leaving` facts the file declares, or the
-    citation of an Algorithm, a Decision Table or a DAG, whole, a table's outcome columns facts the file declares; no
+    """§ Constructs § DAG, across files: each task's work `none`, `none, leaving` facts the file declares or the DAG's
+    Reads cites, or the citation of an Algorithm, a Decision Table or a DAG, whole, a table's outcome columns facts of
+    either; each Reads item in its form; no
     DAG holding itself through the DAGs its tasks cite; `ended` waited for only of a task that can end other than done, and `Yes`
     tolerated only of one that can fail; no two tasks free at once giving one fact or one reading, by its work or its guard, what
     the other gives, no task reading what a task after it gives, and a fact read that no task before the reader gives
@@ -2286,7 +2310,7 @@ def dag_findings(text_of, found, sections, strip_fences, citation, resolve):
         return out
 
     # each DAG's tasks, their works resolved; a nested DAG's gives are its tasks' gives, resolved after all are read
-    dags, nested = {}, {}
+    dags, nested, dag_facts = {}, {}, {}
     for (r, lineage), (line, name, values, tables) in sorted(decls.items()):
         if name != "DAG" or not tables or extends(values):
             continue
@@ -2295,7 +2319,11 @@ def dag_findings(text_of, found, sections, strip_fences, citation, resolve):
             continue  # its form is the declaring check's to report
         wi, di = header.index("Work"), header.index("Depends On")
         col = {c: header.index(c) for c in ("Guard", "Timeout", "Tolerated") if c in header}
-        known = {f: kind_of_type(t) for f, (t, _, _) in facts_in[r].items()}
+        read, bad = construct_reads(r, values)
+        for item in bad:
+            found.append((rule, r, line, f"a Reads item that is not a name, a colon and a citation: {item}"))
+        facts = dag_facts[(r, lineage)] = with_reads(facts_in[r], read)
+        known = _kinds(facts)
         tasks = {}
         for ln, row in tables[0]["rows"]:
             if len(row) != len(header):
@@ -2306,7 +2334,7 @@ def dag_findings(text_of, found, sections, strip_fences, citation, resolve):
             work, leaves = row[wi], _leaves(row[wi])
             key = target = None
             if leaves is not None:
-                for f in sorted(leaves - set(facts_in[r])):
+                for f in sorted(leaves - set(facts)):
                     found.append((rule, r, ln, f"a `none` leaving a fact nothing declares: {f}"))
             elif work != "none":
                 c = citation.fullmatch(work)
@@ -2319,7 +2347,7 @@ def dag_findings(text_of, found, sections, strip_fences, citation, resolve):
                 elif target and target[1] == "DAG":
                     nested.setdefault((r, lineage), set()).add(key)
                 elif target and target[1] == "Decision Table":
-                    for h in sorted(outcomes_of(key) - set(facts_in[r])):
+                    for h in sorted(outcomes_of(key) - set(facts)):
                         found.append((rule, r, ln, f"a Decision Table a task runs whose outcome column no fact declares: {h}"))
             cell = lambda c, blank: row[col[c]] if c in col else blank
             guard_reads = []  # the names the guard uses, which the expression check collects
@@ -2480,7 +2508,7 @@ def dag_findings(text_of, found, sections, strip_fences, citation, resolve):
                 givers = [b for b in before if f in gives[b]]
                 if givers and not any((f in sure[b] and b not in crossed) or f in inout_of(tasks[b]["work"]) for b in givers):
                     # the fact's record, in the DAG's file or the file of the work reading it
-                    record = facts_in[key[0]].get(f) or (facts_in.get(tasks[a]["work"][0], {}).get(f) if tasks[a]["work"] else None)
+                    record = dag_facts.get(key, facts_in[key[0]]).get(f) or (facts_in.get(tasks[a]["work"][0], {}).get(f) if tasks[a]["work"] else None)
                     if record and record[2] != "Yes":
                         found.append((rule, key[0], tline, f"a task reading a fact no task before it gives surely, whose record does not say it may be absent: {a} reads {f}, which {', '.join(sorted(givers))} gives"))
 
@@ -3040,7 +3068,11 @@ def algorithm_findings(text_of, found, sections, strip_fences, citation, resolve
             continue
         table = tables[0]
         bind = bind_in(r)
-        back_at, scope_at = _algorithm(rule, r, line, values, table, steps, facts_in.get(r, {}), bind, found)
+        # a fact its Inputs cite from another file, typed by its record as a fact its file declares is
+        cited = {n: READ_FACT(r, CITATION.findall(item)[0], n) for item, n in io_items(values, "Inputs")
+                 if READ_FACT and READS_ITEM.fullmatch(item) and len(CITATION.findall(item)) == 1}
+        own = with_reads(facts_in.get(r, {}), {n: d for n, d in cited.items() if d})
+        back_at, scope_at = _algorithm(rule, r, line, values, table, steps, own, bind, found)
         # a Precision: the significant digits each operation keeps, a whole number above zero
         if "Precision" in values and not (re.fullmatch(r'[1-9]\d*', values["Precision"]) and int(values["Precision"]) < 34):
             found.append((rule, r, line, f"a Precision that is no whole number above zero and below FEEL's 34: {values['Precision']}"))
@@ -3188,7 +3220,7 @@ RECORDS_FIELD = "**Records:**"
 
 def constraint_findings(text_of, found, warned, sections, strip_fences, citation, resolve):
     """§ Constructs § Constraint, each Constraint checked once, across files, its citations resolved: each rule a FEEL
-    boolean judged with the facts in scope, its file's and, after or before an Algorithm, or a transition whose effect
+    boolean judged with the facts in scope, its file's, those its Reads cites, each Reads item in its form, and, after or before an Algorithm, or a transition whose effect
     runs one, that Algorithm's; an Applies To in one of its forms, citing an operation whole; and an Enforced By that
     is citations joined by `and`, or `nothing:` and words, the latter appended to `warned`, never to `found`.
     `citation` and `resolve` are the citation check's own."""
@@ -3270,7 +3302,10 @@ def constraint_findings(text_of, found, warned, sections, strip_fences, citation
         off = 1 if header[:1] == ["Name"] else 0
         if header[off:] != FORMS["Constraint"][0]:
             continue  # its form is the declaring check's to report
-        scope = kinds_in(r, list(facts_in.get(r, {})))
+        read, bad = construct_reads(r, values)
+        for item in bad:
+            found.append((rule, r, line, f"a Reads item that is not a name, a colon and a citation: {item}"))
+        scope = _kinds(with_reads(facts_in.get(r, {}), read))
         for ln, row in table["rows"]:
             if len(row) != len(header):
                 continue
@@ -3822,6 +3857,8 @@ def run_checks(text_of):
     import record_types
     from spec_text import lineages, parse_citation, sections, strip_fences, resolve
 
+    # modeling-constructs.md § Purpose: no form template is authored with the constructs, a skill's or the core canon's
+    text_of = {r: body for r, body in text_of.items() if not record_types.is_form_template(r)}
     for state in (record_types.TYPES, record_types._TEXT_OF, record_types.CONSTRUCT_KEYS, record_types.NAME_CITED):
         state.clear()
     found, warned = [], []

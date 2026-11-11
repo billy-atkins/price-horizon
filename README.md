@@ -33,7 +33,7 @@ Where prose would hide a gap, the specifications use constructs. A rule decided 
 
 Every rule has a check. A script checks whatever programming logic alone can decide, since a script is deterministic and spends no tokens. An independent AI agent makes the checks that require judgment. A rule that leaves no trace in the files, such as reading a file fresh before editing it, is a named step of the skill that applies it.
 
-Product capabilities state, as Gherkin scenarios in Given, When, Then form, how their promises would be tested. A promise that could never be checked then shows up as one. A decision the specifications rely on but have not made is recorded as an open question in the file it affects. The question carries a provisional answer the work moves forward on, so it never blocks the work and is never mistaken for a settled decision.
+Product capabilities state, as Gherkin scenarios in Given, When, Then form, how their promises would be tested. A promise that could never be checked then shows up as one. A decision the specifications rely on but have not made is recorded as an open question at the lowest altitude covering everything it affects: the file it affects, or the `main.md` of the narrowest folder covering it. The question carries a provisional answer the work moves forward on, so it never blocks the work and is never mistaken for a settled decision.
 
 Spec of Record evolves the way a self-hosting compiler is built, by compiling its own source. Its rules are written in the constructs it defines. Every change to them is designed, reviewed and audited with the same AI skills and tooling that design and author application specifications. So although PriceHorizon has no code yet, the methodology is in real use. Its own rules and PriceHorizon's specifications are both written and governed through it.
 
@@ -75,7 +75,7 @@ Its product specifications reach across the product, from the answer engine to i
 
 ## Finding your way around
 
-The methodology specifications, the specifications' entry point and overview, and the skills the methodology registers to apply its rules, with the code those skills share, together form the canon: the part of the repository that states and applies the methodology's rules. The application specifications, PriceHorizon's product and technical specifications, are written under the canon, and the canon is written under its own rules, as a self-hosting compiler compiles itself.
+The methodology specifications, the specifications' entry point, main file and overview, and the skills the methodology registers to apply its rules, with the code those skills share, together form the canon: the part of the repository that states and applies the methodology's rules. The application specifications, PriceHorizon's product and technical specifications, are written under the canon, and the canon is written under its own rules, as a self-hosting compiler compiles itself.
 
 ```
 AGENTS.md                   the project's instructions for any AI agent
@@ -96,7 +96,7 @@ specs/
 docs/                       user documentation, still to come
 ```
 
-Every directory under `specs/` holds an `index.md` listing what it holds. An overview, an `architecture.md`, describes how the files of its directory fit together, and the glossary defines each term the methodology gives a meaning of its own. The `AGENTS.md` files are the agent instructions, what an AI agent reads before it works here.
+Every directory under `specs/` holds an `index.md` listing what it holds, and a `main.md` only where it has content to hold. An overview, an `architecture.md`, describes how the files of its directory fit together, and the glossary defines each term the methodology gives a meaning of its own. The `AGENTS.md` files are the agent instructions, what an AI agent reads before it works here.
 
 Each part is written for its reader. The product specifications are written for a product owner, and the technical specifications for a software engineer. The methodology specifications are written for a practitioner: a software engineer designing a project's specifications. The agent instructions and the skills are written for an AI agent arriving with no context but what it reads, and any agent can follow them.
 
