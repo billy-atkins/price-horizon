@@ -1088,7 +1088,7 @@ Each operating rule that leaves no trace in the files the audits read is carried
       - `specs/methodology/working-files/main.md § Design Plan Step § Step Objective`
 
     **Rule:** `specs/methodology/working-files/main.md § Design Plan Step § Step Objective` \
-    **Leaves:** an Objective stating a means: how its step is implemented, a construct, a place in a file, a name the apply writes, or wording that is not the user's \
+    **Leaves:** an Objective stating a means: how its step is implemented, a construct, a place in a file, a name the apply writes, wording that is not the user's, or a list of the edits its step makes, an Objective written too specifically \
     **Caught By:**
       - `specs/methodology/working-files/main.md § Design Plan Step § Step Objective § Semantic Checks [Name: objective-states-an-outcome]`
       - `specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the builder's self-review]`
