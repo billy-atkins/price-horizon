@@ -302,7 +302,7 @@ def render_diagrams(file, block, out_dir) -> int:
 
 
 def main() -> int:
-    # Actions are flags per specs/methodology/skills.md § Authoring a Skill.
+    # Actions are flags per specs/methodology/skills/authoring-a-skill.md § Authoring a Skill.
     ap = argparse.ArgumentParser(description="Render Mermaid diagrams to PNG.", allow_abbrev=False)
     ap.add_argument("--render-diagrams", metavar="FILE", action="append",
                     help="render every mermaid block in FILE, a markdown or .mmd file, to PNG; - reads one diagram "

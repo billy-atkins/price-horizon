@@ -1,11 +1,11 @@
 """The script check and candidate list of the code, one copy of each, that .ai/skills/verify-spec-implementation/ runs
 over the application's code and .ai/skills/design-specs/' and .ai/skills/implement-specs/' scripts run over a design's
-work (specs/methodology/skills.md § Authoring a Skill): the app-spec annotations checked against
+work (specs/methodology/skills/authoring-a-skill.md § Authoring a Skill): the app-spec annotations checked against
 specs/methodology/code.md § Citing the Specs From Code and the form it cites, and places listed for the reading to look.
 
 The application's code is the code roots, less what is excluded, that the technical specs' stack document names, its
 stack.md or the files of a folder named for it, per
-specs/methodology/spec-placement.md § The Technical Stack. A check reads the tree it is given as its root, the working
+specs/methodology/spec-placement/technical-stack.md § The Technical Stack. A check reads the tree it is given as its root, the working
 tree or the last commit read through spec_text.CommitTree. Standard library only, and spec_text.py.
 """
 import re
@@ -19,9 +19,9 @@ STACK_FOLDER = "specs/application/technical/stack/"
 # @canon-spec specs/methodology/code.md § Citing the Specs From Code
 SPECS = ("specs/application/product/", "specs/application/technical/")
 RULE = "code.md § Citing the Specs From Code"
-STACK_RULE = "spec-placement.md § The Technical Stack"
-# a line naming the tag at all; then the form sourcing-and-citation.md § Writing a Citation § Citing From Code sets for it
-# @canon-spec specs/methodology/sourcing-and-citation.md § Writing a Citation § Citing From Code
+STACK_RULE = "spec-placement/technical-stack.md § The Technical Stack"
+# a line naming the tag at all; then the form sourcing-and-citation/writing-a-citation.md § Writing a Citation § Citing From Code sets for it
+# @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § Citing From Code
 TAG = re.compile(r"@app-spec\b")
 # a plain comment line only: a documentation comment, /// or //! or /** or /*!, is never one
 FORM = re.compile(r"^\s*(?://(?![/!])|#+|--|;+|%+|<!--|/\*(?![*!]))\s*@app-spec (\S.*?)\s*(?:-->|\*/)?\s*$")

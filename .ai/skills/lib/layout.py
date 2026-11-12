@@ -1,9 +1,9 @@
 """The check of where a blank line falls: each line of a Markdown file read as the element it opens or continues,
-and each blank line held to the Decision Table specs/methodology/spec-style.md § Blank Lines states, read from the
+and each blank line held to the Decision Table specs/methodology/spec-style/markdown.md § Blank Lines states, read from the
 canon. The element names the module holds are a copy of the table's Input Values, and the conditions it works out a
 copy of the table's Conditions, each checked against the table as it is read. The audit-specs script, the design-specs script and implement-specs' script, through check_form, run the
-check through this one copy (specs/methodology/skills.md § Authoring a Skill). A fenced block whose info string is
-`markdown` is read as spec-style.md § Markdown has it, one code block toward what stands outside it and a file of its
+check through this one copy (specs/methodology/skills/authoring-a-skill.md § Authoring a Skill). A fenced block whose info string is
+`markdown` is read as spec-style/markdown.md § Markdown has it, one code block toward what stands outside it and a file of its
 own within."""
 import re
 from pathlib import Path
@@ -11,12 +11,12 @@ from pathlib import Path
 import constructs
 from spec_text import as_root, sections, strip_fences
 
-# @canon-spec specs/methodology/spec-style.md § Blank Lines
-RULE = "spec-style.md § Blank Lines"
-HOME = "specs/methodology/spec-style.md"
+# @canon-spec specs/methodology/spec-style/markdown.md § Blank Lines
+RULE = "spec-style/markdown.md § Blank Lines"
+HOME = "specs/methodology/spec-style/markdown.md"
 SECTION = "Blank Lines"
 
-# @canon-spec specs/methodology/spec-style.md § Blank Lines
+# @canon-spec specs/methodology/spec-style/markdown.md § Blank Lines
 # the elements a line opens or continues, a copy of the Input Values the table gives, compared with them in rules()
 FRONT_MATTER = "front matter"
 HEADING = "a heading"
@@ -53,7 +53,7 @@ def _indent(line):
 
 def elements(text):
     """-> [Line or None] for each line of text, None for a blank line: the element each line opens or continues, read as
-    GFM reads blocks and as spec-style.md § Markdown has a list item end before the first line that is not blank and is
+    GFM reads blocks and as spec-style/markdown.md § Markdown has a list item end before the first line that is not blank and is
     indented less than its text."""
     lines = text.replace("\r\n", "\n").split("\n")
     out, stack, fence, front = [], [], None, None
@@ -86,7 +86,7 @@ def elements(text):
             prev = None
             continue
         holder_before = stack[-1] if stack else None
-        # a line that is not blank and is indented less than an item's text ends the item (spec-style.md § Markdown)
+        # a line that is not blank and is indented less than an item's text ends the item (spec-style/markdown.md § Markdown)
         while stack and indent < stack[-1]:
             stack.pop()
         container = stack[-1] if stack else 0
@@ -215,12 +215,12 @@ def rules(root):
                 problems.append((RULE, HOME, 0, f"an element the table's Input Values give that the module lacks: {name}"))
             break
     if table is None and not unknown:
-        problems.append((RULE, HOME, 0, "the layout check reads no Decision Table of where a blank line falls in spec-style.md § Blank Lines"))
+        problems.append((RULE, HOME, 0, "the layout check reads no Decision Table of where a blank line falls in spec-style/markdown.md § Blank Lines"))
     _RULES[root] = (table, problems)
     return _RULES[root]
 
 
-# @canon-spec specs/methodology/spec-style.md § Blank Lines
+# @canon-spec specs/methodology/spec-style/markdown.md § Blank Lines
 # the table's conditions, a copy of the names it gives, each one findings() works out, compared with them in rules()
 ABOVE = "The element above"
 BELOW = "The element below"

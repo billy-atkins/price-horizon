@@ -85,7 +85,8 @@ specs/
   architecture.md           the overview of the specifications as a whole
   index.md                  the map of the specifications
   methodology/              the rules of Spec of Record
-    glossary.md             the terms the methodology gives a meaning of its own
+    glossary/
+      glossary.md           the terms the methodology gives a meaning of its own
     architecture.md         the overview of the rules
   application/
     product/                PriceHorizon: what a user can rely on
@@ -112,7 +113,7 @@ The product and technical specifications answer to each other. The product layer
 
 One fact shows how the pieces fit. The product promises that every answer shows how it was built ([`specs/application/product/trust-and-explainability/guarantees.md`](/specs/application/product/trust-and-explainability/guarantees.md)). A Gherkin scenario beside that promise states how it would be tested. [`specs/application/technical/guarantees-mechanics.md`](/specs/application/technical/guarantees-mechanics.md) gathers the mechanisms that keep the promise. The product overview's From Evidence to Answer diagram draws it, citing that promise as its source.
 
-For the methodology, start with [`specs/AGENTS.md`](/specs/AGENTS.md), then [`specs/methodology/glossary.md`](/specs/methodology/glossary.md) and the overviews. For PriceHorizon, start with its product and technical overviews. The design documents, the review reports and the list of work still to do are working files, kept out of version control on purpose. What they settle reaches a reader only through the specifications.
+For the methodology, start with [`specs/AGENTS.md`](/specs/AGENTS.md), then [`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md) and the overviews. For PriceHorizon, start with its product and technical overviews. The design documents, the review reports and the list of work still to do are working files, kept out of version control on purpose. What they settle reaches a reader only through the specifications.
 
 ## Try it
 

@@ -1,6 +1,6 @@
 ## Glossary
 
-This file holds the terms Spec of Record gives a meaning of its own. Each is defined here once and nowhere else: a file using a term states its rules about the term, never a second definition. This file also states what earns a term its entry, how an entry is written, and where an abbreviation may be used.
+This file holds the terms Spec of Record gives a meaning of its own. Each is defined here once and nowhere else: a file using a term states its rules about the term, never a second definition.
 
 **Reference Key:** Term \
 **Required:** Definition
@@ -91,25 +91,3 @@ This file holds the terms Spec of Record gives a meaning of its own. Each is def
 | Wording rule |  | A specification rule of how a passage is worded, Clear Prose among them, whether or not a script checks it. Not a form a script parses for the meaning it holds, such as a field, a record or a construct. |
 | Working file |  | A file that the work on the specs or their code leaves behind, serving whoever does that work. |
 | Workstack |  | The tree of design documents their Spawned By draws from one design that was not spawned, together with the blocking their Depends On Designs records. Not a call stack or a task queue. |
-
-## Writing an Entry
-
-**What earns an entry.** A term earns an entry when it has a meaning in Spec of Record that training knowledge alone would not give: a term coined by the methodology, overloaded with another meaning nearby, used across areas in a narrow sense, or adopted as shorthand for a principle.
-
-**The term.** An entry gives the bare term, without markup or any of its other names. Each term is listed once, and the table is sorted by term.
-
-**The definition.** A definition building on a term this glossary defines opens with that term as its genus, the broader kind the term belongs to, so a term builds on the terms it rests on rather than restating them, and then states what sets the term apart. A standalone definition, building on no term defined here, needs no genus. A use the term must not be mistaken for opens with `Not`.
-
-**A borrowed term.** A term defined in one author's or one body's published work, rather than common to many, ends its definition with that work, before its other names, naming it in prose and never citing it: `After {whose account}, in {work}.`
-
-**Other names.** A term's one abbreviation goes in its Abbreviation column, left empty where it has none. A definition ends with the term's other full names, as `Also called X.`, with several separated by commas. Each name belongs to that term alone.
-
-**Nothing cited.** The glossary cites nothing, so it reads as a dictionary: a definition stands on its own and on the terms beside it.
-
-## Using an Abbreviation
-
-An abbreviation outside the house may be used in any specification or instruction, since the agents and engineers reading it already know its meaning. An abbreviation inside the house is used in none of them. They spell its term out instead, because an agent reads every word of a rule as part of the rule, and may misread a short form only the house knows. The short form is for people talking to an agent, since the agent can ask them what one means.
-
-**Where one is recorded.** Each inside-the-house abbreviation is recorded once, beside its term's definition, which is how it is known to be one:
-- the methodology's, in its glossary entry's Abbreviation column;
-- the application's, where the application specs define its term, at that term's altitude, written `(abbreviated X)` directly after the term.

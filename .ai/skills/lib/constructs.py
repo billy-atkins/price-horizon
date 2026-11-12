@@ -1,7 +1,7 @@
 """The construct checks: what modeling-constructs.md § Constructs lets a script decide. audit-specs runs them over
 the specs, the design script's --check-design over each construct a design's step holds in its Draft, before the apply,
 and design-specs' --check-constructs on the files an apply wrote, each through run_checks, the one copy
-(specs/methodology/skills.md § Authoring a Skill).
+(specs/methodology/skills/authoring-a-skill.md § Authoring a Skill).
 
 A construct is found by its declaration, a **Construct:** field, and read from the block the
 declaration opens: its fields, then its tables. Each check here decides structure from the files
@@ -288,14 +288,14 @@ def _keyed(cells, name=None):
     return [keys.get(c, c) for c in cells]
 
 
-# @canon-spec specs/methodology/glossary.md
+# @canon-spec specs/methodology/glossary/glossary.md
 # a word of a field label: opening with a capital and made of letters or digits, a hyphen joining two parts of one
 # word; or, after a label's first word, made of digits alone
 LABEL = r"(?:[A-Z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*|[0-9]+)"
 LABEL_WORD = re.compile(f"^{LABEL}$")
 
 
-# @canon-spec specs/methodology/spec-style.md § Literal Text
+# @canon-spec specs/methodology/spec-style/markdown.md § Literal Text
 # literal text: a code span, one backtick to the next, literal text holding no backtick; the one reading of a
 # span, which spec_checks.py reads too
 CODE_SPAN = re.compile(r'`(?P<text>[^`]+)`')
@@ -3157,12 +3157,12 @@ def algorithm_findings(text_of, found, sections, strip_fences, citation, resolve
 
 # ---------------------------------------------------------------- Constraint
 
-# @canon-spec specs/methodology/sourcing-and-citation.md § Writing a Citation
+# @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation
 # a citation: a section token and a title in one backtick span, after a file's path where it cites another file,
 # never the token alone; the one copy of the form, which spec_checks.py reads as its own and an Enforced By names
 # what enforces its rule by
 class _Citations:
-    """sourcing-and-citation.md § Writing a Citation: a citation in its code span, opened by one backtick, or by one more
+    """sourcing-and-citation/writing-a-citation.md § Writing a Citation: a citation in its code span, opened by one backtick, or by one more
     than the longest run in a key value it carries verbatim, and closed by as many; read as a pattern is, its text group 1."""
     _RX = re.compile(r'(?<!`)(`+)(?!`)((?:[\w./-]+\.md\s*)?§\s+(?:[^`]|(?!\1(?!`))`+)+?)(?<!`)\1(?!`)')
 

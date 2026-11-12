@@ -1,7 +1,7 @@
 """The reading of a spec's text that the skills' scripts share: its fenced blocks, its headings, its sections and
 their lineages, where a citation resolves, and which files are in scope, by the skills registry, and their texts.
 audit-specs, design-specs, implement-specs and verify-spec-implementation read a spec through it, each reading this
-one copy (specs/methodology/skills.md § Authoring a Skill)."""
+one copy (specs/methodology/skills/authoring-a-skill.md § Authoring a Skill)."""
 import fnmatch
 import re
 import subprocess
@@ -175,7 +175,7 @@ def as_root(root):
     return root if isinstance(root, CommitTree) else Path(root).resolve()
 
 
-# @canon-spec specs/methodology/sourcing-and-citation.md § Writing a Citation § A Citation's Link
+# @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § A Citation's Link
 def read(path):
     """-> a file's text with each citation's link stripped, so every check reads the citation as written."""
     path = path if isinstance(path, CommitTree) else Path(path)
@@ -191,7 +191,7 @@ RECORD_SELECTOR = re.compile(r'^(.*?)\s+\[(.*)\]$')
 def strip_fences(text):
     """Blank out fenced blocks so examples inside them are not linted as live content: each line of a fenced block, its
     fences among them, as layout.py's one reading of GFM's blocks finds it, a fence indented within a list item, as a
-    step's Draft stands, among them, and a fence's closing one of its character at least as long (spec-style.md
+    step's Draft stands, among them, and a fence's closing one of its character at least as long (spec-style/markdown.md
     § Markdown). An indented code block's lines stand."""
     import layout  # layout reads this module's helpers as it loads, so its reading is fetched as it is called
 
@@ -273,24 +273,24 @@ def lineages(text):
     return out
 
 
-# @canon-spec specs/methodology/scope.md § What Spec of Record Governs
-# specs/methodology/scope.md § What Spec of Record Governs names where each kind is named:
+# @canon-spec specs/methodology/scope/what-spec-of-record-governs.md § What Spec of Record Governs
+# specs/methodology/scope/what-spec-of-record-governs.md § What Spec of Record Governs names where each kind is named:
 # specs by their place under specs/, the agent instructions by the root AGENTS.md and
 # specs/AGENTS.md, the documentation by README.md and docs/, and skills by the registry, read at
-# run time. The places and names this block defines are the ones scope.md's table gives;
+# run time. The places and names this block defines are the ones the scope's table gives;
 # the working files are outside the script, read by the Working-file form audit instead, and code
 # is outside audit-specs, which audits every kind but code.
-SCOPE_HOME = "scope.md § What Spec of Record Governs"
+SCOPE_HOME = "scope/what-spec-of-record-governs.md § What Spec of Record Governs"
 
 
-REGISTRY = "specs/methodology/skills.md"
+REGISTRY = "specs/methodology/skills/registered-skills.md"
 
 
-REGISTRY_RULE = "skills.md § Registered Skills"
+REGISTRY_RULE = "skills/registered-skills.md § Registered Skills"
 
 
 def registry(root):
-    """-> (skill names, problems): the skills specs/methodology/skills.md registers.
+    """-> (skill names, problems): the skills specs/methodology/skills/registered-skills.md registers.
 
     A missing registry, a table naming no skill, or a row not naming one in backticks is a
     problem, so a broken registry is reported rather than read as an empty scope.
@@ -329,8 +329,8 @@ def scope_paths(root):
     return ["AGENTS.md", "README.md", "docs", "specs"] + [".ai/skills/" + n for n in skill_dirs(root)]
 
 
-# @canon-spec specs/methodology/scope.md § Progressive Disclosure
-# @canon-spec specs/methodology/spec-placement.md § Where a File Goes
+# @canon-spec specs/methodology/scope/progressive-disclosure.md § Progressive Disclosure
+# @canon-spec specs/methodology/spec-placement/where-a-file-goes.md § Where a File Goes
 def indexed(root, folder="specs"):
     """The files the index tables name, walked from `folder`'s index.md down -> [path]: each index.md, then each file
     its rows name in their order, a row naming a subdirectory, its name ending `/`, walked in turn. A row naming what is
@@ -347,7 +347,7 @@ def indexed(root, folder="specs"):
     return out
 
 
-# the worked examples, which keep a tree of their own (scope.md § Progressive Disclosure)
+# the worked examples, which keep a tree of their own (scope/progressive-disclosure.md § Progressive Disclosure)
 EXAMPLES = "specs/methodology/examples/"
 
 

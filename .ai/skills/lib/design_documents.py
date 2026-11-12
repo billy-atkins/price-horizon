@@ -16,12 +16,12 @@ Script Checks has the design script check of them, its counts taken from it; a r
 checked by the same units before it is taken in.
 
 A design document must hold the form working-files/main.md sets, and the workstack its lineage draws must hold
-together. Its actions are flags per specs/methodology/skills.md § Authoring a Skill. The exit status is 0 when
+together. Its actions are flags per specs/methodology/skills/authoring-a-skill.md § Authoring a Skill. The exit status is 0 when
 every check passes, 1 when one finds a problem, and 2 for a usage error.
 
 Standard library only, git aside, which --show-refactor-and-refine-of-existing-specs and --check-work read through, and run by
 no agent directly: each skill writing design documents calls main from its own entry script with its own plans
-folder, per specs/methodology/skills.md § Authoring a Skill.
+folder, per specs/methodology/skills/authoring-a-skill.md § Authoring a Skill.
 """
 
 import argparse
@@ -42,7 +42,7 @@ import constructs
 import layout
 import record_types
 from spec_text import REGISTRY, lineages, parse_citation, read, registry, scope_paths, sections, skill_dirs, spec_texts
-from spec_text import indexed, strip_fences, tracked
+from spec_text import CommitTree, indexed, strip_fences, tracked
 from spec_text import resolve as resolve_citation
 
 
@@ -567,7 +567,7 @@ def validation(text, fields):
     return ("validated" if stamped == current else "stale"), stamped, current
 
 
-# @canon-spec specs/methodology/spec-placement.md § Where a File Goes
+# @canon-spec specs/methodology/spec-placement/kebab-case-conversion.md § Kebab-Case Conversion
 def kebab(text):
     """The text in kebab-case, by the canon's one conversion: letters lowercased, an ampersand the word and, an
     apostrophe dropped, the letters a to z and the digits kept, each run of any other characters one hyphen, none
@@ -1128,7 +1128,7 @@ def check_form(design):
         if steps is not None and steps.strip() == NOT_YET_DRAFTED and values.get("Status") in ("approved", "applying", "complete"):
             problems.append((name, values["Status"] + ", but its steps are not yet drafted"))
         problems += [(name, p) for p in reference_problems(text, read_plan(text))]
-        # modeling-constructs.md § Fields and spec-style.md § Blank Lines: the design's layout, each block of fields and
+        # modeling-constructs.md § Fields and spec-style/markdown.md § Blank Lines: the design's layout, each block of fields and
         # each list a field holds by the reader's checks, and each blank line by the layout check
         base = Path(design).resolve().parents[3]
         table, table_problems = layout.rules(base if (base / layout.HOME).is_file() else repo_root())
@@ -1421,7 +1421,7 @@ def resolve(path, root, target=""):
     if len(hits) == 1:
         return hits[0], ""
     # a document laid out as a folder, named by its bare file name, is read through its files: the one holding the
-    # section named, its main file first where it holds one (spec-placement.md § Where a File Goes); a bare main.md
+    # section named, its main file first where it holds one (spec-placement/where-a-file-goes.md § Where a File Goes); a bare main.md
     # names no one document, every folder's main file sharing the name, and a folder's index.md is never a document
     if not hits and path.endswith(".md") and PurePosixPath(path).name not in ("main.md", "index.md"):
         index, _ = resolve(path[:-3] + "/index.md", root)
@@ -1437,10 +1437,10 @@ def resolve(path, root, target=""):
 
 # @canon-spec specs/methodology/working-files/main.md § A Design Document § The States It Moves Through § A Send-back
 def check_citations(proposal, root, kept=(), extra=""):
-    """-> [(ok, path, target, note)] for each cross-file citation, in order, of the proposal and of extra, each file
-    read as it stands, or at the last commit where kept, the paths a send-back's or a reassessment's kept changes
-    change, names it."""
+    """-> [(ok, path, target, note)] for each cross-file citation, in order, of the proposal and of extra, the file it
+    names found and read by citation_file."""
     text = read(Path(proposal)) + "\n" + extra
+    head = CommitTree(root) if kept else None
     seen, results = set(), []
     for m in CITATION.finditer(text):
         path, target = m.group("path"), " ".join(m.group("target").split())
@@ -1449,25 +1449,37 @@ def check_citations(proposal, root, kept=(), extra=""):
         if (path, target) in seen:
             continue
         seen.add((path, target))
-
-        target_file, note = resolve(path, root, target)
+        target_file, note = citation_file(path, root, target, head, kept)
         if target_file is None:
             results.append((False, path, target, note))
             continue
-        held = text_at(root, target_file.relative_to(root).as_posix(), kept) if kept else read(target_file)
-        if held is None:
-            results.append((False, path, target, "no such file at the last commit"))
-            continue
-        found = lineages(held)
-        if target in found:
-            results.append((True, path, target, ""))
-            continue
-        # A wrong ancestor is a different fix from a wrong title, so say which.
-        leaf = target.split(" § ")[-1]
-        near = [f for f in found if f.split(" § ")[-1] == leaf]
-        note = f"right title, wrong lineage: {near[0]}" if near else "no such heading"
-        results.append((False, path, target, note))
+        found = lineages(read(target_file))
+        results.append((True, path, target, "") if target in found else
+                       (False, path, target, citation_miss(target, found)))
     return results
+
+
+def citation_file(path, root, target, head, kept):
+    """-> (file, note): the file a citation names, found in the files as they stand; while a send-back's or a
+    reassessment's kept changes stand, head the last commit's tree and kept the paths they change, found in the files
+    at the last commit, a file they moved or removed among them, and a working file, which no commit holds, alone found
+    as it stands."""
+    if head is None:
+        return resolve(path, root, target)
+    found, note = resolve(path, head, target)
+    if found is not None or note != "no such file":
+        return found, note
+    here, _ = resolve(path, root, target)
+    if here is not None and here.relative_to(root).as_posix() not in kept:
+        return here, ""
+    return None, "no such file at the last commit"
+
+def citation_miss(target, found):
+    """-> why a section is missing from a file's lineages: a wrong ancestor is a different fix from a wrong title, so
+    say which."""
+    leaf = target.split(" § ")[-1]
+    near = [f for f in found if f.split(" § ")[-1] == leaf]
+    return f"right title, wrong lineage: {near[0]}" if near else "no such heading"
 
 
 def report(heading, problems):
@@ -1489,7 +1501,7 @@ def design_file(value):
 
 def named_places(text):
     """-> each place a step's What names, a citation with a path to a file or a directory, as
-    specs/methodology/sourcing-and-citation.md § Writing a Citation writes one."""
+    specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation writes one."""
     return [p for p in cited_places(text) if "/" in p[0] or re.search(r"\.\w+$", p[0])]
 
 
@@ -1764,7 +1776,7 @@ def check_workstack(value):
     return folder if not isinstance(folder, Path) else report("check-workstack", check_stack(folder)[1])
 
 
-# @canon-spec specs/methodology/design-workflow.md § The Order of a Design's Work § Facts
+# @canon-spec specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § Facts
 # @canon-spec specs/methodology/working-files/main.md § A Design Document § Blocked and to Revise
 def release_dependents(value):
     """--release-dependents DESIGN: as a design finishes, removes it from each Depends On Designs naming it, in its plans
@@ -1968,7 +1980,7 @@ REPORT_HOME = (WF, "A Check's Report")
 FORM_RULE = WF + " § A Check's Report"
 COUNT_RULE = WF + " § Design Log Entry § What a Check Counts"
 FIELDS_RULE = "specs/methodology/modeling-constructs.md § Fields"
-BLANK_LINES_RULE = "specs/methodology/spec-style.md § Blank Lines"
+BLANK_LINES_RULE = "specs/methodology/spec-style/markdown.md § Blank Lines"
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report
 REPORT_TITLE = "# Check's Report"
 # the title's fields, and the one an adversarial review's report whose round stopped at the structure holds, with its
@@ -2083,7 +2095,7 @@ def report_parts(root=None):
     return out
 
 
-# @canon-spec specs/methodology/spec-placement.md § Where a File Goes
+# @canon-spec specs/methodology/spec-placement/where-a-file-goes.md § Where a File Goes
 def canon_rule(rule, root=None):
     """-> a rule the shared readers name by its file's name alone, cited with its path: a document laid out as a folder
     named by its bare file name resolves to the file of its folder holding the section named, its main file first
@@ -2177,7 +2189,7 @@ def report_version(rep):
 
 def place_of(text):
     """-> (path, lineage or None, selector or None) for one citation with its path, as
-    specs/methodology/sourcing-and-citation.md § Writing a Citation writes one, alone in its text; else None."""
+    specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation writes one, alone in its text; else None."""
     m = re.fullmatch(r"\s*`([^`]+)`\s*", text or "")
     if not m or m.group(1).strip().startswith("§"):
         return None
@@ -2481,7 +2493,7 @@ def form_problems(rep, ctx, types, parts):
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-laid-out]
 def layout_problems(rep, root):
-    """-> [(rule, message)]: the report laid out otherwise than modeling-constructs.md § Fields and spec-style.md
+    """-> [(rule, message)]: the report laid out otherwise than modeling-constructs.md § Fields and spec-style/markdown.md
     § Blank Lines have a block of fields laid out."""
     found = record_types.block_findings(rep["text"]) + layout.findings(rep["text"], layout.rules(root)[0])
     return [(FIELDS_RULE if "Fields" in rule else BLANK_LINES_RULE, "line %d: %s" % (line, msg)) for rule, line, msg in found]
@@ -3925,8 +3937,8 @@ def show_refactor_and_refine_of_existing_specs(baseline):
     return 0
 
 
-# Actions are flags per specs/methodology/skills.md § Authoring a Skill.
-# @canon-spec specs/methodology/sourcing-and-citation.md § Writing a Citation § A Citation's Link
+# Actions are flags per specs/methodology/skills/authoring-a-skill.md § Authoring a Skill.
+# @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § A Citation's Link
 def refresh_links(value):
     """--refresh-links: writes and refreshes each citation's link in the files a person reads; -> 0."""
     root = Path(value).resolve()
@@ -4342,5 +4354,5 @@ def main(argv, plans=PLANS):
 
 
 if __name__ == "__main__":
-    sys.stderr.write("run a skill's entry script, not this shared code: specs/methodology/skills.md § Authoring a Skill\n")
+    sys.stderr.write("run a skill's entry script, not this shared code: specs/methodology/skills/authoring-a-skill.md § Authoring a Skill\n")
     sys.exit(2)
