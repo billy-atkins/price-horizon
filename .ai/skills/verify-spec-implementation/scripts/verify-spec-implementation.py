@@ -4,7 +4,7 @@ against specs/methodology/code.md § Citing the Specs From Code and the form it 
 for the reading to look.
 
 The application's code is the code roots, less what is excluded, that the technical specs' stack.md
-names, per specs/methodology/spec-placement.md § The Technical Stack. Standard library only, and the
+names, per specs/methodology/spec-placement/technical-stack.md § The Technical Stack. Standard library only, and the
 code the skills share. Exit 0 when nothing is found, 1 when something is, 2 for a usage error.
 
 The code the skills share that it imports: code_checks.py, the check and the candidate list, one copy of each, read

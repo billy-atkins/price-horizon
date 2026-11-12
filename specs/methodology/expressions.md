@@ -14,11 +14,11 @@ How an expression is written wherever a construct computes or tests a value, so 
 | Constraint | its rule |
 | Facts record | its Values where they cite no closed set, a function's Derivation and an Initial Value |
 
-[`§ Expressions § FEEL`](#feel) states FEEL in the canon's own words, and each statement cites the section of DMN it rests on, so nothing FEEL means is left to recall. Where this file is silent, FEEL means what DMN's chapter 10 says ([`specs/methodology/external-references.md § External References [Name: DMN]`](/specs/methodology/external-references.md#external-references)). A construct's section says which of FEEL's forms the construct's checks decide and which it leaves to reading. The section also states any writing of FEEL's that the construct narrows to one, as [`specs/methodology/sourcing-and-citation.md § External Reference`](/specs/methodology/sourcing-and-citation.md#external-reference) has a section state it.
+[`§ Expressions § FEEL`](#feel) states FEEL in the canon's own words, and each statement cites the section of DMN it rests on, so nothing FEEL means is left to recall. Where this file is silent, FEEL means what DMN's chapter 10 says ([`specs/methodology/external-references.md § External References [Name: DMN]`](/specs/methodology/external-references.md#external-references)). A construct's section says which of FEEL's forms the construct's checks decide and which it leaves to reading. The section also states any writing of FEEL's that the construct narrows to one, as [`specs/methodology/sourcing-and-citation/external-reference.md § External Reference`](/specs/methodology/sourcing-and-citation/external-reference.md#external-reference) has a section state it.
 
 ### FEEL
 
-FEEL is the Friendly Enough Expression Language, DMN's expression language (DMN 10.1), and the canon adopts it whole. The canon's departures from it, each mapped onto the element of DMN it departs from, as [`specs/methodology/sourcing-and-citation.md § External Reference § A Mapping onto a Standard`](/specs/methodology/sourcing-and-citation.md#a-mapping-onto-a-standard) has a mapping written:
+FEEL is the Friendly Enough Expression Language, DMN's expression language (DMN 10.1), and the canon adopts it whole. The canon's departures from it, each mapped onto the element of DMN it departs from, as [`specs/methodology/sourcing-and-citation/external-reference.md § External Reference § A Mapping onto a Standard`](/specs/methodology/sourcing-and-citation/external-reference.md#a-mapping-onto-a-standard) has a mapping written:
 
 **Table Name:** DMN Elements \
 **Reference Key:** DMN \

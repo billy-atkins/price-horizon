@@ -9,7 +9,7 @@ file. The citation is resolved to its one heading first, so the anchor reaches t
 import re
 from pathlib import Path
 
-# @canon-spec specs/methodology/sourcing-and-citation.md § Writing a Citation § A Citation's Link
+# @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § A Citation's Link
 # the files a person reads on GitHub, the only ones carrying links: README.md, the files under docs/, and every spec but
 # specs/AGENTS.md
 LINKED_ROOTS = ("specs", "docs")

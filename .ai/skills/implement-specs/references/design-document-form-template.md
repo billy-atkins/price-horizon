@@ -44,7 +44,7 @@
 
 ### Approach
 
-{the principle the solution applies (`specs/methodology/glossary.md`), citing the goals it rests on (`specs/methodology/working-files/main.md § A Design Document`)}
+{the principle the solution applies (`specs/methodology/glossary/glossary.md`), citing the goals it rests on (`specs/methodology/working-files/main.md § A Design Document`)}
 
 ### Frame Outcomes
 

@@ -1,31 +1,3 @@
-## What a Finished Spec Reads Like
-
-A finished spec describes a destination. The conversation that produced it stays out of it. A reader arriving cold has seen no draft, discussion or rejected alternative that came before. That reader should be able to read any sentence and take it at face value.
-
-Content that only makes sense to someone present for the discussion that produced it does not belong in a spec, however useful it was to sort out at the time.
-
-**Reference Key:** Pattern \
-**Required:** Example, Instead
-
-| Pattern | Example | Instead |
-|---|---|---|
-| Meta-commentary about the act of writing | "worth stating plainly," "worth being explicit about," "a principle worth stating rather than leaving implicit" | state the principle, without narrating the decision to state it |
-| Arguing against an alternative the document never proposed | defining a chosen approach by contrast with a technology mentioned nowhere else | state what was chosen and why it is right, on its own terms |
-| Referencing the document's own revision history | "as discussed," "this corrects an earlier version," "now formalized," "the same way the current one did" | a spec has one state, the current one |
-| Hedged framing left over from drafting | "for now," "at this point," attached to a settled decision | state a final decision as final, and record a genuinely open one as an open question ([`specs/methodology/spec-placement.md § Open Question`](/specs/methodology/spec-placement.md#open-question)) instead of hedging it inside settled prose |
-
-## Trade-offs Are Not Journey Language
-
-[`§ What a Finished Spec Reads Like`](#what-a-finished-spec-reads-like) is not a rule against explaining trade-offs. A genuine engineering trade-off belongs in the spec with its reasoning, because it teaches a reader how to make the same kind of call correctly in a new situation.
-
-**The test.** A comparison passes when either holds:
-- it states a timeless design principle a cold reader can apply elsewhere;
-- it is drawn against something the reader has a live, document-supported reason to ask about: an alternative the reader could plausibly have arrived at alone, whether or not an author once did.
-
-It fails when it makes sense only to someone who watched the alternative get proposed and rejected.
-
-Choosing a star schema over a snowflake schema passes: the reasoning transfers to the next schema decision. Choosing a DAG over a State Machine for an acyclic process passes for the same reason. Ruling out a technology the document never otherwise mentions fails: nothing in the document gave a cold reader anything to reject.
-
 ## Clear Prose
 
 Clear prose is measured by the effort it costs its primary reader. The shorter passage is not always the clearer one. Each kind of file this section reaches is written for a primary reader, without failing its secondary one:
@@ -42,7 +14,7 @@ Clear prose is measured by the effort it costs its primary reader. The shorter p
 | The documentation | a person evaluating the project's work, an engineering leader among them | a software engineer deciding whether to adopt it | software engineering, and nothing of the project's own until it is introduced |
 | The working files | the user steering the work | a cold agent reviewing it | the work in hand and its own record |
 
-The working files are written to this section like any other file, but no audit reads them for it, as [`specs/methodology/scope.md § Rules and Skills`](/specs/methodology/scope.md#rules-and-skills) records. Each serves the work in progress, and none is committed ([`specs/methodology/working-files/main.md § The Working Files`](/specs/methodology/working-files/main.md#the-working-files)).
+The working files are written to this section like any other file, but no audit reads them for it, as [`specs/methodology/scope/rules-and-skills.md § Rules and Skills`](/specs/methodology/scope/rules-and-skills.md#rules-and-skills) records. Each serves the work in progress, and none is committed ([`specs/methodology/working-files/main.md § The Working Files`](/specs/methodology/working-files/main.md#the-working-files)).
 
 A software engineer designs the agent instructions and the skills, deciding what they say and approving them. An agent writes them for a cold agent. In the end, they are judged by how an agent behaves under them.
 
@@ -54,7 +26,7 @@ A software engineer designs the agent instructions and the skills, deciding what
 
 **A name from outside keeps its spelling.** A name from outside the specs keeps its spelling, a British form or a typo included, as a title and a quotation do. Such a name is a standard's, a product's, or one that code already holds, whether in a skill's scripts or in the product's code: an identifier, a database column, an API field or a package. Respelling a name the project holds changes what other code, stored data, a test or a user relies on, as an extract feeding a data warehouse relies on a column's name. A name the specs give, such as a heading's, a state's or a fact's, is written in American English. A name the specs take from code, such as a state named for a value code holds, is spelled as the code holds it. An agent that notices a British form or a typo in a name the project holds tells the user what a respelling would change. Before the system ships, a respelling changes little but the code and its specs, so the agent recommends it. Once the system is in production, a respelling changes every consumer of the name, so the user weighs whether it is worth its cost. A name is respelled only when the user requests or approves it.
 
-**Cut what carries nothing.** Every word read costs the reader, and costs an agent tokens too. So filler, a point made twice, and commentary on the writing itself are cut. [`§ What a Finished Spec Reads Like`](#what-a-finished-spec-reads-like) covers the commentary.
+**Cut what carries nothing.** Every word read costs the reader, and costs an agent tokens too. So filler, a point made twice, and commentary on the writing itself are cut. [`specs/methodology/spec-style/what-a-finished-spec-reads-like.md § What a Finished Spec Reads Like`](/specs/methodology/spec-style/what-a-finished-spec-reads-like.md#what-a-finished-spec-reads-like) covers the commentary.
 
 **Keep what carries the reader.** A word that carries meaning, or carries the reader from one idea to the next, stays. Prose cut too far fails as surely as prose padded out. Minified code is shorter than its source and unreadable, because minifying removes what a reader uses and a machine does not need:
 
@@ -76,7 +48,7 @@ A software engineer designs the agent instructions and the skills, deciding what
 
 **A semicolon that leans.** A sentence ends with a period by default. A semicolon joins a clause that leans on the one before it. Standing as a sentence of its own, such a clause would have to restate what the clause before it established. "Reads go to the replica; writes, to the primary" earns its semicolon: the clause on writes borrows "go" from the clause on reads. "The cache is warm; requests return quickly" does not, since "requests return quickly" is a sentence on its own: "The cache is warm. Requests return quickly." A semicolon never separates items in running prose. Items that hold commas of their own become a list.
 
-**Say what a thing is.** A sentence states what a thing is. What it is not is stated only where a reader would otherwise assume it, and then in a sentence of its own. A contrast such as "X, not Y", "rather than" or "not just X, but Y", piled into one sentence, makes the reader hold two things to learn one. "The cache holds pages, not queries" becomes "The cache holds pages" where no reader would think it held queries. [`§ Trade-offs Are Not Journey Language`](#trade-offs-are-not-journey-language) tests a contrast that earns its place.
+**Say what a thing is.** A sentence states what a thing is. What it is not is stated only where a reader would otherwise assume it, and then in a sentence of its own. A contrast such as "X, not Y", "rather than" or "not just X, but Y", piled into one sentence, makes the reader hold two things to learn one. "The cache holds pages, not queries" becomes "The cache holds pages" where no reader would think it held queries. [`specs/methodology/spec-style/what-a-finished-spec-reads-like.md § Trade-offs Are Not Journey Language`](/specs/methodology/spec-style/what-a-finished-spec-reads-like.md#trade-offs-are-not-journey-language) tests a contrast that earns its place.
 
 **State a rule positively.** A rule says what holds, since the reader acts on what holds. "Never" is kept for a prohibition that is itself the rule. A "never X, always Y" pair drops whichever half the other already says, because each half adds a thing for the reader to hold: "A field is always filled and never left empty" becomes "A field is always filled".
 
@@ -147,91 +119,10 @@ A software engineer designs the agent instructions and the skills, deciding what
 
 **An analogy.** The canon teaches by two means: an analogy teaches a concept, through something its reader already knows, and an example teaches applying it, showing the concept at work in a case. An analogy brings a reader to a new rule through something already familiar. What is familiar depends on who is reading. The author chooses one for the file's primary reader, as the table of readers in this section names that reader and what it can assume. Analogies are kept, and added where a rule's reason is not obvious. An analogy that follows its rule is no slogan and no point made twice: it carries the rule to the reader by another road, where a slogan only restates it. So a rewrite never removes one to shorten a passage. The specs, the agent instructions and the skills are read for reference. In them, an analogy follows the rule it explains, in a sentence of its own. The documentation is read to learn, and in it an analogy may lead. An analogy is never wedged into a rule's clause, where it competes with the rule.
 
-**An example in the canon.** An example shows a rule at work in a case its reader recognizes. An example from outside the house lands with any agent, from the agent's training. An example drawn from the application specs, from their files, domains or vocabulary, lands only with an agent that has already read them. A cold agent loads only what its step needs, and often has not read them. So an example in the canon is never drawn from the application specs. The one exception names the project the canon is checked in, and illustrates no rule. The methodology may illustrate itself. A worked example sits in `specs/methodology/examples/`, as [`specs/methodology/scope.md § Progressive Disclosure`](/specs/methodology/scope.md#progressive-disclosure) places one.
+**An example in the canon.** An example shows a rule at work in a case its reader recognizes. An example from outside the house lands with any agent, from the agent's training. An example drawn from the application specs, from their files, domains or vocabulary, lands only with an agent that has already read them. A cold agent loads only what its step needs, and often has not read them. So an example in the canon is never drawn from the application specs. The one exception names the project the canon is checked in, and illustrates no rule. The methodology may illustrate itself. A worked example sits in `specs/methodology/examples/`, as [`specs/methodology/scope/progressive-disclosure.md § Progressive Disclosure`](/specs/methodology/scope/progressive-disclosure.md#progressive-disclosure) places one.
 
 **Words its reader already uses.** A rule is written in words its reader can apply without looking anything up. Where its words alone leave the reader unsure, it gives an example of what passes and what fails: a heading "names a thing, as `Payroll Run`, or asks the question its construct answers, never an activity, as `Running payroll`" ([`specs/methodology/modeling-constructs.md § Constructs § Declared Construct`](/specs/methodology/modeling-constructs.md#declared-construct)). A grammarian's term for either would leave the reader looking it up. A term the canon adopts from a standard it registers, or defines in its glossary, is the reader's own once cited. A term from a discipline the reader need not know is not.
 
 **What a rewrite keeps.** A rewrite for clarity changes how a passage reads. What the passage states stays as it was. A passage that cannot be made clear without changing what it states needs a change to the design. A rewrite keeps the reason with each rule, so a cold reader can apply the rule to a case its author did not foresee. It keeps the structure: the constructs, the fields, the lead-ins and the citations make the text checkable. They serve the agent, while the sentences serve the person. In the documentation, it keeps the author's own voice: the first person where the author is the subject, and the author's plain phrasing. A rewrite that is shorter but needs a second read has failed, as minified code does.
 
 **The test.** The primary reader, arriving cold, understands the passage on the first read.
-
-## Ordinals and Counts
-
-Avoid numbers that add nothing a reader cannot already see but create friction when the set changes. A number restating a list's order or its size goes stale silently the moment an item is added or moved, and so does everything that refers to it. Say what things are, what they mean, or cite where they are. Whoever needs a count can count them when they do the work.
-- Nothing is numbered: not a heading, a bold lead-in, or a list item.
-- Nothing refers to an item by its position, by number or by word ("step 5", "the second", "the latter"). Refer to it by its name.
-- Nothing says how many things a list or the repo holds. Name them, describe them, or cite them.
-
-Numbers that carry value stay. Algorithm tables keep their numbered steps, and references to those steps, because that numbering is an industry standard a cold agent reads without further instruction, as a software engineer would ([`specs/methodology/modeling-constructs.md`](/specs/methodology/modeling-constructs.md)). A Gherkin scenario states its own test case in full, and its numbers are that case's data. A value is not a count: a two-week window, a floor of two options, exactly one home. Neither is naming a pair, "both", "either" or "the two". Where something sits on the page is no count, and no way to refer to it either: other text is cited ([`specs/methodology/sourcing-and-citation.md § Writing a Citation § Referring to Other Text`](/specs/methodology/sourcing-and-citation.md#referring-to-other-text)).
-
-## Markdown
-
-Each Markdown file in scope is written in GitHub Flavored Markdown ([`specs/methodology/external-references.md § External References [Name: GFM]`](/specs/methodology/external-references.md#external-references)). [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) sets a field's form. [`§ Bold Lead-ins`](#bold-lead-ins), [`§ Emphasis`](#emphasis), [`§ Literal Text`](#literal-text) and [`§ Blank Lines`](#blank-lines) set the forms of a bold lead-in, emphasis, literal text and a blank line. A line continuing a list item is indented to the item's text ([`§ Markdown [GFM Elements.GFM: lazy continuation line]`](#markdown)). A list item ends before the first line that is not blank and is indented less than its text. A fenced block whose info string is `markdown` holds a file of its own. Each check reading the block reads that file from the line directly beneath the opening fence to the line directly above the closing one. Toward what stands outside it, the block is one code block.
-
-**What the mapping means.** The canon writes GFM's blocks as GFM does. Where a form of the canon's is one of GFM's elements, as each paragraph of a block of fields is GFM's paragraph, the canon names the element its own way. It writes one element otherwise: a list item's continuation line, as [`§ Markdown [GFM Elements.GFM: lazy continuation line]`](#markdown) has it. GFM Elements maps each element the canon names its own way, and the one it writes otherwise, as [`specs/methodology/sourcing-and-citation.md § External Reference § A Mapping onto a Standard`](/specs/methodology/sourcing-and-citation.md#a-mapping-onto-a-standard) has a mapping written, so a reader finds the standard's term for each form and the reason for the departure:
-
-**Table Name:** GFM Elements \
-**Reference Key:** GFM \
-**Required:** Section, Treatment
-
-| GFM | Section | Treatment | Departs For | Why |
-|---|---|---|---|---|
-| paragraph | 4.8 | the same, a block of fields' paragraph | | |
-| hard line break | 6.12 | the same, a field's end, written as a backslash, a space before it | | |
-| list item | 5.2 | the same, a record, a list item opening a field's key | | |
-| lazy continuation line | 5.2 | not written, a line continuing a list item indented to the item's text | the canon's form | a reader and a script tell where an item ends by its indentation alone |
-
-## Blank Lines
-
-Items of one kind stand together, in the order they are read, and a blank line separates groups that differ, so a reader sees a file's shape at a glance and chooses which group to read in detail. A code style groups like statements the same way. Each line of a file opens or continues one of these elements:
-- a heading;
-- a field: a line opening a field's key, as [`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields) has one;
-- a record: a list item opening a field's key;
-- a list item: any other;
-- a table;
-- a code block, fenced or indented;
-- a thematic break;
-- front matter;
-- a paragraph: any other text, a lead-in among it.
-
-The table's condition Ends a list item? is true where the element above is a list item's last line and the element below stands outside that item, as [`§ Markdown`](#markdown) has a list item end. A nested record's last field ends its item before the outer record's next field, and a record's last field ends its item before the next record. The condition Nested beneath the field above? is true where the element below is a field whose key stands two spaces beyond the key of the field above, as [`specs/methodology/modeling-constructs.md § Fields § A Nested Construct`](/specs/methodology/modeling-constructs.md#a-nested-construct) has a nested block stand. The table's row for groups that differ gives each blank line GFM needs. Where a blank line falls:
-
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
-**Hit Policy:** First \
-**Conditions:** The element above, The element below, Ends a list item?, Nested beneath the field above? \
-**Annotations:** Why \
-**Input Values:**
-  - The element above: "front matter", "a heading", "a paragraph", "a field", "a record", "a list item", "a table", "a code block", "a thematic break"
-  - The element below: "a heading", "a paragraph", "a field", "a record", "a list item", "a table", "a code block", "a thematic break"
-
-| The element above | The element below | Ends a list item? | Nested beneath the field above? | A blank line between? | Why |
-|---|---|---|---|---|---|
-| "a field", "a record" | "a field" | false | true | true | a field's text and the construct nested beneath it, the block standing as [`specs/methodology/modeling-constructs.md § Fields § A Nested Construct`](/specs/methodology/modeling-constructs.md#a-nested-construct) has it. Where no blank line stands, GFM reads the block's first field as continuing the field's paragraph |
-| "a field", "a record" | a field | false | - | false | one block's fields, a paragraph whose hard line breaks render each field on a line of its own |
-| "a field", "a record" | "a list item", "a record" | false | - | false | a field's list, of plain items or of records, directly beneath its key |
-| "a paragraph", "a list item" | a list item | - | - | false | a list beneath the sentence or the lead-in introducing it, and the items of one plain list |
-| - | - | - | - | true | groups that differ, records one after another and a field after a list or after a nested record among them. Where no blank line stands, GFM joins two paragraphs, reads a paragraph's line after a list item as continuing it and adds a row to a table |
-
-A blank line missing where the table gives true, or standing where it gives false, is reported. A fenced block whose info string is `markdown` is read as [`§ Markdown`](#markdown) has it, so it is one element toward the lines around it. Any other code block is one element.
-
-## Bold Lead-ins
-
-A bold lead-in labels a paragraph or a list item for a reader scanning the page. It is a bold phrase opening the paragraph or the item, and it ends in a period inside the bold, as the run-in heading of edited writing does: `**The test.**`. A lead-in phrased as a question ends in its question mark. The sentence after it opens with a capital.
-
-A lead-in is not a field ([`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields)). The character closing the bold tells the two apart: a colon makes a field, and a period or a question mark a lead-in. A bold phrase opening a line closes on nothing else.
-
-A lead-in is written in sentence case, as a requirement of style. Its first word opens with a capital, and every other word is lowercase but a name keeping its own casing: a construct's or a field's, a term an outside standard names, or a proper noun. The closing character alone tells a lead-in from a field, whose key is a field label ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)), whatever the casing.
-
-A lead-in introducing the block beneath it (a list, a table or paragraphs) stands on a line of its own. Otherwise the text it introduces follows it on its line.
-
-A lead-in at a rule's home names what it labels. It states no rule.
-
-A lead-in's words are the author's own, defined by no form, so nothing looks one up by name, and nothing cites one ([`specs/methodology/sourcing-and-citation.md § Writing a Citation`](/specs/methodology/sourcing-and-citation.md#writing-a-citation)).
-
-## Emphasis
-
-Emphasis is italic, `*word*`, on a word or a short phrase inside a sentence, where stress changes what the sentence means. Italic is the one emphasis. Bold marks only a field ([`specs/methodology/modeling-constructs.md § Fields`](/specs/methodology/modeling-constructs.md#fields)) or a bold lead-in ([`§ Bold Lead-ins`](#bold-lead-ins)), both opening a line. A line never opens with italic, since a phrase opening a line to label it is a lead-in. A point that needs more than italic is given structure instead: a sentence of its own, a lead-in, or, for a rule that must hold, a Constraint ([`specs/methodology/modeling-constructs.md § Constructs § Constraint`](/specs/methodology/modeling-constructs.md#constraint)).
-
-## Literal Text
-
-Backticks mark literal text: something written exactly so elsewhere, such as a path, a citation, an identifier, a field's key, a heading's title, a value or a command, so a reader can copy it and a script can match it. A span opens and closes with one backtick, so literal text holds no backtick. The exception is a citation carrying a key value that holds one, whose span [`specs/methodology/sourcing-and-citation.md § Writing a Citation`](/specs/methodology/sourcing-and-citation.md#writing-a-citation) widens. A name is not literal text: a product, a method, a company, or a role is written plain, capitalized as a proper noun. A record type's Plural Name is literal where it stands for a section's title, `Open Questions`. The idea it names is plain prose, an open question.

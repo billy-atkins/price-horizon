@@ -11,9 +11,9 @@ PriceHorizon is a proposed technical approach to a Revenue Growth Management (RG
 
 ## Spec of Record
 
-This project is specified with Spec of Record, whose entry point is `specs/AGENTS.md`: read it before any work on a file in Spec of Record's scope. `specs/methodology/scope.md § What Spec of Record Governs` sets that scope.
+This project is specified with Spec of Record, whose entry point is `specs/AGENTS.md`: read it before any work on a file in Spec of Record's scope. `specs/methodology/scope/what-spec-of-record-governs.md § What Spec of Record Governs` sets that scope.
 
 ## Repo conventions
 
 - This is a proposal and research repo, not a codebase. Do not scaffold application code here unless explicitly asked to build a prototype.
-- This project's instructions are held to `specs/methodology/scope.md § Agent Agnostic`. The project's opt-in helpers, `scripts/setup-claude-skills.ps1` and `scripts/setup-claude-skills.sh`, link `.ai/skills/` into the directory Claude Code loads skills from; `README.md` says how to run them.
+- This project's instructions are held to `specs/methodology/scope/agent-agnostic.md § Agent Agnostic`. The project's opt-in helpers, `scripts/setup-claude-skills.ps1` and `scripts/setup-claude-skills.sh`, link `.ai/skills/` into the directory Claude Code loads skills from; `README.md` says how to run them.

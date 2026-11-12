@@ -1,11 +1,11 @@
 """The record types, facts, closed sets, Basic Tables and construct keys the specs declare, and the parts a
 citation names: what the construct checks read before they run, read here once for every skill's script that runs them
-(specs/methodology/skills.md § Authoring a Skill). declared_types fills TYPES; the checks then read it.
+(specs/methodology/skills/authoring-a-skill.md § Authoring a Skill). declared_types fills TYPES; the checks then read it.
 
 The one reader of a block of fields is here too: every script reads where a block of fields, a field's value, a field's
 list and a record begin and end through read_block and read_item, as modeling-constructs.md § Fields states them. Where
-a list item ends is spec-style.md § Markdown's rule, read here for a record's item and, by the same rule, by the element reader
-of layout.py for the check of spec-style.md § Blank Lines."""
+a list item ends is spec-style/markdown.md § Markdown's rule, read here for a record's item and, by the same rule, by the element reader
+of layout.py for the check of spec-style/markdown.md § Blank Lines."""
 import re
 from pathlib import PurePosixPath
 
@@ -27,14 +27,14 @@ FIELDS = "modeling-constructs.md § Fields"
 
 
 # @canon-spec specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact
-# @canon-spec specs/methodology/spec-placement.md § Open Question
+# @canon-spec specs/methodology/spec-placement/open-question.md § Open Question
 # the homes of the types a rule of the checks reads by their declaration: the Fact type, whose Plural Name titles a
 # file's Facts sections, the types whose record section is its file's last top-level section, and the types whose
 # records' Impacts each carry a section citation
 FACT_HOME = "specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact"
 
 
-LAST_TOP_LEVEL = ("specs/methodology/spec-placement.md § Open Question",)
+LAST_TOP_LEVEL = ("specs/methodology/spec-placement/open-question.md § Open Question",)
 
 
 FIELD_LINE = constructs.FIELD  # the form written once, in constructs.py
@@ -93,7 +93,7 @@ def _own_line(lines, i, end, problems, consumed):
 def read_item(lines, i, end=None, problems=None, consumed=None):
     """-> an item of a field's list opening at line i: {"line", "indent", "text_indent", "lines", "text", "fields"},
     its fields read as a block where it opens a field's key, a record, and None where it is a plain item, whose text
-    is its first line's content. The item ends where spec-style.md § Markdown has a list item end, before the first line that is
+    is its first line's content. The item ends where spec-style/markdown.md § Markdown has a list item end, before the first line that is
     not blank and is indented less than its text."""
     end = len(lines) if end is None else end
     problems = [] if problems is None else problems
@@ -135,7 +135,7 @@ def read_block(lines, i, indent, end=None, problems=None, consumed=None, first=F
     line i, a line opening a field's key, or a record's first line where `first` is given: each field's key, its value
     running to the next line opening a field's key or to the block's end, each line between continuing it, without the
     space and the backslash ending a line, and the list beneath a key, its items at the key's indentation or beyond,
-    each item ending as spec-style.md § Markdown has a list item end, or the fenced blocks beneath a key holding no
+    each item ending as spec-style/markdown.md § Markdown has a list item end, or the fenced blocks beneath a key holding no
     text, each fence two spaces beyond the key, each block one code block toward the block of fields, so none of its
     lines is read as a field, a record or a list item of it. A list, a table or a fenced block ends the block's
     paragraph, and a field opening the next paragraph is the block's. A block standing two spaces beyond a field's key
@@ -378,7 +378,7 @@ _TEXT_OF = {}
 
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
 # @canon-spec specs/methodology/modeling-constructs.md § Diagrams
-# @canon-spec specs/methodology/spec-placement.md § Environments
+# @canon-spec specs/methodology/spec-placement/environments.md § Environments
 FIELD_KEYS = {"Kind": "environment",
               **{f: {"Diagrams": "diagram", "Record Form #2": "record section"}.get(c, "construct") for f, c, _, _ in constructs.FIELD_TABLE}}
 
@@ -393,9 +393,9 @@ def block_path(r, start):
     return f"{r}#L{start + 1}"
 
 
-# @canon-spec specs/methodology/scope.md § Form Templates
+# @canon-spec specs/methodology/scope/form-templates.md § Form Templates
 def is_form_template(r):
-    """scope.md § Form Templates: whether file `r` is a form template, a skill's or the core canon's, told by its name
+    """scope/form-templates.md § Form Templates: whether file `r` is a form template, a skill's or the core canon's, told by its name
     ending `-form-template` wherever it sits."""
     return PurePosixPath(r.split("#L")[0]).stem.endswith("-form-template")
 
@@ -744,9 +744,9 @@ def construct_keys(text_of):
 
 
 def part_citation(sel, path, target, text_of, r, line, found):
-    """sourcing-and-citation.md § Writing a Citation: a part's citation names one identifier
+    """sourcing-and-citation/writing-a-citation.md § Writing a Citation: a part's citation names one identifier
     of the construct its section declares, and a part of that construct holds it."""
-    rule = "sourcing-and-citation.md § Writing a Citation"
+    rule = "sourcing-and-citation/writing-a-citation.md § Writing a Citation"
     body = text_of[path]
     declared = [d for d in constructs.declarations(strip_fences(body), sections(body)) if d[4] == target]
     keyed = [t for t in basic_tables(body).get(target, []) if t["key"]]
@@ -846,9 +846,9 @@ def cited_value_findings(sel, r, line, found):
 
 
 def row_citation(sel, target, table, r, line, found):
-    """sourcing-and-citation.md § Writing a Citation: a Basic Table's row is named by the columns its Reference Key
+    """sourcing-and-citation/writing-a-citation.md § Writing a Citation: a Basic Table's row is named by the columns its Reference Key
     names, in their order, and matches exactly one row."""
-    rule = "sourcing-and-citation.md § Writing a Citation"
+    rule = "sourcing-and-citation/writing-a-citation.md § Writing a Citation"
     pairs = [KEY_VALUE.match(p.strip()) for p in sel.split("; ")]
     # a named table's key written as the path its name and its column make
     prefix = f"{table['name']}." if table.get("name") else ""
@@ -864,9 +864,9 @@ def row_citation(sel, target, table, r, line, found):
 
 
 def record_citation(sel, path, target, text_of, r, line, found):
-    """sourcing-and-citation.md § Writing a Citation: a record citation names every
+    """sourcing-and-citation/writing-a-citation.md § Writing a Citation: a record citation names every
     identifying field of its type, in order, and matches exactly one record, a record section's own item."""
-    rule = "sourcing-and-citation.md § Writing a Citation"
+    rule = "sourcing-and-citation/writing-a-citation.md § Writing a Citation"
     cited_value_findings(sel, r, line, found)
     title = target.split(" § ")[-1]
     spec = type_of(title, path)

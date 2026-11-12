@@ -3,7 +3,7 @@
 
 Every check enforces one stated rule and names it, so a failure points at the rule
 rather than only at a line. Nothing here needs judgment, per
-specs/methodology/scope.md § Rules and Skills. `--check-scope` runs the checks, and
+specs/methodology/scope/rules-and-skills.md § Rules and Skills. `--check-scope` runs the checks, and
 `--list-candidates` lists places for a reading audit to look, printed apart from any
 finding and never affecting the exit status.
 
@@ -30,7 +30,7 @@ def main(argv):
         sys.stdout.reconfigure(encoding="utf-8")
     except (AttributeError, ValueError):
         pass
-    # Actions are flags per specs/methodology/skills.md § Authoring a Skill.
+    # Actions are flags per specs/methodology/skills/authoring-a-skill.md § Authoring a Skill.
     parser = argparse.ArgumentParser(prog="audit-specs.py", description=__doc__.split("\n\n")[0], allow_abbrev=False)
     parser.add_argument("--check-scope", action="store_true",
                         help="check the files Spec of Record governs against every rule the files alone decide, "
