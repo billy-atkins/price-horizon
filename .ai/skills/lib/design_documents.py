@@ -567,9 +567,13 @@ def validation(text, fields):
     return ("validated" if stamped == current else "stale"), stamped, current
 
 
+# @canon-spec specs/methodology/spec-placement.md § Where a File Goes
 def kebab(text):
-    """The Name in kebab-case: lowercase, each run of other characters a hyphen."""
-    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+    """The text in kebab-case, by the canon's one conversion: letters lowercased, an ampersand the word and, an
+    apostrophe dropped, the letters a to z and the digits kept, each run of any other characters one hyphen, none
+    leading or trailing."""
+    text = text.lower().replace("&", " and ").replace("'", "").replace("’", "")
+    return re.sub(r"[^a-z0-9]+", "-", text).strip("-")
 
 
 def section(text, title):
@@ -3493,9 +3497,10 @@ def self_review_output(root, design, design_text):
         commit = last_commit(root)
         changes = work_changes(root, commit)[0] if commit else {}
         target = set(re.findall(r"`([^`]+)`", dict(read_design(design)[1]).get("Target", "")))
+        created = created_paths()
         text_of = spec_texts(root)
         runs = [("--check-constructs", check_constructs, str(root / p)) for p in sorted(changes)
-                if p in target and p in text_of and constructs_in(p, text_of[p], changes[p])]
+                if within_target(p, target, created) and p in text_of and constructs_in(p, text_of[p], changes[p])]
         runs += [("--check-work", check_work, value), ("--check-retired-wording", check_retired_wording, value),
                  ("--check-changed-files", check_changed_files, value)]
     out = io.StringIO()
@@ -3751,6 +3756,45 @@ def scope_files(root):
     return sorted(p for p in paths if p and not is_working_file(p) and (not p.startswith("specs/") or p in walked))
 
 
+def git_changes():
+    """-> [(status, path)] for each file git reports changed against the last commit, a new untracked one among
+    them, a rename's or a copy's new path alone; or None where there is no version control."""
+    try:
+        found = subprocess.run(["git", "status", "--porcelain=v1", "-uall", "-z"], capture_output=True, text=True, encoding="utf-8")
+    except FileNotFoundError:
+        return None
+    if found.returncode:
+        return None
+    out, parts = [], found.stdout.split("\0")
+    i = 0
+    while i < len(parts):
+        entry = parts[i]
+        if len(entry) > 3:
+            out.append((entry[:2], entry[3:]))
+            if entry[0] in "RC":
+                i += 1  # a rename's or a copy's source follows it
+        i += 1
+    return out
+
+
+def created_paths():
+    """-> the paths git reports new against the last commit, added or untracked: the files an apply created."""
+    return {path for status, path in git_changes() or [] if status == "??" or status[0] == "A"}
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Design Document
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Applying and Committing
+def within_target(path, target, created):
+    """-> whether path lies within the Target: a file it names, or a file created under a directory it names, a
+    path ending in a slash; a file standing under such a directory before the apply lies outside it."""
+    return path in target or (path in created and any(t.endswith("/") and path.startswith(t) for t in target))
+
+
+def target_files(target, created):
+    """-> the files the Target's readers read: each file it names, and each file created under a directory it names."""
+    return sorted({t for t in target if not t.endswith("/")} | {p for p in created if within_target(p, target, created)})
+
+
 def show_reach(value):
     """--show-reach DESIGN: each line in scope holding a retired phrase, those outside the Target marked; -> 0."""
     design = design_file(value)
@@ -3758,26 +3802,29 @@ def show_reach(value):
         return 2
     _, fields, _, text = read_design(design)
     phrases, target = retired_phrases(text), set(re.findall(r"`([^`]+)`", dict(fields).get("Target", "")))
+    created = created_paths()
     print("== show-reach " + design.stem)
     n = 0
     for path in scope_files(Path.cwd()):
         for i, line, phrase, _ in phrase_lines(path, phrases):
             n += 1
-            print("%s:%d%s  [%s]  %s" % (path, i, "" if path in target else "  (outside the Target)", phrase, line[:160]))
+            inside = within_target(path, target, created)
+            print("%s:%d%s  [%s]  %s" % (path, i, "" if inside else "  (outside the Target)", phrase, line[:160]))
     print("%d line%s\n" % (n, "" if n == 1 else "s"))
     return 0
 
 
 def check_retired_wording(value):
-    """--check-retired-wording DESIGN: each line of the Target's files holding a retired phrase, with its
-    replacement; -> 1 where any stands."""
+    """--check-retired-wording DESIGN: each line of the Target's files, and of the files created under a Target
+    directory, holding a retired phrase, with its replacement; -> 1 where any stands."""
     design = design_file(value)
     if design is None:
         return 2
     _, fields, _, text = read_design(design)
     phrases = retired_phrases(text)
+    target = set(re.findall(r"`([^`]+)`", dict(fields).get("Target", "")))
     problems = [(path, "line %d holds %s, retired for %s: %s" % (i, phrase, replacement, line[:160]))
-                for path in re.findall(r"`([^`]+)`", dict(fields).get("Target", ""))
+                for path in target_files(target, created_paths())
                 for i, line, phrase, replacement in phrase_lines(path, phrases)]
     return report("check-retired-wording " + design.stem, problems)
 
@@ -3794,33 +3841,22 @@ def logged_places(text, kind):
 
 def check_changed_files(value):
     """--check-changed-files DESIGN: each file changed against the last commit, a new untracked one among them,
-    outside the working files and the Target, a user's edit or a direct edit the log names marked; -> 1 where one
-    stands that no entry names."""
+    outside the working files and the Target, a file created under a Target directory within it, a user's edit or a
+    direct edit the log names marked; -> 1 where one stands that no entry names."""
     design = design_file(value)
     if design is None:
         return 2
     _, fields, _, text = read_design(design)
-    try:
-        found = subprocess.run(["git", "status", "--porcelain=v1", "-uall", "-z"], capture_output=True, text=True, encoding="utf-8")
-    except FileNotFoundError:
-        found = None
-    if found is None or found.returncode:
+    changes = git_changes()
+    if changes is None:
         print("== check-changed-files %s\nno version control, so the files changed cannot be listed\n" % design.stem)
         return 0
-    paths, parts = [], found.stdout.split("\0")
-    i = 0
-    while i < len(parts):
-        entry = parts[i]
-        if len(entry) > 3:
-            paths.append(entry[3:])
-            if entry[0] in "RC":
-                i += 1  # a rename's or a copy's source follows it
-        i += 1
+    created = {path for status, path in changes if status == "??" or status[0] == "A"}
     target = set(re.findall(r"`([^`]+)`", dict(fields).get("Target", "")))
     users, directs = logged_places(text, "user-edit"), logged_places(text, "direct-edit")
     problems, marked = [], []
-    for path in sorted(set(paths)):
-        if is_working_file(path) or path in target:
+    for path in sorted({path for _, path in changes}):
+        if is_working_file(path) or within_target(path, target, created):
             continue
         if path in users:
             marked.append((path, "changed outside the Target, the user's edit"))

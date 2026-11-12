@@ -136,6 +136,10 @@ So an overview stays one file with its diagrams, a keyed instance stays one with
 
 **A document of several file units is a folder.** A document holding more than one file unit is a folder named for the document. It holds each file unit's file, its `index.md`, and its `main.md` where [`§ Index, Architecture, Detail`](#index-architecture-detail) gives it one. A file unit with file units of its own is a folder in turn. A document is cited through its files, its `main.md` where it holds one or a file unit's own file, never as a folder. The worked examples keep their own tree, by subject and topic ([`specs/methodology/scope.md § Progressive Disclosure`](/specs/methodology/scope.md#progressive-disclosure)).
 
+**A name is the term for what it holds.** A file or folder under `specs/` is named for the domain's term for what it holds, never a description of it. Its name is that term in kebab-case, a leading article dropped first, so `Trust & Explainability` names `trust-and-explainability/`. A document laid out as a folder keeps the name its file had. The names `index.md`, `main.md` and `architecture.md` are their altitudes' ([`§ Index, Architecture, Detail`](#index-architecture-detail)), never a term's, and a kind of file the canon names by a rule of its own keeps that rule.
+
+**Kebab-case is one conversion.** Wherever the canon asks a name in kebab-case, the name is written by one conversion: its letters lowercased, an ampersand written as the word *and*, an apostrophe dropped, the letters `a` to `z` and the digits kept, and each run of any other characters one hyphen, none leading or trailing. So two agents converting one term write one name. A rule asking a name in kebab-case decides the name's words by its own rule, and its characters by this one.
+
 **The same filename in more than one directory.** It is deliberate, as with `architecture.md`, `index.md` and `main.md`. Where one particular file is meant, it is named by its full path, never by the bare filename alone. A kind of file is named as [`specs/methodology/sourcing-and-citation.md § Writing a Citation`](/specs/methodology/sourcing-and-citation.md#writing-a-citation) has it.
 
 ## Naming a Capability Domain
@@ -177,7 +181,7 @@ technical-specs:
 ---
 ```
 
-The block holds a list of file paths from the project root, written exactly as they appear anywhere else. The list is sorted in plain character order, so the order is never a judgment call and never signals importance. `technical-specs` is kebab-case, as every front matter key here is.
+The block holds a list of file paths from the project root, written exactly as they appear anywhere else. The list is sorted in plain character order, so the order is never a judgment call and never signals importance. `technical-specs` is kebab-case ([`§ Where a File Goes`](#where-a-file-goes)), as every front matter key here is.
 
 This is a label, not a citation. It names files, never headings, and is never wrapped in the backtick-and-`§` form a citation uses.
 

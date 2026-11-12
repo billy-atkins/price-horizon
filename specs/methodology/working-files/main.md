@@ -42,12 +42,12 @@ Each design document is a file of its own, one per change taken through the Desi
 
 | Part | Form | Required | Default Value | Holds |
 |---|---|---|---|---|
-| Name | a `**Name:**` field | yes | | the design's slug, the change in a few words in kebab-case: lowercase, each run of other characters a hyphen. The file is named `{Name}.md`. Other design documents name this one by its Name. One in another skill's plans directory puts this design's directory name and a slash before it, as `design-specs/{Name}` |
+| Name | a `**Name:**` field | yes | | the design's slug, the change in a few words in kebab-case ([`specs/methodology/spec-placement.md § Where a File Goes`](/specs/methodology/spec-placement.md#where-a-file-goes)). The file is named `{Name}.md`. Other design documents name this one by its Name. One in another skill's plans directory puts this design's directory name and a slash before it, as `design-specs/{Name}` |
 | Version | a `**Version:**` field | no | 0.1.0 | the design's version, as [`§ A Design Document § The Design's Version`](#the-designs-version) has it worked out |
 | Status | a `**Status:**` field | yes | | its state in [`§ A Design Document § The States It Moves Through`](#the-states-it-moves-through) |
 | Source | a `**Source:**` field | yes | | what asked for the change: the user's own words, or the finding that raised it |
 | Kind | a `**Kind:**` field | yes | | the kind of change, one of the kinds [`§ A Design Document § The Kinds of Change`](#the-kinds-of-change) gives, which bounds the files the builder edits, the steps' writing and each direct edit, though not a user's edit, which lies wherever the user made it. It sizes the design's reviews ([`specs/methodology/design-workflow.md § A Design's Reviews`](/specs/methodology/design-workflow.md#a-designs-reviews)). It is settled while the design is shaped and before any file is edited |
-| Target | a `**Target:**` field | yes | | every file the steps edit, each a path in backticks, separated by semicolons, and each holding an area the frame's Assessed Areas hold with an Impact holding `changes`; none while the design is not-started and its files are not yet known |
+| Target | a `**Target:**` field | yes | | the places standing when the plan is approved that the steps change or create under, each a path in backticks, separated by semicolons: each file holding an area the frame's Assessed Areas hold with an Impact holding `changes`, and each directory the steps create a file or folder under, its path ending in a slash; never a file or folder the steps create, which the directory it is created under covers; none while the design is not-started and its files are not yet known |
 | Spawned By | a `**Spawned By:**` field | yes | | the design document this one was spawned from, or none |
 | Depends On Designs | a `**Depends On Designs:**` field | yes | | the design documents that block this one, separated by semicolons, or none; what blocks a design, and when, is set by [`§ A Design Document § What Blocks What`](#what-blocks-what) and [`§ A Design Document § Blocked and to Revise`](#blocked-and-to-revise). A design written before this field keeps its `**Depends On:**` field until it is next taken up, as [`§ The Working Files`](#the-working-files) has a changed form reach another design's files, and the design script reads that field as its Depends On Designs |
 | Validated | a `**Validated:**` field | yes | | the stamp the validation review left once the document passed it, per [`§ A Stamp`](#a-stamp), leaving out the Validated and Status fields and the Design Log Entries section but each entry naming a report the validation review reads; or none; a stamp current while the design is approved |
@@ -176,7 +176,7 @@ A change needing both kinds is split. The change's canon design researches the a
 
 ### Applying and Committing
 
-A design's apply begins only as [`§ A Design Document § The States It Moves Through`](#the-states-it-moves-through) lets the design move into applying. The user's approval of the plan authorizes the builder to write within the design's Target, no edit asking its own approval. A design's changes are:
+A design's apply begins only as [`§ A Design Document § The States It Moves Through`](#the-states-it-moves-through) lets the design move into applying. The user's approval of the plan authorizes the builder to write within the design's Target, no edit asking its own approval: to edit each file the Target names, and to create under each directory it names the files and folders the steps' Objectives need, though no part of the plan names them, never to edit a file already standing there that the Target does not name. A design's changes are:
 - the writing its steps reach, within its Target;
 - each direct edit a `direct-edit` entry of its log names, in a file the Target could name by its Kind;
 - each edit of the user's a `user-edit` entry names, wherever it lies outside a working file, since the user confirmed it intended ([`§ Design Log Entry`](#design-log-entry), [`§ Steering Decision § Telling a Steer Apart`](#telling-a-steer-apart)).
@@ -198,7 +198,7 @@ What each kind bounds a change to:
 | `documentation` | the documentation, `README.md` and the files under `docs/` |
 | `other` | any other file, the project's root `AGENTS.md` and its helper scripts among them, but no working file, which is of no kind ([`§ The Working Files`](#the-working-files)) |
 
-Every file a design's Target names is of its declared kind, or is a file of `documentation` or `other`, or is code whose annotation lines alone it edits, as [`specs/methodology/code.md § Changing Code`](/specs/methodology/code.md#changing-code) has a design retitling a heading.
+Every file or directory a design's Target names is of its declared kind, or is a file of `documentation` or `other`, or is code whose annotation lines alone it edits, as [`specs/methodology/code.md § Changing Code`](/specs/methodology/code.md#changing-code) has a design retitling a heading.
 
 ### Assessed Area
 
@@ -260,7 +260,7 @@ The builder triages and marks an audit's findings, as [`specs/AGENTS.md § Desig
 - **Judged wrong by the user?** The user's judgment as the finding is presented.
 - **In a file the design's Kind lets it change?** A canon design's finding in the application specs, and a code design's in the specs, answer false.
 - **Handed on by the frame?** A rule the design changed may find a breach in text the apply carried over. That finding answers true where the design's Out of Scope hands the text's migration on, to a design of its own or a follow-up, as [`§ A Design Document § Spawning a Change of Its Own`](#spawning-a-change-of-its-own) has such work handed on. It answers false where the goals take the migration in, since the migration is then the steps'. It answers false too where the frame hands nothing on, having missed text it should have held. A script check's finding and a semantic check's are answered alike.
-- **A tactical fix?** True for a tactical fix as the glossary defines one ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)), the meaning and the logic it keeps being those the plan states. Every nit answers true but one asking to reword wording the user chose, or to rename a name the user chose. That finding answers false whatever its mark, since that wording or name is the outcome itself ([`§ Design Plan Step § Step Objective`](#step-objective)). Rewording or renaming any other text the work holds while keeping its meaning answers true. A fix answering false changes the plan, as [`specs/AGENTS.md § Design, Refactor, Refine § The Post-Apply Review § Placing a Finding`](/specs/AGENTS.md#placing-a-finding) has a fix change it, so it lies in the plan.
+- **A tactical fix?** True for a tactical fix as the glossary defines one ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)), the meaning and the logic it keeps being those the plan states. Every nit answers true but one asking to reword or rename wording or a name a step Objective quotes as the user chose it. That finding answers false whatever its mark, since that wording or name is the outcome itself ([`§ Design Plan Step § Step Objective`](#step-objective)). Rewording or renaming any other text the work holds while keeping its meaning answers true, a file or folder the apply created renamed at the user's review among it, its new name still the domain's term for what it holds ([`specs/methodology/spec-placement.md § Where a File Goes`](/specs/methodology/spec-placement.md#where-a-file-goes)). A fix answering false changes the plan, as [`specs/AGENTS.md § Design, Refactor, Refine § The Post-Apply Review § Placing a Finding`](/specs/AGENTS.md#placing-a-finding) has a fix change it, so it lies in the plan.
 
 So a tactical fix never sends a design back, every other fix does, no design edits a file its Kind does not let it change, and no migration the frame hands on is made in the design:
 
@@ -285,7 +285,7 @@ After the apply, the builder makes a tactical fix in place, as one of the design
 
 What becomes of each change uncommitted in a design's checkout at each event of its work, by what the change is, sorted by its answers to the questions:
 - **Written by the builder?** Whether the builder wrote the change, in this apply or in one a send-back kept.
-- **Reached by a step?** Whether a step of the plan as it now stands reaches it, the steps' writing within the Target.
+- **Reached by a step?** Whether a step of the plan as it now stands reaches it, the steps' writing within the Target: a file the steps' Objectives need, created under a Target directory, among it, and an edit of a file standing under that directory that the Target does not name never.
 - **Logged?** Whether a `direct-edit` or a `user-edit` entry names it ([`§ Design Log Entry`](#design-log-entry)).
 
 So the steps' writing, a logged direct edit and a logged user's edit are the design's changes, as [`§ A Design Document § Applying and Committing`](#applying-and-committing) has them. The builder's writing that no step reaches and no entry logs is none of them. At the writing state, the builder removes it, so none of it is left at the commit. A change the builder did not write that no entry logs is confirmed with the user, as [`§ Steering Decision § Telling a Steer Apart`](#telling-a-steer-apart) has an edit of the user's confirmed:
@@ -391,7 +391,7 @@ A design changing code starts from applied specs, or from the outcomes stated fo
 | Kind | `code` |
 | Design Plan Steps | its steps' Objectives state, by their meaning, what the applied code does for the specs it carries out and what its tests check, as [`§ Design Plan Step § Step Objective`](#step-objective) has an Objective state an outcome. The builder writes at the apply the units of governed code, the app-spec annotations each carries ([`specs/methodology/code.md § Citing the Specs From Code`](/specs/methodology/code.md#citing-the-specs-from-code)), the wiring that connects the units ([`specs/methodology/code.md § Governed Code and Wiring Code`](/specs/methodology/code.md#governed-code-and-wiring-code)) and the tests that check the specs ([`specs/methodology/code.md § Tests`](/specs/methodology/code.md#tests)), as a design changing the specs writes its constructs there |
 
-The audit in its apply is the one [`specs/methodology/design-workflow.md § A Design's Reviews`](/specs/methodology/design-workflow.md#a-designs-reviews) picks from the kinds of the files its Target names, `.ai/skills/verify-spec-implementation/`'s full run for its code.
+The audit in its apply is the one [`specs/methodology/design-workflow.md § A Design's Reviews`](/specs/methodology/design-workflow.md#a-designs-reviews) picks from the kinds of the files and directories its Target names, `.ai/skills/verify-spec-implementation/`'s full run for its code.
 
 #### One Product Module
 
@@ -418,7 +418,7 @@ A design's goals sit in its record section of this type, a record type ([`specs/
 
 ## Design Plan Step
 
-Each step of a design's plan states what it changes and, in its Objectives, the state the applied work holds once it is changed. The text or the code that brings the state about is written at the apply, from the Objectives ([`specs/methodology/design-workflow.md § The Order of a Design's Work § The Apply`](/specs/methodology/design-workflow.md#the-apply)). A step may carry a Draft of that means, worked out before the apply for its reviewers to read, which binds nothing ([`§ Design Plan Step § A Draft`](#a-draft)). A step reaches as many files as its change does, and the design's Target is every file its steps reach.
+Each step of a design's plan states what it changes and, in its Objectives, the state the applied work holds once it is changed. The text or the code that brings the state about is written at the apply, from the Objectives ([`specs/methodology/design-workflow.md § The Order of a Design's Work § The Apply`](/specs/methodology/design-workflow.md#the-apply)). A step may carry a Draft of that means, worked out before the apply for its reviewers to read, which binds nothing ([`§ Design Plan Step § A Draft`](#a-draft)). A step reaches as many files as its change does. The design's Target names each standing file its steps reach, and each directory they create a file or folder under, so no step, Objective or Target names a file or folder the design creates ([`§ A Design Document`](#a-design-document)).
 
 A design's steps sit in its record section of this type, a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
 
@@ -441,7 +441,7 @@ A step's What names each area the step changes, as a place, and only areas the f
 
 ### Step Objective
 
-A step Objective is an Objective ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)): it states the outcome its step achieves toward the goals it names, by its meaning, held to the rule a goal's Description is held to ([`§ Design Goal`](#design-goal)) and for the same reason. It never states the work to reach the outcome, nor the means carrying it out. It holds no construct, no table, no row and no quoted wording, but wording or a name the user chose, which is the outcome itself, quoted as the steer gives it ([`§ Steering Decision § When a Steer Is Recorded`](#when-a-steer-is-recorded)). It names no place in a file: it says by its meaning what its outcome concerns. It fixes no name the apply writes, so text carrying the same outcome under another name meets it. No part of a design cites a heading the files do not hold as they stand, one its own apply or a dependency's has yet to write among them, since a reader following such a citation finds nothing there. Everything a step's Objectives do not state stands as it is.
+A step Objective is an Objective ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)): it states the outcome its step achieves toward the goals it names, by its meaning, held to the rule a goal's Description is held to ([`§ Design Goal`](#design-goal)) and for the same reason. It never states the work to reach the outcome, nor the means carrying it out. It holds no construct, no table, no row and no quoted wording, but wording or a name the user chose as the outcome itself, quoted as the steer gives it ([`§ Steering Decision § When a Steer Is Recorded`](#when-a-steer-is-recorded)), and never the name of a file or folder the design creates, which guides the apply without freezing it even where the builder and the user talked it over as the design was shaped. It names no place in a file: it says by its meaning what its outcome concerns. It fixes no name the apply writes, so text carrying the same outcome under another name meets it. No part of a design cites a heading the files do not hold as they stand, one its own apply or a dependency's has yet to write among them, since a reader following such a citation finds nothing there. Everything a step's Objectives do not state stands as it is.
 
 The step's What names the places the step changes ([`§ Design Plan Step § What a Step Rests On`](#what-a-step-rests-on)). The builder writes the means at the apply, from the step, its Objectives and the Target as it stands: the text, the names it writes and each construct, whose form is chosen there by [`specs/methodology/modeling-constructs.md § When to Use Which`](/specs/methodology/modeling-constructs.md#when-to-use-which). So a step's Objectives freeze the outcomes they state, never the text carrying them, whatever the design's kind, and a tactical fix ([`specs/methodology/glossary.md`](/specs/methodology/glossary.md)), keeping each outcome, lies in the writing ([`§ A Design Document § Changes After Approval`](#changes-after-approval)).
 
@@ -1405,7 +1405,7 @@ The checks only the builder makes, held by a Builder Check, each with the self-r
 
 ## Retired Phrase
 
-A design retiring wording records it, so the builder's tools, not a rereading, find every place the wording stands. The design script's `--show-reach` lists each place the wording stands at drafting, and its `--check-retired-wording` reports any left in the Target's files, run as [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Self-Review`](/specs/AGENTS.md#the-self-review) has it. A phrase the user turned down while steering is recorded as one too.
+A design retiring wording records it, so the builder's tools, not a rereading, find every place the wording stands. The design script's `--show-reach` lists each place the wording stands at drafting, and its `--check-retired-wording` reports any left in the Target's files and in each file created under a Target directory, run as [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Self-Review`](/specs/AGENTS.md#the-self-review) has it. A phrase the user turned down while steering is recorded as one too.
 
 A design's retired wording sits in its record section of this type, a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
 
@@ -1506,7 +1506,7 @@ Each follow-up holds these parts, in this order:
 
 | Part | Form | Required | Default Value | Holds |
 |---|---|---|---|---|
-| Name | a `###` heading, a kebab-case slug | yes | | the name the follow-up is referred to by |
+| Name | a `###` heading, a kebab-case slug ([`specs/methodology/spec-placement.md § Where a File Goes`](/specs/methodology/spec-placement.md#where-a-file-goes)) | yes | | the name the follow-up is referred to by |
 | Status | a `**Status:**` field | yes | | where the follow-up is in this section's life cycle |
 | Category | a `**Category:**` field | yes | | what kind of gap it is, such as under-developed, stale wording, a missing citation, or an open scope decision |
 | Location | a `**Location:**` field | yes | | the file, section or files it concerns |
