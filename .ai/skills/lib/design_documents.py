@@ -607,8 +607,7 @@ def check_steers(body, logged=()):
     for it in items:
         keys = [f["key"] for f in record_types.record_fields(it)]
         if keys != [k for k in fields if k in keys] or not set(required) <= set(keys):
-            problems.append("a steering decision's fields are %s, not %s in that order, those but %s required"
-                            % (", ".join(keys), ", ".join(fields), CHANGES))
+            problems.append(constructs.block_refusal("a steering decision", keys, fields, required))
             continue
         values = {f["key"]: str(record_types.value_of(f)).strip() for f in it["fields"]}
         name = values["Name"]
@@ -640,7 +639,7 @@ def check_goals(body):
     for it in items:
         keys = [f["key"] for f in record_types.record_fields(it)]
         if keys != list(fields):
-            problems.append("a design goal's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
+            problems.append(constructs.block_refusal("a design goal", keys, fields, fields))
             continue
         name = str(record_types.value_of(it["fields"][0])).strip()
         # working-files/main.md § Design Goal: a Name in kebab-case, as a design document's Name is
@@ -746,7 +745,7 @@ def check_steps(body, text=None):
         it = step["item"]
         keys = [f["key"] for f in record_types.record_fields(it)]
         if not typed(it, fields, required):
-            problems.append("a design plan step's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
+            problems.append(constructs.block_refusal("a design plan step", keys, fields, required))
             continue
         name = step["name"]
         # working-files/main.md § Design Plan Step: a Name in kebab-case, as a design document's Name is
@@ -782,7 +781,8 @@ def check_steps(body, text=None):
             if ob["item"]["fields"] is None:
                 continue
             if not typed(ob["item"], ob_fields, ob_required) or [f["key"] for f in record_types.record_fields(ob["item"])] != list(ob_fields):
-                problems.append("%s's fields are %s, not %s" % (label, ", ".join(ob["fields"]), ", ".join(ob_fields)))
+                problems.append(constructs.block_refusal(label, [f["key"] for f in record_types.record_fields(ob["item"])], ob_fields,
+                                                       ob_fields))
                 continue
             if kebab(ob["name"]) != ob["name"]:
                 problems.append("a step objective's Name is not in kebab-case: " + ob["name"])
@@ -817,7 +817,7 @@ def check_frame_records(plural, body):
     for it in items:
         keys = [f["key"] for f in record_types.record_fields(it)]
         if not typed(it, fields, required):
-            problems.append("%s's fields are %s, not %s" % (label, ", ".join(keys) or "none", ", ".join(fields)))
+            problems.append(constructs.block_refusal(label, keys, fields, required))
             continue
         values = values_of(it)
         key = str(record_types.value_of(values[PLAN_TYPES[plural][1]])).strip()
@@ -940,7 +940,8 @@ def entry_problems(kind, fields, values, counts, kinds):
     # a field the type requires of no entry, Cuts Short among them, is held only where it is given
     optional = optional_entry_fields()
     if keys != [k for k in kinds[kind] if k in keys or k not in optional]:
-        return ["%s %s entry's fields are %s, not %s" % (an, kind, ", ".join(keys) or "none", ", ".join(kinds[kind]) or "none")]
+        return [constructs.block_refusal("%s %s entry" % (an, kind), keys, kinds[kind], [k for k in kinds[kind] if k not in optional],
+                                         owner="its kind")]
     problems = []
     for k, v in fields:
         if not v:
@@ -1006,7 +1007,7 @@ def check_retired(body):
     for record in phrases:
         keys = [k for k, _ in record]
         if [k for k in fields if k in keys] != keys or not set(required) <= set(keys):
-            problems.append("a retired phrase's fields are %s, not %s" % (", ".join(keys), ", ".join(fields)))
+            problems.append(constructs.block_refusal("a retired phrase", keys, fields, required))
             continue
         phrase = record[0][1].strip()
         if phrase.lower() in seen:
@@ -1031,7 +1032,7 @@ def check_form(design):
             problems.append((name, "it does not open with the heading Design Document"))
         keys, values = [k for k, _ in fields], dict(fields)
         if keys not in (list(FIELDS), list(UNVERSIONED)):
-            problems.append((name, "its fields are %s, not %s" % (", ".join(keys), ", ".join(FIELDS))))
+            problems.append((name, constructs.block_refusal("its header", keys, FIELDS, UNVERSIONED, owner="its form")))
         # working-files/main.md § A Design Document § The Design's Version: the header's Version the one the log gives, and
         # each entry's Design Version the version of the design its work read: a check's a version the log held before
         # it, any other's the version as it was appended; neither written at 0.1.0, its default
@@ -1094,11 +1095,12 @@ def check_form(design):
             problems.append((name, p))
         want = [s for s in SECTIONS if (s in sections or (s not in OPTIONAL and (s not in UNTIL_FINISHED or values.get("Status") not in FINISHED))) and (s != IMPACT or values.get("Kind") == "canon-specs")]
         if sections != want:
-            problems.append((name, "its sections are %s, not %s" % (", ".join(sections), ", ".join(want))))
+            problems.append((name, constructs.block_refusal("the design", sections, [s for s in SECTIONS if s != IMPACT or values.get("Kind") == "canon-specs"],
+                                                   want, noun="section", owner="its form")))
         frame = frame_parts(text)
         heads = re.findall(r"^### (.+?)\s*$", section(text, "The Design Frame") or "", re.M)
         if "The Design Frame" in sections and heads != list(FRAME):
-            problems.append((name, "its design frame's headings are %s, not %s" % (", ".join(heads) or "none", ", ".join(FRAME))))
+            problems.append((name, constructs.block_refusal("its design frame", heads, FRAME, FRAME, noun="heading", owner="its form")))
         if values.get("Status") in ("approved", "applying", "complete"):
             for part in [p for p in FRAME if frame.get(p) == NOT_YET_STATED]:
                 problems.append((name, values["Status"] + ", but its design frame's " + part + " is not yet stated"))
@@ -2328,8 +2330,8 @@ def form_problems(rep, ctx, types, parts):
     # its title
     title = rep["title"]
     if list(title) not in (list(TITLE_FIELDS), list(TITLE_FIELDS) + [STOPPED_AT]):
-        out.append((FORM_RULE, "its title's fields are %s, not %s, and %s where its round stopped at the structure"
-                    % (", ".join(title) or "none", ", ".join(TITLE_FIELDS), STOPPED_AT)))
+        out.append((FORM_RULE, constructs.block_refusal("its title", list(title), list(TITLE_FIELDS) + [STOPPED_AT], TITLE_FIELDS,
+                                                  owner="its form")))
     for key, want in (("Design", ctx["design"]), ("Entry", ctx["entry"])):
         if key in title and title[key][0] != want:
             out.append((FORM_RULE, "its title's %s is %s, not %s" % (key, title[key][0], want)))
@@ -2344,7 +2346,7 @@ def form_problems(rep, ctx, types, parts):
     out += [(FORM_RULE, "a part the form does not give: " + p) for p in held if p not in order]
     known = [p for p in held if p in order]
     if known != sorted(known, key=order.index) or len(set(known)) != len(known):
-        out.append((FORM_RULE, "its parts are %s, not in the order the form gives them, each once" % ", ".join(known)))
+        out.append((FORM_RULE, constructs.block_refusal("the report", known, order, noun="part", owner="its form")))
     recs = rep["records"]
     settlements = rep["settlements"] + ctx["judgment_settlements"]
     required = {"Reading"} if reviewer else {"Reading", "Settlement"}
@@ -2363,15 +2365,14 @@ def form_problems(rep, ctx, types, parts):
     keys = [f["key"] for f in rep["blocks"].get("Reading", [])]
     want = [READ_VERSION, REVIEW_READING if review else OWN_READING]
     if "Reading" in held and keys != want and not (ctx.get("logged") and keys == want[1:]):
-        out.append((rule("Reading"), "its Reading's fields are %s, not %s" % (", ".join(keys) or "none", ", ".join(want))))
+        out.append((rule("Reading"), constructs.block_refusal("its Reading", keys, want, want, owner="its form")))
     elif "Reading" in held and READ_VERSION in keys and report_version(rep) is None:
         out.append((rule("Reading"), "its Reading's %s is not major.minor.revision" % READ_VERSION))
     cond = []
     if "Settlement" in held and not reviewer:
         keys = [f["key"] for f in rep["blocks"].get("Settlement", [])]
         if keys != [k for k in SETTLEMENT_FIELDS if k in keys] or any(k not in SETTLEMENT_FIELDS for k in keys):
-            out.append((rule("Settlement"), "its Settlement's fields are %s, not of %s in that order"
-                        % (", ".join(keys) or "none", ", ".join(SETTLEMENT_FIELDS))))
+            out.append((rule("Settlement"), constructs.block_refusal("its Settlement", keys, SETTLEMENT_FIELDS, owner="its form")))
         has = dict.fromkeys(keys)
         require(cond, "its Settlement", has, "Earlier Reports", True, "always")
         require(cond, "its Settlement", has, "Settling Reads", review, "where the report is a review's")

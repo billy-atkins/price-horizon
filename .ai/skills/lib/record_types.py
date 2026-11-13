@@ -830,6 +830,7 @@ def basic_tables(body):
             "key": given.get("Reference Key", (0, []))[1], "required": given.get("Required", (0, []))[1],
             "name": ", ".join(given.get("Table Name", (0, []))[1]) or None,
             "order": [f for f in constructs.TABLE_OPENERS if f in given] == sorted(given, key=lambda g: given[g][0]),
+            "openers": sorted(given, key=lambda g: given[g][0]),
             "header": constructs._cells(l), "rows": rows, "line": i + 1,
             "field": min(n for n, _ in given.values())})
     return out

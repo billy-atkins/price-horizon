@@ -205,7 +205,7 @@ def _record_findings(host, body, found, r, offset):
                 found.append((spec["home"], r, at(i), f"a section field its type does not declare: {mm['key']}"))
         keys = [k for k, _, _ in given]
         if keys != [f for f in spec["section_fields"] if f in keys]:
-            found.append((spec["home"], r, at(h), f"a record section's section fields are {keys}, not in the order {spec['section_fields']}"))
+            found.append((spec["home"], r, at(h), constructs.block_refusal("a record section", keys, spec["section_fields"], noun="section field")))
         for f in spec["section_required"]:
             if f not in keys:
                 found.append((spec["home"], r, at(h), f"a record section without the section field its type requires: {f}"))
@@ -241,7 +241,7 @@ def _check_records(records, spec, host, r, at, found, scope):
             found.append((home, r, line, f"an item of {scope} that is no record of its type, opening with no field its type gives: {keys[0]}"))
             continue
         if keys != [f for f in spec["fields"] if f in keys] or any(k not in spec["fields"] for k in keys):
-            found.append((home, r, line, f"a record's fields are {keys}, not {spec['fields']} in that order"))
+            found.append((home, r, line, constructs.block_refusal("a record", keys, spec["fields"], spec["required"])))
             continue
         missing = [f for f in spec["required"] if f not in keys]
         if missing:
@@ -471,7 +471,7 @@ def basic_findings(r, body, found):
                 elif not treatment.startswith("the same") and not why:
                     found.append((MAPPING, r, ln, "a departure with no Why"))
         if not t["order"]:
-            found.append((TABLES, r, t["field"], "a table's opening fields out of their order, Table Name, Reference Key, Required"))
+            found.append((TABLES, r, t["field"], constructs.block_refusal("a table", t["openers"], constructs.TABLE_OPENERS, owner="its form")))
         if not t["key"]:
             continue
         missing = [k for k in t["key"] if k not in t["header"]]
