@@ -269,6 +269,40 @@ def _a(name):
     return ("an " if name[0] in "AEIOU" else "a ") + name
 
 
+def block_faults(given, order, required=(), noun="field", owner="its type"):
+    """-> the faults of a block given against the one its type or form gives, each named on its own, as § Constructs
+    § Record Form lists them: each one given that `order` does not hold, one given again among them; each of `required`
+    not given; and, where the ones held stand out of `order`, the order it gives them. Empty where the block holds none."""
+    order, seen, extra = list(order), set(), []
+    for g in given:
+        extra += [g] if g not in order else [g + " again"] if g in seen else []
+        seen.add(g)
+    missing = [f for f in required if f not in seen]
+    held = list(dict.fromkeys(g for g in given if g in order))
+    want = [f for f in order if f in held]
+
+    def some(xs):
+        return ("a " + noun) if len(xs) == 1 else (noun + "s")
+    faults = []
+    if extra:
+        faults.append(f"gives {', '.join(extra)}, {some(extra)} {owner} does not take")
+    if missing:
+        faults.append(f"leaves out {', '.join(missing)}, {some(missing)} {owner} requires")
+    if held != want:
+        faults.append(f"gives its {noun}s out of order: {owner} gives them as {', '.join(want)}")
+    return faults
+
+
+def block_refusal(subject, given, order, required=(), noun="field", owner="its type"):
+    """-> a refusal of a block of fields, or of sections, headings, parts or columns, naming each fault block_faults finds,
+    after its subject; the block given and the one wanted, where it finds none, which no caller refusing on these faults
+    reaches."""
+    faults = block_faults(given, order, required, noun, owner)
+    if faults:
+        return f"{subject} " + "; ".join(faults)
+    return f"{subject} gives {', '.join(given) or 'none'}, where {owner} gives {', '.join(order)}"
+
+
 def _cells(row):
     return [c.strip() for c in row.strip().strip("|").split("|")]
 
@@ -835,8 +869,8 @@ def construct_findings(r, body, found, sections):
             cols = header[1:] if named else header
             extra = OPTIONAL_COLUMNS.get((name, k), [])
             if form is not None and cols not in [form + [x for i, x in enumerate(extra) if n >> i & 1] for n in range(2 ** len(extra))]:
-                found.append((TABULAR, r, table["line"], f"{_a(name)} table headed {header}, not {form}"
-                              + (f" and then any of {extra}, in order" if extra else "")))
+                found.append((TABULAR, r, table["line"], block_refusal(f"{_a(name)}'s table", cols, form + extra, form,
+                                                                       noun="column", owner="its form")))
                 ok = False
             formed = form is not None and cols[:len(form)] == form
             for ln, row in table["rows"]:
@@ -886,7 +920,25 @@ def _record_type(r, line, fields, tables, found):
     heads = [t["header"] for t in tables]
     allowed = ([RECORD_FIELDS], [SECTION_FIELDS, RECORD_FIELDS]) + (([], [SECTION_FIELDS]) if extends(fields) else ())
     if heads not in allowed:
-        found.append((rule, r, line, f"a record type's tables headed {heads}, not {RECORD_FIELDS} after any table of its section fields headed {SECTION_FIELDS}"))
+        # one table or two: each table at fault named by its columns; a table of section fields alone, or any other
+        # count, by the tables the form gives
+        if len(heads) == 2:
+            forms = [("section fields", SECTION_FIELDS), ("record fields", RECORD_FIELDS)]
+        elif len(heads) == 1 and heads[0] != SECTION_FIELDS:
+            single = SECTION_FIELDS if extends(fields) and "Unique" not in heads[0] else RECORD_FIELDS
+            forms = [("section fields" if single is SECTION_FIELDS else "record fields", single)]
+        else:
+            forms = []
+        for head, (what, form) in zip(heads, forms):
+            if head != form:
+                found.append((rule, r, line, block_refusal(f"a record type's table of {what}", head, form, form,
+                                                           noun="column", owner="its form")))
+        if not forms and heads == [SECTION_FIELDS]:
+            found.append((rule, r, line, "a record type with a table of its section fields alone, where its form gives "
+                          "a table of its record fields after it"))
+        elif not forms:
+            found.append((rule, r, line, f"a record type with {len(heads)} tables, where its form gives a table of its "
+                          f"record fields after any table of its section fields"))
         return
     for table in tables:
         header, seen = table["header"], set()
@@ -951,7 +1003,8 @@ def _fields(r, line, name, fields, found):
             found.append((CONSTRUCT, r, ln, f"a {key} field {_a(name)} does not set"))
     order = [k for k in allowed if k in keys]
     if [k for k in keys if k in allowed] != order:
-        found.append((DECLARING, r, line, f"{_a(name)}'s fields out of the order {list(allowed)}"))
+        found.append((DECLARING, r, line, block_refusal(_a(name), [k for k in keys if k in allowed], allowed,
+                                                        owner="the construct")))
     for key in REQUIRED.get(name, ()):
         if key not in keys:
             found.append((field_rule(name, key), r, line, f"{_a(name)} with no {key} field"))
@@ -1478,7 +1531,9 @@ def occurrence_findings(text_of, found, sections, strip_fences, citation, resolv
             if not classes["named"]:
                 found.append((machine, r, classes["line"], "a Trigger Classes table not opening with its Table Name, Trigger Classes"))
             if classes["header"] != CLASS_COLUMNS:
-                found.append((machine, r, classes["line"], f"a Trigger Classes table headed {classes['header']}, not Member and Class"))
+                found.append((machine, r, classes["line"], block_refusal("a Trigger Classes table", classes["header"],
+                                                                         CLASS_COLUMNS, CLASS_COLUMNS, noun="column",
+                                                                         owner="its form")))
                 continue
             members = {}
             for ln, row in classes["rows"]:
