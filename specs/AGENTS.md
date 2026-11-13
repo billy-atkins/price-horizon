@@ -123,7 +123,7 @@ Before writing a change, at the moment the pull is strongest, ask whether a cold
 
 Every change a design makes is of one of the kinds `specs/methodology/working-files/main.md § A Design Document § The Kinds of Change` defines. A working file is of no kind of change, and is changed as `specs/methodology/working-files/main.md § The Working Files` has it. `specs/methodology/working-files/main.md § A Design Document` also sets when a change's design document declares its kind, and `specs/methodology/working-files/main.md § A Design Document § A Change Needing Both Kinds` how a change that needs two kinds is split. Each change goes to the skill for its work. The skills for the specs serve every kind of spec alike, and each skill forks on the kind where the work differs:
 - **Changing a spec, or another file in scope but code.** `.ai/skills/design-specs/`. Its Workflow gives each rule it applies a point-of-use citation, and forks into the reference for the change's kind.
-- **Checking a spec, or such a file.** `.ai/skills/audit-specs/`. Its Workflow forks on the kind of each file it audits, and a run reads the audits and the semantic checks of the kinds it covers, as `specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews` sets. The skill that writes a plan checks the plan (`specs/methodology/scope/rules-and-skills.md § Rules and Skills`).
+- **Checking a spec, or such a file.** `.ai/skills/audit-specs/`. Its Workflow forks on the kind of each file it audits, and a run reads the audits and the semantic checks of the kinds its scopes' files hold, as `specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews` sets. The skill that writes a plan checks the plan (`specs/methodology/scope/rules-and-skills.md § Rules and Skills`).
 - **Designing and writing code.** `.ai/skills/implement-specs/`.
 - **Checking code.** `.ai/skills/verify-spec-implementation/`.
 
@@ -163,7 +163,7 @@ Running the procedure, rather than recalling the rules, puts each rule in mind a
 | Adding, changing, or re-checking a diagram | `specs/methodology/modeling-constructs.md § Diagrams`, then `.ai/skills/author-mermaid-diagram/` |
 | Recording a proposed change, its goals, its Frame Outcomes and Assessed Areas, its steps and their Objectives, its log, a check's report and the Read Assessments of its research, the wording it retires, a steer given it, or work to take up later | `specs/methodology/working-files/main.md § A Design Document`, `specs/methodology/working-files/main.md § Design Goal`, `specs/methodology/working-files/main.md § A Design Document § Frame Outcome`, `specs/methodology/working-files/main.md § A Design Document § Assessed Area`, `specs/methodology/working-files/main.md § Design Plan Step`, `specs/methodology/working-files/main.md § Design Plan Step § Step Objective`, `specs/methodology/working-files/main.md § Design Log Entry`, `specs/methodology/working-files/main.md § A Check's Report`, `specs/methodology/working-files/main.md § A Check's Report § Read Assessment`, `specs/methodology/working-files/main.md § Retired Phrase`, `specs/methodology/working-files/main.md § Steering Decision`, `specs/methodology/working-files/main.md § A Follow-up` |
 | Refactoring and refining specs that have landed, the canon's or the application's | `specs/methodology/glossary/glossary.md`, `§ Design, Refactor, Refine`, then `.ai/skills/design-specs/` |
-| Taking a design through its work and its apply, in their order, sizing its reviews by its kind, picking its audit, starting a review or research with its brief, or applying a review's reasoning effort | `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work`, `specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews`, `specs/methodology/design-workflow/reviews-brief.md § A Review's Brief`, `specs/methodology/design-workflow/reviews-brief.md § A Research Brief`, `specs/methodology/design-workflow/reviews-effort.md § A Review's Effort` |
+| Taking a design through its work and its apply, in their order, sizing its reviews by its kind, recommending its audit's scopes, starting a review or research with its brief, or applying a review's reasoning effort | `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work`, `specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews`, `specs/methodology/design-workflow/reviews-brief.md § A Review's Brief`, `specs/methodology/design-workflow/reviews-brief.md § A Research Brief`, `specs/methodology/design-workflow/reviews-effort.md § A Review's Effort` |
 | Setting up the agent in use to apply a review's reasoning effort | `specs/methodology/skills/setting-up-an-agent.md § Setting Up an Agent`, then `.ai/skills/configure-spec-of-record/` |
 | Registering or authoring a skill | `specs/methodology/skills/registered-skills.md § Registered Skills`, `specs/methodology/skills/authoring-a-skill.md § Authoring a Skill` |
 | Adding or changing a rule, and the check enforcing it | `specs/methodology/scope/rules-and-skills.md § Rules and Skills` |
@@ -367,7 +367,7 @@ A finding over applied work lies in the plan or in the writing, or is handed on,
 
 ### An Audit
 
-An audit is a run of its skill, `.ai/skills/audit-specs/`'s, or for code `.ai/skills/verify-spec-implementation/`'s, made as `§ Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: an audit]` has it. `specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews` picks the run from the kinds it is given, sets what it runs over, and sizes its effort by the design's Kind. An audit is never narrowed to a design's changes. It names no design, so it cannot tell which change wrote what it reads. Where a rule reaches only what a change writes, the audit reports each breach of it wherever it finds one. Its criteria are the complete specs, by the rules the audit is instructed to check. It reports each finding as its skill reports one, and anything else it would want different as a review observation.
+An audit is a run of its skill, `.ai/skills/audit-specs/`'s, or for code `.ai/skills/verify-spec-implementation/`'s, made as `§ Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: an audit]` has it. `specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews` sets the scopes a run is given and what it reads over them, has a design's audit run over the scopes the user settles, and sizes its effort by the design's Kind. An audit is never narrowed to a design's changes. It names no design, so it cannot tell which change wrote what it reads. Where a rule reaches only what a change writes, the audit reports each breach of it wherever it finds one. Its criteria are the complete specs, by the rules the audit is instructed to check. It reports each finding as its skill reports one, and anything else it would want different as a review observation.
 
 Run by the user, an audit's report is the user's to read. Run by the builder in a design's apply, once the user approves the applied result, its report is the builder's, since the builder knows what it changed and why. The builder confirms each finding's quoted evidence before acting on it, as `§ Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Group` has a round's confirmed. It reads each finding against the diff of the files the apply altered, as `§ Design, Refactor, Refine § Who Checks What and Why § Whose a Finding Is` has a finding read. The builder's triage tells what the design wrote from what it left as it stood. It triages each finding as caused by the design or not. It marks each finding the design caused as the post-apply review marks its own, a design flaw, an implementation flaw or a nit, and places it as `§ Design, Refactor, Refine § The Post-Apply Review § Placing a Finding` has it. Each finding is settled as `specs/methodology/working-files/main.md § A Design Document § Changes After Approval` has it.
 
@@ -454,6 +454,7 @@ A call the canon gives the user stays the user's, and is settled as its home set
 - the choice after passes that did not converge, as `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § The Apply [States.State: choosing after the passes]` has it made;
 - a reassessment, asked for while the design is in-progress, approved or applying, and what it decides, as `§ Design, Refactor, Refine § Converging, or Not § The Runs` has one reached and decided;
 - the close of a set of steers, and whether each researcher and reviewer still working at its close, or at a reassessment the user asks for, is stopped or continued, as `§ Design, Refactor, Refine § Who Decides § A Set of Steers` has the calls made;
+- the scopes of a design's audit, each kept as the builder recommends it or widened within its kind's order, as `specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews § The Scopes of a Design's Audit` has them settled;
 - the choice of another audit or the commit, as `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § The Apply [States.State: awaiting the commit]` has it made.
 
 Every other call is the builder's, made on its own recommendation. Among them are:
@@ -513,7 +514,7 @@ The scope a check runs over a design's work is decided by its answers to the que
 
 The candidates standing in a semantic check's reach guide its reading and never bound it. What lies past that reach, the audit reads. Where a check runs, over a design or over its work, is stated as `specs/methodology/checks.md § Check` has it.
 
-Until the checks' entries are records, the semantic checks over the work are those of the audit `specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews` sets for the kinds of the files and directories the Target names. They are the rules of each reading audit that audit runs, in the audits table of `.ai/skills/audit-specs/SKILL.md`, and, where the kinds include `code`, the readings the table of checks of `.ai/skills/verify-spec-implementation/SKILL.md` lists.
+Until the checks' entries are records, the semantic checks over the work are those an `.ai/skills/audit-specs/` run reads over the scopes the builder recommends for the design's audit, as `specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews § The Scopes of a Design's Audit` has them recommended, read from the Recommended Scopes of the design's `apply` entry (`specs/methodology/working-files/main.md § Design Log Entry`). They are the rules of each reading audit that run reads, in the audits table of `.ai/skills/audit-specs/SKILL.md`, and, where the Target names `code`, the readings the table of checks of `.ai/skills/verify-spec-implementation/SKILL.md` lists. The user's call on the audit's scopes changes none of them.
 
 The builder's self-review, the post-apply review and the audit each run in a state of the apply. The builder's self-review runs at `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § The Apply [States.State: writing]`, before the post-apply review, and its passes at `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § The Apply [States.State: proving the fixes]`. The post-apply review runs at `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § The Apply [States.State: post-apply reviewing]`. The audit runs at `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § The Apply [States.State: auditing]`.
 
@@ -576,6 +577,7 @@ A Check Role is one check a design or its work goes through: who makes it, where
       - `specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: counts-taken-from-the-report]`
       - `specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: goals-agreed-before-checks]`
       - `specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: entry-at-the-version-read]`
+      - `specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: scopes-named]`
 
     **Leaves:**
       - The design document's form is the validation review's.
@@ -635,6 +637,7 @@ A Check Role is one check a design or its work goes through: who makes it, where
       - `specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: research-covers-its-matches]`
       - `specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: goals-agreed-before-checks]`
       - `specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: entry-at-the-version-read]`
+      - `specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: scopes-named]`
 
     **Leaves:**
       - What `specs/methodology/working-files/main.md § A Design Document § The Record's Checks` leaves to the adversarial review is that review's.
@@ -663,7 +666,7 @@ A Check Role is one check a design or its work goes through: who makes it, where
       - Testing behavior is the builder's self-review's.
 
   - **Check:** an audit \
-    **Made By:** a cold agent, given the skill's name and, in a design's apply, the kinds `specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews` sets \
+    **Made By:** a cold agent, given the skill's name and, in a design's apply, the scopes the user settled, as `specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews § The Scopes of a Design's Audit` has them settled \
     **Work:**
       - `§ Design, Refactor, Refine § An Audit`
 

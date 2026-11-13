@@ -49,6 +49,9 @@ from spec_text import resolve as resolve_citation
 # @canon-spec specs/methodology/working-files/main.md § A Design Document § The Kinds of Change
 KINDS = ("canon-specs", "application-specs", "code", "documentation", "other")
 KIND_LIST = ", ".join(KINDS[:-1]) + " or " + KINDS[-1]
+# @canon-spec specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews
+# the Scopes of the Audit Scopes table, the one copy the audit's script and the log's check both read
+SCOPES = ("skills", "canon", "canon-and-app", "app", "documentation", "other")
 # working-files/main.md § A Design Document and § Steering Decision
 PLANS = ".ai/plans/design-specs"  # set by the entry script calling main
 # @canon-spec specs/methodology/working-files/main.md § A Design Document
@@ -930,6 +933,21 @@ def reference_problems(text, plan):
 
 
 
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: scopes-named]
+# the fields holding scopes, each a list of Scopes, and the one of them that may instead hold none
+SCOPE_FIELDS, NO_SCOPE_FIELD = ("Recommended Scopes", "Settled Scopes"), "Recommended Scopes"
+
+
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: scopes-named]
+def scope_problems(an, kind, field, value):
+    """-> problems with a field holding scopes: each of its semicolon-separated items a Scope, taken one at a time,
+    a Recommended Scopes of none aside."""
+    if field == NO_SCOPE_FIELD and value == "none":
+        return []
+    return ["%s %s entry's %s names %s, not one of %s" % (an, kind, field, item or "nothing", ", ".join(SCOPES))
+            for item in (s.strip() for s in value.split(";")) if item not in SCOPES]
+
+
 def entry_problems(kind, fields, values, counts, kinds):
     """-> problems with one log entry's kind and its fields beside Entry and Timestamp, [(field, value)]: a kind the
     table does not give, its fields other than the kind gives, in the type's order, and a value outside its field's
@@ -946,6 +964,8 @@ def entry_problems(kind, fields, values, counts, kinds):
     for k, v in fields:
         if not v:
             problems.append("%s %s entry's %s is empty" % (an, kind, k))
+        elif k in SCOPE_FIELDS:
+            problems += scope_problems(an, kind, k, v)
         elif values.get(k) and v not in values[k]:
             problems.append("%s %s entry's %s is not one of %s: %s" % (an, kind, k, ", ".join(values[k]), v))
         elif counts.get(k) and not re.fullmatch(r"\d+", v):

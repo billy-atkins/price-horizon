@@ -391,7 +391,7 @@ A design changing code starts from applied specs, or from the outcomes stated fo
 | Kind | `code` |
 | Design Plan Steps | its steps' Objectives state, by their meaning, what the applied code does for the specs it carries out and what its tests check, as [`§ Design Plan Step § Step Objective`](#step-objective) has an Objective state an outcome. The builder writes at the apply the units of governed code, the app-spec annotations each carries ([`specs/methodology/code.md § Citing the Specs From Code`](/specs/methodology/code.md#citing-the-specs-from-code)), the wiring that connects the units ([`specs/methodology/code.md § Governed Code and Wiring Code`](/specs/methodology/code.md#governed-code-and-wiring-code)) and the tests that check the specs ([`specs/methodology/code.md § Tests`](/specs/methodology/code.md#tests)), as a design changing the specs writes its constructs there |
 
-The audit in its apply is the one [`specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews`](/specs/methodology/design-workflow/designs-reviews.md#a-designs-reviews) picks from the kinds of the files and directories its Target names, `.ai/skills/verify-spec-implementation/`'s full run for its code.
+The audit in its apply is the one [`specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews`](/specs/methodology/design-workflow/designs-reviews.md#a-designs-reviews) has a design run, `.ai/skills/verify-spec-implementation/`'s full run for its code, beside a run over the scopes the user settles for any other kind its Target names.
 
 #### One Product Module
 
@@ -527,6 +527,8 @@ A design's log sits in its record section of this type, a record type ([`specs/m
 | Cuts Short | no | no | none | text | the Entry of each check cut short, separated by semicolons: at a reassessment, on the user's word or brought by a run reaching its length, as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has a check cut short, or on the user's call at a set's close, as [`specs/AGENTS.md § Design, Refactor, Refine § Who Decides § A Set of Steers`](/specs/AGENTS.md#a-set-of-steers) has one |
 | Running Work | no | no | none | text | each researcher and reviewer still working as the set closed or the reassessment was reached, and the user's call on it, `stopped` or `continued`, separated by semicolons: a check named by the Entry it takes, and work stopped before it handed anything back by its kind and its brief |
 | Choice | no | where its kind gives it | | "keep revising", "feedback", "good enough" | the user's choice after passes that did not converge, as [`specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § The Apply`](/specs/methodology/design-workflow/order-of-a-designs-work.md#the-apply) has it made |
+| Recommended Scopes | no | where its kind gives it | | text | each scope the builder recommends for the design's audit, a Scope of the Audit Scopes table of [`specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews`](/specs/methodology/design-workflow/designs-reviews.md#a-designs-reviews), separated by semicolons, or `none` where the design's Target names only code |
+| Settled Scopes | no | where its kind gives it | | text | each scope the user settled for the audit, a Scope of the Audit Scopes table of [`specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews`](/specs/methodology/design-workflow/designs-reviews.md#a-designs-reviews), separated by semicolons |
 
 The kinds of entry, each with the fields it gives beside Entry, Timestamp and Design Version, the report it names, and when it is appended:
 
@@ -540,7 +542,7 @@ The kinds of entry, each with the fields it gives beside Entry, Timestamp and De
 | `handed-off-judgment` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped | the builder's own report | as the settling of a judgment the builder handed off ends: for research, as the builder takes its Read Assessments in; for one settled with a round, as the round's settling ends ([`§ A Check's Report § A Judgment Settled with a Round`](#a-judgment-settled-with-a-round)) |
 | `adversarial-review` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | a review's report | as the round's settling ends |
 | `post-apply-review` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | a review's report | as the round's settling ends |
-| `audit-specs` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | the builder's triage of an audit | as the settling of an `.ai/skills/audit-specs/` run ends |
+| `audit-specs` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To, Settled Scopes | the builder's triage of an audit | as the settling of an `.ai/skills/audit-specs/` run ends |
 | `verify-spec-implementation` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | the builder's triage of an audit | as the settling of a `.ai/skills/verify-spec-implementation/` run ends |
 | `entered` | Reason | none | as the design enters in-progress |
 | `goals-agreed` | none | none | as the user agrees the goals of a major version |
@@ -551,7 +553,7 @@ The kinds of entry, each with the fields it gives beside Entry, Timestamp and De
 | `reassessment` | Decision, Cuts Short, Running Work | none | as reassessing ends |
 | `another-round` | none | none | as the user asks for another round |
 | `passes-choice` | Choice | none | as the user chooses to keep revising, gives feedback at the choice, or chooses to accept the last pass's fixes as good enough |
-| `apply` | none | none | as applying begins |
+| `apply` | Recommended Scopes | none | as applying begins, the builder having worked out the scopes it recommends for the design's audit |
 | `direct-edit` | Places | none | in any state of the apply, as the direct edit is made |
 
 ### When an Entry Is Appended
@@ -591,6 +593,17 @@ Each count of a check's entry is taken from its report, never given by the build
 
   - **Name:** entry-at-the-version-read \
     **Tests:** a check's entry is stamped at the version its report's Reading records, a version the log held by the time the entry is appended, and an entry with no report at the version as it is appended, as [`§ Design Log Entry`](#design-log-entry) has an entry stamped \
+    **Reads:**
+      - `none`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--log-entry`
+      - `.ai/skills/implement-specs/` `--log-entry`
+      - `.ai/skills/design-specs/` `--check-design`
+      - `.ai/skills/implement-specs/` `--check-design`
+
+  - **Name:** scopes-named \
+    **Tests:** each scope an entry's Recommended Scopes or Settled Scopes holds, taken one at a time, is a Scope of the Audit Scopes table of [`specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews`](/specs/methodology/design-workflow/designs-reviews.md#a-designs-reviews), a Recommended Scopes of `none` aside: `--log-entry` refuses an entry naming anything else as it is appended, and the design's check reads the whole log \
     **Reads:**
       - `none`
 
@@ -735,7 +748,7 @@ The design script checks of a report what it works out from the files, and nothi
 - each Finding is settled by exactly one Settlement;
 - each Settlement's Carried By, but `none`, names a step the design holds;
 - each Finding whose Verdict is a mark names in its Affected Goals, Affected Frame Outcomes or Affected Step Objectives what it bears on, each Name one the design its Title names holds, or cites in its Broken Rules the rules it breaks;
-- each Search's Pattern, run again over its ground, matching only within its Places, but a Search in a report of research, whose matches are read over the union of the research binding the design. A Search's ground is the design document and the files of each kind its Target names, the kinds being those [`§ A Design Document § The Kinds of Change`](#the-kinds-of-change) gives. A Search in a report of research takes the design document out of its ground, since the builder writes the research's assessments into it. For `canon-specs`, it takes in every file of Spec of Record's scope but code and the working files, as [`specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews`](/specs/methodology/design-workflow/designs-reviews.md#a-designs-reviews) has a `canon-specs` audit cover them. For `application-specs`, it takes in the code. A search narrower than that ground cannot show it found every place.
+- each Search's Pattern, run again over its ground, matching only within its Places, but a Search in a report of research, whose matches are read over the union of the research binding the design. A Search's ground is the design document and the files of each kind its Target names, the kinds being those [`§ A Design Document § The Kinds of Change`](#the-kinds-of-change) gives. A Search in a report of research takes the design document out of its ground, since the builder writes the research's assessments into it. For `canon-specs`, it takes in every file of Spec of Record's scope but code and the working files, since a change to the canon can leave any such file in breach of it, whatever scopes the design's audit runs over. For `application-specs`, it takes in the code. A search narrower than that ground cannot show it found every place.
 
 Of a report holding Read Assessments:
 - each place its Reads holds lying within the Area of one of its Read Assessments, as [`§ A Check's Report § A Value Holding Places`](#a-value-holding-places) has one place cover another, so each report is held to the places it was given to read;
