@@ -47,7 +47,7 @@ Before writing a change, at the moment the pull is strongest, ask whether a cold
       - `code`
       - `documentation`
       - `other`
-      - `none`
+      - `working-files`
 
     **Carried Out By:**
       - `.ai/skills/design-specs/` Refactor and refine, then the reviews and the approval
@@ -65,7 +65,7 @@ Before writing a change, at the moment the pull is strongest, ask whether a cold
       - `code`
       - `documentation`
       - `other`
-      - `none`
+      - `working-files`
 
     **Carried Out By:**
       - `.ai/skills/design-specs/` Refactor and refine, then the reviews and the approval
@@ -81,7 +81,7 @@ Before writing a change, at the moment the pull is strongest, ask whether a cold
       - `canon-specs`
       - `application-specs`
       - `code`
-      - `none`
+      - `working-files`
 
     **Carried Out By:**
       - `.ai/skills/design-specs/` Refactor and refine, then the reviews and the approval
@@ -163,7 +163,7 @@ Running the procedure, rather than recalling the rules, puts each rule in mind a
 | Adding, changing, or re-checking a diagram | `specs/methodology/modeling-constructs.md § Diagrams`, then `.ai/skills/author-mermaid-diagram/` |
 | Recording a proposed change, its goals, its Frame Outcomes and Assessed Areas, its steps and their Objectives, its log, a check's report and the Read Assessments of its research, the wording it retires, a steer given it, or work to take up later | `specs/methodology/working-files/main.md § A Design Document`, `specs/methodology/working-files/main.md § Design Goal`, `specs/methodology/working-files/main.md § A Design Document § Frame Outcome`, `specs/methodology/working-files/main.md § A Design Document § Assessed Area`, `specs/methodology/working-files/main.md § Design Plan Step`, `specs/methodology/working-files/main.md § Design Plan Step § Step Objective`, `specs/methodology/working-files/main.md § Design Log Entry`, `specs/methodology/working-files/main.md § A Check's Report`, `specs/methodology/working-files/main.md § A Check's Report § Read Assessment`, `specs/methodology/working-files/main.md § Retired Phrase`, `specs/methodology/working-files/main.md § Steering Decision`, `specs/methodology/working-files/main.md § A Follow-up` |
 | Refactoring and refining specs that have landed, the canon's or the application's | `specs/methodology/glossary/glossary.md`, `§ Design, Refactor, Refine`, then `.ai/skills/design-specs/` |
-| Taking a design through its work and its apply, in their order, sizing its reviews by its kind, recommending its audit's scopes, starting a review or research with its brief, or applying a review's reasoning effort | `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work`, `specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews`, `specs/methodology/design-workflow/reviews-brief.md § A Review's Brief`, `specs/methodology/design-workflow/reviews-brief.md § A Research Brief`, `specs/methodology/design-workflow/reviews-effort.md § A Review's Effort` |
+| Taking a design through its work and its apply, in their order, sizing its reviews by its kind, reading its audit's default scopes, starting a review or research with its brief, or applying a review's reasoning effort | `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work`, `specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews`, `specs/methodology/design-workflow/reviews-brief.md § A Review's Brief`, `specs/methodology/design-workflow/reviews-brief.md § A Research Brief`, `specs/methodology/design-workflow/reviews-effort.md § A Review's Effort` |
 | Setting up the agent in use to apply a review's reasoning effort | `specs/methodology/skills/setting-up-an-agent.md § Setting Up an Agent`, then `.ai/skills/configure-spec-of-record/` |
 | Registering or authoring a skill | `specs/methodology/skills/registered-skills.md § Registered Skills`, `specs/methodology/skills/authoring-a-skill.md § Authoring a Skill` |
 | Adding or changing a rule, and the check enforcing it | `specs/methodology/scope/rules-and-skills.md § Rules and Skills` |
@@ -333,7 +333,7 @@ A change to the goals, the frame or a step after the approval undoes the approva
 
 ### The Post-Apply Review
 
-Once the builder has written the plan's text or code, a cold agent reviews it as the persona of what the design changes (`specs/methodology/spec-placement/personas.md § Personas`), as `§ Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]` has the review made. It reads within the bound `§ Design, Refactor, Refine § Who Checks What and Why § What a Review Reads` sets. It reads the apply's changes: the diff of the files altered and created against the last commit, a file created under a Target directory among them, or, where the project has no version control, each file the Target names, whole, and each file the builder names as created under a Target directory, never another file standing there. It reads the files as they stand and the frozen design. For a Refactor and Refine cycle, it reads the files at the cycle's baseline too.
+Once the builder has written the plan's text or code, a cold agent reviews it as the persona of what the design changes (`specs/methodology/spec-placement/personas.md § Personas`), as `§ Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]` has the review made. It reads within the bound `§ Design, Refactor, Refine § Who Checks What and Why § What a Review Reads` sets. It reads the apply's changes, the files `specs/methodology/working-files/main.md § A Design Document § Applying and Committing` has read as a design's changes: with version control their diff against the last commit, and with none each of them whole, never another file standing there. It reads the files as they stand and the frozen design. For a Refactor and Refine cycle, it reads the files at the cycle's baseline too.
 
 It reads the applied work against the frozen design and asks, in order:
 - whether the applied work meets each step's Objectives, the standing Objective (`specs/methodology/working-files/main.md § A Design Document § The Standing Objective`) among them, and changes nothing but the design's changes;
@@ -454,8 +454,9 @@ A call the canon gives the user stays the user's, and is settled as its home set
 - the choice after passes that did not converge, as `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § The Apply [States.State: choosing after the passes]` has it made;
 - a reassessment, asked for while the design is in-progress, approved or applying, and what it decides, as `§ Design, Refactor, Refine § Converging, or Not § The Runs` has one reached and decided;
 - the close of a set of steers, and whether each researcher and reviewer still working at its close, or at a reassessment the user asks for, is stopped or continued, as `§ Design, Refactor, Refine § Who Decides § A Set of Steers` has the calls made;
-- the scopes of a design's audit, each kept as the builder recommends it or widened within its kind's order, as `specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews § The Scopes of a Design's Audit` has them settled;
-- the choice of another audit or the commit, as `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § The Apply [States.State: awaiting the commit]` has it made.
+- the scopes of a design's audit, the default kept, a scope downstream of what the design changed dropped, or any scope added, as `specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews § The Scopes of a Design's Audit` has them settled;
+- the choice of another audit or the commit, as `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § The Apply [States.State: awaiting the commit]` has it made;
+- the bypass of an audit, given on the user's own word for each audit, as `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § The Apply` has it given. The builder never brings it, as an option or as a refusal's way on, as it never brings an end to a plan's adversarial review.
 
 Every other call is the builder's, made on its own recommendation. Among them are:
 - the fix of a finding that `§ Design, Refactor, Refine § Settling a Round § Whose Fix It Is` gives the builder, before the apply and after it;
@@ -483,9 +484,9 @@ Stopping a check is cutting it short. A check that has handed back findings has 
 The builder shows the user each thing the user approves with its summary, so what the user sees rests on no builder's choice:
 - the plan, at its approval: what changed since the user last saw it and why, each change from the builder's self-review or from a review, how the builder settled the findings, the findings each reviewer dropped with the reviewer's reasons, and whether its last round stopped at the structure;
 - the applied result, at the user's review: what the applied work does, each round's counts by mark, the findings each reviewer dropped with the reviewer's reasons, how each finding was settled, and the checks the builder ran;
-- the settled audit, before the commit: what the audit found and how each finding was settled, in the files or handed on.
+- the settled audit, or the audits bypassed, before the commit: what the audit found and how each finding was settled, in the files or handed on, and each audit the user bypassed.
 
-Where the user approves the applied result or the settled audit, the user is also shown, beside each fix made since the last post-apply review or audit, the passes run over it and each finding they left unresolved.
+Where the user approves the applied result, or the settled audit or the audits bypassed, the user is also shown, beside each fix made since the last post-apply review or audit, the passes run over it and each finding they left unresolved.
 
 ### Who Checks What and Why
 
@@ -514,13 +515,13 @@ The scope a check runs over a design's work is decided by its answers to the que
 
 The candidates standing in a semantic check's reach guide its reading and never bound it. What lies past that reach, the audit reads. Where a check runs, over a design or over its work, is stated as `specs/methodology/checks.md § Check` has it.
 
-Until the checks' entries are records, the semantic checks over the work are those an `.ai/skills/audit-specs/` run reads over the scopes the builder recommends for the design's audit, as `specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews § The Scopes of a Design's Audit` has them recommended, read from the Recommended Scopes of the design's `apply` entry (`specs/methodology/working-files/main.md § Design Log Entry`). They are the rules of each reading audit that run reads, in the audits table of `.ai/skills/audit-specs/SKILL.md`, and, where the Target names `code`, the readings the table of checks of `.ai/skills/verify-spec-implementation/SKILL.md` lists. The user's call on the audit's scopes changes none of them.
+Until the checks' entries are records, the semantic checks over the work follow the kinds of file the design changed, its changes read as `specs/methodology/working-files/main.md § A Design Document § Applying and Committing` has them read. They are the rules of each reading audit whose Kind names such a kind, in the audits table of `.ai/skills/audit-specs/SKILL.md`, and, where the design changed code, the readings the table of checks of `.ai/skills/verify-spec-implementation/SKILL.md` lists. The audit's scopes, and the user's call on them, change none of them.
 
 The builder's self-review, the post-apply review and the audit each run in a state of the apply. The builder's self-review runs at `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § The Apply [States.State: writing]`, before the post-apply review, and its passes at `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § The Apply [States.State: proving the fixes]`. The post-apply review runs at `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § The Apply [States.State: post-apply reviewing]`. The audit runs at `specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § The Apply [States.State: auditing]`.
 
 #### Whose a Finding Is
 
-One test settles whose a finding of either kind is. A finding is the work's where the last commit, read by the rules as they stood in it, did not hold it: the diff wrote the breach, made text false that was true, or changed a rule that carried-over text now breaks. A semantic check tells which by reading its finding against the diff. A breach the last commit held by its own rules, carried over unchanged, is the audit's. A breach the apply rewrote and kept is the work's, since the diff wrote it. The last commit holds the files as they stood before the apply. Where the project has no version control, the test reads against the builder's own account of the files it changed. A rule the apply changed may find a breach in text the apply carried over. The frame settles that breach, for a script check and a semantic check alike, as `specs/methodology/working-files/main.md § A Design Document § Changes After Approval` settles it. A change in a `user-edit` entry's places is the user's, and no finding of either kind. Nor is an Objective a finding where an edit of the user's, kept by the user, leaves it unmet.
+One test settles whose a finding of either kind is. A finding is the work's where the last commit, read by the rules as they stood in it, did not hold it: the diff wrote the breach, made text false that was true, or changed a rule that carried-over text now breaks. A semantic check tells which by reading its finding against the diff. A breach the last commit held by its own rules, carried over unchanged, is the audit's. A breach the apply rewrote and kept is the work's, since the diff wrote it. The last commit holds the files as they stood before the apply. Where the project has no version control, the test reads the files the design changed as `specs/methodology/working-files/main.md § A Design Document § Applying and Committing` has them read, against the builder's own account of what each held before the apply. A rule the apply changed may find a breach in text the apply carried over. The frame settles that breach, for a script check and a semantic check alike, as `specs/methodology/working-files/main.md § A Design Document § Changes After Approval` settles it. A change in a `user-edit` entry's places is the user's, and no finding of either kind. Nor is an Objective a finding where an edit of the user's, kept by the user, leaves it unmet.
 
 #### What a Review Reads
 

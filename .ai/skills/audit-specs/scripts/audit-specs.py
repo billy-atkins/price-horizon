@@ -30,17 +30,10 @@ from spec_text import md_files, read, skill_dirs  # noqa: E402
 from design_documents import SCOPES  # noqa: E402
 
 
-# @canon-spec specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews
-# the Files of the Audit Scopes table, each scope's files by the kinds it holds
 def in_scope(scope, path, kind):
-    """Whether a file, of the kind design_documents.file_kind gives it, lies in the scope a run is given."""
-    if scope == "skills":
-        return kind == "canon-specs" and path.startswith(".ai/skills/")
-    if scope == "canon":
-        return kind == "canon-specs"
-    if scope == "canon-and-app":
-        return kind not in ("code", None)
-    return kind == ("application-specs" if scope == "app" else scope)
+    """Whether a file, of the kind design_documents.file_kind gives it, lies in the scope a run is given, as
+    design_documents.scope_of gives a file its scope."""
+    return design_documents.scope_of(path, kind) == scope
 
 
 def kind_of_file(root):

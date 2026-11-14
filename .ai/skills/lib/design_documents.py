@@ -51,7 +51,7 @@ KINDS = ("canon-specs", "application-specs", "code", "documentation", "other")
 KIND_LIST = ", ".join(KINDS[:-1]) + " or " + KINDS[-1]
 # @canon-spec specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews
 # the Scopes of the Audit Scopes table, the one copy the audit's script and the log's check both read
-SCOPES = ("skills", "canon", "canon-and-app", "app", "documentation", "other")
+SCOPES = ("core-canon", "skills", "application-specs", "documentation", "other")
 # working-files/main.md § A Design Document and § Steering Decision
 PLANS = ".ai/plans/design-specs"  # set by the entry script calling main
 # @canon-spec specs/methodology/working-files/main.md § A Design Document
@@ -934,16 +934,13 @@ def reference_problems(text, plan):
 
 
 # @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: scopes-named]
-# the fields holding scopes, each a list of Scopes, and the one of them that may instead hold none
-SCOPE_FIELDS, NO_SCOPE_FIELD = ("Recommended Scopes", "Settled Scopes"), "Recommended Scopes"
+# the fields holding scopes, each a list of Scopes
+SCOPE_FIELDS = ("Settled Scopes",)
 
 
 # @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: scopes-named]
 def scope_problems(an, kind, field, value):
-    """-> problems with a field holding scopes: each of its semicolon-separated items a Scope, taken one at a time,
-    a Recommended Scopes of none aside."""
-    if field == NO_SCOPE_FIELD and value == "none":
-        return []
+    """-> problems with a field holding scopes: each of its semicolon-separated items a Scope, taken one at a time."""
     return ["%s %s entry's %s names %s, not one of %s" % (an, kind, field, item or "nothing", ", ".join(SCOPES))
             for item in (s.strip() for s in value.split(";")) if item not in SCOPES]
 
@@ -1958,6 +1955,14 @@ def log_entry(value):
         fields = [(k, str(taken[k])) if counts.get(k) else (k, dict(fields)[k]) for k in kinds[kind]
                   if counts.get(k) or k in dict(fields)] + [(k, v) for k, v in fields if k not in kinds[kind]]
     problems = entry_problems(kind, fields, values, counts, kinds)
+    # the Settled Scopes keep each scope holding a file the design changed, read as the entry is appended,
+    # since the changes then stand no longer once the design commits
+    # @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: settled-scopes-keep-what-changed]
+    settled = dict(fields).get("Settled Scopes")
+    if settled and not problems:
+        dropped = sorted(changed_scopes(repo_root(), text) - {s.strip() for s in settled.split(";")})
+        problems += ["the %s entry's Settled Scopes drop %s, each holding a file the design changed"
+                     % (kind, ", ".join(dropped))] if dropped else []
     if problems:
         return report("log-entry, not logged", [(design.stem, p) for p in problems])
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -2864,6 +2869,71 @@ def file_kind(path, skills, code):
     if path == "README.md" or path.startswith("docs/"):
         return "documentation"
     return kind_of(path, skills) or "other"
+
+
+# @canon-spec specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews
+# the Files of the Audit Scopes table, each scope's files by the kinds it holds, the one copy the audit's script and the
+# log's check both read
+def scope_of(path, kind):
+    """-> the audit scope a file of the kind file_kind gives it lies in, or None for code and the working files."""
+    if kind == "canon-specs":
+        return "skills" if path.startswith(".ai/skills/") else "core-canon"
+    return kind if kind in SCOPES else None
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Applying and Committing
+def design_changes(root, design_text):
+    """-> the paths of a design's changes, read the one way: with version control, the files changed against the last
+    commit, a file added, edited or removed, the untracked files among them; with none, the files and directories its
+    Target names, a directory read in place of the files created under it, and the places its direct-edit and
+    user-edit entries log."""
+    try:
+        runs = [subprocess.run(args, capture_output=True, text=True, cwd=root)
+                for args in (["git", "diff", "--name-only", "HEAD"], ["git", "ls-files", "--others", "--exclude-standard"])]
+    except FileNotFoundError:
+        runs = []
+    if runs and all(run.returncode == 0 for run in runs):
+        return {p.strip() for run in runs for p in run.stdout.splitlines() if p.strip()}
+    target = re.search(r"^\*\*Target:\*\*(.*)$", design_text, re.M)
+    paths = set(re.findall(r"`([^`]+)`", target.group(1))) if target else set()
+    paths |= {place.split(" § ")[0].strip().strip("`") for kind, _, f in log_entries(design_text)
+              if kind in ("direct-edit", "user-edit") for place in f.get("Places", "").split(";") if place.strip()}
+    return {p.rstrip("/") for p in paths if p}
+
+
+def changed_kinds(root, design_text):
+    """-> each file kind file_kind gives the design's changes, with the audit scope each lies in."""
+    import code_checks
+    skills, code = skill_dirs(root), code_checks.code_roots(root) or ([], [])
+    kinds = {(p, file_kind(p, skills, code)) for p in design_changes(root, design_text)}
+    return {k for _, k in kinds if k}, {s for s in (scope_of(p, k) for p, k in kinds) if s}
+
+
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: settled-scopes-keep-what-changed]
+def changed_scopes(root, design_text):
+    """-> the audit scopes holding a file the design changed."""
+    return changed_kinds(root, design_text)[1]
+
+
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: audits-run-or-bypassed]
+def check_audits(value):
+    """--check-audits DESIGN: refuses a design whose log, after its last apply entry, records neither the run nor the
+    user's bypass of an audit the design must run, the specs audit where it changed a file of any audit scope and the
+    code audit where it changed code; -> 0, or 1 naming each audit missing."""
+    design = design_file(value)
+    if design is None:
+        return 2
+    text = design.read_bytes().decode("utf-8").replace("\r\n", "\n")
+    kinds, scopes = changed_kinds(repo_root(), text)
+    owed = ({"specs"} if scopes else set()) | ({"code"} if "code" in kinds else set())
+    entries = log_entries(text)
+    applies = [i for i, e in enumerate(entries) if e[0] == "apply"]
+    after = entries[applies[-1] + 1:] if applies else []
+    ran = {"audit-specs": "specs", "verify-spec-implementation": "code"}
+    accounted = {ran[k] for k, _, _ in after if k in ran} | {f.get("Audit") for k, _, f in after if k == "audit-bypass"}
+    names = {"specs": "the specs audit, .ai/skills/audit-specs/", "code": "the code audit, .ai/skills/verify-spec-implementation/"}
+    return report("check-audits " + design.stem, [(design.stem, "neither run nor bypassed since the last apply entry: "
+                                                    + names[a]) for a in sorted(owed - accounted)])
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § What the Design Script Checks
@@ -4345,6 +4415,8 @@ FLAGS = (
      "report each line of the Target's files holding a retired phrase outside its Stays Right, with its replacement; the builder runs it at its self-review before the post-apply review"),
     ("--check-changed-files", "DESIGN", check_changed_files,
      "list each file changed against the last commit outside the working files that the Target does not name, marking the user's edits and the direct edits the log names; the builder runs it at its self-review before the post-apply review"),
+    ("--check-audits", "DESIGN", check_audits,
+     "refuse a design whose log, after its last apply entry, records neither the run nor the user's bypass of an audit it must run, the specs audit where it changed a file of any audit scope and the code audit where it changed code, its changes read as working-files/main.md § A Design Document § Applying and Committing has them read; writes no file; the builder runs it before it brings the user the commit, or, with no version control, before the design becomes applied"),
     ("--check-work", "DESIGN", check_work,
      "run the specs' and the code's script checks over the design's work, the files changed against the last commit, whatever they touch: each finding the scope holds now that it did not hold then, each tree by the checks as they stood in it, matched by its rule, its file and its message, its repeats counted, a matched finding on a line the change added reported too; then, apart, each candidate in the reach the builder zooms out to from what the change wrote; with no version control, every finding the scope holds; writes no file; the builder runs it at its self-review, and the post-apply review runs it"),
     ("--refresh-links", "ROOT", refresh_links,

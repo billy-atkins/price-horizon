@@ -5,7 +5,7 @@
 
 | File | Description |
 |---|---|
-| `order-of-a-designs-work.md` | The order a design's work takes, from its goals and frame to its approval and from its apply to its commit, as the State Machines that the Status of a design runs, and the facts they read |
-| `designs-reviews.md` | How a design's kind sizes its reviews, the scopes an audit runs over, and how a design's audit takes the scopes the builder recommends and the user may widen |
+| `order-of-a-designs-work.md` | The order a design's work takes, from its goals and frame to its approval and from its apply, through each audit run or bypassed on the user's word, to its commit, as the State Machines that the Status of a design runs, and the facts they read |
+| `designs-reviews.md` | How a design's kind sizes its reviews, the scopes an audit runs over, and how a design's audit defaults to what the design changed and what lies downstream of it, the user dropping what lies downstream or adding any scope |
 | `reviews-brief.md` | The one brief that starts an adversarial or post-apply review, and the one that starts research |
 | `reviews-effort.md` | How a review's reasoning effort is applied |
