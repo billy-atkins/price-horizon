@@ -2757,12 +2757,14 @@ def order_problems(rep, ctx, named):
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-keys-name-records]
-def key_problems(rep, ctx, named):
+def key_problems(rep, ctx, named, handed_back=False):
     """-> [(rule, message)]: a key the report cites naming no record a report of the design's current major version holds, this
     report among them: a Finding a Settlement settles, the Cause it lies in and the Search a Proposed Change cites, each
     by its key alone in this report; each Lands On, a Finding's or a Settlement's, other than `none` naming a Cause or a
     Settlement by its report and its key; and each record a citation of a report in the design's folder names, the
-    Cause a Cause continues or a Lands On names by such a citation."""
+    Cause a Cause continues or a Lands On names by such a citation. As the report is handed back, before the builder's
+    Settlement names its Earlier Reports, a citation of a report standing in the design's folder that no entry names yet,
+    the round being settled, is read from that report; settling holds it to the Earlier Reports."""
     recs, out = rep["records"], []
     keys = lambda part, field: {r.get(field) for r in recs[part]}
     settling, causing = ctx["rule"]("Settlement"), ctx["rule"]("Causes")
@@ -2806,6 +2808,10 @@ def key_problems(rep, ctx, named):
             continue
         key, value = selector.split(": ", 1)
         held = reports.get(path)
+        if held is None and handed_back and (Path(ctx["root"]) / path).is_file():
+            # the round being settled, its report handed back while its entry waits on the settling's end; the
+            # report's Earlier Reports, the builder's part, does not exist yet to name it
+            held = reports[path] = read_report(read(Path(ctx["root"]) / path))
         if held is None:
             out.append((FORM_RULE, "it cites %s, in a report no entry of the design's current major version names" % cite(place)))
         elif not any(r.get(key) == value for r in (held["settlements"] if part == "Settlement" else held["records"].get(part, []))):
@@ -3615,7 +3621,7 @@ def handed_back_problems(root, design, kind, n, value):
     if rep["in_form"]:
         problems += layout_problems(rep, root) + places_problems(rep, report_types(root)) + search_problems(rep, ctx)
         problems += reads_assessed_problems(rep, ctx) + anchor_problems(rep, ctx)
-        problems += key_problems(rep, ctx, named_reports(design, ctx["entries"], root))
+        problems += key_problems(rep, ctx, named_reports(design, ctx["entries"], root), handed_back=True)
         problems += [(COLD_PARTS_KEPT, "a part its cold agent does not write, the builder's or the design script's: " + p)
                      for p, _ in rep["parts"] if p in BUILDER_PARTS]
     return problems
