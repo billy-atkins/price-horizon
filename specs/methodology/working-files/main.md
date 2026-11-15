@@ -59,7 +59,21 @@ Each design document is a file of its own, one per change taken through the Desi
 | Retired Phrases | a `## Retired Phrases` record section ([`§ Retired Phrase`](#retired-phrase)) | no | none | the wording the design retires, each phrase with its replacement and the places it stays right, a phrase the user turned down while steering among them |
 | Impact on the Application Specs | a `## Impact on the Application Specs` section | in a canon design | | the application work the canon change hands on, as [`§ A Design Document § A Change Needing Both Kinds`](#a-change-needing-both-kinds) has it handed on, in a list of items. An application area whose latest Read Assessment holds `changes` takes an item opening with a bold lead-in, then the area's place, citing the report holding that Read Assessment. An application finding that the post-apply review or the audit hands on at the apply takes an item opening with a bold lead-in, then citing the report holding the finding, and the finding. Each item says what the application work must do there and what it is handed on to, a design or a follow-up. Where no item stands, the section says that none was found and how the research covered the application specs |
 | Design Log Entries | a `## Design Log Entries` record section ([`§ Design Log Entry`](#design-log-entry)) | once the design's first entry is appended | | the design's log: an entry for each check of its work and each event of its workflow, in the order they came |
-| Out of Scope | a `## Out of Scope` section | yes | | each thing the design deliberately leaves unaddressed, so a reviewer spends no time on it: each change considered and declined, and each piece of work handed on, the code a design changing the specs leaves out of sync among it. Each item gives its reason and names no other working file, and the work it hands on is held where the skill's step handing it on sends it. An area whose latest Read Assessment holds `changes` and that the design leaves out is named by an item holding its place right after the item's bold lead-in, citing the steer that left it out. Work the design waits on is named in its Depends On Designs instead, and the application work a canon design leaves is in its Impact on the Application Specs, an application area among it |
+| Out of Scope | a `## Out of Scope` section | yes | | only what the design's own words could be read to include but that it leaves out, so a reviewer spends no time on it, and nothing else, however unrelated. Each item is a part kept unchanged on purpose, a change declined, a known problem on the design's path left no worse, or a stage of a goal handed on. Work handed on is a change declined or a stage, the code a design changing the specs leaves out of sync among it. An area whose latest Read Assessment holds `changes` and that the design leaves out is a change declined, named by an item holding its place right after the item's bold lead-in. Where the change leaves such an area false, its item hands the area's update on. Each item gives its reason. It names no other working file. It names where it goes only where it is a stage or hands work on, the work held where the skill's step handing it on sends it. Each item is the user's call as it is written. The builder brings it in plain words with its recommendation, and writes it only once the user approves it. The item cites the steer approving it, whose Changes holds `Out of Scope item`. Work the design waits on is named in its Depends On Designs instead, and the application work a canon design leaves is in its Impact on the Application Specs, an application area among it |
+
+### Semantic Checks
+
+**Records:**
+  - **Name:** out-of-scope-item-bounded \
+    **Tests:** each item of a design's Out of Scope names what the design's own words could be read to include but that it leaves out, a part kept unchanged on purpose, a change declined, a known problem on the design's path left no worse or a stage of a goal handed on, and names where it goes only where it is a stage or hands work on, as this section's Out of Scope row has an item \
+    **Reads:**
+      - `working-files`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` Refactor and refine, then the reviews and the approval
+      - `.ai/skills/implement-specs/` Design, Refactor, Refine, then the reviews
+
+    **Unit:** per Out of Scope item
 
 ### The Standing Objective
 
@@ -80,7 +94,7 @@ The design script alone works the version out from the log, by the entries raisi
 - **Entry.** The entry's kind.
 - **Starts a major version?** Whether a `reassessment` entry's Decision is other than `go on`, the reassessment changing the design, as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has one start a major version.
 - **In initial development?** Whether the version's major is 0.
-- **Changes the goals or the frame?** Whether the highest Changes among the Steering Decisions a `steer` entry names holds the goals or a part of the frame ([`§ Steering Decision`](#steering-decision)).
+- **Changes the goals or the frame?** Whether the highest part the Changes of the Steering Decisions a `steer` entry names hold is the goals or a part of the frame ([`§ Steering Decision`](#steering-decision)).
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
 **Hit Policy:** First \
@@ -127,6 +141,7 @@ Before each adversarial round and before the user's approval, the validation rev
 | Lineage | each place a step's What names reaching an Assessed Area whose Impact holds `changes`, and each such Assessed Area reached by a step's What (a What reaching an Area where a place it names is the Area, lies within it or holds it); each Assessed Area's Impact and Assessment those of the latest Read Assessment of its Area in the reports the validation review reads; and each Area whose latest Read Assessment there holds an Impact other than `none` an Assessed Area or, its Impact holding `changes`, named by an item of the Out of Scope or, in a canon design, of the Impact on the Application Specs, holding its place right after the item's bold lead-in | nothing enters the design's scope but through an assessment, and each step changes only what is in scope |
 | Drafts | each construct a step's Draft holds, as its block writes it, by the construct checks, each `markdown` block read as a file of its own beside the specs as they stand ([`§ Design Plan Step § A Draft`](#a-draft)); a block of code is checked by none | a Draft's construct is held to its form before a reviewer reads it, as the applied text's is at the apply |
 | Research | each place outside the design document that a Search of the research reports it reads matches, its Pattern run again over its ground, lying within the Area of a Read Assessment in one of those reports, whichever report holds the Search ([`§ A Check's Report § Script Checks [Name: research-covers-its-matches]`](#script-checks-1)) | research shared among several cold agents is whole only as a union, so a gap between shares is found before a round reads the frame |
+| Out of Scope | each item of its Out of Scope citing a steer of its Steering Decisions whose Changes holds `Out of Scope item`, read only of the design the review runs on | an item no steer approves is one the user never made the call on |
 
 Whether the design's citations of other files resolve, and its Target against its Kind, are the adversarial review's to judge. Whether a step Objective serves its goals and states an outcome, and whether the steps uphold a Frame Outcome, are the semantic checks standing under [`§ Design Plan Step § Step Objective`](#step-objective) and [`§ A Design Document § Frame Outcome`](#frame-outcome). The design's place in the workstack is `--check-workstack`'s, which runs before each validation. A problem it reports is put right before the design goes to a review or to the approval.
 
@@ -134,7 +149,29 @@ The validation review reports each problem it finds, the builder fixes it, and t
 
 ### Spawning a Change of Its Own
 
-Spawning keeps a design focused. A design may turn up work that is a change of its own, work no goal reaches. A migration of files a rule change leaves out of sync is one, and so is a line of fixes the user hands on where it reaches a tertiary finding or place ([`§ A Check's Report § Settlement § User Decisions`](#user-decisions)). That work is spawned as a design document of its own or logged as a follow-up ([`§ A Follow-up`](#a-follow-up)), as the user decides, because which suits depends on how the user means to work it. Work that changes only working files is logged as a follow-up, never spawned, since no design changes a working file ([`§ The Working Files`](#the-working-files)). The user approves each spawned design before it is written, with its text shown first, and each follow-up as [`§ A Follow-up`](#a-follow-up) has it. Nothing is spawned or logged on the builder's own call, so a migration of specs or code to a new rule or standard is always the user's deliberate choice. Work is spawned or logged when it is deferred, not when the design completes. A spawned design's Spawned By names the design it came from, so each design, and each review of it, holds one change. The design's research still reaches what the spawned change touches, and only the spawned design's steps change it.
+Spawning keeps a design focused, and fixing what stands on its path keeps work from piling up behind it. A design may turn up a problem it did not cause. The design's own breach is never such a problem. That includes an older breach of the canon's rules in text the design's steps rewrite, since the design writes that text. [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test`](/specs/AGENTS.md#the-test) decides the design's own breach before the plan's approval, and [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Whose a Finding Is`](/specs/AGENTS.md#whose-a-finding-is) with [`§ A Design Document § Changes After Approval`](#changes-after-approval) decide it after. A problem the design did not cause is on the design's path where it stands in a place the design's steps change and breaks no rule of the canon, such as a case the text misses or a decision gone wrong that the rewrite carries over. It is on the path too where it keeps one of the design's goals from being delivered. Work no goal reaches is a change of its own. A migration of files a rule change leaves out of sync is one, and so is a line of fixes the user hands on at a tertiary finding or place.
+
+The builder recommends a route for each such problem, and the user decides it, as [`specs/AGENTS.md § Design, Refactor, Refine § Who Decides`](/specs/AGENTS.md#who-decides) has a call brought. The questions mean these:
+- **Tertiary?** Whether it is a tertiary finding, or a change reaching a tertiary place ([`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § Order and Lineage`](/specs/AGENTS.md#order-and-lineage)).
+- **Kept by the Out of Scope?** Whether an item of the design's Out of Scope keeps it, a known problem left no worse or a stage of a goal handed on, whichever check reports it.
+- **Off any path by its kind?** Whether it is work of another kind, as [`§ A Design Document § A Change Needing Both Kinds`](#a-change-needing-both-kinds) splits it, or work in another product module ([`§ A Design Document § A Design Changing Code § One Product Module`](#one-product-module)).
+- **Keeps a goal from being delivered?** Whether one of the design's goals cannot be delivered while it stands.
+- **In a place the steps change?** Whether it stands in the text the design's steps rewrite: a unit their change is written whole in, as [`specs/AGENTS.md § Constitutional Principles § Revise, Never Patch`](/specs/AGENTS.md#revise-never-patch) has a unit, never all that a heading a step's What cites holds.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Hit Policy:** First \
+**Conditions:** Tertiary?, Kept by the Out of Scope?, Off any path by its kind?, Keeps a goal from being delivered?, In a place the steps change?
+
+| Tertiary? | Kept by the Out of Scope? | Off any path by its kind? | Keeps a goal from being delivered? | In a place the steps change? | The Builder Recommends |
+|---|---|---|---|---|---|
+| true | - | - | - | - | the call the tertiary stop brings, with the options [`§ A Check's Report § Settlement § User Decisions`](#user-decisions) marks as a Tertiary Option |
+| false | true | - | - | - | nothing: it is recorded against the item keeping it, or where the item hands its stage on |
+| false | false | true | - | - | spawning a design or logging a follow-up, whichever suits how the user means to work it |
+| false | false | false | true | - | fixing it by the steps: the frame names it, the steps remove it, and the goal is unchanged; once the plan is approved, the design is sent back for it |
+| false | false | false | false | true | widening the goals to take it in, by the route any steer changing the goals takes, the problem joining the design's Problem |
+| - | - | - | - | - | spawning a design or logging a follow-up, whichever suits how the user means to work it |
+
+The builder fixes the problems on the path in dependency order. The user may choose another route in every case. A goal's blocker the design cannot remove now may be staged: an Out of Scope item hands a stage of the goal on, to a design or a follow-up. Before the plan's approval, any other problem may be left in the Out of Scope as a known problem the design leaves no worse. After the approval, a problem the user leaves is ignored, as [`§ A Design Document § Changes After Approval`](#changes-after-approval) has it. Work that changes only working files is logged as a follow-up, never spawned, since no design changes a working file ([`§ The Working Files`](#the-working-files)). The user approves each spawned design before it is written, with its text shown first, and each follow-up as [`§ A Follow-up`](#a-follow-up) has it. Nothing is spawned, logged or taken in on the builder's own call, so a migration of specs or code to a new rule or standard is always the user's deliberate choice. Work is spawned or logged when it is deferred, not when the design completes. A spawned design's Spawned By names the design it came from, so each design, and each review of it, holds one change. The design's research still reaches what the spawned change touches, and only the spawned design's steps change it.
 
 ### What Blocks What
 
@@ -259,6 +296,7 @@ Once the user approves the plan, a passage outside the Target that the apply lea
 
 The builder triages and marks an audit's findings, as [`specs/AGENTS.md § Design, Refactor, Refine § An Audit`](/specs/AGENTS.md#an-audit) has an audit read. Before this section's table, the builder applies [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test`](/specs/AGENTS.md#the-test) to each finding the table would settle, recording each kept finding's two indicators, and what requires each finding the test drops, as [`§ A Check's Report § Settlement`](#settlement) has them. It records each finding the test drops in its triage. It orders each finding, and each place a fix it makes changes, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § Order and Lineage`](/specs/AGENTS.md#order-and-lineage) has them ordered, bringing the user a tertiary finding's call before any fix is made there. Each finding the test keeps is presented to the user and settled by the questions that sort it, asked in order:
 - **Caused by the design?** The builder's triage answers it, and a post-apply review's finding outside the Target is triaged as an audit's is, by the one test [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Whose a Finding Is`](/specs/AGENTS.md#whose-a-finding-is) states, which also gives what holds the files as they stood, with or without version control.
+- **On the design's path?** Whether a finding the design did not cause stands on the design's path, as [`§ A Design Document § Spawning a Change of Its Own`](#spawning-a-change-of-its-own) has a path.
 - **Judged wrong by the user?** The user's judgment as the finding is presented.
 - **In a file the design's Kind lets it change?** A canon design's finding in the application specs, and a code design's in the specs, answer false.
 - **Handed on by the frame?** A rule the design changed may find a breach in text the apply carried over. That finding answers true where the design's Out of Scope hands the text's migration on, to a design of its own or a follow-up, as [`§ A Design Document § Spawning a Change of Its Own`](#spawning-a-change-of-its-own) has such work handed on. It answers false where the goals take the migration in, since the migration is then the steps'. It answers false too where the frame hands nothing on, having missed text it should have held. A script check's finding and a semantic check's are answered alike.
@@ -268,16 +306,17 @@ So a tactical fix never sends a design back, every other fix does, no design edi
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
 **Hit Policy:** First \
-**Conditions:** Caused by the design?, Judged wrong by the user?, In a file the design's Kind lets it change?, Handed on by the frame?, A tactical fix?
+**Conditions:** Caused by the design?, On the design's path?, Judged wrong by the user?, In a file the design's Kind lets it change?, Handed on by the frame?, A tactical fix?
 
-| Caused by the design? | Judged wrong by the user? | In a file the design's Kind lets it change? | Handed on by the frame? | A tactical fix? | Settles |
-|---|---|---|---|---|---|
-| false | - | - | - | - | settled as the user chooses, and recorded in the builder's triage: ignored; given a design spawned for it; or logged as a follow-up ([`§ A Follow-up`](#a-follow-up)) |
-| true | true | - | - | - | set aside, and recorded in the builder's triage with the reason |
-| true | false | false | - | - | handed on as work of another kind, as [`§ A Design Document § A Change Needing Both Kinds`](#a-change-needing-both-kinds) has it |
-| true | false | true | true | - | recorded in the builder's triage against the design or follow-up the Out of Scope hands the migration to |
-| true | false | true | false | true | made in place, as [`§ A Design Document § Changes After Approval § A Tactical Fix After the Apply`](#a-tactical-fix-after-the-apply) has it, each nit settled as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § A Nit`](/specs/AGENTS.md#a-nit) settles it |
-| true | false | true | false | false | sends the design back to in-progress, its changes kept, as [`§ A Design Document § The States It Moves Through § A Send-back`](#a-send-back) has one |
+| Caused by the design? | On the design's path? | Judged wrong by the user? | In a file the design's Kind lets it change? | Handed on by the frame? | A tactical fix? | Settles |
+|---|---|---|---|---|---|---|
+| false | true | - | - | - | - | settled by the route [`§ A Design Document § Spawning a Change of Its Own`](#spawning-a-change-of-its-own) recommends, a fix in the design sending it back to in-progress with its changes kept, or as the user chooses instead: ignored; given a design spawned for it; or logged as a follow-up; each recorded in the builder's triage |
+| false | false | - | - | - | - | settled as the user chooses, and recorded in the builder's triage: ignored; given a design spawned for it; or logged as a follow-up ([`§ A Follow-up`](#a-follow-up)) |
+| true | - | true | - | - | - | set aside, and recorded in the builder's triage with the reason |
+| true | - | false | false | - | - | handed on as work of another kind, as [`§ A Design Document § A Change Needing Both Kinds`](#a-change-needing-both-kinds) has it |
+| true | - | false | true | true | - | recorded in the builder's triage against the design or follow-up the Out of Scope hands the migration to |
+| true | - | false | true | false | true | made in place, as [`§ A Design Document § Changes After Approval § A Tactical Fix After the Apply`](#a-tactical-fix-after-the-apply) has it, each nit settled as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § A Nit`](/specs/AGENTS.md#a-nit) settles it |
+| true | - | false | true | false | false | sends the design back to in-progress, its changes kept, as [`§ A Design Document § The States It Moves Through § A Send-back`](#a-send-back) has one |
 
 #### A Tactical Fix After the Apply
 
@@ -407,6 +446,8 @@ The builder designs the code from the specs on its own, with the specs as its st
 
 A design's goals ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md)) are agreed on before its design frame, and changed and weighed, as [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame) has them. A goal is named, never numbered, so a record speaks of a goal by its Name however the list changes. A design's goals, Frame Outcomes, steps and step Objectives each take a Name no other part of the design takes. A field naming any of them holds each by its Name alone, a list, one Name to an item, and the design script resolves each against the design. Prose cites a goal as a record is cited, by its record section and its Name ([`specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation`](/specs/methodology/sourcing-and-citation/writing-a-citation.md#writing-a-citation)).
 
+A goal states only an outcome, and the outcome is a change: something new, something updated, or something removed. It may name what a mechanism does differently once the change lands. It never names the means: the steps, the files, or how the change works, since each sentence the design does not need is an edge a reviewer can challenge. A goal states no change where its outcome already holds in full wherever Spec of Record governs. A goal whose outcome is only partly met, or is stated in the canon but not working, states a change.
+
 A design's goals sit in its record section of this type, a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
@@ -416,7 +457,32 @@ A design's goals sit in its record section of this type, a record type ([`specs/
 | Field | Unique | Required | Default Value | Values | Holds |
 |---|---|---|---|---|---|
 | Name | yes | yes | | text | the goal's slug, in kebab-case as a design document's Name is ([`§ A Design Document`](#a-design-document)), by which a field names it and prose cites it |
-| Description | no | yes | | text | what the goal asks of the change: only an outcome removing a root cause of the harm the Problem states, never how the change brings it about, since each sentence the design does not need is an edge a reviewer can challenge |
+| Description | no | yes | | text | what the goal asks of the change: an outcome removing a root cause of the harm the Problem states, written as this section has a goal written |
+
+### Semantic Checks
+
+**Records:**
+  - **Name:** goal-states-an-outcome \
+    **Tests:** each goal's Description states only an outcome, naming at most what a mechanism does differently once the change lands, and never the means, as this section has a goal written \
+    **Reads:**
+      - `working-files`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` Refactor and refine, then the reviews and the approval
+      - `.ai/skills/implement-specs/` Design, Refactor, Refine, then the reviews
+
+    **Unit:** per goal
+
+  - **Name:** goal-states-a-change \
+    **Tests:** each goal's outcome is a change, something new, updated or removed, and fails where its outcome already holds in full wherever Spec of Record governs, as this section has a goal state a change \
+    **Reads:**
+      - `working-files`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` Refactor and refine, then the reviews and the approval
+      - `.ai/skills/implement-specs/` Design, Refactor, Refine, then the reviews
+
+    **Unit:** per goal
 
 ## Design Plan Step
 
@@ -443,7 +509,7 @@ A step's What names each area the step changes, as a place, and only areas the f
 
 ### Step Objective
 
-A step Objective is an Objective ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md)): it states the outcome its step achieves toward the goals it names, by its meaning, held to the rule a goal's Description is held to ([`§ Design Goal`](#design-goal)) and for the same reason. It never states the work to reach the outcome, nor the means carrying it out. It holds no construct, no table, no row and no quoted wording, but wording or a name the user chose as the outcome itself, quoted as the steer gives it ([`§ Steering Decision § When a Steer Is Recorded`](#when-a-steer-is-recorded)), and never the name of a file or folder the design creates, which guides the apply without freezing it even where the builder and the user talked it over as the design was shaped. It names no place in a file: it says by its meaning what its outcome concerns. It fixes no name the apply writes, so text carrying the same outcome under another name meets it. No part of a design cites a heading the files do not hold as they stand, one its own apply or a dependency's has yet to write among them, since a reader following such a citation finds nothing there.
+A step Objective is an Objective ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md)): it states the outcome its step achieves toward the goals it names, by its meaning, held to the rule that a goal states only an outcome and never the means ([`§ Design Goal`](#design-goal)), and for the same reason, but not to the rule that a goal's outcome is a change. It never states the work to reach the outcome, nor the means carrying it out. It holds no construct, no table, no row and no quoted wording, but wording or a name the user chose as the outcome itself, quoted as the steer gives it ([`§ Steering Decision § When a Steer Is Recorded`](#when-a-steer-is-recorded)), and never the name of a file or folder the design creates, which guides the apply without freezing it even where the builder and the user talked it over as the design was shaped. It names no place in a file: it says by its meaning what its outcome concerns. It fixes no name the apply writes, so text carrying the same outcome under another name meets it. No part of a design cites a heading the files do not hold as they stand, one its own apply or a dependency's has yet to write among them, since a reader following such a citation finds nothing there.
 
 An Objective states its outcome at the grain of what its step decides, never at the grain of the text carrying it. An Objective that one wording alone meets, wording or a name the user chose aside, or that lists the edits its step makes, the passages it rewrites, the sentences it keeps or the clauses it adds, is written too specifically: it is a second draft of the text, and it fails as an Objective stating a means fails. Within the areas its step's What names, each decision the step's Objectives leave unstated stands as it is, and only the text carrying it is the apply's to rewrite. So an Objective lists neither what stays in those areas nor how their text changes. The prose around the step's change is the Objective the canon keeps for every step ([`§ A Design Document § The Standing Objective`](#the-standing-objective)), never listed in the step.
 
@@ -1191,7 +1257,7 @@ The checks only the builder makes, held by a Builder Check, each with the self-r
 | Check Kind | Means | Required |
 |---|---|---|
 | steers against the user's messages | each steer's quoted words and its decision checked against every message of the user's the builder still holds | in every self-review |
-| linked work | the work the design hands on, each item of its Out of Scope and of its Impact on the Application Specs a hand-off held where the step handing it on sends it; each finished design its Scope relied on taken in as the design was next worked; and what its Scope states it relies on from each design its Depends On Designs names matching that design's outcomes; read from those designs and `.ai/follow-ups.md`, their lineage checked by the workstack check of the skill writing the design as its validating state runs it | in every self-review |
+| linked work | the work the design hands on, each item of its Out of Scope handing work on, and each item of its Impact on the Application Specs, a hand-off held where the step handing it on sends it; each finished design its Scope relied on taken in as the design was next worked; and what its Scope states it relies on from each design its Depends On Designs names matching that design's outcomes; read from those designs and `.ai/follow-ups.md`, their lineage checked by the workstack check of the skill writing the design as its validating state runs it | in every self-review |
 | user edit | an edit a `user-edit` entry names checked against the design and the rest of the applied work, each concern brought to the user with the builder's recommendation, an Objective the edit leaves unmet among them, the user keeping the edit or having it adjusted | in every self-review, for each `user-edit` entry since the design's last `self-review` entry, citing its places |
 | worked case | a case worked through a Cause's change or an implementation flaw's settlement, read for what it means and not only for whether it passes its checks | in a self-review following a round's change, for each Cause holding a Proposed Change and each implementation flaw the round settles, citing it |
 | miss's question | a question a Miss names asked of the work, with the answer the work gave, showing what the builder's reading lacked | in every self-review of a phase holding a Miss naming a question, for each Question a Miss of the phase names, citing its Cause |
@@ -1474,7 +1540,7 @@ A design's steering decisions sit in its record section of this type, a record t
 | Type | no | yes | | "selection", "perspective" | a selection or a perspective, as [`§ Steering Decision § A Steer's Type`](#a-steers-type) has it |
 | Steer | no | yes | | text | the user's own words, quoted |
 | Decision | no | yes | | text | the essence of what the steer decided, in a sentence or two |
-| Changes | no | where a `steer` entry ([`§ Design Log Entry`](#design-log-entry)) names it | | "the goals", "the Scope", "the Assessed Areas", "the Approach", "the Frame Outcomes", "the steps", "none" | the highest part of the design whose decision the steer changes, or `none` where it changes no decision, so the highest Changes among the steers its set's entry names shows where the design is rebuilt from |
+| Changes | no | where a `steer` entry ([`§ Design Log Entry`](#design-log-entry)) names it | | "the goals", "the Scope", "the Assessed Areas", "the Approach", "the Frame Outcomes", "the steps", "Out of Scope item", "none" | a list, an item to each part of the design whose decision the steer changes, the parts ranked in the order of these values from the highest; `Out of Scope item` where the steer approves an item of the design's Out of Scope as it is written, or `none` where it changes no decision. A single value is a list of one. The highest part the steers its set's entry names change shows where the design is rebuilt from |
 
 ### When a Steer Is Recorded
 

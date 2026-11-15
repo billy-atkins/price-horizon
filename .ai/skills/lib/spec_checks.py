@@ -50,8 +50,9 @@ COVERAGE_RULE = "scope/rules-and-skills.md § Rules and Skills"
 # (section heading, the column naming the sections)
 COVERAGE_TABLES = (("The audits", "Enforces"),)
 # scope/rules-and-skills.md § Rules and Skills § Skipped Step: the records naming each section stating operating rules, and where they stand
-SKIPPED_STEP_HOME = "specs/methodology/scope/rules-and-skills.md § Rules and Skills § Skipped Step"
-SKIPPED_STEPS_AT = "Operating rules carried out by a step"
+LEDGER = "specs/methodology/scope/rules-and-skills.md"
+SKIPPED_STEP_HOME = LEDGER + " § Rules and Skills § Skipped Step"
+SKIPPED_STEPS_AT = "Rules and Skills § Skipped Steps"
 DIAGRAMS_RULE = "modeling-constructs.md § Diagrams"
 IMAGE = re.compile(r"!\[[^\]]*\][(\[]|<img\b", re.I)
 WORKING_FILES = "specs/methodology/working-files/main.md"
@@ -1000,8 +1001,8 @@ def workflow_citations(root):
 def coverage_findings(root):
     """Every section of specs/AGENTS.md and of the methodology's files, its overview aside, is
     named, itself or through a section it sits under, in the column naming the sections in the audit
-    skill's coverage table, or in the Sections of a Skipped Step record under its ## Operating rules
-    carried out by a step, or, for a section of code.md, in the verify skill's table of checks;
+    skill's coverage table, or in the Sections of a Skipped Step record beside the
+    record type's declaration, or, for a section of code.md, in the verify skill's table of checks;
     or is named by a record section of checks standing directly under it, which names no section under
     that one; and each section stating operating rules is cited, itself or through a section it
     sits under, by a step of a registered skill's Workflow, which is where its step is found. A record
@@ -1022,12 +1023,13 @@ def coverage_findings(root):
                 if target:
                     named.add((path.strip(), target.strip()))
     # scope/rules-and-skills.md § Rules and Skills § Skipped Step: each section a Skipped Step's Sections names states operating rules
-    held = [lin for lin in sections(text) if lin.split(" § ")[0] == SKIPPED_STEPS_AT
-            and (type_of(lin.split(" § ")[-1], AUDIT_SKILL) or {}).get("home") == SKIPPED_STEP_HOME]
+    ledger = read(root / LEDGER) if (root / LEDGER).exists() else ""
+    held = [lin for lin in sections(ledger) if lin == SKIPPED_STEPS_AT
+            and (type_of(lin.split(" § ")[-1], LEDGER) or {}).get("home") == SKIPPED_STEP_HOME]
     if not held:
-        found.append((COVERAGE_RULE, AUDIT_SKILL, 0, f"no Skipped Step records under ## {SKIPPED_STEPS_AT}"))
+        found.append((COVERAGE_RULE, LEDGER, 0, f"no Skipped Step records under § {SKIPPED_STEPS_AT}"))
     for lin in held:
-        for rec in parse_records(text, lin, type_of(lin.split(" § ")[-1], AUDIT_SKILL)["section_fields"])[0]:
+        for rec in parse_records(ledger, lin, type_of(lin.split(" § ")[-1], LEDGER)["section_fields"])[0]:
             for key, value, _ in rec:
                 for m in CITATION.finditer(str(value) if key == "Sections" else ""):
                     path, _, target = m.group(1).partition(" § ")
