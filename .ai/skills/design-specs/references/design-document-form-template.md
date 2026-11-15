@@ -65,7 +65,8 @@
     **Type:** {a steer's type (`specs/methodology/working-files/main.md § Steering Decision § A Steer's Type`)} \
     **Steer:** {the user's words, quoted (`specs/methodology/working-files/main.md § Steering Decision`)} \
     **Decision:** {the essence of what the steer decided (`specs/methodology/working-files/main.md § Steering Decision`)} \
-    **Changes:** {the highest part whose decision the steer changes, or `none` (`specs/methodology/working-files/main.md § Steering Decision`)}
+    **Changes:**
+      - {each part whose decision the steer changes, `Out of Scope item` where it approves an Out of Scope item as written, or `none` (`specs/methodology/working-files/main.md § Steering Decision`)}
 
 ## Design Plan Steps
 
@@ -113,4 +114,4 @@
 
 ## Out of Scope
 
-{a list of items (`specs/methodology/working-files/main.md § A Design Document`)}
+- **{what the item leaves out}.** {why it is left out, and where it goes where it is a stage or hands work on} ({the citation of the steer approving it, whose Changes holds `Out of Scope item`}). {what of the design's own words could be read to include it} (`specs/methodology/working-files/main.md § A Design Document`)

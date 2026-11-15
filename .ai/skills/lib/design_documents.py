@@ -178,6 +178,8 @@ def steer_type(root=None):
 # § The Order of a Design's Parts)
 CHANGES = "Changes"
 MATERIAL = ("the goals", "the Scope", "the Assessed Areas", "the Approach", "the Frame Outcomes")
+# the value of Changes for a steer approving an item of the design's Out of Scope as it is written
+OUT_OF_SCOPE_ITEM = "Out of Scope item"
 
 
 def steer_changes(text):
@@ -186,16 +188,21 @@ def steer_changes(text):
             for r in records(section(text, "Steering Decisions")) or []}
 
 
+def changes_parts(value):
+    """-> the parts a Steering Decision's Changes names: its list's items, a single value a list of one."""
+    return [p.strip() for p in str(value or "").split("\n") if p.strip()]
+
+
 def set_names(entry):
     """-> the Names of the Steering Decisions a `steer` entry names, the set it marks, separated by semicolons."""
     return [n.strip().strip("`") for n in entry[2].get("Steering Decision", "").split(";") if n.strip()]
 
 
 def material(entry, changes):
-    """Whether a log entry, (kind, count, {field: value}), is a `steer` entry marking a set whose highest Changes, by
-    changes as steer_changes gives them, holds the goals or a part of the frame: one of its Steering Decisions' Changes
-    does."""
-    return entry[0] == "steer" and any(changes.get(n) in MATERIAL for n in set_names(entry))
+    """Whether a log entry, (kind, count, {field: value}), is a `steer` entry marking a set whose highest part, by
+    changes as steer_changes gives them, is the goals or a part of the frame: one of its Steering Decisions' Changes
+    names one."""
+    return entry[0] == "steer" and any(p in MATERIAL for n in set_names(entry) for p in changes_parts(changes.get(n)))
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Design Document § The Design's Version
@@ -616,8 +623,10 @@ def check_steers(body, logged=()):
         name = values["Name"]
         require(problems, "steering decision " + name, values, CHANGES, name in logged, "where a steer entry names it")
         for k, v in values.items():
-            if given.get(k) and v not in given[k]:
-                problems.append("steering decision %s has a %s that is not one of %s: %s" % (name, k, ", ".join(given[k]), v))
+            # working-files/main.md § Steering Decision: Changes holds a list, each item one of its values
+            for item in (changes_parts(v) if k == CHANGES else [v]):
+                if given.get(k) and item not in given[k]:
+                    problems.append("steering decision %s has a %s that is not one of %s: %s" % (name, k, ", ".join(given[k]), item))
         if name in seen:
             problems.append("two steering decisions share the Name " + name)
         seen.add(name)
@@ -1624,6 +1633,7 @@ def design_problems(design):
     read_ = research_indexes(design, entries, read_entries(entries, steer_changes(text)))
     found += [(name, "%s (%s)" % (msg, rule)) for rule, msg in
               union_coverage_problems(repo_root(), design, text, entries, among=read_)]
+    found += [(name, p) for p in item_citation_problems(text)]
     if dict(fields).get("Status") not in ("approved", "applying", "complete"):
         found += [(name, "its design frame's %s is not yet stated" % p) for p in FRAME if frame_parts(text).get(p) == NOT_YET_STATED]
         if (section(text, "Design Goals") or "").strip() == NOT_YET_STATED:
@@ -1675,6 +1685,23 @@ def check_design_form(value):
 def check_target_kind(value):
     design = design_file(value)
     return 2 if design is None else report("check-target-kind " + design.stem, check_kind(design, Path.cwd())[1])
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Design Document
+STEER_CITED = re.compile(r"§ Steering Decisions \[Name: ([^\]]+)\]")
+
+
+def item_citation_problems(text):
+    """The Out of Scope check of working-files/main.md § A Design Document § The Record's Checks: each item of the
+    design's Out of Scope, a list item opening at the line's start, cites a steer of its Steering Decisions whose Changes
+    holds `Out of Scope item`, read of this design alone."""
+    changes = steer_changes(text)
+    out = []
+    for item in re.split(r"(?m)^- ", section(text, "Out of Scope") or "")[1:]:
+        if not any(OUT_OF_SCOPE_ITEM in changes_parts(changes.get(n.strip())) for n in STEER_CITED.findall(item)):
+            out.append("its Out of Scope item %s cites no steer whose Changes holds `%s`"
+                       % (item.split("\n")[0].strip()[:80], OUT_OF_SCOPE_ITEM))
+    return out
 
 
 def check_design(value):
