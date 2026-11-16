@@ -86,6 +86,7 @@
 
 {the builder's part ([`specs/methodology/working-files/main.md § A Check's Report § Who Writes Each Part`](/specs/methodology/working-files/main.md#who-writes-each-part)): this note removed with its braces once the part is written}
 
+**Ending:** {how the check ended: `its own settling`, or `decided` or `cut short`, a comma, and what ended it in words, as the section Check Ending gives it, held whether or not the report holds a Finding ([`specs/methodology/working-files/main.md § A Check's Report § The Reading and the Settlement`](/specs/methodology/working-files/main.md#the-reading-and-the-settlement))} \
 **Earlier Reports:**
   - {an earlier report read, or `none` alone where the round's phase holds none before it ([`specs/methodology/working-files/main.md § A Check's Report § The Reading and the Settlement`](/specs/methodology/working-files/main.md#the-reading-and-the-settlement))}
 

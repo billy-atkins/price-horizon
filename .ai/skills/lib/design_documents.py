@@ -194,6 +194,9 @@ def steer_type(root=None):
 # frame, a steer changing one of them material (specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once
 # § The Order of a Design's Parts)
 CHANGES = "Changes"
+# @canon-spec specs/methodology/working-files/main.md § Steering Decision § A Steer's Type
+# the old names of a steer's types, each read as the type it was renamed
+OLD_STEER_TYPES = {"selection": "agreement", "perspective": "directive"}
 MATERIAL = ("the goals", "the Scope", "the Assessed Areas", "the Approach", "the Frame Outcomes")
 # the value of Changes for a steer approving an item of the design's Out of Scope as it is written
 OUT_OF_SCOPE_ITEM = "Out of Scope item"
@@ -242,17 +245,26 @@ def version_text(version):
     return "%d.%d.%d" % version
 
 
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry
+# the entry recording a design reassessment, and the old entry an earlier log holds in its place
+DESIGN_REASSESSMENT, OLD_REASSESSMENT = "design-reassessment", "reassessment"
+# @canon-spec specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § Facts
+# the entry reason's values for a send-back, the step back's and an old log's among them
+SENT_BACK = ("sent back", "sent back to the step back", "sent back to reassess")
+
+
 # @canon-spec specs/methodology/working-files/main.md § A Design Document § The Design's Version
 def starts_major(entry):
-    """Whether a log entry, (kind, count, {field: value}), is a `reassessment` entry deciding other than `go on`."""
-    return entry[0] == "reassessment" and entry[2].get("Decision", "").strip() != "go on"
+    """Whether a log entry, (kind, count, {field: value}), starts a major version: a `design-reassessment` entry, or an
+    old log's `reassessment` entry, read as one, deciding other than `go on`."""
+    return entry[0] == DESIGN_REASSESSMENT or (entry[0] == OLD_REASSESSMENT and entry[2].get("Decision", "").strip() != "go on")
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Design Document § The Design's Version
 def raised(version, entry, changes):
     """-> the version after a log entry raises it, the counter its part of the design gives raised and each counter
     after it cleared: in initial development, the major 0, a goals-agreed entry raises the version to 1.0.0 and a
-    reassessment nothing, a design with no report having nothing to make afresh; after it, a reassessment starting a
+    design reassessment nothing, a design with no report having nothing to make afresh; after it, one starting a
     major version raises the major and a goals-agreed entry nothing; a steer marking a set material by changes raises the
     minor, once for the set, a plan-change the revision, and any other entry nothing."""
     major, minor, revision = version
@@ -292,8 +304,8 @@ def entry_version(entry):
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Over Applied Work, and a Phase's Record
 def major_starts(entries):
-    """-> the indexes of the entries raising the major as a reassessment: each `reassessment` entry deciding other than
-    `go on` with a `goals-agreed` entry before it, a reassessment in initial development raising nothing."""
+    """-> the indexes of the entries raising the major as a design reassessment: each entry starts_major gives with a
+    `goals-agreed` entry before it, a design reassessment in initial development raising nothing."""
     out, agreed = [], False
     for i, e in enumerate(entries):
         agreed = agreed or e[0] == GOALS_AGREED
@@ -304,21 +316,21 @@ def major_starts(entries):
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Over Applied Work, and a Phase's Record
 def major_start(entries):
-    """-> where the design's current major version starts among its log entries: after its last `reassessment` entry
+    """-> where the design's current major version starts among its log entries: after its last design reassessment
     raising the major, or at the log's start."""
     return max([i + 1 for i in major_starts(entries)], default=0)
 
 
 def current_major(entries):
     """-> the major of the version the log gives, which no steer or plan-change raises: 0 in initial development, 1
-    from the first goals-agreed entry, raised once by each reassessment raising the major."""
+    from the first goals-agreed entry, raised once by each design reassessment raising the major."""
     return (1 if any(e[0] == GOALS_AGREED for e in entries) else 0) + len(major_starts(entries))
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Over Applied Work, and a Phase's Record
 def of_current_major(entries):
     """-> the indexes of the log entries of the design's current major version, by the major of the version each is
-    stamped at, so research handed off before a reassessment and handed back after it is of the major version it read."""
+    stamped at, so research handed off before a design reassessment and handed back after it is of the major version it read."""
     major = current_major(entries)
     return [i for i, e in enumerate(entries) if entry_version(e)[0] == major]
 
@@ -339,11 +351,23 @@ def cut_short(entries):
     return out
 
 
-def binding(entries):
+def binding(entries, design=None):
     """-> the indexes of the log entries whose reports may bind the design, by the two questions of § Over Applied Work,
-    and a Phase's Record a report's place in the log answers alone: of the current major version, and not cut short."""
+    and a Phase's Record a report's place and its own statement answer: of the current major version, and not cut
+    short, read from the report's Ending where the design is given and the report states one, else from an old log's
+    Cuts Short. Without the design, as for the stamp's hash, the Cuts Short alone is read, so a cut-short report's
+    entry stamped there only makes the stamp go stale sooner."""
     cut = cut_short(entries)
-    return [i for i in of_current_major(entries) if (entries[i][0], entries[i][1]) not in cut]
+
+    def stopped(i):
+        k, n, _ = entries[i]
+        if design is not None and owes_ending(k):
+            path = report_file(design, k, n)
+            ending = report_ending(read_report(read(path))) if path.is_file() else None
+            if ending is not None:
+                return ending == CUT_SHORT
+        return (k, n) in cut
+    return [i for i in of_current_major(entries) if not stopped(i)]
 
 
 # the script checks of the log the design script carries out, by the rules naming them
@@ -354,7 +378,7 @@ ENTRY_AT_VERSION_READ = "specs/methodology/working-files/main.md § Design Log E
 # @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: goals-agreed-before-checks]
 def agreed_before(entries, i):
     """Whether a `goals-agreed` entry stands before the entry at index i in the major version it stands in: after the
-    last reassessment raising the major before it, or from the log's start."""
+    last design reassessment raising the major before it, or from the log's start."""
     start = max([s + 1 for s in major_starts(entries[:i])], default=0)
     return any(e[0] == GOALS_AGREED for e in entries[start:i])
 
@@ -534,10 +558,9 @@ def named(value):
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Design Document § The Record's Checks
-def read_entries(entries, changes):
+def read_entries(entries, changes, design=None):
     """-> the indexes, among a design's log entries as log_entries gives them, of each `handed-off-judgment` entry whose
-    report the validation review reads: each of the design's current major version, cut short by no reassessment and
-    no set of steers, but one standing after the log's last `plan-approval` entry, where neither an `entered` entry nor
+    report the validation review reads: each binding it, of the design's current major version and not cut short, but one standing after the log's last `plan-approval` entry, where neither an `entered` entry nor
     a `steer` entry material by changes, as steer_changes gives them, follows that approval. So the validation reads
     the research binding the design, shared among agents by area or assessing an area again for a cause; research
     logged after the plan's approval, the frame frozen, leaves the validation as it stood; and a design sent back, or
@@ -546,7 +569,7 @@ def read_entries(entries, changes):
     last = approvals[-1] if approvals else None
     if last is not None and any(e[0] == "entered" or material(e, changes) for e in entries[last + 1:]):
         last = None
-    return [i for i in binding(entries) if (last is None or i < last) and entries[i][0] == JUDGMENT]
+    return [i for i in binding(entries, design) if (last is None or i < last) and entries[i][0] == JUDGMENT]
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Stamp
@@ -663,6 +686,10 @@ def check_steers(body, logged=()):
         for k, v in values.items():
             # working-files/main.md § Steering Decision: Changes holds a list, each item one of its values
             for item in (changes_parts(v) if k == CHANGES else [v]):
+                # working-files/main.md § Steering Decision § A Steer's Type: a design written before the names
+                # changed is read under its old ones
+                if k == "Type" and item in OLD_STEER_TYPES:
+                    continue
                 if given.get(k) and item not in given[k]:
                     problems.append("steering decision %s has a %s that is not one of %s: %s" % (name, k, ", ".join(given[k]), item))
         if name in seen:
@@ -1346,7 +1373,7 @@ def check_stack(folder):
     names = lambda n, key: named(designs[n].get(key, ""))
     deps = lambda n: [d for d in names(n, DEPENDS_ON) if d in designs]
     blocked_by = lambda n: [d for d in deps(n) if status(d) not in FINISHED]
-    # a design relied on that now stands at a later major version than its Reliance's Version, a reassessment having made it
+    # a design relied on that now stands at a later major version than its Reliance's Version, a design reassessment having made it
     # afresh
     stated = reliance_versions(read, folder)
     major = {name: design_version(log_entries(text), steer_changes(text))[0] for name, _, _, text in read}
@@ -1518,9 +1545,12 @@ def resolve(path, root, target=""):
 def check_citations(proposal, root, kept=(), extra=""):
     """-> [(ok, path, target, note)] for each cross-file citation, in order, of the proposal and of extra, the file it
     names found and read by citation_file."""
-    text = read(Path(proposal)) + "\n" + extra
+    text = read(Path(proposal)).replace("\r\n", "\n") + "\n" + extra
     head = CommitTree(root) if kept else None
     seen, results = set(), []
+    # working-files/main.md § Design Plan Step § A Draft: a Draft's construct cites sections as the files will stand once
+    # the design's steps apply, a heading another of its Drafts creates among them
+    spans, drafted = draft_spans(text) if is_design(Path(proposal)) else ([], set())
     for m in CITATION.finditer(text):
         path, target = m.group("path"), " ".join(m.group("target").split())
         # a record citation's [...] selector names a record; only its section resolves here
@@ -1533,14 +1563,43 @@ def check_citations(proposal, root, kept=(), extra=""):
             results.append((False, path, target, note))
             continue
         found = lineages(read(target_file))
+        if target not in found and any(a <= m.start() < b for a, b in spans) and drafted_heading(target, found, drafted):
+            results.append((True, path, target, "a heading the design's Drafts create"))
+            continue
         results.append((True, path, target, "") if target in found else
                        (False, path, target, citation_miss(target, found)))
     return results
 
 
+def draft_spans(text):
+    """-> ([(start, end)] of each `markdown` block a step's Draft holds in a design's text, {the lineage of each heading
+    those blocks hold, from its block's top})."""
+    spans, drafted = [], set()
+    for s in read_steps(text) or []:
+        for b in s["draft"]:
+            if b["info"] != layout.MARKDOWN_INFO:
+                continue
+            at = text.find(b["text"])
+            if at >= 0:
+                spans.append((at, at + len(b["text"])))
+            drafted |= set(lineages(b["text"]))
+    return spans, drafted
+
+
+def drafted_heading(target, found, drafted):
+    """Whether a section a Draft cites is one a Draft creates: its lineage ends with a heading's lineage a Draft holds,
+    and what stands above it is a section the file holds as it stands, or none."""
+    for lineage in drafted:
+        if target == lineage:
+            return True
+        if target.endswith(" § " + lineage) and target[:-len(" § " + lineage)] in found:
+            return True
+    return False
+
+
 def citation_file(path, root, target, head, kept):
     """-> (file, note): the file a citation names, found in the files as they stand; while a send-back's or a
-    reassessment's kept changes stand, head the last commit's tree and kept the paths they change, found in the files
+    design reassessment's kept changes stand, head the last commit's tree and kept the paths they change, found in the files
     at the last commit, a file they moved or removed among them, and a working file, which no commit holds, alone found
     as it stands."""
     if head is None:
@@ -1611,7 +1670,7 @@ def lineage_problems(design, text, plan=None):
     root = repo_root()
     entries = log_entries(text)
     reports = [(rel_to(report_file(design, entries[i][0], entries[i][1]), root),
-                load_report(design, entries[i][0], entries[i][1])) for i in read_entries(entries, steer_changes(text))]
+                load_report(design, entries[i][0], entries[i][1])) for i in read_entries(entries, steer_changes(text), design)]
     latest = {}
     for path, rep in reports:
         for ra in rep["records"].get("Read Assessments", []):
@@ -1648,7 +1707,7 @@ def lineage_problems(design, text, plan=None):
             problems.append("assessed area %s's Assessment is %s, not %s, the report holding the latest Read Assessment of its Area"
                             % (cite(p), assessment[0], found[0]))
     problems += ["%d assessed area%s rest%s on %s, a report the validation review does not read: no handed-off-judgment "
-                 "entry of the design's current major version names it, a reassessment cut it short, or its entry stands after the last plan-approval entry with neither an "
+                 "entry of the design's current major version names it, its check was cut short, or its entry stands after the last plan-approval entry with neither an "
                  "entered entry nor a steer entry changing the goals or a part of the frame after that"
                  % (len(a), "" if len(a) == 1 else "s", "s" if len(a) == 1 else "", path) for path, a in unread.items()]
     held = {place_key(p) for p, _, _, _ in areas if p}
@@ -1681,7 +1740,7 @@ def design_problems(design):
     # working-files/main.md § A Check's Report § Script Checks [Name: research-covers-its-matches], over the research reports
     # the validation review reads
     entries = log_entries(text)
-    read_ = research_indexes(design, entries, read_entries(entries, steer_changes(text)))
+    read_ = research_indexes(design, entries, read_entries(entries, steer_changes(text), design))
     found += [(name, "%s (%s)" % (msg, rule)) for rule, msg in
               union_coverage_problems(repo_root(), design, text, entries, among=read_)]
     found += [(name, p) for p in item_citation_problems(text)]
@@ -1697,7 +1756,7 @@ def design_problems(design):
 # @canon-spec specs/methodology/working-files/main.md § A Design Document § The States It Moves Through § A Send-back
 def check_cited_headings(proposal):
     """--check-cited-headings: each heading a proposal cites resolved against the files as they stand, or, for a design
-    whose send-back's or reassessment's changes are kept, against the files at the last commit, each Area its current
+    whose send-back's or design reassessment's changes are kept, against the files at the last commit, each Area its current
     major version's research assessed among them; -> 1 where one is broken, 2 where none is cited."""
     root, kept, extra = Path.cwd(), (), ""
     if Path(proposal).is_file() and is_design(Path(proposal)):
@@ -1706,7 +1765,7 @@ def check_cited_headings(proposal):
         kept = tuple(kept_changes(root, text)) if not over_applied(log_entries(text)) else ()
         if kept:
             entries = log_entries(text)
-            extra = "\n".join(a.get("Area", "") for i in read_entries(entries, steer_changes(text))
+            extra = "\n".join(a.get("Area", "") for i in read_entries(entries, steer_changes(text), Path(proposal))
                               for a in load_report(Path(proposal), entries[i][0], entries[i][1])["records"]["Read Assessments"])
     try:
         results = check_citations(proposal, root, kept, extra)
@@ -1953,6 +2012,117 @@ def with_version(text, version):
     return head + sep + rest
 
 
+LOG_RULE = WF_LOG = "specs/methodology/working-files/main.md § Design Log Entry"
+CUTS_SHORT = "Cuts Short"
+DIAGNOSIS_RULE = "specs/methodology/working-files/main.md § A Diagnosis § Script Checks [Name: diagnosis-whole-and-in-form]"
+# @canon-spec specs/methodology/working-files/main.md § A Diagnosis
+# a diagnosis's Title fields, as its parts table gives them, and the fields a Root Cause record requires, as its
+# record type declares them
+DIAGNOSIS_FIELDS = ("Design", "Design Reassessment", "Flaw Set", "Earlier Diagnoses")
+ROOT_CAUSE_FIELDS = ("Root Cause", "Question", "Description", "Account")
+
+
+def design_folder(design):
+    """-> a design's folder of working files, `.ai/tmp/<skill-name>/<design>/`."""
+    return design.parents[2] / "tmp" / design.parent.name / design.stem
+
+
+# @canon-spec specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § Facts
+def fact_values(name, root=None):
+    """-> the quoted Values of a Fact the design's work states declare."""
+    body = read((root or repo_root()) / "specs/methodology/design-workflow/order-of-a-designs-work.md")
+    m = re.search(r"- \*\*Name:\*\* %s \\\n(?:\s+\*\*[A-Za-z ]+:\*\*[^\n]*\n)*?\s+\*\*Values:\*\* ([^\n]*)" % re.escape(name), body)
+    return tuple(re.findall(r'"([^"]+)"', m.group(1))) if m else ()
+
+
+def diagnosis_file(design, entry_fields):
+    """-> the diagnosis a `design-reassessment` entry's Diagnosis names, a path in the design's folder, given from the
+    repository's root or from the folder."""
+    value = entry_fields.get("Diagnosis", "").strip().strip("`")
+    root, folder = repo_root(), design_folder(design)
+    for path in (root / value, folder / value):
+        if value and path.is_file():
+            return path
+    return None
+
+
+def read_diagnosis(text):
+    """-> (its title's fields {key: value}, its Flaws [{field: value}], its Root Causes [{field: value}], its Scope's
+    fields {key: value}, the level-two headings it holds) of a diagnosis."""
+    text = text.replace("\r\n", "\n")
+    head = text.split("\n## ", 1)[0]
+
+    def block(part):
+        return {m.group(1): m.group(2).strip() for m in re.finditer(r"^\*\*([^*]+):\*\*[ \t]*(.*?)(?:[ \t]*\\)?[ \t]*$", part, re.M)}
+    recs = lambda name: [{k: str(v).strip() for k, v in r} for r in records(section(text, name)) or []]
+    return (block(head) if head.startswith("# Diagnosis") else None, recs("Flaws"), recs("Root Causes"),
+            block(section(text, "Scope") or ""), re.findall(r"^## (.+?)\s*$", text, re.M))
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Diagnosis § Script Checks [Name: diagnosis-whole-and-in-form]
+def flaw_set(design, entries):
+    """-> {(kind, n, Finding)} for each finding a Settlement of the design's checks keeps as a design flaw or an
+    implementation flaw, read from the reports of every major version, a report cut short among them."""
+    kinds = log_type()[2]
+    return {(k, n, f) for k, n, _ in entries if "Model" in kinds.get(k, ())
+            for f, verdict in last_words(load_report(design, k, n)).items() if verdict in FLAWS}
+
+
+FLAW_KEY = re.compile(r"([a-z-]+)/(\d+)\.md\s*(?:§[^\[]*)?\[Finding:\s*([^\]]+?)\s*\]")
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Diagnosis § Script Checks [Name: diagnosis-whole-and-in-form]
+def diagnosis_problems(root, design, text, count, entry_fields):
+    """-> problems with the diagnosis a `design-reassessment` entry names: one standing in the design's folder at
+    `diagnosis/{n}.md`, n counting the design's design reassessments; its title's fields and its parts as its form gives
+    them; a Flaw for each finding of its flaw set, each holding its Still Applies and its Why Not or its Root Cause,
+    that Root Cause one the diagnosis holds; each Root Cause holding its fields; and its Scope its Question and Answer."""
+    path = diagnosis_file(design, entry_fields)
+    entries = log_entries(text)
+    nth = 1 + sum(1 for e in entries if starts_major(e))
+    want = design_folder(design) / "diagnosis" / ("%d.md" % nth)
+    if path is None:
+        return ["the design-reassessment entry's Diagnosis names no diagnosis standing in the design's folder: %s (%s)"
+                % (entry_fields.get("Diagnosis", "none"), DIAGNOSIS_RULE)]
+    if path.resolve() != want.resolve():
+        return ["the design-reassessment entry's Diagnosis is %s, not %s, the diagnosis of the design's design "
+                "reassessment %d (%s)" % (rel_to(path, root), rel_to(want, root), nth, DIAGNOSIS_RULE)]
+    title, flaws, causes, scope, parts = read_diagnosis(read(path))
+    out = []
+    if title is None:
+        return ["%s does not open with its title, # Diagnosis (%s)" % (rel_to(path, root), DIAGNOSIS_RULE)]
+    if list(title) != list(DIAGNOSIS_FIELDS):
+        out.append(constructs.block_refusal("its title", list(title), list(DIAGNOSIS_FIELDS), DIAGNOSIS_FIELDS, owner="its form"))
+    elif title["Design Reassessment"].strip("`") != "%s-%d" % (DESIGN_REASSESSMENT, count):
+        out.append("its Design Reassessment is %s, not %s-%d, the entry naming it" % (title["Design Reassessment"], DESIGN_REASSESSMENT, count))
+    if parts != ["Flaws", "Root Causes", "Scope"]:
+        out.append(constructs.block_refusal("the diagnosis", parts, ["Flaws", "Root Causes", "Scope"], noun="part", owner="its form"))
+    if list(scope) != ["Question", "Answer"] or not all(scope.values()):
+        out.append("its Scope holds %s, not its Question and its Answer" % (", ".join(scope) or "no field"))
+    keys = {c.get("Root Cause", "") for c in causes}
+    for c in causes:
+        missing = [f for f in ROOT_CAUSE_FIELDS if not c.get(f)]
+        out += ["Root Cause %s holds no %s" % (c.get("Root Cause", "?"), f) for f in missing]
+    held = set()
+    for f in flaws:
+        key = f.get("Flaw", "")
+        m = FLAW_KEY.search(key)
+        if m:
+            held.add((m.group(1), int(m.group(2)), m.group(3).strip()))
+        applies = f.get("Still Applies", "").strip("`")
+        if applies not in ("yes", "no"):
+            out.append("Flaw %s's Still Applies is neither yes nor no: %s" % (key, applies or "none"))
+        elif applies == "no" and not f.get("Why Not"):
+            out.append("Flaw %s no longer applies, and holds no Why Not" % key)
+        elif applies == "yes" and not f.get("Root Cause"):
+            out.append("Flaw %s still applies, and holds no Root Cause" % key)
+        elif applies == "yes" and f.get("Root Cause").strip("`") not in keys:
+            out.append("Flaw %s names the Root Cause %s, which the diagnosis does not hold" % (key, f.get("Root Cause")))
+    out += ["it leaves out %s/%d.md [Finding: %s], a finding of its flaw set" % k
+            for k in sorted(flaw_set(design, entries) - held)]
+    return ["%s: %s (%s)" % (rel_to(path, root), p, DIAGNOSIS_RULE) for p in out]
+
+
 def write_design(design, raw, new):
     """Write a design's new text, keeping the line endings its file had."""
     design.write_bytes((new.replace("\n", "\r\n") if "\r\n" in raw else new).encode("utf-8"))
@@ -1981,6 +2151,16 @@ def log_entry(value):
     if declared or kind not in kinds:
         return report("log-entry, not logged", [(design.stem, p) for p in
                                                      [p for _, p in declared] + entry_problems(kind, fields, values, counts, kinds)])
+    # working-files/main.md § Design Log Entry: the old entry and the old field, read only in a log written before
+    # them, are written in no entry now
+    if kind == OLD_REASSESSMENT:
+        return report("log-entry, not logged", [(LOG_RULE, "a `reassessment` entry, written in no entry now: the step "
+                                                 "back takes a `step-back` entry, and a design reassessment a "
+                                                 "`design-reassessment` entry")])
+    if any(k == CUTS_SHORT for k, _ in fields):
+        return report("log-entry, not logged", [(LOG_RULE, "a Cuts Short, written in no entry now: a check's report "
+                                                 "states how it ended, and the Running Work holds the calls on work "
+                                                 "that had handed nothing back")])
     given = [k for k, _ in fields if counts.get(k)]
     if given:
         return report("log-entry, not logged", [(COUNT_RULE, "a count given, which is taken from the check's report "
@@ -2008,7 +2188,7 @@ def log_entry(value):
             write_script_output(report_path, self_review_output(root, design, text))
         problems, found = entry_report_problems(root, design, text, kind, count)
         if problems:
-            return report("log-entry, not logged", problems)
+            return report("log-entry, not logged", returned_report(root, design, kind, count, report_path) or problems)
         # the entry stamped at the version its report read, one the log held
         # @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: entry-at-the-version-read]
         read_version = report_version(found)
@@ -2023,6 +2203,12 @@ def log_entry(value):
         fields = [(k, str(taken[k])) if counts.get(k) else (k, dict(fields)[k]) for k in kinds[kind]
                   if counts.get(k) or k in dict(fields)] + [(k, v) for k, v in fields if k not in kinds[kind]]
     problems = entry_problems(kind, fields, values, counts, kinds)
+    if kind == DESIGN_REASSESSMENT and not problems:
+        decisions = fact_values("design reassessment")
+        if dict(fields).get("Decision") not in decisions:
+            problems.append("a design-reassessment entry's Decision is not one of %s: %s"
+                            % (", ".join(decisions), dict(fields).get("Decision")))
+        problems += diagnosis_problems(repo_root(), design, text, count, dict(fields))
     # the Settled Sub-scopes keep each sub-scope holding a file the design changed, read as the entry is appended,
     # since the changes then stand no longer once the design commits
     # @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: settled-sub-scopes-keep-what-changed]
@@ -2091,7 +2277,10 @@ AUDITS = ("audit-specs", "verify-spec-implementation")
 # review's field or every other report's; and the Settlement's fields, in their order
 READ_VERSION = "Design Version"
 REVIEW_READING, OWN_READING = "Reviewer Readings", "Reads"
-SETTLEMENT_FIELDS = ("Earlier Reports", "Settling Reads", "Settlements")
+SETTLEMENT_FIELDS = ("Ending", "Earlier Reports", "Settling Reads", "Settlements")
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § The Reading and the Settlement
+# the endings a report's Settlement states, the first held alone and each other followed by a comma and what ended it
+OWN_SETTLING, DECIDED, CUT_SHORT = "its own settling", "decided", "cut short"
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Who Writes Each Part
 # the parts a cold agent writes in a review's or a handed-off judgment's report, its Title among them, the parts the
 # builder and the design script write in it, and the parts holding records, each by its type's Plural Name
@@ -2129,7 +2318,7 @@ INDICATORS = ("Required By", "Fix Authority", "User Decision")
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Settlement § User Decisions
 # the decisions under which no fix of a Settlement's findings is made
 UNFIXED = ("left as it stands", "sent back", "carried by the approval", "carried by a steer", "cut at the secondary",
-           "hand on")
+           "hand on", "taken by the step back")
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
 # the fields a Settlement holds with its assessment and its order, none of which a report settled before them holds
 ASSESSED = ("Justifying Goals", "Justifying Rules", "Assessment", "Order", "Places") + INDICATORS
@@ -2155,6 +2344,7 @@ NONE_HELD = {("Reading", "Reads"), ("Settlement", "Earlier Reports"), ("Settleme
 EVERY_SELF_REVIEW = ("steers against the user's messages", "linked work")
 USER_EDIT, WORKED_CASE, MISS_QUESTION, DIFFERENTIAL = "user edit", "worked case", "miss's question", "differential test"
 CARRIED = "carried finding"
+DIAGNOSIS_ANSWERED = "diagnosis answered"
 # the check every self-review over applied work of a design of these Kinds requires
 CONSTRUCT_CHOICE, SPEC_KINDS = "construct choice", ("canon-specs", "application-specs")
 SCRIPTS = (".py", ".ps1", ".sh")
@@ -2443,15 +2633,20 @@ def form_problems(rep, ctx, types, parts):
     recs = rep["records"]
     settlements = rep["settlements"] + ctx["judgment_settlements"]
     required = {"Reading"} if reviewer else {"Reading", "Settlement"}
+    # whether the round ended other than by its own settling: read from its Ending where it states one, else, for a
+    # report written before the statement, from the log
+    ending = report_ending(rep)
+    ended = ctx.get("ended", False) if ending is None else ending != OWN_SETTLING
     if not reviewer:
         if kind == "self-review":
             required.add("Script Output")
-        if review and ctx.get("ended", False) is False and any(s.get("Verdict") in MARKS for s in settlements):
+        if review and ended is False and any(s.get("Verdict") in MARKS for s in settlements):
             required.add("Causes")
     for p in sorted(required - set(held), key=order.index):
         out.append((rule(p), "it holds no %s part, which its form requires of it" % p))
-    if ctx.get("ended") and "Causes" in held:
-        out.append((rule("Causes"), "it holds a Causes part, though the user ended its round"))
+    if ended and "Causes" in held:
+        out.append((rule("Causes"), "it holds a Causes part, though its round ended %s" % (
+            "by the user" if ending is None else "`%s`" % ending)))
     # its Reading's field, and its Settlement's fields, in their order
     # a report the log holds already, written before its Reading held the version read, read under the fields it was
     # written with
@@ -2467,6 +2662,17 @@ def form_problems(rep, ctx, types, parts):
         if keys != [k for k in SETTLEMENT_FIELDS if k in keys] or any(k not in SETTLEMENT_FIELDS for k in keys):
             out.append((rule("Settlement"), constructs.block_refusal("its Settlement", keys, SETTLEMENT_FIELDS, owner="its form")))
         has = dict.fromkeys(keys)
+        # a report the log holds already, written before its Settlement stated how its check ended, read under the
+        # fields it was written with
+        owed = owes_ending(kind) and not (ctx.get("logged") and "Ending" not in keys)
+        require(cond, "its Settlement", has, "Ending", owed, "where the report owes the statement of how its check ended")
+        if "Ending" in keys and owes_ending(kind):
+            ending = report_ending(rep)
+            if ending is None:
+                cond.append("its Settlement's Ending is neither `%s` nor `%s` or `%s` followed by a comma and what ended it"
+                            % (OWN_SETTLING, DECIDED, CUT_SHORT))
+            elif ending == DECIDED and not review:
+                cond.append("its Settlement's Ending is `%s`, which only a review's round is" % DECIDED)
         require(cond, "its Settlement", has, "Earlier Reports", True, "always")
         require(cond, "its Settlement", has, "Settling Reads", review, "where the report is a review's")
         require(cond, "its Settlement", has, "Settlements", bool(recs["Findings"]), "where the report holds a Finding")
@@ -2577,9 +2783,10 @@ def form_problems(rep, ctx, types, parts):
             if fixed or "Places" not in s or "Cause" in s:
                 require(cond, where, s, "Places", fixed, "where its findings' fix is made and no Cause of the report carries it")
     causes = {c.get("Cause") for c in recs["Causes"]}
+    # a judgment settled with a round holding no Causes, one proposing no change, cites none
     cond += ["a handed-off judgment's Settlement %s, settled with the round, cites no Cause of its report by the report "
              "and the Cause's key" % s.get("Settlement", "") for s in ctx["judgment_settlements"]
-             if s.get("Verdict") in MARKS and not (place_of(s.get("Cause", "")) and cause_key(s["Cause"], ctx["report_rel"]) in causes)]
+             if s.get("Verdict") in MARKS and "Causes" in held and not (place_of(s.get("Cause", "")) and cause_key(s["Cause"], ctx["report_rel"]) in causes)]
     out += [(rule("Settlement"), c) for c in cond]
     return out
 
@@ -2783,7 +2990,7 @@ def order_problems(rep, ctx, named):
     """-> [(rule, message)]: a Settlement or a Changed Place stating an order other than its lineage gives, as § A
     Check's Report § What the Design Script Checks works it out: a Settlement's from its own Lands On and from the Lands
     On of each finding it settles, taking the deeper. A Lands On counts only where the report it cites is of the
-    design's current major version, cut short by no reassessment and no set of steers, and the change it names counts
+    design's current major version and not cut short, and the change it names counts
     for a line, one taken in by
     widening the goals starting its line again."""
     out, settling, causing = [], ctx["rule"]("Settlement"), ctx["rule"]("Causes")
@@ -3181,12 +3388,12 @@ def over_applied(entries):
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Over Applied Work, and a Phase's Record
 def phase_start(entries, applied):
     """-> where the phase an entry appended after these stands in starts: a post-apply review's after the design's last
-    apply entry, and an adversarial review's after its last reassessment entry deciding other than go on or its last
-    entered entry sent back, to reassess or not, whichever stands later, or at the log's start."""
+    apply entry, and an adversarial review's after its last `design-reassessment` entry, an old reassessment read as
+    one, or its last entered entry sent back, to the step back or not, whichever stands later, or at the log's start."""
     if applied:
         return max(i for i, e in enumerate(entries) if e[0] == "apply") + 1
-    return max([i + 1 for i, (k, _, f) in enumerate(entries)
-                if (k == "reassessment" and f.get("Decision") != "go on") or (k == "entered" and f.get("Reason") in ("sent back", "sent back to reassess"))],
+    return max([i + 1 for i, e in enumerate(entries)
+                if starts_major(e) or (e[0] == "entered" and e[2].get("Reason") in SENT_BACK)],
                default=0)
 
 
@@ -3196,18 +3403,18 @@ def phase_record(design, entries, applied, root):
     the phase, its review entries' and its handed-off judgments', of the current major version and none cut short; no steer
     unbinds one."""
     review = REVIEWS[1] if applied else REVIEWS[0]
-    start, held = max(phase_start(entries, applied), major_start(entries)), set(binding(entries))
+    start, held = max(phase_start(entries, applied), major_start(entries)), set(binding(entries, design))
     return [(rel_to(report_file(design, k, n), root), load_report(design, k, n))
             for i, (k, n, _) in enumerate(entries) if i >= start and i in held and k in (review, JUDGMENT)]
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Over Applied Work, and a Phase's Record
-def carried_reports(entries):
+def carried_reports(entries, design=None):
     """-> [(kind, n)] for each check's entry over an apply the design was sent back from whose report binds the design
-    still: one of the current major version, cut short by no reassessment and no set of steers, standing after that
+    still: one of the current major version and not cut short, standing after that
     apply entry and before the next
     entered entry, no post-apply-review entry standing after a later apply entry."""
-    out, held = [], set(binding(entries))
+    out, held = [], set(binding(entries, design))
     for a, (k, _, _) in enumerate(entries):
         if k != "apply" or a not in held:
             continue
@@ -3308,11 +3515,11 @@ def required_checks(ctx, reads=None):
     after a send-back and before the plan's next approval, a carried finding for each Finding a binding report over the
     apply gives Lies In the plan or a Carried By."""
     entries, out = ctx["entries"], [(k, []) for k in EVERY_SELF_REVIEW]
-    back = max((i for i, e in enumerate(entries) if e[0] == "entered" and e[2].get("Reason") in ("sent back", "sent back to reassess")), default=-1)
+    back = max((i for i, e in enumerate(entries) if e[0] == "entered" and e[2].get("Reason") in SENT_BACK), default=-1)
     if back > max((i for i, e in enumerate(entries) if e[0] == "apply"), default=-1) \
             and not any(e[0] == "plan-approval" for e in entries[back + 1:]):
         carried = [(rel_to(report_file(ctx["design_path"], k, n), ctx["root"]), "Findings", "Finding: " + f)
-                   for k, n in carried_reports(entries)
+                   for k, n in carried_reports(entries, ctx["design_path"])
                    for s in load_report(ctx["design_path"], k, n)["settlements"]
                    if (s.get("Lies In") == "the plan" or s.get("Carried By", "").strip() not in ("", "none"))
                    and s.get("Verdict") in MARKS for f in settled_findings(s)]
@@ -3331,6 +3538,18 @@ def required_checks(ctx, reads=None):
         worked = [(path, "Causes", "Cause: " + c.get("Cause", "")) for c in rep["records"]["Causes"] if c.get("Proposed Change")]
         worked += [(path, "Findings", "Finding: " + k) for k, w in last_words(rep).items() if w == "implementation flaw"]
         out += [(WORKED_CASE, worked)] if worked else []
+    # the self-review before a rebuilt design's first adversarial round: each Root Cause, and each Flaw still applying,
+    # of the diagnosis the design is rebuilt from
+    own = next((i for i, (k, m, _) in enumerate(entries) if "%s-%d" % (k, m) == ctx["entry"]), len(entries))
+    starts = [i for i in major_starts(entries) if i < own]
+    if starts and entries[starts[-1]][0] == DESIGN_REASSESSMENT and not any(e[0] == REVIEWS[0] for e in entries[starts[-1] + 1:own]):
+        path = diagnosis_file(ctx["design_path"], entries[starts[-1]][2])
+        if path is not None:
+            _, flaws, causes, _, _ = read_diagnosis(read(path))
+            rel = rel_to(path, ctx["root"])
+            answered = [(rel, "Root Causes", "Root Cause: " + c.get("Root Cause", "")) for c in causes] + \
+                       [(rel, "Flaws", "Flaw: " + f.get("Flaw", "").strip("`")) for f in flaws if f.get("Still Applies", "").strip("`") == "yes"]
+            out += [(DIAGNOSIS_ANSWERED, answered)] if answered else []
     if ctx["applied"]:
         import code_checks
         skills, code = skill_dirs(ctx["root"]), code_checks.code_roots(ctx["root"]) or ([], [])
@@ -3400,6 +3619,26 @@ def settlement_block(rep):
     return {f["key"]: record_types.value_of(f) for f in rep["blocks"].get("Settlement", [])}
 
 
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Ending Statement Owed
+def owes_ending(kind):
+    """Whether the report of a check of this kind states how its check ended: a review's round, a research share or a
+    handed-off judgment, and the audit's triage, but not the builder's own pass or self-review."""
+    return kind in REVIEWS + (JUDGMENT,) + AUDITS
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Check Ending
+def report_ending(rep):
+    """-> the ending a report's Settlement states, `its own settling`, `decided` or `cut short`; None where it states
+    none, or one out of the field's form."""
+    value = str(settlement_block(rep).get("Ending", "") or "").replace("`", "").strip()
+    if value == OWN_SETTLING:
+        return OWN_SETTLING
+    for ending in (DECIDED, CUT_SHORT):
+        if value.startswith(ending + ",") and value[len(ending) + 1:].strip():
+            return ending
+    return None
+
+
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: earlier-reports-listed]
 def earlier_report_problems(rep, ctx):
     """-> [(rule, message)]: a report of the phase's record a round's Earlier Reports leave out."""
@@ -3466,11 +3705,11 @@ def steer_cut(design_text, kind, n, read_at=None):
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: orders-follow-their-lineage]
 def counted_reports(root, design, entries):
-    """-> the reports of the checks' entries among these of the design's current major version, cut short by no
-    reassessment and no set of steers, whose changes count in a later finding's order; a set of steers changing the
+    """-> the reports of the checks' entries among these of the design's current major version and not
+    cut short, whose changes count in a later finding's order; a set of steers changing the
     goals leaves every line counting."""
     kinds = log_type()[2]
-    return {rel_to(report_file(design, entries[i][0], entries[i][1]), root) for i in binding(entries)
+    return {rel_to(report_file(design, entries[i][0], entries[i][1]), root) for i in binding(entries, design)
             if "Model" in kinds.get(entries[i][0], ())}
 
 
@@ -3495,7 +3734,7 @@ def report_context(root, design, design_text, kind, n, entries, reviewer=False):
         """-> the Area of each Read Assessment in the report of a handed-off judgment the design's log names, read once."""
         if not held:
             # the research of the current major version alone stands (working-files/main.md § A Design Document § Assessed Area)
-            held.append([p for k, m, _ in (entries[i] for i in binding(entries)) if k == JUDGMENT
+            held.append([p for k, m, _ in (entries[i] for i in binding(entries, design)) if k == JUDGMENT
                          for a in load_report(design, k, m)["records"]["Read Assessments"]
                          for p in [place_of(a.get("Area", ""))] if p])
         return held[0]
@@ -3571,7 +3810,7 @@ def entry_report_problems(root, design, design_text, kind, n, report_text=None):
 
 
 # the script checks of research the design script carries out, by the rules naming them
-CAUSE_RULE = WF + " § A Check's Report § Script Checks [Name: reassessments-name-their-cause]"
+CAUSE_RULE = WF + " § A Check's Report § Script Checks [Name: area-reassessments-name-their-cause]"
 RESEARCH_COVERS_RULE = WF + " § A Check's Report § Script Checks [Name: research-covers-its-matches]"
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Read Assessment
 # the field a Read Assessment names the cause of assessing an area again in
@@ -3590,7 +3829,7 @@ def research_indexes(design, entries, among):
             and load_report(design, entries[i][0], entries[i][1])["records"]["Read Assessments"]]
 
 
-# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: reassessments-name-their-cause]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: area-reassessments-name-their-cause]
 def cause_problems(rep, ctx, design, entries, named):
     """-> [(rule, message)]: in a research report whose entry is being appended, each Read Assessment assessing again an
     Area a binding research report the log holds already assesses, holding no Assessed Again For, or naming a cause that
@@ -3601,7 +3840,7 @@ def cause_problems(rep, ctx, design, entries, named):
     if ctx["kind"] != JUDGMENT or not rep["records"]["Read Assessments"]:
         return []
     root, by_area = ctx["root"], {}
-    for i in research_indexes(design, entries, binding(entries)):
+    for i in research_indexes(design, entries, binding(entries, design)):
         k, n, _ = entries[i]
         erep = load_report(design, k, n)
         for a in erep["records"]["Read Assessments"]:
@@ -3661,7 +3900,7 @@ def coverage_due(design, kind, entries):
     checks = {k for k, fs in log_type()[2].items() if "Model" in fs}
     if kind == JUDGMENT or kind not in checks:
         return False
-    research = research_indexes(design, entries, binding(entries))
+    research = research_indexes(design, entries, binding(entries, design))
     last_other = max((i for i, e in enumerate(entries) if e[0] in checks and e[0] != JUDGMENT), default=-1)
     return bool(research) and research[-1] > last_other
 
@@ -3671,7 +3910,7 @@ def union_coverage_problems(root, design, design_text, entries, ctx=None, among=
     """-> [(rule, message)]: each match outside the design document of a Search any of the design's binding research
     reports holds, its Pattern run again over its ground, lying within no Read Assessment's Area of any of them; among,
     where given, the indexes of the research entries read, else every binding research report."""
-    idx = research_indexes(design, entries, binding(entries)) if among is None else among
+    idx = research_indexes(design, entries, binding(entries, design)) if among is None else among
     reports = [(rel_to(report_file(design, entries[i][0], entries[i][1]), root),
                 load_report(design, entries[i][0], entries[i][1])) for i in idx]
     if not reports:
@@ -3784,11 +4023,12 @@ def check_handed_back(value):
     return report("check-handed-back " + rel_to(value, root), handed_back_problems(root, design, kind, n, value))
 
 
-def handed_back_problems(root, design, kind, n, value):
+def handed_back_problems(root, design, kind, n, value, text=None):
     """-> [(rule, message)]: a review's or a handed-off judgment's report as its cold agent hands it back, its parts held
-    to their form and no part held that the builder or the design script writes."""
+    to their form and no part held that the builder or the design script writes; text, where given, the report's text
+    in place of its file's."""
     design_text = read(design).replace("\r\n", "\n")
-    rep = read_report(read(Path(value)))
+    rep = read_report(text if text is not None else read(Path(value)))
     ctx = report_context(root, design, design_text, kind, n, log_entries(design_text), reviewer=True)
     problems = form_problems(rep, ctx, report_types(root), report_parts(root))
     if rep["in_form"]:
@@ -3866,6 +4106,47 @@ def cold_parts_problems(rep, kind):
     return out
 
 
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Who Writes Each Part § The Report's Workflow
+def cleared_report(text, kind):
+    """-> a report's text holding the parts its cold agent wrote alone, every part the builder and the take-up wrote
+    cleared: its Hand-back, its Script Output, its Causes, its Settlement, and the builder's Searches after a review's."""
+    texts, lines = part_texts(text), []
+    counted = {}
+    for line in texts.get(HAND_BACK, [])[1:]:
+        m = FINGERPRINT.match(line.strip())
+        if m and m["n"]:
+            counted[m["part"]] = int(m["n"])
+    for p, held in texts.items():
+        if p in REVIEWER_PARTS:
+            lines += (held[:counted[p]] if p in counted else held) + [""]
+    return "\n".join(lines).rstrip("\n") + "\n"
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Who Writes Each Part § The Report's Workflow
+def returned_report(root, design, kind, n, path):
+    """-> [(rule, message)] where a check refuses a part the cold agent wrote of a review's or a handed-off judgment's
+    report taken up, the report then written back cleared of every part the builder and the take-up wrote, so it goes
+    back to its cold agent; [] where no cold part is refused, the report left as it stands. A report whose entry the
+    log holds already is never returned, since the return comes before its entry is appended."""
+    if kind not in REVIEWS + (JUDGMENT,) or not path.is_file():
+        return []
+    if any(k == kind and m == n for k, m, _ in log_entries(read(design).replace("\r\n", "\n"))):
+        return []
+    text = read(path).replace("\r\n", "\n")
+    if HAND_BACK not in part_texts(text):
+        return []
+    cleared = cleared_report(text, kind)
+    refused = cold_parts_problems(read_report(text), kind) or handed_back_problems(root, design, kind, n, path, cleared)
+    if not refused:
+        return []
+    path.write_text(cleared, encoding="utf-8")
+    return refused + [(REPORT_WORKFLOW, "%s goes back to its cold agent, every part the builder and the take-up wrote "
+                                        "cleared: the cold agent puts the refused part right and hands it back" % rel_to(path, root))]
+
+
+REPORT_WORKFLOW = WF + " § A Check's Report § Who Writes Each Part § The Report's Workflow"
+
+
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: cold-parts-kept]
 def take_up_report(value):
     """--take-up-report REPORT: the builder takes up a review's or a handed-off judgment's report its cold agent handed
@@ -3907,6 +4188,8 @@ def check_settled_report(value):
     held = with_script_output(read(Path(value)), self_review_output(root, design, text)) \
         if kind == "self-review" and not logged else None
     problems, _ = entry_report_problems(root, design, text, kind, n, held)
+    if problems:
+        problems = returned_report(root, design, kind, n, Path(value)) or problems
     return report("check-settled-report " + rel_to(value, root), problems)
 
 

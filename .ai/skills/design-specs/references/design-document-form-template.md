@@ -92,7 +92,7 @@
     **What:** {places (`specs/methodology/working-files/main.md § Design Plan Step`)} \
     **Why:** {why the step is needed (`specs/methodology/working-files/main.md § Design Plan Step`)} \
     **Depends On Steps:** {none, or a list of steps' Names, one to an item (`specs/methodology/working-files/main.md § Design Plan Step`)} \
-    **Draft:** {this field only where the step carries a Draft, its fenced blocks beneath the key (`specs/methodology/working-files/main.md § Design Plan Step § A Draft`)}
+    **Draft:** {this field only where the step owes a Draft, as `specs/methodology/working-files/main.md § Design Plan Step § A Draft § When a Draft Earns Its Place` has one owed, its fenced blocks beneath the key (`specs/methodology/working-files/main.md § Design Plan Step § A Draft`)}
 
       ```{markdown, or the code's language}
       {the means its builder works out (`specs/methodology/working-files/main.md § Design Plan Step § A Draft`)}
