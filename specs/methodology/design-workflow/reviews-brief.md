@@ -26,7 +26,7 @@ Design: {design document}
 Report: {report file}
 Entry: {the entry the research's check is logged as}
 Cause: {the research's cause, as specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § Research and specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Zoom-Out name it, by the entry, report or key recording it}
-Places to read: {each place the builder knows to read, one to a line}
+Places to read: {each place the builder knows to read within your share, one to a line}
 Share: {each place of your share, one to a line; or none, where the research is not shared}
 Searches: {each Search, its key, what it is for, the goals it serves and its pattern, one to a line}
 

@@ -62,7 +62,7 @@
       - {the places its matches lie in, a list as the section A Value Holding Places has a value holding places written, `none` where it matched nothing ([`specs/methodology/working-files/main.md § A Check's Report § Search`](/specs/methodology/working-files/main.md#search))}
 
     **Goals:**
-      - {kept where it stands in a report of research whose entry follows a `steer` entry in the design's log: a list, each item the Name of a design goal (the section Design Goal) the research it serves was made for, so a change at the goals finds the research it reaches ([`specs/methodology/working-files/main.md § A Check's Report § Search`](/specs/methodology/working-files/main.md#search))}
+      - {kept where it stands in a report of research: a list, each item the Name of a design goal (the section Design Goal) the research it serves was made for, so a change at the goals finds the research it reaches ([`specs/methodology/working-files/main.md § A Check's Report § Search`](/specs/methodology/working-files/main.md#search))}
 
 ## Read Assessments
 
@@ -75,7 +75,7 @@
 
     **Reason:** {why the area bears on the design as its Impact says, the words it draws on quoted among it ([`specs/methodology/working-files/main.md § A Check's Report § Read Assessment`](/specs/methodology/working-files/main.md#read-assessment))} \
     **Goals:**
-      - {kept where its report's entry follows a `steer` entry in the design's log: a list, each item the Name of a design goal (the section Design Goal) the assessment was made for, so a change at the goals finds the assessments it reaches ([`specs/methodology/working-files/main.md § A Check's Report § Read Assessment`](/specs/methodology/working-files/main.md#read-assessment))}
+      - {a list, each item the Name of a design goal (the section Design Goal) the assessment was made for, so a change at the goals finds the assessments it reaches ([`specs/methodology/working-files/main.md § A Check's Report § Read Assessment`](/specs/methodology/working-files/main.md#read-assessment))}
 
     **Assessed Again For:** {kept where a research report binding the design already assesses its Area: the cause the area is assessed again for, as the section Research has an area assessed again: the Entry of the `steer` entry marking a set of steers, or a finding, cited as a part of the report holding it ([`specs/methodology/working-files/main.md § A Check's Report § Read Assessment`](/specs/methodology/working-files/main.md#read-assessment))}
 
