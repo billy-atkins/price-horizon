@@ -94,12 +94,12 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
     **Caught By:**
       - the user
 
-  - **Failure:** a design revised past a run the user did not have go on \
+  - **Failure:** a design fixed past a run's length \
     **Sections:**
       - [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)
 
     **Rule:** [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) \
-    **Leaves:** the design's log, whose entries show the rounds of the run \
+    **Leaves:** the design's log, whose entries show the rounds of the run and a change made after the run's last round \
     **Caught By:**
       - the user
 
@@ -222,7 +222,7 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
     **Caught By:**
       - [`specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: builder-checks-required]`](/specs/methodology/working-files/main.md#script-checks-1)
 
-  - **Failure:** a draft on goals or a frame the user has not agreed \
+  - **Failure:** a draft on goals or a frame the user has not agreed to \
     **Sections:**
       - [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)
 
@@ -345,16 +345,25 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
       - [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)
 
     **Rule:** [`specs/AGENTS.md § Design, Refactor, Refine § Who Decides § A Set of Steers`](/specs/AGENTS.md#a-set-of-steers) \
-    **Leaves:** a set's entry whose Running Work names no call on work then running, or a check cut short that no Cuts Short names \
+    **Leaves:** a set's entry whose Running Work names no call on work then running, or a check stopped after it handed back findings whose report states no ending \
     **Caught By:**
       - the user
 
-  - **Failure:** a design revised past a completed run with no reassessment entry \
+  - **Failure:** a step back with no entry of the user's call \
     **Sections:**
       - [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)
 
     **Rule:** [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) \
-    **Leaves:** a log holding no `reassessment` entry after the run's last round \
+    **Leaves:** a log holding, after a run's last round, no entry of the call the user made at the step back \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a design reassessment made with no diagnosis \
+    **Sections:**
+      - [`specs/methodology/working-files/main.md § A Diagnosis`](/specs/methodology/working-files/main.md#a-diagnosis)
+
+    **Rule:** [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) \
+    **Leaves:** a design rebuilt after the step back whose log holds no `design-reassessment` entry naming a diagnosis before the rebuilt goals' `goals-agreed` entry \
     **Caught By:**
       - the user
 
@@ -707,8 +716,9 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
       - [`specs/methodology/working-files/main.md § Design Log Entry § When an Entry Is Appended`](/specs/methodology/working-files/main.md#when-an-entry-is-appended)
 
     **Rule:** [`specs/methodology/working-files/main.md § Design Log Entry § When an Entry Is Appended`](/specs/methodology/working-files/main.md#when-an-entry-is-appended) \
-    **Leaves:** a Cuts Short naming an entry the log never holds, or a report holding a finding no Settlement settles \
+    **Leaves:** a report of a check cut short holding a finding no Settlement settles, or stating no ending \
     **Caught By:**
+      - [`specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]`](/specs/methodology/working-files/main.md#script-checks-1)
       - [`specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: findings-settled-once]`](/specs/methodology/working-files/main.md#script-checks-1)
       - the user
 
@@ -892,9 +902,10 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
   - **Failure:** a design lagging a steer \
     **Sections:**
       - [`specs/methodology/working-files/main.md § Steering Decision § When a Steer Is Recorded`](/specs/methodology/working-files/main.md#when-a-steer-is-recorded)
+      - [`specs/methodology/working-files/main.md § Steering Decision § Revisiting a Steer`](/specs/methodology/working-files/main.md#revisiting-a-steer)
 
     **Rule:** [`specs/methodology/working-files/main.md § Steering Decision § When a Steer Is Recorded`](/specs/methodology/working-files/main.md#when-a-steer-is-recorded) \
-    **Leaves:** a design not yet carrying out a steer it records \
+    **Leaves:** a design not yet carrying out a directive it records, or departing from an agreement with no revision recorded citing it \
     **Caught By:**
       - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`](/specs/AGENTS.md#check-roles)
       - the user
@@ -904,7 +915,7 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
       - [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Order of a Design's Parts`](/specs/AGENTS.md#the-order-of-a-designs-parts)
 
     **Rule:** [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Order of a Design's Parts`](/specs/AGENTS.md#the-order-of-a-designs-parts) \
-    **Leaves:** a frame out of sync with its steers or its steps, a Frame Outcome untrue of them among it \
+    **Leaves:** a frame out of sync with its directives, with an agreement it has not revised on the record, or with its steps, such as a Frame Outcome untrue of the steps \
     **Caught By:**
       - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`](/specs/AGENTS.md#check-roles)
       - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the builder's self-review]`](/specs/AGENTS.md#check-roles)
