@@ -10,7 +10,7 @@ finding and never affecting the exit status.
 Standard library and the code the skills share in .ai/skills/lib/ only: spec_checks.py, every check and candidate
 list it runs, one copy of each; layout.py and record_types.py, the checks of a block of fields and of a blank line it
 runs over a file it is given; spec_text.py, the reading of a spec's text; and design_documents.py and code_checks.py,
-the kind of change a file is of, which a run's scopes are read by. See SKILL.md.
+the kind of change a file is of, which a run's sub-scopes are read by. See SKILL.md.
 """
 
 import argparse
@@ -26,14 +26,14 @@ import layout  # noqa: E402
 import spec_checks  # noqa: E402
 from record_types import block_findings  # noqa: E402
 from spec_text import md_files, read, skill_dirs  # noqa: E402
-# the scope names, one copy in the shared code, annotated there to the canon's table of scopes
-from design_documents import SCOPES  # noqa: E402
+# the sub-scope names, one copy in the shared code, annotated there to the canon's table of sub-scopes
+from design_documents import SUB_SCOPES  # noqa: E402
 
 
-def in_scope(scope, path, kind):
-    """Whether a file, of the kind design_documents.file_kind gives it, lies in the scope a run is given, as
-    design_documents.scope_of gives a file its scope."""
-    return design_documents.scope_of(path, kind) == scope
+def in_sub_scope(scope, path, kind):
+    """Whether a file, of the kind design_documents.file_kind gives it, lies in the sub-scope a run is given, as
+    design_documents.sub_scope_of gives a file its sub-scope."""
+    return design_documents.sub_scope_of(path, kind) == scope
 
 
 def kind_of_file(root):
@@ -61,9 +61,9 @@ def main(argv):
     parser.add_argument("--check-layout", nargs="+", metavar="FILE",
                         help="run the layout check and the reader's checks of a block over the given Markdown files alone, "
                              "as the Working-file form audit runs them over .ai/follow-ups.md; exits 1 on any finding")
-    parser.add_argument("--scope", nargs="+", choices=SCOPES,
+    parser.add_argument("--sub-scope", nargs="+", choices=SUB_SCOPES,
                         help="with --check-scope or --list-candidates, report only the findings, warnings or "
-                             "candidates in the files of the scopes given, the checks still run over the whole of "
+                             "candidates in the files of the sub-scopes given, the checks still run over the whole of "
                              "Spec of Record's scope; every one unless given")
     parser.add_argument("--root", metavar="DIR", default=".",
                         help="the project root the scope is read from; the current directory unless given")
@@ -75,10 +75,10 @@ def main(argv):
     if not (root / "specs").is_dir():
         parser.error(f"--root {args.root} holds no specs/ directory")
     status = 0
-    # a test of a path, true of every path where no scope is given
-    if args.scope:
+    # a test of a path, true of every path where no sub-scope is given
+    if args.sub_scope:
         kind = kind_of_file(root)
-        keep = lambda path: any(in_scope(s, path, kind(path)) for s in args.scope)  # noqa: E731
+        keep = lambda path: any(in_sub_scope(s, path, kind(path)) for s in args.sub_scope)  # noqa: E731
     else:
         keep = lambda path: True  # noqa: E731
 

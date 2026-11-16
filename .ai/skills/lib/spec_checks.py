@@ -912,7 +912,7 @@ def check(root, warned=None):
     found += mapping_rule_findings(root)
     found += example_pointer_findings(root)
     found += scope_findings(root)
-    found += audit_scope_findings(root)
+    found += sub_scope_findings(root)
     found += voice_table_findings(root)
     found += [(LINK_RULE, path, line, problem) for path, line, problem in citation_links.problems(root)]
     found += glossary_findings(root)
@@ -1725,19 +1725,19 @@ def script_check_carried_out_findings(root):
     return out
 
 
-AUDIT_SCOPES_HOME = "specs/methodology/design-workflow/designs-reviews.md"
+SUB_SCOPES_HOME = "specs/methodology/design-workflow/designs-reviews.md"
 
 
-def audit_scope_findings(root):
-    """The scope names the skills' shared code copies, against the Audit Scopes table they are copied from."""
-    from design_documents import SCOPES
-    text = read(root / AUDIT_SCOPES_HOME)
-    table = re.search(r'^\*\*Table Name:\*\* Audit Scopes \\\n(?:[^\n]+\n)*\n\|[^\n]*\n\|[-| ]+\|\n((?:\|[^\n]*\n)+)', text, re.M)
+def sub_scope_findings(root):
+    """The sub-scope names the skills' shared code copies, against the Sub-scopes table they are copied from."""
+    from design_documents import SUB_SCOPES
+    text = read(root / SUB_SCOPES_HOME)
+    table = re.search(r'^\*\*Table Name:\*\* Sub-scopes \\\n(?:[^\n]+\n)*\n\|[^\n]*\n\|[-| ]+\|\n((?:\|[^\n]*\n)+)', text, re.M)
     if not table:
-        return [(AUTHORING, AUDIT_SCOPES_HOME, 0, "the Audit Scopes table is missing")]
+        return [(AUTHORING, SUB_SCOPES_HOME, 0, "the Sub-scopes table is missing")]
     named = re.findall(r'^\|\s*`([^`]+)`\s*\|', table.group(1), re.M)
-    if named != list(SCOPES):
-        return [(AUTHORING, AUDIT_SCOPES_HOME, 0, f"the Audit Scopes table names {named}, not the scopes the scripts read, {list(SCOPES)}")]
+    if named != list(SUB_SCOPES):
+        return [(AUTHORING, SUB_SCOPES_HOME, 0, f"the Sub-scopes table names {named}, not the sub-scopes the scripts read, {list(SUB_SCOPES)}")]
     return []
 
 

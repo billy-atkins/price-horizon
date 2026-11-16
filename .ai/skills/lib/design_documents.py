@@ -50,8 +50,8 @@ from spec_text import resolve as resolve_citation
 KINDS = ("canon-specs", "application-specs", "code", "documentation", "other")
 KIND_LIST = ", ".join(KINDS[:-1]) + " or " + KINDS[-1]
 # @canon-spec specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews
-# the Scopes of the Audit Scopes table, the one copy the audit's script and the log's check both read
-SCOPES = ("core-canon", "skills", "application-specs", "documentation", "other")
+# the Sub-scopes of the Sub-scopes table, the one copy the audit's script and the log's check both read
+SUB_SCOPES = ("core-canon", "skills", "application-specs", "documentation", "other")
 # working-files/main.md § A Design Document and § Steering Decision
 PLANS = ".ai/plans/design-specs"  # set by the entry script calling main
 # @canon-spec specs/methodology/working-files/main.md § A Design Document
@@ -93,6 +93,14 @@ UNTIL_FINISHED = ("Design Goals",)
 # approved or further holds; two of them record sections
 FRAME = ("Scope", "Assessed Areas", "Approach", "Frame Outcomes")
 AREAS, OUTCOMES = "Assessed Areas", "Frame Outcomes"
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Approach Principle
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Scope Case
+# the Scope's cases and the Approach's principles, each by its frame part, its field, its label and its own type's
+# Plural Name
+FRAME_RECORDS = (("Scope", "Cases", "a case", "Scope Cases"), ("Approach", "Principles", "a principle", "Approach Principles"))
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Frame Part
+# the types extending the Frame Part, each part named and resting on goals
+FRAME_PART_TYPES = ("Frame Outcomes", "Scope Cases", "Approach Principles")
 NOT_YET_STATED = "Not yet stated."
 # @canon-spec specs/methodology/working-files/main.md § A Design Document
 # the text a step section holds until drafting states the steps, which no design approved or further holds
@@ -113,6 +121,10 @@ RETIRED_HOME = ("specs/methodology/working-files/main.md", "Retired Phrase")
 AREA_HOME = ("specs/methodology/working-files/main.md", "A Design Document § Assessed Area")
 # @canon-spec specs/methodology/working-files/main.md § A Design Document § Frame Outcome
 OUTCOME_HOME = ("specs/methodology/working-files/main.md", "A Design Document § Frame Outcome")
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Scope Case
+CASE_HOME = ("specs/methodology/working-files/main.md", "A Design Document § Scope Case")
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Approach Principle
+PRINCIPLE_HOME = ("specs/methodology/working-files/main.md", "A Design Document § Approach Principle")
 # @canon-spec specs/methodology/working-files/main.md § Design Plan Step § Step Objective
 OBJECTIVE_HOME = ("specs/methodology/working-files/main.md", "Design Plan Step § Step Objective")
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Read Assessment
@@ -138,10 +150,12 @@ def declaration(home, root=None):
     return ("\n".join(text.split("\n")[found[0] + 1:found[1]]) if found else ""), path
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
 def declared_type(home, plural, root=None, key="Name"):
-    """A record type as its declaration gives it -> (its table of record fields, a row to a field, problems with the
-    declaration: no Record Form, a Plural Name other than the one a design's record section takes, a Reference Key
-    other than the one given, or no table of its record fields)."""
+    """A record type as its declaration gives it -> (its table of record fields, a row to a field, its base's first
+    where it extends one, problems with the declaration: no Record Form, a Plural Name other than the one a design's
+    record section takes, a Reference Key other than the one given, its own or its base's, or no table of record
+    fields, its own or its base's)."""
     title = home[1]
     body, path = declaration(home, root)
     if body is None:
@@ -149,9 +163,12 @@ def declared_type(home, plural, root=None, key="Name"):
     lines = [re.sub(r"\s*\\$", "", l).strip() for l in body.split("\n")]
     problems = [] if "**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form`" in lines \
         else ["no Record Form declares the %s type" % title]
-    if "**Plural Name:** " + plural not in lines:
+    if plural and "**Plural Name:** " + plural not in lines:
         problems.append("the %s type declares no Plural Name %s, the title a design's record section takes" % (title, plural))
-    if "**Reference Key:** " + key not in lines:
+    # a type extending another takes its base's fields first, and its base's Reference Key
+    extends = next((re.search(r"`§ ([^`]+)`", l) for l in lines if l.startswith("**Extends:** ")), None)
+    base, base_problems = declared_type((home[0], extends.group(1)), None, root, key=key) if extends else ([], [])
+    if not extends and "**Reference Key:** " + key not in lines:
         problems.append("the %s type declares no Reference Key %s" % (title, key))
     head = next((i for i, l in enumerate(lines) if l.startswith("| Field | Unique | Required | Default Value | Values |")), None)
     rows = []
@@ -159,9 +176,9 @@ def declared_type(home, plural, root=None, key="Name"):
         if not l.startswith("|"):
             break
         rows.append([c.strip() for c in l.strip("|").split("|")])
-    if not rows:
+    if not rows and not base:
         problems.append("the %s type gives no table of its record fields" % title)
-    return rows, [(path, p) for p in problems]
+    return base + rows, base_problems + [(path, p) for p in problems]
 
 
 def steer_type(root=None):
@@ -396,7 +413,8 @@ def retired_type(root=None):
 
 # the record types of a design's frame, of its steps and of a step's Objectives, and of a report's Read Assessments, each
 # by its home, its Plural Name and its Reference Key, read from its declaration as the others are
-PLAN_TYPES = {AREAS: (AREA_HOME, "Area"), OUTCOMES: (OUTCOME_HOME, "Name"), "Design Plan Steps": (STEP_HOME, "Name"),
+PLAN_TYPES = {AREAS: (AREA_HOME, "Area"), OUTCOMES: (OUTCOME_HOME, "Name"), "Scope Cases": (CASE_HOME, "Name"),
+              "Approach Principles": (PRINCIPLE_HOME, "Name"), "Design Plan Steps": (STEP_HOME, "Name"),
               "Step Objectives": (OBJECTIVE_HOME, "Name"), "Read Assessments": (ASSESSMENT_HOME, "Area")}
 
 
@@ -426,9 +444,9 @@ def impact_members(root=None):
 # fields, record_types.read_block, wherever the form indents them (modeling-constructs.md § Fields)
 
 
-def records_read(body, key="Records"):
-    """-> the items of a section's Records field, or of its field key holding records, as the one reader gives them,
-    wherever the form indents the key, or None where the section has no such field (modeling-constructs.md § Fields)."""
+def field_of(body, key):
+    """-> a section's field key as the one reader gives it, wherever the form indents the key, or None where the
+    section has no such field (modeling-constructs.md § Fields)."""
     if body is None:
         return None
     lines = body.split("\n")
@@ -436,7 +454,13 @@ def records_read(body, key="Records"):
     if i is None:
         return None
     fields, _ = record_types.read_block(lines, i, record_types._indent(lines[i]), len(lines))
-    field = next((f for f in fields if f["key"] == key), None)
+    return next((f for f in fields if f["key"] == key), None)
+
+
+def records_read(body, key="Records"):
+    """-> the items of a section's Records field, or of its field key holding records, as the one reader gives them,
+    wherever the form indents the key, or None where the section has no such field (modeling-constructs.md § Fields)."""
+    field = field_of(body, key)
     return list(field["items"] or []) if field is not None else None
 
 
@@ -593,6 +617,20 @@ def section(text, title):
     rest = text[m.end():]
     nxt = re.search(r"^## ", rest, re.M)
     return rest[:nxt.start()] if nxt else rest
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Design Document
+def not_stated(body):
+    """-> whether a frame part reads `Not yet stated.`, a canon design's Scope holding only its Search Sub-scopes
+    after it, from their settling on."""
+    if body is None:
+        return False
+    b = body.strip()
+    if b == NOT_YET_STATED:
+        return True
+    rest = b[len(NOT_YET_STATED):].strip() if b.startswith(NOT_YET_STATED + "\n") else ""
+    keys = re.findall(r"^\*\*([^*]+):\*\*", rest, re.M)
+    return keys == [SEARCH_SUB_SCOPES] and field_of(rest, SEARCH_SUB_SCOPES) is not None
 
 
 def frame_parts(text):
@@ -806,24 +844,29 @@ def check_steps(body, text=None):
     return problems
 
 
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Approach Principle
 # @canon-spec specs/methodology/working-files/main.md § A Design Document § Assessed Area
 # @canon-spec specs/methodology/working-files/main.md § A Design Document § Frame Outcome
-def check_frame_records(plural, body):
-    """-> problems with the frame's Assessed Areas or Frame Outcomes: `Not yet stated.`, or a Records field and each
-    record its type's fields in order, an Assessed Area's Area one place used once, its Impact a list of the members of
-    Read Assessment Impacts other than `none` and its Assessment one place; a Frame Outcome's Name a slug used once and
-    its Goals a list of Names."""
-    if body is None or body.strip() == NOT_YET_STATED:
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Frame Part
+# @canon-spec specs/methodology/working-files/main.md § A Design Document § Scope Case
+def check_frame_records(plural, body, field="Records", label=None):
+    """-> problems with the frame's Assessed Areas or Frame Outcomes, or with the Scope's Cases or the Approach's
+    Principles, each read by field against its own kind's type, its base's fields first, under its label: `Not yet
+    stated.`, or the field and each record its type's fields in order, an Assessed Area's Area one place used once, its
+    Impact a list of the members of Read Assessment Impacts other than `none` and its Assessment one place; each Frame
+    Part's Name a slug used once and its Goals a list of Names."""
+    if body is None or not_stated(body):
         return []
-    items = records_read(body)
+    where = plural if field == "Records" else "the frame's " + field
+    items = records_read(body, field)
     if items is None:
-        return ["%s has no Records field" % plural]
+        return ["%s has no %s field" % (plural if field == "Records" else "the frame", field)]
     if not items:
-        return ["%s holds no record" % plural]
+        return ["%s holds no record" % where]
     fields, required, declared = plan_type(plural)
     if not fields:
         return [p for _, p in declared] or ["the %s type declares no fields" % PLAN_TYPES[plural][0][1].split(" § ")[-1]]
-    label = "an assessed area" if plural == AREAS else "a frame outcome"
+    label = label or ("an assessed area" if plural == AREAS else "a frame outcome")
     members = [m for m in impact_members()[0] if m != "none"]
     problems, seen = [], set()
     for it in items:
@@ -836,11 +879,12 @@ def check_frame_records(plural, body):
         if key in seen:
             problems.append("two %ss share the %s %s" % (label.split(" ", 1)[1], PLAN_TYPES[plural][1], key))
         seen.add(key)
-        if plural == OUTCOMES:
+        if plural in FRAME_PART_TYPES:
+            noun = label.split(" ", 1)[1]
             if kebab(key) != key:
-                problems.append("a frame outcome's Name is not in kebab-case: " + key)
+                problems.append("%s's Name is not in kebab-case: %s" % (label, key))
             if not names_of(values["Goals"]):
-                problems.append("frame outcome %s's Goals is not a list of goals' Names, one to an item" % key)
+                problems.append("%s %s's Goals is not a list of goals' Names, one to an item" % (noun, key))
             continue
         for k in ("Area", "Assessment"):
             if not place_of(str(record_types.value_of(values[k]))):
@@ -852,17 +896,24 @@ def check_frame_records(plural, body):
 
 
 def read_plan(text):
-    """-> the design's keyed parts by their Names, read from its records: {"goals": [Name], "outcomes": {Name: [goal]},
+    """-> the design's keyed parts by their Names, read from its records: {"goals": [Name], "cases": {Name: [goal]},
+    "principles": {Name: [goal]}, "outcomes": {Name: [goal]},
     "steps": [step as read_steps gives it], "objectives": {Name: (step, its Goals, its Upholds Frame Outcomes)}, "areas":
     [(Area, [Impact], Assessment)], "whole": whether each step and each Objective holds its type's fields}."""
     goals = [str(record_types.value_of(values_of(it)["Name"])).strip() for it in records_read(section(text, "Design Goals")) or []
              if "Name" in values_of(it)]
     frame = frame_parts(text)
-    outcomes, areas = {}, []
-    for it in records_read(frame.get(OUTCOMES)) or []:
-        v = values_of(it)
-        if "Name" in v:
-            outcomes[str(record_types.value_of(v["Name"])).strip()] = names_of(v["Goals"]) or [] if "Goals" in v else []
+    areas = []
+    # the frame's named parts, each read by its Name with the goals it rests on: its cases, its principles and its
+    # Frame Outcomes
+    framed = {}
+    for part, field in [(p, f) for p, f, _, _ in FRAME_RECORDS] + [(OUTCOMES, "Records")]:
+        framed[part] = {}
+        for it in records_read(frame.get(part), field) or []:
+            v = values_of(it)
+            if "Name" in v:
+                framed[part][str(record_types.value_of(v["Name"])).strip()] = names_of(v["Goals"]) or [] if "Goals" in v else []
+    outcomes = framed[OUTCOMES]
     for it in records_read(frame.get(AREAS)) or []:
         v = values_of(it)
         if "Area" in v:
@@ -879,32 +930,30 @@ def read_plan(text):
             whole = whole and list(v) == list(ob_fields)
             if ob["name"] and "Goals" in v and "Upholds Frame Outcomes" in v:
                 objectives[ob["name"]] = (step["name"], names_of(v["Goals"]) or [], names_of(v["Upholds Frame Outcomes"]) or [])
-    return {"goals": goals, "outcomes": outcomes, "steps": steps, "objectives": objectives, "areas": areas, "whole": whole}
+    return {"goals": goals, "cases": framed["Scope"], "principles": framed["Approach"], "outcomes": outcomes,
+            "steps": steps, "objectives": objectives, "areas": areas, "whole": whole}
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Design Document § The Record's Checks
 def reference_problems(text, plan):
     """-> problems with the references within a design, the References check of working-files/main.md § A Design Document § The Record's Checks:
     each Name a Frame Outcome's Goals, a step's Depends On Steps, and a step Objective's Goals and Upholds Frame
-    Outcomes hold, and each goal the Scope's cases and its Approach cite, naming a part the design holds; no Name two kinds of part take; each goal served by a step Objective
+    Outcomes hold, and a case's and a principle's Goals, naming a part the design holds; no Name two kinds of part take; each goal served by a step Objective
     and each Frame Outcome upheld by one, once each step and each Objective holds its type's fields; and no step
     depending on itself through the steps it depends on, nor standing before a step it depends on."""
     problems = []
     goals, outcomes = plan["goals"], plan["outcomes"]
     steps = [s["name"] for s in plan["steps"] if s["name"]]
     kinds = collections.defaultdict(list)
-    for kind, names in (("a goal", goals), ("a frame outcome", outcomes), ("a step", steps), ("a step objective", plan["objectives"])):
+    for kind, names in (("a goal", goals), ("a case", plan["cases"]), ("a principle", plan["principles"]),
+                        ("a frame outcome", outcomes), ("a step", steps), ("a step objective", plan["objectives"])):
         for n in dict.fromkeys(names):
             kinds[n].append(kind)
     problems += ["the Name %s is taken by %s, where one part of the design takes a Name" % (n, " and ".join(k))
                  for n, k in kinds.items() if len(k) > 1]
-    for name, named_goals in outcomes.items():
-        problems += ["frame outcome %s's Goals names %s, no goal the design holds" % (name, g) for g in named_goals if g not in goals]
-    frame = frame_parts(text)
-    for part in ("Scope", "Approach"):
-        cited = re.findall(r"§ Design Goals \[Name: ([^\]`]+)\]", frame.get(part) or "")
-        problems += ["the %s cites the goal %s, which the design does not hold" % (part, g)
-                     for g in dict.fromkeys(c.strip() for c in cited) if g not in goals]
+    for noun, held in (("case", plan["cases"]), ("principle", plan["principles"]), ("frame outcome", outcomes)):
+        for name, named_goals in held.items():
+            problems += ["%s %s's Goals names %s, no goal the design holds" % (noun, name, g) for g in named_goals if g not in goals]
     depends = {}
     for s in plan["steps"]:
         field = s["fields"].get("Depends On Steps")
@@ -942,16 +991,16 @@ def reference_problems(text, plan):
 
 
 
-# @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: scopes-named]
-# the fields holding scopes, each a list of Scopes
-SCOPE_FIELDS = ("Settled Scopes",)
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: sub-scopes-named]
+# the fields holding sub-scopes, each a list of Sub-scopes
+SUB_SCOPE_FIELDS = ("Settled Sub-scopes",)
 
 
-# @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: scopes-named]
-def scope_problems(an, kind, field, value):
-    """-> problems with a field holding scopes: each of its semicolon-separated items a Scope, taken one at a time."""
-    return ["%s %s entry's %s names %s, not one of %s" % (an, kind, field, item or "nothing", ", ".join(SCOPES))
-            for item in (s.strip() for s in value.split(";")) if item not in SCOPES]
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: sub-scopes-named]
+def sub_scope_problems(an, kind, field, value):
+    """-> problems with a field holding sub-scopes: each of its semicolon-separated items a Sub-scope, taken one at a time."""
+    return ["%s %s entry's %s names %s, not one of %s" % (an, kind, field, item or "nothing", ", ".join(SUB_SCOPES))
+            for item in (s.strip() for s in value.split(";")) if item not in SUB_SCOPES]
 
 
 def entry_problems(kind, fields, values, counts, kinds):
@@ -970,8 +1019,8 @@ def entry_problems(kind, fields, values, counts, kinds):
     for k, v in fields:
         if not v:
             problems.append("%s %s entry's %s is empty" % (an, kind, k))
-        elif k in SCOPE_FIELDS:
-            problems += scope_problems(an, kind, k, v)
+        elif k in SUB_SCOPE_FIELDS:
+            problems += sub_scope_problems(an, kind, k, v)
         elif values.get(k) and v not in values[k]:
             problems.append("%s %s entry's %s is not one of %s: %s" % (an, kind, k, ", ".join(values[k]), v))
         elif counts.get(k) and not re.fullmatch(r"\d+", v):
@@ -1128,10 +1177,12 @@ def check_form(design):
         if "The Design Frame" in sections and heads != list(FRAME):
             problems.append((name, constructs.block_refusal("its design frame", heads, FRAME, FRAME, noun="heading", owner="its form")))
         if values.get("Status") in ("approved", "applying", "complete"):
-            for part in [p for p in FRAME if frame.get(p) == NOT_YET_STATED]:
+            for part in [p for p in FRAME if not_stated(frame.get(p))]:
                 problems.append((name, values["Status"] + ", but its design frame's " + part + " is not yet stated"))
         for plural in (AREAS, OUTCOMES):
             problems += [(name, p) for p in check_frame_records(plural, frame.get(plural))]
+        for part, field, label, plural in FRAME_RECORDS:
+            problems += [(name, p) for p in check_frame_records(plural, frame.get(part), field, label)]
         # working-files/main.md § Design Log Entry: a steer entry names a Steering Decision the design holds
         body = section(text, "Steering Decisions")
         logged = [n for e in log_entries(text) if e[0] == "steer" for n in set_names(e)]
@@ -1144,8 +1195,8 @@ def check_form(design):
             problems.append((name, p))
         if goals is not None and goals.strip() == NOT_YET_STATED and values.get("Status") in ("approved", "applying", "complete"):
             problems.append((name, values["Status"] + ", but its design goals are not yet stated"))
-        # specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame and specs/methodology/working-files/main.md § Design Plan Step § Step Objective: the frame and the steps cite the goals they rest on by Names the
-        # design holds
+        # specs/methodology/working-files/main.md § Design Goal: a goal cited in the frame's or the steps' prose is
+        # one the design holds
         held = {dict(rec).get("Name", "").strip() for rec in records(goals) or []}
         steps = section(text, "Design Plan Steps")
         cites = re.findall(r"`§ Design Goals \[Name: ([^\]]+)\]`", (section(text, "The Design Frame") or "") + (steps or ""))
@@ -1635,7 +1686,7 @@ def design_problems(design):
               union_coverage_problems(repo_root(), design, text, entries, among=read_)]
     found += [(name, p) for p in item_citation_problems(text)]
     if dict(fields).get("Status") not in ("approved", "applying", "complete"):
-        found += [(name, "its design frame's %s is not yet stated" % p) for p in FRAME if frame_parts(text).get(p) == NOT_YET_STATED]
+        found += [(name, "its design frame's %s is not yet stated" % p) for p in FRAME if not_stated(frame_parts(text).get(p))]
         if (section(text, "Design Goals") or "").strip() == NOT_YET_STATED:
             found.append((name, "its design goals are not yet stated"))
         if (section(text, "Design Plan Steps") or "").strip() == NOT_YET_DRAFTED:
@@ -1709,43 +1760,34 @@ def check_design(value):
     return 2 if design is None else report("check-design " + design.stem, design_problems(design))
 
 
-LEAD_IN = re.compile(r"^\*\*([^*]+?)\.?\*\*")
-
-
 def plan_parts(text):
     """-> the design's parts in the order specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Order
-    of a Design's Parts gives a change, as [(label, kind, Name or lead-in, [0-based lines])]: its goals; its frame, each paragraph of its Scope with
-    those after it to the next bold lead-in, its Assessed Areas, each item of its Approach, then its Frame Outcomes;
-    then its steps in their Depends On Steps order, each followed by its Objectives."""
+    of a Design's Parts gives a change, as [(label, kind, Name, [0-based lines])]: its goals; its frame, each case of its
+    Scope then the rest of the Scope, its Assessed Areas, each principle of its Approach, then its Frame Outcomes; then
+    its steps in their Depends On Steps order, each followed by its Objectives."""
     lines, found, out = text.split("\n"), sections(text), []
 
-    def records_in(lineage, key):
+    def records_in(lineage, key, field="Records"):
         if lineage not in found:
             return []
         h, end = found[lineage]
         return [(str(record_types.value_of(values_of(it)[key])).strip(), [h + 1 + n for n in it["lines"]])
-                for it in records_read("\n".join(lines[h + 1:end])) or [] if key in values_of(it)]
+                for it in records_read("\n".join(lines[h + 1:end]), field) or [] if key in values_of(it)]
+
+    def framed(part, field, label):
+        # a frame part's records under field, each by its Name, then the rest of the part
+        noun = label.split(" ", 1)[1]
+        recs = records_in(frame + part, "Name", field)
+        own = {n for _, ls in recs for n in ls}
+        h, end = found.get(frame + part, (0, 0))
+        rest = [n for n in range(h + 1, end) if n not in own and lines[n].strip()]
+        return [(noun + " " + n, noun, n, ls) for n, ls in recs] + [("the rest of the " + part, part.lower(), None, rest)]
 
     out += [("goal " + n, "goal", n, ls) for n, ls in records_in("Design Goals", "Name")]
     frame = "The Design Frame § "
-    if frame + "Scope" in found:
-        h, end = found[frame + "Scope"]
-        part = ("the Scope's opening", "scope", None, [])
-        for n in range(h + 1, end):
-            m = LEAD_IN.match(lines[n])
-            if m and (n == h + 1 or not lines[n - 1].strip()):
-                out.append(part)
-                part = ("the Scope's **%s**" % m.group(1), "scope", m.group(1), [])
-            part[3].append(n)
-        out.append(part)
+    out += framed(*FRAME_RECORDS[0][:3])
     out += [("assessed area " + a, "area", a, ls) for a, ls in records_in(frame + "Assessed Areas", "Area")]
-    if frame + "Approach" in found:
-        h, end = found[frame + "Approach"]
-        for n in range(h + 1, end):
-            if lines[n].startswith("- "):
-                out.append(("the Approach's item at line %d" % (n + 1), "approach", None, [n]))
-            elif out[-1][1] == "approach" and lines[n].strip():
-                out[-1][3].append(n)
+    out += framed(*FRAME_RECORDS[1][:3])
     out += [("frame outcome " + n, "outcome", n, ls) for n, ls in records_in(frame + "Frame Outcomes", "Name")]
     steps = [s for s in read_steps(text) or [] if s["name"]]
     placed, ordered = set(), []
@@ -1764,23 +1806,22 @@ def plan_parts(text):
 
 
 def show_dependents(value):
-    """--show-dependents DESIGN NAME: each part of the design naming or citing the goal, Frame Outcome, step or step
-    Objective NAME names, or the paragraph of its Scope whose bold lead-in NAME is, in the order a change runs down;
-    writes no file and decides nothing; -> 0, or 2 where the design or NAME is not found."""
+    """--show-dependents DESIGN NAME: each part of the design naming or citing the goal, case, principle, Frame
+    Outcome, step or step Objective NAME names, in the order a change runs down; writes no file and decides nothing;
+    -> 0, or 2 where the design or NAME is not found."""
     path, name = value
     design = design_file(path)
     if design is None:
         return 2
     text = read(design).replace("\r\n", "\n")
     lines, parts = text.split("\n"), plan_parts(text)
-    name = name.strip().strip("`").strip("*").rstrip(".")
+    name = name.strip().strip("`")
     target = next((p for p in parts if p[2] == name and p[1] != "area"), None)
     if target is None:
-        sys.stderr.write("%s holds no goal, Frame Outcome, step or step Objective named %s, nor a Scope paragraph "
-                         "whose bold lead-in it is\n" % (design.name, name))
+        sys.stderr.write("%s holds no goal, case, principle, Frame Outcome, step or step Objective named %s\n"
+                         % (design.name, name))
         return 2
-    naming = (re.compile(r"\*\*%s\.?\*\*" % re.escape(name)) if target[1] == "scope"
-              else re.compile(r"(?<![\w-])%s(?![\w-])" % re.escape(name)))
+    naming = re.compile(r"(?<![\w-])%s(?![\w-])" % re.escape(name))
     print("== show-dependents %s %s (%s)" % (design.stem, name, target[0]))
     count = 0
     for label, _, _, own in parts:
@@ -1982,13 +2023,13 @@ def log_entry(value):
         fields = [(k, str(taken[k])) if counts.get(k) else (k, dict(fields)[k]) for k in kinds[kind]
                   if counts.get(k) or k in dict(fields)] + [(k, v) for k, v in fields if k not in kinds[kind]]
     problems = entry_problems(kind, fields, values, counts, kinds)
-    # the Settled Scopes keep each scope holding a file the design changed, read as the entry is appended,
+    # the Settled Sub-scopes keep each sub-scope holding a file the design changed, read as the entry is appended,
     # since the changes then stand no longer once the design commits
-    # @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: settled-scopes-keep-what-changed]
-    settled = dict(fields).get("Settled Scopes")
+    # @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: settled-sub-scopes-keep-what-changed]
+    settled = dict(fields).get("Settled Sub-scopes")
     if settled and not problems:
-        dropped = sorted(changed_scopes(repo_root(), text) - {s.strip() for s in settled.split(";")})
-        problems += ["the %s entry's Settled Scopes drop %s, each holding a file the design changed"
+        dropped = sorted(changed_sub_scopes(repo_root(), text) - {s.strip() for s in settled.split(";")})
+        problems += ["the %s entry's Settled Sub-scopes drop %s, each holding a file the design changed"
                      % (kind, ", ".join(dropped))] if dropped else []
     if problems:
         return report("log-entry, not logged", [(design.stem, p) for p in problems])
@@ -2470,12 +2511,11 @@ def form_problems(rep, ctx, types, parts):
             out.append((rule("Read Assessments"), "line %d, Read Assessment %s's Impact is not a list holding none alone, "
                         "or one or both of %s, one to an item" % (a["_line"] + 1, a.get("Area", ""),
                                                                    " and ".join(m for m in members if m != "none"))))
-    # a Search's and a Read Assessment's Goals, each held where its report's entry follows a steer entry, a Search's in
-    # a report of research alone, one holding Read Assessments, each item a goal's Name the design holds
+    # a Search's and a Read Assessment's Goals, each held from a design's first research, a Search's in a report of
+    # research alone, one holding Read Assessments, each item a goal's Name the design holds
     for plural, one, key, condition, condition_text in (
-            ("Searches", "Search", "Search", ctx["steered"] and bool(recs["Read Assessments"]),
-             "where it stands in a report of research whose entry follows a steer entry"),
-            ("Read Assessments", "Read Assessment", "Area", ctx["steered"], "where its report's entry follows a steer entry")):
+            ("Searches", "Search", "Search", bool(recs["Read Assessments"]), "where it stands in a report of research"),
+            ("Read Assessments", "Read Assessment", "Area", True, "of every Read Assessment")):
         cond = []
         for r in recs[plural]:
             where = "line %d, %s %s" % (r["_line"] + 1, one, r.get(key, ""))
@@ -2899,13 +2939,13 @@ def file_kind(path, skills, code):
 
 
 # @canon-spec specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews
-# the Files of the Audit Scopes table, each scope's files by the kinds it holds, the one copy the audit's script and the
+# the Files of the Sub-scopes table, each sub-scope's files by the kinds it holds, the one copy the audit's script and the
 # log's check both read
-def scope_of(path, kind):
-    """-> the audit scope a file of the kind file_kind gives it lies in, or None for code and the working files."""
+def sub_scope_of(path, kind):
+    """-> the sub-scope a file of the kind file_kind gives it lies in, or None for code and the working files."""
     if kind == "canon-specs":
         return "skills" if path.startswith(".ai/skills/") else "core-canon"
-    return kind if kind in SCOPES else None
+    return kind if kind in SUB_SCOPES else None
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Design Document § Applying and Committing
@@ -2929,30 +2969,30 @@ def design_changes(root, design_text):
 
 
 def changed_kinds(root, design_text):
-    """-> each file kind file_kind gives the design's changes, with the audit scope each lies in."""
+    """-> each file kind file_kind gives the design's changes, with the sub-scope each lies in."""
     import code_checks
     skills, code = skill_dirs(root), code_checks.code_roots(root) or ([], [])
     kinds = {(p, file_kind(p, skills, code)) for p in design_changes(root, design_text)}
-    return {k for _, k in kinds if k}, {s for s in (scope_of(p, k) for p, k in kinds) if s}
+    return {k for _, k in kinds if k}, {s for s in (sub_scope_of(p, k) for p, k in kinds) if s}
 
 
-# @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: settled-scopes-keep-what-changed]
-def changed_scopes(root, design_text):
-    """-> the audit scopes holding a file the design changed."""
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: settled-sub-scopes-keep-what-changed]
+def changed_sub_scopes(root, design_text):
+    """-> the sub-scopes holding a file the design changed."""
     return changed_kinds(root, design_text)[1]
 
 
 # @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: audits-run-or-bypassed]
 def check_audits(value):
     """--check-audits DESIGN: refuses a design whose log, after its last apply entry, records neither the run nor the
-    user's bypass of an audit the design must run, the specs audit where it changed a file of any audit scope and the
+    user's bypass of an audit the design must run, the specs audit where it changed a file of any sub-scope and the
     code audit where it changed code; -> 0, or 1 naming each audit missing."""
     design = design_file(value)
     if design is None:
         return 2
     text = design.read_bytes().decode("utf-8").replace("\r\n", "\n")
-    kinds, scopes = changed_kinds(repo_root(), text)
-    owed = ({"specs"} if scopes else set()) | ({"code"} if "code" in kinds else set())
+    kinds, sub_scopes = changed_kinds(repo_root(), text)
+    owed = ({"specs"} if sub_scopes else set()) | ({"code"} if "code" in kinds else set())
     entries = log_entries(text)
     applies = [i for i, e in enumerate(entries) if e[0] == "apply"]
     after = entries[applies[-1] + 1:] if applies else []
@@ -2963,11 +3003,41 @@ def check_audits(value):
                                                     + names[a]) for a in sorted(owed - accounted)])
 
 
+# @canon-spec specs/methodology/working-files/main.md § A Design Document
+# the field of a canon design's Scope naming the sub-scopes its research is settled on
+SEARCH_SUB_SCOPES = "Search Sub-scopes"
+# @canon-spec specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews § The Sub-scopes a Design Settles § The Sub-scopes of a Canon Design's Research
+# the sub-scopes a canon design's research always holds, the two its kind spans
+RESEARCH_REQUIRED = ("core-canon", "skills")
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: research-sub-scopes-recorded]
+RESEARCH_SUB_SCOPES_RULE = WF + " § A Check's Report § Script Checks [Name: research-sub-scopes-recorded]"
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: research-sub-scopes-recorded]
+def research_sub_scope_problems(design_text):
+    """-> [(rule, message)] refusing a canon design's research while its Scope holds no Search Sub-scopes, names
+    anything but a sub-scope in them, or leaves out one its research always holds; [] for any other design."""
+    kind = re.search(r"^\*\*Kind:\*\*\s*(\S+)", design_text, re.M)
+    if not kind or kind.group(1) != "canon-specs":
+        return []
+    field = field_of(frame_parts(design_text).get("Scope"), SEARCH_SUB_SCOPES)
+    if field is None:
+        return [(RESEARCH_SUB_SCOPES_RULE, "a canon design's research, but its Scope holds no %s" % SEARCH_SUB_SCOPES)]
+    named = names_of(field)
+    if named is None:
+        return [(RESEARCH_SUB_SCOPES_RULE, "its Scope's %s is not a list of sub-scopes, one to an item" % SEARCH_SUB_SCOPES)]
+    out = [(RESEARCH_SUB_SCOPES_RULE, "its Scope's %s names %s, not one of %s" % (SEARCH_SUB_SCOPES, s, ", ".join(SUB_SCOPES)))
+           for s in named if s not in SUB_SCOPES]
+    out += [(RESEARCH_SUB_SCOPES_RULE, "its Scope's %s leave out %s, which a canon design's research always holds" % (SEARCH_SUB_SCOPES, s))
+            for s in RESEARCH_REQUIRED if s not in named]
+    return out
+
+
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § What the Design Script Checks
 def search_ground(root, design_rel, design_text, target, kept):
     """-> a function giving a Search's ground as {path: text}, read once: the design document and the files of each
-    kind of those its Target names, with, for canon-specs, every file of Spec of Record's scope but code, and, for
-    application-specs, the code; the working files aside."""
+    kind of those its Target names, a canon design's own kind among them, with, for canon-specs, the files of each sub-scope its frame's Search Sub-scopes
+    names, and, for application-specs, the code; the working files aside."""
     held = {}
 
     def ground():
@@ -2975,11 +3045,16 @@ def search_ground(root, design_rel, design_text, target, kept):
             import code_checks
             skills, code = skill_dirs(root), code_checks.code_roots(root) or ([], [])
             kind = lambda p: file_kind(p, skills, code)
-            kinds = {kind(p) for p in target}
-            scope = set(scope_files(root)) if "canon-specs" in kinds else set()
+            # a canon design's ground holds the two sub-scopes its kind spans before its Target names a file
+            design_kind = re.search(r"^\*\*Kind:\*\*\s*(\S+)", design_text, re.M)
+            kinds = {kind(p) for p in target} | ({"canon-specs"} if design_kind and design_kind.group(1) == "canon-specs" else set())
+            field = field_of(frame_parts(design_text).get("Scope"), SEARCH_SUB_SCOPES)
+            settled = set(names_of(field) or []) if "canon-specs" in kinds and field is not None else set()
+            scope = set(scope_files(root)) if settled else set()
             for path in sorted(tracked(root, others=True) or scope_files(root)):
                 k = kind(path)
-                if k in kinds or (path in scope and k != "code") or ("application-specs" in kinds and k == "code"):
+                if k in kinds or (path in scope and sub_scope_of(path, k) in settled) \
+                        or ("application-specs" in kinds and k == "code"):
                     text = text_at(root, path, kept)
                     if text is not None:
                         held[path] = text
@@ -3443,7 +3518,6 @@ def report_context(root, design, design_text, kind, n, entries, reviewer=False):
                                     re.findall(r"`([^`]+)`", fields.get("Target", "")), kept),
             "record": phase_record(design, entries, applied, root) if not reviewer else [],
             "goals": {dict(r).get("Name", "").strip() for r in records(section(design_text, "Design Goals")) or []},
-            "steered": any(k == "steer" for k, _, _ in entries[:own]),
             "counted": counted_reports(root, design, entries[:own]) | {rel_to(path, root)},
             "round": round_change_followed(design, entries, applied, root) if kind == "self-review" else None,
             "changes": work_changes(root, commit)[0] if commit else {},
@@ -3488,6 +3562,8 @@ def entry_report_problems(root, design, design_text, kind, n, report_text=None):
         if own is None:
             if kind in REVIEWS + (JUDGMENT,):
                 problems += cold_parts_problems(rep, kind)
+            if kind == JUDGMENT and rep["records"].get("Read Assessments"):
+                problems += research_sub_scope_problems(design_text)
             problems += cause_problems(rep, ctx, design, entries, named)
             if coverage_due(design, kind, entries):
                 problems += union_coverage_problems(root, design, design_text, entries, ctx)
@@ -3803,6 +3879,8 @@ def take_up_report(value):
         return 2
     design, kind, n = found
     problems = handed_back_problems(root, design, kind, n, value)
+    if kind == JUDGMENT and read_report(read(Path(value)))["records"].get("Read Assessments"):
+        problems += research_sub_scope_problems(read(design).replace("\r\n", "\n"))
     if problems:
         return report("take-up-report, not taken up " + rel_to(value, root), problems)
     text = read(Path(value)).replace("\r\n", "\n").rstrip("\n")
@@ -4423,7 +4501,7 @@ FLAGS = (
     ("--release-dependents", "DESIGN", release_dependents,
      "as a design finishes, complete or abandoned, remove it from each Depends On Designs naming it, in the skill's plans folder and those beside it, and move each approved design among those back to in-progress, appending its entered entry; reads no dependent's Scope, which keeps what that design relied on for its next builder to take in; the builder runs it as the design finishes"),
     ("--show-dependents", "DESIGN NAME", show_dependents,
-     "list each part of a design naming or citing one of its goals, Frame Outcomes, steps or step Objectives by its Name, or a paragraph of its Scope by its bold lead-in, in the order specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Order of a Design's Parts gives a change; writes no file and decides nothing; the builder runs it as a steer, a settlement or a pass changes a part"),
+     "list each part of a design naming or citing one of its goals, cases, principles, Frame Outcomes, steps or step Objectives by its Name, in the order specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Order of a Design's Parts gives a change; writes no file and decides nothing; the builder runs it as a steer, a settlement or a pass changes a part"),
     ("--show-validation", "DESIGN", show_validation,
      "print a design document's stamped hash, its hash now, and whether it is validated, stale or never stamped"),
     ("--stamp-validation", "DESIGN", stamp_validation,
@@ -4443,7 +4521,7 @@ FLAGS = (
     ("--check-changed-files", "DESIGN", check_changed_files,
      "list each file changed against the last commit outside the working files that the Target does not name, marking the user's edits and the direct edits the log names; the builder runs it at its self-review before the post-apply review"),
     ("--check-audits", "DESIGN", check_audits,
-     "refuse a design whose log, after its last apply entry, records neither the run nor the user's bypass of an audit it must run, the specs audit where it changed a file of any audit scope and the code audit where it changed code, its changes read as working-files/main.md § A Design Document § Applying and Committing has them read; writes no file; the builder runs it before it brings the user the commit, or, with no version control, before the design becomes applied"),
+     "refuse a design whose log, after its last apply entry, records neither the run nor the user's bypass of an audit it must run, the specs audit where it changed a file of any sub-scope and the code audit where it changed code, its changes read as working-files/main.md § A Design Document § Applying and Committing has them read; writes no file; the builder runs it before it brings the user the commit, or, with no version control, before the design becomes applied"),
     ("--check-work", "DESIGN", check_work,
      "run the specs' and the code's script checks over the design's work, the files changed against the last commit, whatever they touch: each finding the scope holds now that it did not hold then, each tree by the checks as they stood in it, matched by its rule, its file and its message, its repeats counted, a matched finding on a line the change added reported too; then, apart, each candidate in the reach the builder zooms out to from what the change wrote; with no version control, every finding the scope holds; writes no file; the builder runs it at its self-review, and the post-apply review runs it"),
     ("--refresh-links", "ROOT", refresh_links,

@@ -26,7 +26,14 @@
 
 ### Scope
 
-{the cases the change governs, each citing the goals it rests on, and the sweep's method (`specs/methodology/working-files/main.md § A Design Document`)}
+**Cases:**
+  - **Name:** {a slug (`specs/methodology/working-files/main.md § A Design Document § Frame Part`)} \
+    **Goals:**
+      - {a goal's Name, one to an item (`specs/methodology/working-files/main.md § A Design Document § Frame Part`)}
+
+    **Description:** {a case the change governs, and what tells it apart from the others (`specs/methodology/working-files/main.md § A Design Document § Scope Case`)}
+
+{the sweep's method (`specs/methodology/working-files/main.md § A Design Document`)}
 
 **Reliances:** {this field only where the design relies on another design (`specs/methodology/working-files/main.md § A Design Document § Reliance`)}
   - **Design:** {the Name of a design relied on (`specs/methodology/working-files/main.md § A Design Document § Reliance`)} \
@@ -44,14 +51,19 @@
 
 ### Approach
 
-{the principle the solution applies (`specs/methodology/glossary/glossary.md`), citing the goals it rests on (`specs/methodology/working-files/main.md § A Design Document`)}
+**Principles:**
+  - **Name:** {a slug (`specs/methodology/working-files/main.md § A Design Document § Frame Part`)} \
+    **Goals:**
+      - {a goal's Name, one to an item (`specs/methodology/working-files/main.md § A Design Document § Frame Part`)}
+
+    **Description:** {a principle the solution applies, one record to each (`specs/methodology/working-files/main.md § A Design Document § Approach Principle`)}
 
 ### Frame Outcomes
 
 **Records:**
-  - **Name:** {a slug (`specs/methodology/working-files/main.md § A Design Document § Frame Outcome`)} \
+  - **Name:** {a slug (`specs/methodology/working-files/main.md § A Design Document § Frame Part`)} \
     **Goals:**
-      - {a goal's Name, one to an item (`specs/methodology/working-files/main.md § A Design Document § Frame Outcome`)}
+      - {a goal's Name, one to an item (`specs/methodology/working-files/main.md § A Design Document § Frame Part`)}
 
     **Description:** {what the applied work achieves, and how that is judged (`specs/methodology/working-files/main.md § A Design Document § Frame Outcome`)}
 

@@ -377,23 +377,14 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
     **Caught By:**
       - the user
 
-  - **Failure:** a Frame Outcome naming no goal \
+  - **Failure:** a case, a principle or a Frame Outcome naming no goal \
     **Sections:**
       - [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)
 
-    **Rule:** [`specs/methodology/working-files/main.md § A Design Document § Frame Outcome`](/specs/methodology/working-files/main.md#frame-outcome) \
-    **Leaves:** a Frame Outcome whose Goals names no goal \
+    **Rule:** [`specs/methodology/working-files/main.md § A Design Document § Frame Part`](/specs/methodology/working-files/main.md#frame-part) \
+    **Leaves:** a case of the Scope, a principle of the Approach or a Frame Outcome whose Goals names no goal \
     **Caught By:**
       - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the validation review]`](/specs/AGENTS.md#check-roles)
-
-  - **Failure:** an Approach resting on a goal it does not cite \
-    **Sections:**
-      - [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)
-
-    **Rule:** [`specs/methodology/working-files/main.md § A Design Document`](/specs/methodology/working-files/main.md#a-design-document) \
-    **Leaves:** an Approach citing no goal \
-    **Caught By:**
-      - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`](/specs/AGENTS.md#check-roles)
 
   - **Failure:** a review reading another working file \
     **Sections:**
@@ -1139,7 +1130,7 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
     **Caught By:**
       - the user
 
-  - **Failure:** an audit in an apply run over other scopes than the user settled \
+  - **Failure:** an audit in an apply run over other sub-scopes than the user settled \
     **Sections:**
       - [`specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews`](/specs/methodology/design-workflow/designs-reviews.md#a-designs-reviews)
 
@@ -1147,6 +1138,24 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
     **Leaves:** nothing the script reads \
     **Caught By:**
       - the user
+
+  - **Failure:** a canon design's research run with its sub-scopes not settled with the user \
+    **Sections:**
+      - [`specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews`](/specs/methodology/design-workflow/designs-reviews.md#a-designs-reviews)
+
+    **Rule:** [`specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews § The Sub-scopes a Design Settles § The Sub-scopes of a Canon Design's Research`](/specs/methodology/design-workflow/designs-reviews.md#the-sub-scopes-of-a-canon-designs-research) \
+    **Leaves:** nothing the script reads \
+    **Caught By:**
+      - the user
+
+  - **Failure:** a canon design's research run with its sub-scopes unrecorded \
+    **Sections:**
+      - [`specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews`](/specs/methodology/design-workflow/designs-reviews.md#a-designs-reviews)
+
+    **Rule:** [`specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews § The Sub-scopes a Design Settles § The Sub-scopes of a Canon Design's Research`](/specs/methodology/design-workflow/designs-reviews.md#the-sub-scopes-of-a-canon-designs-research) \
+    **Leaves:** a canon design's Scope holding no Search Sub-scopes, or Search Sub-scopes naming anything but a sub-scope or leaving out `core-canon` or `skills` \
+    **Caught By:**
+      - [`specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: research-sub-scopes-recorded]`](/specs/methodology/working-files/main.md#script-checks-1)
 
   - **Failure:** a reviewer definition left in version control \
     **Sections:**
