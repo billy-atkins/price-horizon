@@ -812,12 +812,12 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
       - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the builder's self-review]`](/specs/AGENTS.md#check-roles)
       - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`](/specs/AGENTS.md#check-roles)
 
-  - **Failure:** prose around a step's change left inconsistent \
+  - **Failure:** a passage the post-apply review reads left false \
     **Sections:**
       - [`specs/methodology/working-files/main.md § A Design Document § The Standing Objective`](/specs/methodology/working-files/main.md#the-standing-objective)
 
     **Rule:** [`specs/methodology/working-files/main.md § A Design Document § The Standing Objective`](/specs/methodology/working-files/main.md#the-standing-objective) \
-    **Leaves:** prose within the Target left inconsistent with the steps \
+    **Leaves:** a passage in the reach the post-apply review reads, in the Target or outside it, left false with a step's change \
     **Caught By:**
       - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the post-apply review]`](/specs/AGENTS.md#check-roles)
 
