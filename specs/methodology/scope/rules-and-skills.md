@@ -103,6 +103,16 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
     **Caught By:**
       - the user
 
+  - **Failure:** the plan's approval offered or taken before a plan stands \
+    **Sections:**
+      - [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)
+
+    **Rule:** [`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review § The Plan's Approval`](/specs/AGENTS.md#the-plans-approval) \
+    **Leaves:** a design document the validation review refuses to stamp where the goals or the frame are not yet stated or the steps not yet drafted, a `plan-approval` entry ahead of its major version's first `plan-change` entry where the approval came before that version's drafting ended, and nothing in the files where it came after a change to the goals or the frame but before the user agreed to them again \
+    **Caught By:**
+      - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the validation review]`](/specs/AGENTS.md#check-roles)
+      - the user
+
   - **Failure:** a step stated without its reach researched \
     **Sections:**
       - [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)

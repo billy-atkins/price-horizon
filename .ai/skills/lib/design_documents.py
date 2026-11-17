@@ -2075,8 +2075,9 @@ FLAW_KEY = re.compile(r"([a-z-]+)/(\d+)\.md\s*(?:§[^\[]*)?\[Finding:\s*([^\]]+?
 def diagnosis_problems(root, design, text, count, entry_fields):
     """-> problems with the diagnosis a `design-reassessment` entry names: one standing in the design's folder at
     `diagnosis/{n}.md`, n counting the design's design reassessments; its title's fields and its parts as its form gives
-    them; a Flaw for each finding of its flaw set, each holding its Still Applies and its Why Not or its Root Cause,
-    that Root Cause one the diagnosis holds; each Root Cause holding its fields; and its Scope its Question and Answer."""
+    them; a Flaw for each finding of its flaw set, each holding its Still Applies, its Root Cause, that Root Cause one
+    the diagnosis holds, and its Why Not where it no longer applies; each Root Cause holding its fields; and its Scope
+    its Question and Answer."""
     path = diagnosis_file(design, entry_fields)
     entries = log_entries(text)
     nth = 1 + sum(1 for e in entries if starts_major(e))
@@ -2114,9 +2115,9 @@ def diagnosis_problems(root, design, text, count, entry_fields):
             out.append("Flaw %s's Still Applies is neither yes nor no: %s" % (key, applies or "none"))
         elif applies == "no" and not f.get("Why Not"):
             out.append("Flaw %s no longer applies, and holds no Why Not" % key)
-        elif applies == "yes" and not f.get("Root Cause"):
-            out.append("Flaw %s still applies, and holds no Root Cause" % key)
-        elif applies == "yes" and f.get("Root Cause").strip("`") not in keys:
+        if not f.get("Root Cause"):
+            out.append("Flaw %s holds no Root Cause" % key)
+        elif f.get("Root Cause").strip("`") not in keys:
             out.append("Flaw %s names the Root Cause %s, which the diagnosis does not hold" % (key, f.get("Root Cause")))
     out += ["it leaves out %s/%d.md [Finding: %s], a finding of its flaw set" % k
             for k in sorted(flaw_set(design, entries) - held)]
@@ -3538,8 +3539,8 @@ def required_checks(ctx, reads=None):
         worked = [(path, "Causes", "Cause: " + c.get("Cause", "")) for c in rep["records"]["Causes"] if c.get("Proposed Change")]
         worked += [(path, "Findings", "Finding: " + k) for k, w in last_words(rep).items() if w == "implementation flaw"]
         out += [(WORKED_CASE, worked)] if worked else []
-    # the self-review before a rebuilt design's first adversarial round: each Root Cause, and each Flaw still applying,
-    # of the diagnosis the design is rebuilt from
+    # the self-review before a rebuilt design's first adversarial round: each Root Cause, and each Flaw, of the
+    # diagnosis the design is rebuilt from, a flaw a later change fixed among them
     own = next((i for i, (k, m, _) in enumerate(entries) if "%s-%d" % (k, m) == ctx["entry"]), len(entries))
     starts = [i for i in major_starts(entries) if i < own]
     if starts and entries[starts[-1]][0] == DESIGN_REASSESSMENT and not any(e[0] == REVIEWS[0] for e in entries[starts[-1] + 1:own]):
@@ -3548,7 +3549,7 @@ def required_checks(ctx, reads=None):
             _, flaws, causes, _, _ = read_diagnosis(read(path))
             rel = rel_to(path, ctx["root"])
             answered = [(rel, "Root Causes", "Root Cause: " + c.get("Root Cause", "")) for c in causes] + \
-                       [(rel, "Flaws", "Flaw: " + f.get("Flaw", "").strip("`")) for f in flaws if f.get("Still Applies", "").strip("`") == "yes"]
+                       [(rel, "Flaws", "Flaw: " + f.get("Flaw", "").strip("`")) for f in flaws]
             out += [(DIAGNOSIS_ANSWERED, answered)] if answered else []
     if ctx["applied"]:
         import code_checks

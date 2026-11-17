@@ -11,7 +11,7 @@
   - **Flaw:** {its key, the citation of the finding a Settlement of the design's check keeps as a design flaw or an implementation flaw ([`specs/methodology/working-files/main.md § A Diagnosis § Flaw`](/specs/methodology/working-files/main.md#flaw))} \
     **Still Applies:** {`yes` or `no`: whether the flaw still applies to the design as the step back left it ([`specs/methodology/working-files/main.md § A Diagnosis § Flaw`](/specs/methodology/working-files/main.md#flaw))} \
     **Why Not:** {kept where its Still Applies is no: why the flaw no longer applies, the change that fixed it ([`specs/methodology/working-files/main.md § A Diagnosis § Flaw`](/specs/methodology/working-files/main.md#flaw))} \
-    **Root Cause:** {kept where its Still Applies is yes: the key of the Root Cause it falls under ([`specs/methodology/working-files/main.md § A Diagnosis § Flaw`](/specs/methodology/working-files/main.md#flaw))}
+    **Root Cause:** {the key of the Root Cause it falls under, whether or not the flaw still applies ([`specs/methodology/working-files/main.md § A Diagnosis § Flaw`](/specs/methodology/working-files/main.md#flaw))}
 
 ## Root Causes
 
