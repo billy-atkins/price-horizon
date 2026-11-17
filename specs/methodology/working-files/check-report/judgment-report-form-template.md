@@ -76,7 +76,7 @@
     **Outcome:** {kept where the report is a self-review's before the apply, unless a `plan-approval` entry of the phase stands before it with no `another-round` entry after it: the outcome the section Whether the Goals and the Frame Name a Mechanism gives it, asked of a mechanism the steps change, from the steps' What and Objectives, with no rows ([`specs/methodology/working-files/main.md § A Check's Report § Trace`](/specs/methodology/working-files/main.md#trace))} \
     **Paths:**
       - **Path:** {kept where the report lies over applied work: the path, named by its row's or its transition's cells where the mechanism is a Decision Table or a State Machine, and otherwise by the route it takes ([`specs/methodology/working-files/main.md § A Check's Report § Trace Path`](/specs/methodology/working-files/main.md#trace-path))} \
-        **Result:** {what the path does, and whether it does what the design means ([`specs/methodology/working-files/main.md § A Check's Report § Trace Path`](/specs/methodology/working-files/main.md#trace-path))}
+        **Result:** {what the path does, and whether it upholds what its check judges the mechanism against, as the section Tracing a Mechanism has a path judged after the apply ([`specs/methodology/working-files/main.md § A Check's Report § Trace Path`](/specs/methodology/working-files/main.md#trace-path))}
 
 ## Hand-back
 
