@@ -17,7 +17,7 @@ Read `specs/AGENTS.md` and `specs/methodology/glossary/glossary.md` before any s
 
 ### Find the application's code
 
-Read the code roots the technical specs' stack document, `stack.md` or the files of a folder named for it, names, per `specs/methodology/spec-placement/technical-stack.md § The Technical Stack`. The script reads them the same way. A project with no stack document, or with none naming a code root, has no code this skill can find. Present that to the user as a gap in the specs, and verify nothing.
+Read the code roots the technical specs' stack document, `stack.md` or the files of a folder named for it, names, per `specs/methodology/spec-placement/technical-stack.md § The Technical Stack`. `specs/methodology/scope/what-spec-of-record-governs.md § What Spec of Record Governs` has those roots hold the application's code. The script reads them the same way. A project with no stack document, or with none naming a code root, has no code this skill can find. Present that to the user as a gap in the specs, and verify nothing.
 
 ### Run the script first
 
@@ -27,7 +27,7 @@ Read the code roots the technical specs' stack document, `stack.md` or the files
 - a citation of anything but a product or technical spec;
 - a list out of order.
 
-It also reports a code root the stack names that does not exist. `--list-candidates` lists the spec sections no annotation cites and the files in the code roots carrying none. These are places for the reading to look, and the list decides nothing.
+It also reports a code root the stack names that does not exist, read from the stack as `specs/methodology/spec-placement/technical-stack.md § The Technical Stack` has a code root named. `--list-candidates` lists the spec sections no annotation cites and the files in the code roots carrying none. These are places for the reading to look, and the list decides nothing.
 
 ### Stop at annotations out of sync
 
@@ -35,13 +35,11 @@ Where the script's findings show existing annotations out of sync with the specs
 
 ### Read the code against its specs
 
-For each annotated unit, read the sections it cites. Judge whether the unit carries them out, or checks them as a test does, no more and no less, per `specs/methodology/code.md § Governed Code and Wiring Code` and `specs/methodology/code.md § Tests`. Judge too whether the unit's annotations sit where `specs/methodology/code.md § Citing the Specs From Code` sets: as narrow as the unit, and never in a documentation comment, as `specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § Citing From Code` has it. The script cannot judge where they sit.
-
-For each file the script lists as citing no spec, judge whether it is wiring or governed code missing its annotations. A file in a format with no comments is never governed code, and is judged as `specs/methodology/code.md § Governed Code and Wiring Code` sets. For each section the script lists as cited by no code, judge whether it states something code must carry out, and so is not yet implemented, or something no code carries out, as an overview does. Read the code for American English, per `specs/methodology/code.md § Changing Code`, and report each breach you find, as `specs/AGENTS.md § Design, Refactor, Refine § An Audit` has an audit report a rule reaching only what a change writes.
+Make this reading as `specs/methodology/semantic-check-methods/code-against-its-specs.md § The Code Against Its Specs` has it made. It reads each annotated unit against the sections the unit cites, each file the script lists as citing no spec, each section the script lists as cited by no code, and the code's spelling. Report each breach of American English you find, as `specs/AGENTS.md § Design, Refactor, Refine § An Audit` has an audit report a rule reaching only what a change writes.
 
 ### Read the technical overview against the code
 
-The technical specs' `architecture.md` describes the code carrying out the application specs, per `specs/methodology/spec-placement/index-architecture-detail.md § What an Overview Describes`. Read the overview's account of the code against the code. Report what it says that the code does not bear out, per `specs/methodology/sourcing-and-citation/keeping-specs-in-sync.md § Keeping Specs in Sync § Materialized Views`.
+Make this reading as `specs/methodology/semantic-check-methods/technical-overview-against-the-code.md § The Technical Overview Against the Code` has it made. Report what the overview says that the code does not bear out.
 
 ### Report, and settle as an audit
 

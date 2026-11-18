@@ -9,3 +9,5 @@ The instructions in Spec of Record's scope, both `AGENTS.md` files and each regi
 - an agent setting itself up may write what it needs to carry out a choice the methodology leaves to it ([`specs/methodology/skills/setting-up-an-agent.md § Setting Up an Agent`](/specs/methodology/skills/setting-up-an-agent.md#setting-up-an-agent)).
 
 Whatever either writes is kept out of version control and outside the scope. Nothing depends on its having been written. A skill stays readable directly, and what was written only saves a step, or applies a choice, for someone using that tool.
+
+**Naming a helper.** The root `AGENTS.md` may name the project's opt-in helpers and the tools they serve, so that someone using such a tool finds its helper. Naming them is no instruction written for one tool. Every instruction reads the same to an agent that runs no helper.

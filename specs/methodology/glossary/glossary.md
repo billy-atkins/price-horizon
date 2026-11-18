@@ -1,6 +1,6 @@
 ## Glossary
 
-This file holds the terms Spec of Record gives a meaning of its own. Each is defined here once and nowhere else: a file using a term states its rules about the term, never a second definition.
+This file holds the terms Spec of Record gives a meaning of its own. Each is defined here once and nowhere else: a file using a term states its rules about the term, never a second definition. A file may use a word this glossary defines in the word's own ordinary sense, as an application spec may write of a product's record or of a data field, unless a reader could take the use for the methodology's sense. A term used in the methodology's sense keeps the meaning its entry gives it.
 
 **Reference Key:** Term \
 **Required:** Definition

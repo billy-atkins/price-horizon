@@ -39,6 +39,7 @@ specs/
 │   ├── glossary/
 │   ├── modeling-constructs.md
 │   ├── scope/
+│   ├── semantic-check-methods/
 │   ├── skills/
 │   ├── sourcing-and-citation/
 │   ├── spec-placement/
