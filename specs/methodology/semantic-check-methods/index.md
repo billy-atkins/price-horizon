@@ -1,4 +1,4 @@
-# Spec of Record: Making a Semantic Check
+# Spec of Record: Semantic Check Methods
 
 **Reference Key:** File \
 **Required:** Description

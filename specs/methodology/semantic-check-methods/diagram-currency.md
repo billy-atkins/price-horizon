@@ -8,7 +8,7 @@ This check reads a diagram against the sections it draws from and against the fi
 
 The reader then makes each of these judgments.
 
-**The picture against its sources.** Does the picture say anything its sources do not? The reader reads it for each fault that [`specs/methodology/making-a-semantic-check/main.md § Making a Semantic Check § How a Summary Distorts Its Source`](/specs/methodology/making-a-semantic-check/main.md#how-a-summary-distorts-its-source) names.
+**The picture against its sources.** Does the picture say anything its sources do not? The reader reads it for each fault that [`specs/methodology/semantic-check-methods/main.md § Semantic Check Methods § How a Summary Distorts Its Source`](/specs/methodology/semantic-check-methods/main.md#how-a-summary-distorts-its-source) names.
 
 **Each label against the host file.** The reader lists each node label and each edge label, and finds where the host file's content names each one. [`specs/methodology/modeling-constructs.md § Diagrams`](/specs/methodology/modeling-constructs.md#diagrams) has a diagram show only what its host file names. The most common failure is a diagram that copies its source faithfully. The right aim is a diagram that agrees with its host file. A source drawn in full detail pulls that detail up into a host file that never discusses it, so the host file looks as if it covers things it does not. The opposite case happens too: the diagram needs a fact at the host file's own level of detail, and the host file never states it. That is often a real gap in the host file, and that section has it closed in the host file first.
 

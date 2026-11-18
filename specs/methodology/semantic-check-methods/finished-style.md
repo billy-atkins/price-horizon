@@ -2,7 +2,7 @@
 
 This check reads the prose for whether it reads as a finished spec.
 
-**The candidates, then the files in full.** Where a candidate list comes with the check, the reader takes it as a guide and then reads the files in full, as [`specs/methodology/making-a-semantic-check/main.md § Making a Semantic Check`](/specs/methodology/making-a-semantic-check/main.md#making-a-semantic-check) has a candidate list used. A candidate list holds nothing from a table or a heading, so the reader reads those whole.
+**The candidates, then the files in full.** Where a candidate list comes with the check, the reader takes it as a guide and then reads the files in full, as [`specs/methodology/semantic-check-methods/main.md § Semantic Check Methods`](/specs/methodology/semantic-check-methods/main.md#semantic-check-methods) has a candidate list used. A candidate list holds nothing from a table or a heading, so the reader reads those whole.
 
 **When a candidate is a finding.** A listed word is a finding only where it adds nothing to its sentence. An emphasis word is one example: if deleting it leaves the meaning the same, it adds nothing. A listed construction is a finding where it breaks the rule of [`specs/methodology/spec-style/clear-prose.md § Clear Prose`](/specs/methodology/spec-style/clear-prose.md#clear-prose) that names it. A chain of "its" that leaves its noun unclear breaks one, and so does a semicolon that does not lean. A trade-off that passes the test of [`specs/methodology/spec-style/what-a-finished-spec-reads-like.md § Trade-offs Are Not Journey Language`](/specs/methodology/spec-style/what-a-finished-spec-reads-like.md#trade-offs-are-not-journey-language) is set aside, with that reason.
 

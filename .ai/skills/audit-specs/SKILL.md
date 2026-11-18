@@ -32,28 +32,28 @@ A run follows this Workflow's steps, and each audit follows the ones it needs.
 
 **Fork on the kind of specification.** Every file audited is of a kind of change, the working files aside, which are of no kind (`specs/methodology/working-files/main.md § The Working Files`) and are written `working-files` (`specs/methodology/checks.md § Check`). Each audit's Kind column names the kinds of file the audit reads. `.ai/skills/audit-specs/references/canon-specs.md` holds the audits written for the canon, and `.ai/skills/audit-specs/references/app-specs.md` those written for the application specs. A run given `--sub-scope` names one or more of the sub-scopes `specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews` defines, each a set of files, and a run given none is the full run. A run picks its audits, and what it reads of each audit's unit, as that section has it. `--sub-scope` is the script's argument too: the script's pre-pass runs whole whatever the sub-scopes, and reports only what lies in their files, as `§ What the script checks` has it. A run names no design, as `specs/AGENTS.md § Design, Refactor, Refine § An Audit` has an audit.
 
-**Make each reading as the methodology has it made.** `specs/methodology/making-a-semantic-check/main.md § Making a Semantic Check` says what every reading shares: reading the files in full, reading a passage beside its source, and using a candidate list. Each audit's reading is made as the file of that document named for the audit has it. Working-file form has none, since only this skill makes that reading, and its own section says how:
+**Make each reading as the methodology has it made.** `specs/methodology/semantic-check-methods/main.md § Semantic Check Methods` says what every reading shares: reading the files in full, reading a passage beside its source, and using a candidate list. Each audit's reading is made as the file of that document named for the audit has it. Working-file form has none, since only this skill makes that reading, and its own section says how:
 
 **Reference Key:** Audit \
 **Required:** Made As
 
 | Audit | Made As |
 |---|---|
-| Directory summary currency | `specs/methodology/making-a-semantic-check/directory-summary-currency.md § Directory Summary Currency` |
-| Counterpart currency | `specs/methodology/making-a-semantic-check/counterpart-currency.md § Counterpart Currency` |
-| Scenario coverage | `specs/methodology/making-a-semantic-check/scenario-coverage.md § Scenario Coverage` |
-| Where a rule lives | `specs/methodology/making-a-semantic-check/where-a-rule-lives.md § Where a Rule Lives` |
-| Whether the home holds the fact | `specs/methodology/making-a-semantic-check/whether-the-home-holds-the-fact.md § Whether the Home Holds the Fact` |
-| Ordinals and counts | `specs/methodology/making-a-semantic-check/ordinals-and-counts.md § Ordinals and Counts` |
-| Markup | `specs/methodology/making-a-semantic-check/markup.md § Markup` |
-| Glossary terms | `specs/methodology/making-a-semantic-check/glossary-terms.md § Glossary Terms` |
-| Construct choice and form | `specs/methodology/making-a-semantic-check/construct-choice-and-form.md § Construct Choice and Form` |
-| Placement | `specs/methodology/making-a-semantic-check/placement.md § Placement` |
-| Finished style | `specs/methodology/making-a-semantic-check/finished-style.md § Finished Style` |
-| Agent agnostic | `specs/methodology/making-a-semantic-check/agent-agnostic.md § Agent Agnostic` |
-| Skill form | `specs/methodology/making-a-semantic-check/skill-form.md § Skill Form` |
-| Diagram currency | `specs/methodology/making-a-semantic-check/diagram-currency.md § Diagram Currency` |
-| Principles held | `specs/methodology/making-a-semantic-check/principles-held.md § Principles Held` |
+| Directory summary currency | `specs/methodology/semantic-check-methods/directory-summary-currency.md § Directory Summary Currency` |
+| Counterpart currency | `specs/methodology/semantic-check-methods/counterpart-currency.md § Counterpart Currency` |
+| Scenario coverage | `specs/methodology/semantic-check-methods/scenario-coverage.md § Scenario Coverage` |
+| Where a rule lives | `specs/methodology/semantic-check-methods/where-a-rule-lives.md § Where a Rule Lives` |
+| Whether the home holds the fact | `specs/methodology/semantic-check-methods/whether-the-home-holds-the-fact.md § Whether the Home Holds the Fact` |
+| Ordinals and counts | `specs/methodology/semantic-check-methods/ordinals-and-counts.md § Ordinals and Counts` |
+| Markup | `specs/methodology/semantic-check-methods/markup.md § Markup` |
+| Glossary terms | `specs/methodology/semantic-check-methods/glossary-terms.md § Glossary Terms` |
+| Construct choice and form | `specs/methodology/semantic-check-methods/construct-choice-and-form.md § Construct Choice and Form` |
+| Placement | `specs/methodology/semantic-check-methods/placement.md § Placement` |
+| Finished style | `specs/methodology/semantic-check-methods/finished-style.md § Finished Style` |
+| Agent agnostic | `specs/methodology/semantic-check-methods/agent-agnostic.md § Agent Agnostic` |
+| Skill form | `specs/methodology/semantic-check-methods/skill-form.md § Skill Form` |
+| Diagram currency | `specs/methodology/semantic-check-methods/diagram-currency.md § Diagram Currency` |
+| Principles held | `specs/methodology/semantic-check-methods/principles-held.md § Principles Held` |
 
 ## The audits
 
@@ -83,15 +83,15 @@ Each audit reads its unit against every rule that the sections in its Enforces c
 
 ### Directory summary currency
 
-This audit's reading is made as `specs/methodology/making-a-semantic-check/directory-summary-currency.md § Directory Summary Currency` has it. This skill reads no code, so of what a directory's overview describes beyond the directory, the audit leaves the code aside. Of `specs/methodology/sourcing-and-citation/keeping-specs-in-sync.md § Keeping Specs in Sync § Materialized Views`, this audit reads the paragraph on a directory's `architecture.md`.
+This audit's reading is made as `specs/methodology/semantic-check-methods/directory-summary-currency.md § Directory Summary Currency` has it. This skill reads no code, so of what a directory's overview describes beyond the directory, the audit leaves the code aside. Of `specs/methodology/sourcing-and-citation/keeping-specs-in-sync.md § Keeping Specs in Sync § Materialized Views`, this audit reads the paragraph on a directory's `architecture.md`.
 
 ### Where a rule lives
 
-This audit's reading is made as `specs/methodology/making-a-semantic-check/where-a-rule-lives.md § Where a Rule Lives` has it, one pass for each unit. Of `specs/methodology/sourcing-and-citation/keeping-specs-in-sync.md § Keeping Specs in Sync § Materialized Views`, this audit reads the statement that a view is never a second home. Of `specs/methodology/sourcing-and-citation/one-home-per-fact.md § One Home Per Fact`, the bare citation owing its application or its reason is Whether the home holds the fact's to find. This audit reads the rest.
+This audit's reading is made as `specs/methodology/semantic-check-methods/where-a-rule-lives.md § Where a Rule Lives` has it, one pass for each unit. Of `specs/methodology/sourcing-and-citation/keeping-specs-in-sync.md § Keeping Specs in Sync § Materialized Views`, this audit reads the statement that a view is never a second home. Of `specs/methodology/sourcing-and-citation/one-home-per-fact.md § One Home Per Fact`, the bare citation owing its application or its reason is Whether the home holds the fact's to find. This audit reads the rest.
 
 ### Whether the home holds the fact
 
-This audit's reading is made as `specs/methodology/making-a-semantic-check/whether-the-home-holds-the-fact.md § Whether the Home Holds the Fact` has it. The script clears a citation whose heading resolves, and decides nothing of what the heading's section states.
+This audit's reading is made as `specs/methodology/semantic-check-methods/whether-the-home-holds-the-fact.md § Whether the Home Holds the Fact` has it. The script clears a citation whose heading resolves, and decides nothing of what the heading's section states.
 
 Of `specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation`, `specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § Referring to Other Text` is Ordinals and counts' to read, and the paragraph on where a citation sits is Finished style's. This audit reads the rest. Of `specs/methodology/sourcing-and-citation/one-home-per-fact.md § One Home Per Fact`, this audit reads only the sentences on when a citing place states a rule's application and its reason, and on when a bare citation is enough. An audit's Enforces cell is the citation the audit runs from, and never one that only routes or lists.
 
@@ -99,27 +99,27 @@ On a tree with no uncommitted change, this audit chooses its targets by how heav
 
 ### Ordinals and counts
 
-Run the script with `--list-candidates`. The reading is made as `specs/methodology/making-a-semantic-check/ordinals-and-counts.md § Ordinals and Counts` has it. Of `specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation`, this audit reads only `specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § Referring to Other Text`. A violation the script's patterns missed is reported like any other, and its phrasing is a candidate for a new pattern.
+Run the script with `--list-candidates`. The reading is made as `specs/methodology/semantic-check-methods/ordinals-and-counts.md § Ordinals and Counts` has it. Of `specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation`, this audit reads only `specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § Referring to Other Text`. A violation the script's patterns missed is reported like any other, and its phrasing is a candidate for a new pattern.
 
 ### Markup
 
-The script decides where bold and italic may appear, a field's form and key, a block of fields' line endings and its lists' indentation, where a blank line falls, a run of backticks, and a heading's form. Run the script with `--list-candidates`. It lists each backtick span holding a capital letter and no punctuation that matches no heading, field key, or text a fenced example in the tree holds. It also lists each italic span of more than a few words. The reading of what the script cannot judge is made as `specs/methodology/making-a-semantic-check/markup.md § Markup` has it.
+The script decides where bold and italic may appear, a field's form and key, a block of fields' line endings and its lists' indentation, where a blank line falls, a run of backticks, and a heading's form. Run the script with `--list-candidates`. It lists each backtick span holding a capital letter and no punctuation that matches no heading, field key, or text a fenced example in the tree holds. It also lists each italic span of more than a few words. The reading of what the script cannot judge is made as `specs/methodology/semantic-check-methods/markup.md § Markup` has it.
 
 ### Glossary terms
 
-Run the script with `--list-candidates`. It lists each line outside the glossary where a glossary term, or one of the term's other names, seems to be defined. The reading is made as `specs/methodology/making-a-semantic-check/glossary-terms.md § Glossary Terms` has it. The script cannot recognize an abbreviation the house coins.
+Run the script with `--list-candidates`. It lists each line outside the glossary where a glossary term, or one of the term's other names, seems to be defined. The reading is made as `specs/methodology/semantic-check-methods/glossary-terms.md § Glossary Terms` has it. The script cannot recognize an abbreviation the house coins.
 
 ### Construct choice and form
 
 The script decides each declared construct's structure (`§ What the script checks`). It lists as candidates each Decision Table whose cells do not settle that every case matches a row, each Decision Table a cell of which tests against a fact or in another of FEEL's forms, and each Decision Table condition whose values are words only its table names. It lists each exclusive choice a guard of which compares a fact with another or is in another of FEEL's forms, and each table shaped as a construct's with no declaration. It lists each Algorithm step that is no comparison, computation, run or loop and holds `otherwise` or `if`, and each Algorithm or DAG whose Runs When holds words besides its citations. It also lists each loop written `in any order` or `in an order the system leaves open`, and each construct extending another by its Extends field. The script knows every type the specs declare.
 
-This audit reads those candidates, and every rule of the sections it enforces that the script does not decide, as `specs/methodology/making-a-semantic-check/construct-choice-and-form.md § Construct Choice and Form` has the reading made. Of the tables this reading reports as the wrong construct, the builder's triage tells which a design wrote.
+This audit reads those candidates, and every rule of the sections it enforces that the script does not decide, as `specs/methodology/semantic-check-methods/construct-choice-and-form.md § Construct Choice and Form` has the reading made. Of the tables this reading reports as the wrong construct, the builder's triage tells which a design wrote.
 
 Of `specs/methodology/checks.md § Check`, `specs/methodology/checks.md § Script Check` and `specs/methodology/checks.md § Semantic Check`, this audit reads each record type's declaration, what the sections say of the two concrete types, and what `specs/methodology/checks.md § Check` says a record's fields leave out. Skill form reads the rest of `specs/methodology/checks.md § Check`: what a check is, a candidate list, the checks taking no record, where a check stands, the skills' tables of checks and naming a check where it runs.
 
 ### Placement
 
-This audit's reading is made as `specs/methodology/making-a-semantic-check/placement.md § Placement` has it, a directory at a time.
+This audit's reading is made as `specs/methodology/semantic-check-methods/placement.md § Placement` has it, a directory at a time.
 
 ### Finished style
 
@@ -138,7 +138,7 @@ Of `specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a C
 
 In the skills too, the script counts each sentence carrying more than one citation. It also counts each citation inside its clause: one that neither closes its clause, nor stands in parentheses, nor opens its sentence, nor follows "as". `--detail` lists each one. The script lists nothing in a table or a heading.
 
-The reading is made as `specs/methodology/making-a-semantic-check/finished-style.md § Finished Style` has it. The skills are Skill form's to read for an example drawn from the application specs, through `specs/methodology/skills/authoring-a-skill.md § Authoring a Skill`.
+The reading is made as `specs/methodology/semantic-check-methods/finished-style.md § Finished Style` has it. The skills are Skill form's to read for an example drawn from the application specs, through `specs/methodology/skills/authoring-a-skill.md § Authoring a Skill`.
 
 ### Working-file form
 
@@ -146,11 +146,11 @@ Of `specs/methodology/working-files/main.md § The Working Files`, the paragraph
 
 ### Diagram currency
 
-Run this audit only once the script's diagram check passes. If the check fails, the work is fixing the citations, and there is nothing yet to compare. The reading is made as `specs/methodology/making-a-semantic-check/diagram-currency.md § Diagram Currency` has it, the diagram rendered through `.ai/skills/author-mermaid-diagram/`. A source the uncommitted changes edited, read in their diff against the last commit, is where to look first. Of `specs/methodology/sourcing-and-citation/keeping-specs-in-sync.md § Keeping Specs in Sync § Materialized Views`, this audit reads the paragraph on a diagram. A finding of the picture against its sources takes the report row for a summary that disagrees with what it summarizes. A finding of the Sources list takes the row for a required thing that is absent or sits on the wrong side.
+Run this audit only once the script's diagram check passes. If the check fails, the work is fixing the citations, and there is nothing yet to compare. The reading is made as `specs/methodology/semantic-check-methods/diagram-currency.md § Diagram Currency` has it, the diagram rendered through `.ai/skills/author-mermaid-diagram/`. A source the uncommitted changes edited, read in their diff against the last commit, is where to look first. Of `specs/methodology/sourcing-and-citation/keeping-specs-in-sync.md § Keeping Specs in Sync § Materialized Views`, this audit reads the paragraph on a diagram. A finding of the picture against its sources takes the report row for a summary that disagrees with what it summarizes. A finding of the Sources list takes the row for a required thing that is absent or sits on the wrong side.
 
 ### Principles held
 
-This audit makes each semantic check whose Carried Out By names it, among those standing under `specs/AGENTS.md § Constitutional Principles` and under each principle. An audit names no design, so it reads the files as they stand. The reading is made as `specs/methodology/making-a-semantic-check/principles-held.md § Principles Held` has it.
+This audit makes each semantic check whose Carried Out By names it, among those standing under `specs/AGENTS.md § Constitutional Principles` and under each principle. An audit names no design, so it reads the files as they stand. The reading is made as `specs/methodology/semantic-check-methods/principles-held.md § Principles Held` has it.
 
 ## The report
 

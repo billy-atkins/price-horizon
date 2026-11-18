@@ -60,26 +60,26 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
 
   - **Failure:** a semantic check made without reading how it is made \
     **Sections:**
-      - [`specs/methodology/making-a-semantic-check/main.md § Making a Semantic Check`](/specs/methodology/making-a-semantic-check/main.md#making-a-semantic-check)
-      - [`specs/methodology/making-a-semantic-check/directory-summary-currency.md § Directory Summary Currency`](/specs/methodology/making-a-semantic-check/directory-summary-currency.md#directory-summary-currency)
-      - [`specs/methodology/making-a-semantic-check/counterpart-currency.md § Counterpart Currency`](/specs/methodology/making-a-semantic-check/counterpart-currency.md#counterpart-currency)
-      - [`specs/methodology/making-a-semantic-check/scenario-coverage.md § Scenario Coverage`](/specs/methodology/making-a-semantic-check/scenario-coverage.md#scenario-coverage)
-      - [`specs/methodology/making-a-semantic-check/where-a-rule-lives.md § Where a Rule Lives`](/specs/methodology/making-a-semantic-check/where-a-rule-lives.md#where-a-rule-lives)
-      - [`specs/methodology/making-a-semantic-check/whether-the-home-holds-the-fact.md § Whether the Home Holds the Fact`](/specs/methodology/making-a-semantic-check/whether-the-home-holds-the-fact.md#whether-the-home-holds-the-fact)
-      - [`specs/methodology/making-a-semantic-check/ordinals-and-counts.md § Ordinals and Counts`](/specs/methodology/making-a-semantic-check/ordinals-and-counts.md#ordinals-and-counts)
-      - [`specs/methodology/making-a-semantic-check/markup.md § Markup`](/specs/methodology/making-a-semantic-check/markup.md#markup)
-      - [`specs/methodology/making-a-semantic-check/glossary-terms.md § Glossary Terms`](/specs/methodology/making-a-semantic-check/glossary-terms.md#glossary-terms)
-      - [`specs/methodology/making-a-semantic-check/construct-choice-and-form.md § Construct Choice and Form`](/specs/methodology/making-a-semantic-check/construct-choice-and-form.md#construct-choice-and-form)
-      - [`specs/methodology/making-a-semantic-check/placement.md § Placement`](/specs/methodology/making-a-semantic-check/placement.md#placement)
-      - [`specs/methodology/making-a-semantic-check/finished-style.md § Finished Style`](/specs/methodology/making-a-semantic-check/finished-style.md#finished-style)
-      - [`specs/methodology/making-a-semantic-check/agent-agnostic.md § Agent Agnostic`](/specs/methodology/making-a-semantic-check/agent-agnostic.md#agent-agnostic)
-      - [`specs/methodology/making-a-semantic-check/skill-form.md § Skill Form`](/specs/methodology/making-a-semantic-check/skill-form.md#skill-form)
-      - [`specs/methodology/making-a-semantic-check/diagram-currency.md § Diagram Currency`](/specs/methodology/making-a-semantic-check/diagram-currency.md#diagram-currency)
-      - [`specs/methodology/making-a-semantic-check/principles-held.md § Principles Held`](/specs/methodology/making-a-semantic-check/principles-held.md#principles-held)
-      - [`specs/methodology/making-a-semantic-check/code-against-its-specs.md § The Code Against Its Specs`](/specs/methodology/making-a-semantic-check/code-against-its-specs.md#the-code-against-its-specs)
-      - [`specs/methodology/making-a-semantic-check/technical-overview-against-the-code.md § The Technical Overview Against the Code`](/specs/methodology/making-a-semantic-check/technical-overview-against-the-code.md#the-technical-overview-against-the-code)
+      - [`specs/methodology/semantic-check-methods/main.md § Semantic Check Methods`](/specs/methodology/semantic-check-methods/main.md#semantic-check-methods)
+      - [`specs/methodology/semantic-check-methods/directory-summary-currency.md § Directory Summary Currency`](/specs/methodology/semantic-check-methods/directory-summary-currency.md#directory-summary-currency)
+      - [`specs/methodology/semantic-check-methods/counterpart-currency.md § Counterpart Currency`](/specs/methodology/semantic-check-methods/counterpart-currency.md#counterpart-currency)
+      - [`specs/methodology/semantic-check-methods/scenario-coverage.md § Scenario Coverage`](/specs/methodology/semantic-check-methods/scenario-coverage.md#scenario-coverage)
+      - [`specs/methodology/semantic-check-methods/where-a-rule-lives.md § Where a Rule Lives`](/specs/methodology/semantic-check-methods/where-a-rule-lives.md#where-a-rule-lives)
+      - [`specs/methodology/semantic-check-methods/whether-the-home-holds-the-fact.md § Whether the Home Holds the Fact`](/specs/methodology/semantic-check-methods/whether-the-home-holds-the-fact.md#whether-the-home-holds-the-fact)
+      - [`specs/methodology/semantic-check-methods/ordinals-and-counts.md § Ordinals and Counts`](/specs/methodology/semantic-check-methods/ordinals-and-counts.md#ordinals-and-counts)
+      - [`specs/methodology/semantic-check-methods/markup.md § Markup`](/specs/methodology/semantic-check-methods/markup.md#markup)
+      - [`specs/methodology/semantic-check-methods/glossary-terms.md § Glossary Terms`](/specs/methodology/semantic-check-methods/glossary-terms.md#glossary-terms)
+      - [`specs/methodology/semantic-check-methods/construct-choice-and-form.md § Construct Choice and Form`](/specs/methodology/semantic-check-methods/construct-choice-and-form.md#construct-choice-and-form)
+      - [`specs/methodology/semantic-check-methods/placement.md § Placement`](/specs/methodology/semantic-check-methods/placement.md#placement)
+      - [`specs/methodology/semantic-check-methods/finished-style.md § Finished Style`](/specs/methodology/semantic-check-methods/finished-style.md#finished-style)
+      - [`specs/methodology/semantic-check-methods/agent-agnostic.md § Agent Agnostic`](/specs/methodology/semantic-check-methods/agent-agnostic.md#agent-agnostic)
+      - [`specs/methodology/semantic-check-methods/skill-form.md § Skill Form`](/specs/methodology/semantic-check-methods/skill-form.md#skill-form)
+      - [`specs/methodology/semantic-check-methods/diagram-currency.md § Diagram Currency`](/specs/methodology/semantic-check-methods/diagram-currency.md#diagram-currency)
+      - [`specs/methodology/semantic-check-methods/principles-held.md § Principles Held`](/specs/methodology/semantic-check-methods/principles-held.md#principles-held)
+      - [`specs/methodology/semantic-check-methods/code-against-its-specs.md § The Code Against Its Specs`](/specs/methodology/semantic-check-methods/code-against-its-specs.md#the-code-against-its-specs)
+      - [`specs/methodology/semantic-check-methods/technical-overview-against-the-code.md § The Technical Overview Against the Code`](/specs/methodology/semantic-check-methods/technical-overview-against-the-code.md#the-technical-overview-against-the-code)
 
-    **Rule:** [`specs/methodology/making-a-semantic-check/main.md § Making a Semantic Check`](/specs/methodology/making-a-semantic-check/main.md#making-a-semantic-check) \
+    **Rule:** [`specs/methodology/semantic-check-methods/main.md § Semantic Check Methods`](/specs/methodology/semantic-check-methods/main.md#semantic-check-methods) \
     **Leaves:** a breach the check reads for, left in the files unfound \
     **Caught By:**
       - `.ai/skills/audit-specs/` reading audits

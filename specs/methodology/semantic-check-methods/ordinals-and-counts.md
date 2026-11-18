@@ -2,7 +2,7 @@
 
 This check reads each number and each reference to other text.
 
-**The candidates, then the files in full.** Where a candidate list comes with the check, the reader takes it as a guide to where numbers and directions are likely. The reader then reads the files in full, as [`specs/methodology/making-a-semantic-check/main.md § Making a Semantic Check`](/specs/methodology/making-a-semantic-check/main.md#making-a-semantic-check) has a candidate list used.
+**The candidates, then the files in full.** Where a candidate list comes with the check, the reader takes it as a guide to where numbers and directions are likely. The reader then reads the files in full, as [`specs/methodology/semantic-check-methods/main.md § Semantic Check Methods`](/specs/methodology/semantic-check-methods/main.md#semantic-check-methods) has a candidate list used.
 
 **A number.** The reader judges every number against [`specs/methodology/spec-style/ordinals-and-counts.md § Ordinals and Counts`](/specs/methodology/spec-style/ordinals-and-counts.md#ordinals-and-counts) as written. A number that breaks the section gets a proposed rewrite. A number the section keeps is set aside, with the section's reason for keeping it.
 

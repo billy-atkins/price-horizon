@@ -1,4 +1,4 @@
-## Making a Semantic Check
+## Semantic Check Methods
 
 A semantic check ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md)) is made by reading. This document says how each semantic check that more than one skill needs is made: how its reader finds what to judge, what is easy to miss, how the reader judges, and how a finding is fixed. It is written for a reader who has been given files to read.
 
@@ -24,7 +24,7 @@ A summary shortens its source. Each clause that turns a paragraph into a phrase 
 
 The reader takes each clause of the summary with its source open and asks two questions. What did the source say that the clause does not? Does the difference change what a reader concludes?
 
-The checks that read for these faults are [`specs/methodology/making-a-semantic-check/directory-summary-currency.md § Directory Summary Currency`](/specs/methodology/making-a-semantic-check/directory-summary-currency.md#directory-summary-currency), [`specs/methodology/making-a-semantic-check/diagram-currency.md § Diagram Currency`](/specs/methodology/making-a-semantic-check/diagram-currency.md#diagram-currency), and [`specs/methodology/making-a-semantic-check/whether-the-home-holds-the-fact.md § Whether the Home Holds the Fact`](/specs/methodology/making-a-semantic-check/whether-the-home-holds-the-fact.md#whether-the-home-holds-the-fact) wherever a citing passage says in its own words what the cited section states. The other checks compare no two versions of one passage, so they do not read for them.
+The checks that read for these faults are [`specs/methodology/semantic-check-methods/directory-summary-currency.md § Directory Summary Currency`](/specs/methodology/semantic-check-methods/directory-summary-currency.md#directory-summary-currency), [`specs/methodology/semantic-check-methods/diagram-currency.md § Diagram Currency`](/specs/methodology/semantic-check-methods/diagram-currency.md#diagram-currency), and [`specs/methodology/semantic-check-methods/whether-the-home-holds-the-fact.md § Whether the Home Holds the Fact`](/specs/methodology/semantic-check-methods/whether-the-home-holds-the-fact.md#whether-the-home-holds-the-fact) wherever a citing passage says in its own words what the cited section states. The other checks compare no two versions of one passage, so they do not read for them.
 
 ### A Passage Still Stating Replaced Wording
 

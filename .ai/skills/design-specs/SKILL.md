@@ -123,7 +123,7 @@ At the apply, read each file fresh before working on it, as `specs/AGENTS.md § 
 
 Follow `specs/methodology/sourcing-and-citation/keeping-specs-in-sync.md § Keeping Specs in Sync`. Within `§ Workflow § State each step as its outcome`, research each passage and diagram restating what a step changes, as `§ Workflow § Frame the change` has research handed off, and name each in the step's What and in the Target as `specs/methodology/working-files/main.md § Design Plan Step § What a Step Rests On` has a What name an area. At the apply, keep each in sync, reading each file fresh before working on it, as `specs/AGENTS.md § Design, Refactor, Refine § Reading Fresh` has a file read. A section you changed that a diagram renders cites that diagram, wherever the diagram sits, so the diagram to re-check is named in the text you just wrote.
 
-A diagram is the easiest view to leave stale and the hardest to notice, because a wrong one is invisible in source and obvious only once rendered. Draw or render a diagram through `.ai/skills/author-mermaid-diagram/`, as `specs/methodology/modeling-constructs.md § Diagrams` has it. Check a diagram again as `specs/methodology/making-a-semantic-check/diagram-currency.md § Diagram Currency` has it checked, from its source and from its render.
+A diagram is the easiest view to leave stale and the hardest to notice, because a wrong one is invisible in source and obvious only once rendered. Draw or render a diagram through `.ai/skills/author-mermaid-diagram/`, as `specs/methodology/modeling-constructs.md § Diagrams` has it. Check a diagram again as `specs/methodology/semantic-check-methods/diagram-currency.md § Diagram Currency` has it checked, from its source and from its render.
 
 ### Strip drafting residue, and write clearly
 
@@ -151,7 +151,7 @@ The search is cheap and mechanical, and it is research, handed off as `§ Workfl
 
 ## Compression distortion
 
-Every clause compressing a paragraph into a phrase is an opportunity to assert something the source does not. An overview owes that compression, and so does a diagram, and any passage stating in its own words what another states. `specs/methodology/making-a-semantic-check/main.md § Making a Semantic Check § How a Summary Distorts Its Source` names the ways a compression goes wrong and how each clause is compared with its source. Read it before you write or revise one.
+Every clause compressing a paragraph into a phrase is an opportunity to assert something the source does not. An overview owes that compression, and so does a diagram, and any passage stating in its own words what another states. `specs/methodology/semantic-check-methods/main.md § Semantic Check Methods § How a Summary Distorts Its Source` names the ways a compression goes wrong and how each clause is compared with its source. Read it before you write or revise one.
 
 Re-reading your own summary will not catch a distortion, because the summary will read fine.
 

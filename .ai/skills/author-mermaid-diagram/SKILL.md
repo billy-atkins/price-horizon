@@ -5,13 +5,13 @@ description: Author or edit a Mermaid diagram. Use when adding a diagram to a do
 
 # Authoring a Mermaid diagram
 
-`specs/methodology/modeling-constructs.md § Diagrams` sets what a diagram is, where it goes, its form, what it may show, and how a diagram and its sources cite each other. This skill is how a diagram gets drawn and rendered within those rules: the steps, and the layout failures that recur along the way. How a diagram is checked against its sources and its host file stands in `specs/methodology/making-a-semantic-check/diagram-currency.md § Diagram Currency`, which the steps cite.
+`specs/methodology/modeling-constructs.md § Diagrams` sets what a diagram is, where it goes, its form, what it may show, and how a diagram and its sources cite each other. This skill is how a diagram gets drawn and rendered within those rules: the steps, and the layout failures that recur along the way. How a diagram is checked against its sources and its host file stands in `specs/methodology/semantic-check-methods/diagram-currency.md § Diagram Currency`, which the steps cite.
 
 ## Workflow
 
 **Find where it helps its reader most.** Per `specs/methodology/modeling-constructs.md § Diagrams`.
 
-**Check every label against the host file before drawing.** Per `specs/methodology/modeling-constructs.md § Diagrams`, a diagram shows only what its host file names. The same section sets the notation, a Mermaid flowchart. Before you draw, judge each label, the drawing against the host file's prose, and anything you collapsed, as `specs/methodology/making-a-semantic-check/diagram-currency.md § Diagram Currency` has each judged.
+**Check every label against the host file before drawing.** Per `specs/methodology/modeling-constructs.md § Diagrams`, a diagram shows only what its host file names. The same section sets the notation, a Mermaid flowchart. Before you draw, judge each label, the drawing against the host file's prose, and anything you collapsed, as `specs/methodology/semantic-check-methods/diagram-currency.md § Diagram Currency` has each judged.
 
 **Give it its caption and its sources, and cite it from each source.** Per `specs/methodology/modeling-constructs.md § Diagrams`. Add the citation back in the same change. `.ai/skills/audit-specs/scripts/audit-specs.py` checks both.
 
@@ -25,7 +25,7 @@ The script strips markdown blockquote prefixes, so a diagram drafted inside a qu
 
 Each render is named for where its diagram lives. The name is the source path as given from the project root, with its folders joined by `_`, then the headings above the block, joined by `--`. So a diagram in `docs/api/overview.md` under `## Diagrams` and `### Request Flow` renders to `docs_api_overview--diagrams--request-flow.png`. Hyphens only ever appear inside a name, never between folders, so `a/b-c.md` and `a-b/c.md` cannot collide. Names use only lowercase ASCII letters, digits and hyphens, so they are legal on Windows, macOS and Linux. Because they are lowercase, no two names can differ only in case, which Windows and macOS would treat as the same file. Rendering a file clears that file's earlier renders and no other file's. That is why the root matters. Naming by basename alone once let two files both called `architecture.md` write to the same PNG. Rendering one deleted the other's output as stale, while reporting success.
 
-Then judge what only the render shows, as `specs/methodology/making-a-semantic-check/diagram-currency.md § Diagram Currency` has it judged. `§ Layout traps` says how to fix what the render shows.
+Then judge what only the render shows, as `specs/methodology/semantic-check-methods/diagram-currency.md § Diagram Currency` has it judged. `§ Layout traps` says how to fix what the render shows.
 
 ## Layout traps
 

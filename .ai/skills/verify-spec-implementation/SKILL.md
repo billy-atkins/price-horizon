@@ -35,11 +35,11 @@ Where the script's findings show existing annotations out of sync with the specs
 
 ### Read the code against its specs
 
-Make this reading as `specs/methodology/making-a-semantic-check/code-against-its-specs.md § The Code Against Its Specs` has it made. It reads each annotated unit against the sections the unit cites, each file the script lists as citing no spec, each section the script lists as cited by no code, and the code's spelling. Report each breach of American English you find, as `specs/AGENTS.md § Design, Refactor, Refine § An Audit` has an audit report a rule reaching only what a change writes.
+Make this reading as `specs/methodology/semantic-check-methods/code-against-its-specs.md § The Code Against Its Specs` has it made. It reads each annotated unit against the sections the unit cites, each file the script lists as citing no spec, each section the script lists as cited by no code, and the code's spelling. Report each breach of American English you find, as `specs/AGENTS.md § Design, Refactor, Refine § An Audit` has an audit report a rule reaching only what a change writes.
 
 ### Read the technical overview against the code
 
-Make this reading as `specs/methodology/making-a-semantic-check/technical-overview-against-the-code.md § The Technical Overview Against the Code` has it made. Report what the overview says that the code does not bear out.
+Make this reading as `specs/methodology/semantic-check-methods/technical-overview-against-the-code.md § The Technical Overview Against the Code` has it made. Report what the overview says that the code does not bear out.
 
 ### Report, and settle as an audit
 
