@@ -37,6 +37,7 @@ specs/
 │   ├── expressions.md
 │   ├── external-references.md
 │   ├── glossary/
+│   ├── making-a-semantic-check/
 │   ├── modeling-constructs.md
 │   ├── scope/
 │   ├── skills/

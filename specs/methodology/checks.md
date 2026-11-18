@@ -32,7 +32,7 @@ Script Check is the record type of a script check ([`specs/methodology/glossary/
 
 ## Semantic Check
 
-Semantic Check is the record type of a semantic check ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md)). Its records stand as [`§ Check`](#check) places a check's records, and give the fields that type declares, then its own:
+Semantic Check is the record type of a semantic check ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md)). [`specs/methodology/making-a-semantic-check/main.md § Making a Semantic Check`](/specs/methodology/making-a-semantic-check/main.md#making-a-semantic-check) says how each semantic check that more than one skill needs is made. Its records stand as [`§ Check`](#check) places a check's records, and give the fields that type declares, then its own:
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
 **Extends:** `§ Check` \

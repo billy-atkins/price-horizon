@@ -1,29 +1,21 @@
 ---
 name: author-mermaid-diagram
-description: Author or edit a Mermaid diagram. Use when adding a diagram to a document, changing an existing one, or when a content change may have left a diagram stale. Covers where a diagram goes and the form it takes, the altitude check that keeps it consistent with its host file, its sources and the citations back to it, the layout traps that only appear on render, and the render-before-shipping requirement.
+description: Author or edit a Mermaid diagram. Use when adding a diagram to a document, changing an existing one, or when a content change may have left a diagram stale. Covers where a diagram goes and the form it takes, its sources and the citations back to it, how it is rendered before it ships, the layout traps that only appear on render, and where the checks of a diagram against its host file and its sources are found.
 ---
 
 # Authoring a Mermaid diagram
 
-`specs/methodology/modeling-constructs.md § Diagrams` sets what a diagram is, where it goes, its form, what it may show, and how a diagram and its sources cite each other. This skill is how a diagram gets authored, rendered and checked within those rules: the steps, and the failures that recur along the way.
+`specs/methodology/modeling-constructs.md § Diagrams` sets what a diagram is, where it goes, its form, what it may show, and how a diagram and its sources cite each other. This skill is how a diagram gets drawn and rendered within those rules: the steps, and the layout failures that recur along the way. How a diagram is checked against its sources and its host file stands in `specs/methodology/making-a-semantic-check/diagram-currency.md § Diagram Currency`, which the steps cite.
 
 ## Workflow
 
 **Find where it helps its reader most.** Per `specs/methodology/modeling-constructs.md § Diagrams`.
 
-**Altitude-check every label before drawing.** Per `specs/methodology/modeling-constructs.md § Diagrams`, list each node label and edge label you intend to use. Find where the host file's content names each one. The same section sets the notation, a Mermaid flowchart.
+**Check every label against the host file before drawing.** Per `specs/methodology/modeling-constructs.md § Diagrams`, a diagram shows only what its host file names. The same section sets the notation, a Mermaid flowchart. Before you draw, judge each label, the drawing against the host file's prose, and anything you collapsed, as `specs/methodology/making-a-semantic-check/diagram-currency.md § Diagram Currency` has each judged.
 
-The most common failure is rendering the source faithfully. Faithful-to-the-source is the wrong target; consistent-with-the-host is the right one. A source rendered at full fidelity drags its detail up into a host file that never discusses it. The result reads as though the host covers things it does not. The opposite case occurs too. The diagram needs a fact at the host's own level of detail, and the host never states it. Such a fact is often a real gap in the host, worth closing on its own terms rather than as a workaround to license a picture.
+**Give it its caption and its sources, and cite it from each source.** Per `specs/methodology/modeling-constructs.md § Diagrams`. Add the citation back in the same change. `.ai/skills/audit-specs/scripts/audit-specs.py` checks both.
 
-**Then check each label out of its sentence.** Passing the altitude check is necessary, not sufficient. A label can be lifted verbatim from the host file and still be wrong in the diagram, because a diagram strips the sentence that qualified it. In one diagram, a phrase taken word for word from prose described how much some nightly job covers. It sat next to a branch for the cases that job does not cover, and read as a flat contradiction that the prose never contained. Ask whether each label still means the same thing with its sentence removed. Ask too whether the label is attached to the thing it describes. That phrase described the scope of a stored result, and it had been hung on the computation that produced the result.
-
-**Check the diagram cannot contradict the host file's prose.** Read the prose around what the diagram renders, and ask whether the drawing denies anything the prose asserts. Containers are the usual culprit. Grouping nodes into subgraphs asserts that the grouping is the real structure. That assertion is wrong if the prose says two structures cut across one another.
-
-**If you collapsed anything, re-check the source row by row.** Collapsing a construct's internal states into one box is legitimate, and it silently drops transitions. Walk the source table, and confirm every transition is either drawn or subsumed by the box you collapsed into. A node left outside the container it was meant to be grouped into loses its edges with no error and no warning.
-
-**Give it its caption and its sources, and cite it from each source.** Per `specs/methodology/modeling-constructs.md § Diagrams`. The citation back is the one that gets forgotten, since it lands in a file the author was not otherwise editing. Add it in the same change. `.ai/skills/audit-specs/scripts/audit-specs.py` checks both.
-
-**Render it and look at it.** Rendering is required. Hand-tracing Mermaid grammar catches parse errors and nothing else. Layout and semantic defects survive hand-tracing intact and die on first render. Run this skill's `scripts/author-mermaid-diagram.py` from the project root, then read the PNG it writes:
+**Render it and look at it.** Rendering is required. Hand-tracing Mermaid grammar catches parse errors and nothing else. A layout defect survives hand-tracing and shows on the first render. Run this skill's `scripts/author-mermaid-diagram.py` from the project root, then read the PNG it writes:
 
     python <skill-dir>/scripts/author-mermaid-diagram.py --render-diagrams path/to/file.md            # every block
     python <skill-dir>/scripts/author-mermaid-diagram.py --list-diagrams path/to/file.md              # what blocks exist, and the name each renders to
@@ -33,7 +25,7 @@ The script strips markdown blockquote prefixes, so a diagram drafted inside a qu
 
 Each render is named for where its diagram lives. The name is the source path as given from the project root, with its folders joined by `_`, then the headings above the block, joined by `--`. So a diagram in `docs/api/overview.md` under `## Diagrams` and `### Request Flow` renders to `docs_api_overview--diagrams--request-flow.png`. Hyphens only ever appear inside a name, never between folders, so `a/b-c.md` and `a-b/c.md` cannot collide. Names use only lowercase ASCII letters, digits and hyphens, so they are legal on Windows, macOS and Linux. Because they are lowercase, no two names can differ only in case, which Windows and macOS would treat as the same file. Rendering a file clears that file's earlier renders and no other file's. That is why the root matters. Naming by basename alone once let two files both called `architecture.md` write to the same PNG. Rendering one deleted the other's output as stale, while reporting success.
 
-Look for the failures the source cannot show you: whether the reading order matches the story, whether anything floated somewhere misleading, whether a caveat landed before the thing it qualifies. The target is a diagram whose main path a reader with no technical background traces without a legend.
+Then judge what only the render shows, as `specs/methodology/making-a-semantic-check/diagram-currency.md § Diagram Currency` has it judged. `§ Layout traps` says how to fix what the render shows.
 
 ## Layout traps
 

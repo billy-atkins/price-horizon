@@ -1,0 +1,22 @@
+## Whether the Home Holds the Fact
+
+This check reads whether a cited section still states what each passage citing it says it states, as [`specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation`](/specs/methodology/sourcing-and-citation/writing-a-citation.md#writing-a-citation) requires. A citing passage says "X is governed there". The check asks whether X is there. The check also looks for a bare citation that needed more.
+
+**Why it gets left out.** This check finds the most and is the easiest to skip, because every sign of the defect looks fine. The heading exists. The citing passage reads as correct, because it says what it means. The cited section reads as correct, because a missing sentence does not show. The defect exists only in the gap between two files that are each clean on their own.
+
+**By cited section, never by citing passage.** The reader takes a section cited from several places and gathers every citation of it at once. Before opening the section, the reader writes down what each citing passage says the section states. The reader then reads the section and checks each of those claims off. Going one citing passage at a time is what fails. One file claiming something that is not there looks like that file's own loose wording. It takes a second citing passage to show that the cited section is what falls short.
+
+**Where to start.** A heavily cited section gathers claims faster than anyone reads it again. So the most-cited section is where to start, though not where to stop. Where the reader has a change's diff, the starting set is fixed: every section whose meaning the change altered. A citation written against the old meaning is still a valid citation, and nothing else will find it. The reader starts from the changed sections and works outward from each. [`specs/methodology/making-a-semantic-check/main.md § Making a Semantic Check § A Passage Still Stating Replaced Wording`](/specs/methodology/making-a-semantic-check/main.md#a-passage-still-stating-replaced-wording) says how a passage still stating a changed section's old wording is found.
+
+**Every direction a citation may point.** A citation between two files on one side counts as much as one between the product side and the technical side. Product to product is where a cited section most often falls short.
+
+**A citing passage's own words.** Where a citing passage says in its own words what the cited section states, the reader reads it for each fault that [`specs/methodology/making-a-semantic-check/main.md § Making a Semantic Check § How a Summary Distorts Its Source`](/specs/methodology/making-a-semantic-check/main.md#how-a-summary-distorts-its-source) names.
+
+**A bare citation that needed more.** With every citation of a section gathered, the reader reads each citing passage as an agent reading only that place would. [`specs/methodology/sourcing-and-citation/one-home-per-fact.md § One Home Per Fact`](/specs/methodology/sourcing-and-citation/one-home-per-fact.md#one-home-per-fact) says when a citing place states how a rule applies there and why, and when a bare citation is enough. The reader judges each citing passage by those sentences. A bare citation reads as correct because nothing in it is wrong, which is why it is missed.
+
+**The shapes of a finding.** Each is fixed on the side that is wrong, never by weakening the citation:
+- **The cited section never states the rule.** A file cites a section as holding a limit. That section's prose never mentions the limit, and only its scenarios imply it. The prose is what is missing.
+- **The cited section states it differently, and the citing passage is right.** A second file cites the same section while stating the rule in its correct, narrower form. When a citing passage is more accurate than the home it cites, the home is out of date, and the citing passage's wording is the best evidence of what the rule should say. Once the home holds the rule, the citing passage keeps its citation and drops its restatement.
+- **A fact with no home anywhere.** A mechanism is specified on the technical side, a scenario asserts it, every file assumes it, and no product section states it. [`specs/methodology/spec-placement/product-or-technical.md § Product or Technical`](/specs/methodology/spec-placement/product-or-technical.md#product-or-technical) says what the product side states. This check finds the gap because a citation went looking for the fact.
+
+A cited section that never states the rule, and one that states it differently, are the common shapes.

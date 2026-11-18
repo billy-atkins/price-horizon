@@ -123,7 +123,7 @@ At the apply, read each file fresh before working on it, as `specs/AGENTS.md § 
 
 Follow `specs/methodology/sourcing-and-citation/keeping-specs-in-sync.md § Keeping Specs in Sync`. Within `§ Workflow § State each step as its outcome`, research each passage and diagram restating what a step changes, as `§ Workflow § Frame the change` has research handed off, and name each in the step's What and in the Target as `specs/methodology/working-files/main.md § Design Plan Step § What a Step Rests On` has a What name an area. At the apply, keep each in sync, reading each file fresh before working on it, as `specs/AGENTS.md § Design, Refactor, Refine § Reading Fresh` has a file read. A section you changed that a diagram renders cites that diagram, wherever the diagram sits, so the diagram to re-check is named in the text you just wrote.
 
-A diagram is the easiest view to leave stale and the hardest to notice, because a wrong one is invisible in source and obvious only once rendered. Author or re-check a diagram as `specs/methodology/modeling-constructs.md § Diagrams` has it, through `.ai/skills/author-mermaid-diagram/`. That skill covers the altitude check that keeps a label inside what its host file states. It also covers the render step that catches what reading the source will not.
+A diagram is the easiest view to leave stale and the hardest to notice, because a wrong one is invisible in source and obvious only once rendered. Draw or render a diagram through `.ai/skills/author-mermaid-diagram/`, as `specs/methodology/modeling-constructs.md § Diagrams` has it. Check a diagram again as `specs/methodology/making-a-semantic-check/diagram-currency.md § Diagram Currency` has it checked, from its source and from its render.
 
 ### Strip drafting residue, and write clearly
 
@@ -151,15 +151,9 @@ The search is cheap and mechanical, and it is research, handed off as `§ Workfl
 
 ## Compression distortion
 
-`specs/methodology/spec-placement/index-architecture-detail.md § Index, Architecture, Detail` requires `architecture.md` to describe its directory, every directory beneath it, and what `specs/methodology/spec-placement/index-architecture-detail.md § What an Overview Describes` names beyond it, in its own words and without accumulating full detail. Meeting that requirement means compressing its detail files. Every clause compressing a paragraph into a phrase is an opportunity to assert something the source does not.
+Every clause compressing a paragraph into a phrase is an opportunity to assert something the source does not. An overview owes that compression, and so does a diagram, and any passage stating in its own words what another states. `specs/methodology/making-a-semantic-check/main.md § Making a Semantic Check § How a Summary Distorts Its Source` names the ways a compression goes wrong and how each clause is compared with its source. Read it before you write or revise one.
 
-The ways it goes wrong, in rough order of frequency:
-- **A dropped qualifier that was load-bearing.** The source says a capability works "though never carrying X". The summary says it works. The exception was the protection, and the overview now promises something broader than the system does.
-- **A default promoted to a universal.** The source says a path is "the default" among several. The summary says it is how the thing works.
-- **A count asserted where the source enumerates.** The source names two behaviors and points at a third elsewhere. The summary says "two ways," which reads as closed and is not.
-- **A referent stranded by the cut.** The summary keeps "than that window allows" after deleting the clause naming the window.
-
-Re-reading your own summary will not catch these, because it will read fine. Open the source beside the clause and compare the two directly. Ask what the source said that the clause does not, and whether the omission changes what a reader concludes.
+Re-reading your own summary will not catch a distortion, because the summary will read fine.
 
 ## Never propose structure before proving the existing structure fails
 

@@ -1,6 +1,6 @@
 ## Rules and Skills
 
-The methodology's files state Spec of Record's methodology rules. They do not sequence the work, record what goes wrong while following it, check whether a result conforms, or teach the craft a rule assumes. The skills that [`specs/methodology/skills/registered-skills.md § Registered Skills`](/specs/methodology/skills/registered-skills.md#registered-skills) registers do those things, and a cold agent needs them to follow the methodology in practice. [`specs/AGENTS.md`](/specs/AGENTS.md) states methodology rules too, and sequences the work through the Design, Refactor, Refine process. The methodology's files and [`specs/AGENTS.md`](/specs/AGENTS.md), with the specifications' main file and their overview, make up the core canon ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md)). The skills, with the code they share, are the rest of the canon. Where a skill and a methodology rule disagree, the methodology rule governs, and the skill is what needs correcting.
+The methodology's files state Spec of Record's methodology rules. They do not sequence the work, record what goes wrong while following it, or check whether a result conforms. The skills that [`specs/methodology/skills/registered-skills.md § Registered Skills`](/specs/methodology/skills/registered-skills.md#registered-skills) registers do those things, and a cold agent needs them to follow the methodology in practice. [`specs/AGENTS.md`](/specs/AGENTS.md) states methodology rules too, and sequences the work through the Design, Refactor, Refine process. The methodology's files and [`specs/AGENTS.md`](/specs/AGENTS.md), with the specifications' main file and their overview, make up the core canon ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md)). The skills, with the code they share, are the rest of the canon. Where a skill and a methodology rule disagree, the methodology rule governs, and the skill is what needs correcting.
 
 **Where a rule lives.** What a rule governs decides where it lives, never where it stands today. The questions mean these:
 - **A specification rule?** Whether the rule governs what the specifications or the code hold, rather than how the work is done, which an operating rule governs.
@@ -15,6 +15,8 @@ The methodology's files state Spec of Record's methodology rules. They do not se
 | true | - | the core canon, and never in a skill |
 | false | true | the core canon, above the skills |
 | false | false | that skill |
+
+So a way of doing the work, as how a check is made, lives in a skill while one skill needs it, and in the core canon once two do. One skill may send its reader to another skill to run it. That shares no way of doing the work, and each skill keeps its own.
 
 A skill keeps a rule in the form [`specs/methodology/skills/authoring-a-skill.md § Authoring a Skill`](/specs/methodology/skills/authoring-a-skill.md#authoring-a-skill) gives a rule it keeps, naming beside it the check the skill makes of it.
 
@@ -55,6 +57,33 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
     **Leaves:** the fact, placed, cited or formed against its rule \
     **Caught By:**
       - `.ai/skills/audit-specs/` reading audits
+
+  - **Failure:** a semantic check made without reading how it is made \
+    **Sections:**
+      - [`specs/methodology/making-a-semantic-check/main.md § Making a Semantic Check`](/specs/methodology/making-a-semantic-check/main.md#making-a-semantic-check)
+      - [`specs/methodology/making-a-semantic-check/directory-summary-currency.md § Directory Summary Currency`](/specs/methodology/making-a-semantic-check/directory-summary-currency.md#directory-summary-currency)
+      - [`specs/methodology/making-a-semantic-check/counterpart-currency.md § Counterpart Currency`](/specs/methodology/making-a-semantic-check/counterpart-currency.md#counterpart-currency)
+      - [`specs/methodology/making-a-semantic-check/scenario-coverage.md § Scenario Coverage`](/specs/methodology/making-a-semantic-check/scenario-coverage.md#scenario-coverage)
+      - [`specs/methodology/making-a-semantic-check/where-a-rule-lives.md § Where a Rule Lives`](/specs/methodology/making-a-semantic-check/where-a-rule-lives.md#where-a-rule-lives)
+      - [`specs/methodology/making-a-semantic-check/whether-the-home-holds-the-fact.md § Whether the Home Holds the Fact`](/specs/methodology/making-a-semantic-check/whether-the-home-holds-the-fact.md#whether-the-home-holds-the-fact)
+      - [`specs/methodology/making-a-semantic-check/ordinals-and-counts.md § Ordinals and Counts`](/specs/methodology/making-a-semantic-check/ordinals-and-counts.md#ordinals-and-counts)
+      - [`specs/methodology/making-a-semantic-check/markup.md § Markup`](/specs/methodology/making-a-semantic-check/markup.md#markup)
+      - [`specs/methodology/making-a-semantic-check/glossary-terms.md § Glossary Terms`](/specs/methodology/making-a-semantic-check/glossary-terms.md#glossary-terms)
+      - [`specs/methodology/making-a-semantic-check/construct-choice-and-form.md § Construct Choice and Form`](/specs/methodology/making-a-semantic-check/construct-choice-and-form.md#construct-choice-and-form)
+      - [`specs/methodology/making-a-semantic-check/placement.md § Placement`](/specs/methodology/making-a-semantic-check/placement.md#placement)
+      - [`specs/methodology/making-a-semantic-check/finished-style.md § Finished Style`](/specs/methodology/making-a-semantic-check/finished-style.md#finished-style)
+      - [`specs/methodology/making-a-semantic-check/agent-agnostic.md § Agent Agnostic`](/specs/methodology/making-a-semantic-check/agent-agnostic.md#agent-agnostic)
+      - [`specs/methodology/making-a-semantic-check/skill-form.md § Skill Form`](/specs/methodology/making-a-semantic-check/skill-form.md#skill-form)
+      - [`specs/methodology/making-a-semantic-check/diagram-currency.md § Diagram Currency`](/specs/methodology/making-a-semantic-check/diagram-currency.md#diagram-currency)
+      - [`specs/methodology/making-a-semantic-check/principles-held.md § Principles Held`](/specs/methodology/making-a-semantic-check/principles-held.md#principles-held)
+      - [`specs/methodology/making-a-semantic-check/code-against-its-specs.md § The Code Against Its Specs`](/specs/methodology/making-a-semantic-check/code-against-its-specs.md#the-code-against-its-specs)
+      - [`specs/methodology/making-a-semantic-check/technical-overview-against-the-code.md § The Technical Overview Against the Code`](/specs/methodology/making-a-semantic-check/technical-overview-against-the-code.md#the-technical-overview-against-the-code)
+
+    **Rule:** [`specs/methodology/making-a-semantic-check/main.md § Making a Semantic Check`](/specs/methodology/making-a-semantic-check/main.md#making-a-semantic-check) \
+    **Leaves:** a breach the check reads for, left in the files unfound \
+    **Caught By:**
+      - `.ai/skills/audit-specs/` reading audits
+      - `.ai/skills/verify-spec-implementation/`
 
   - **Failure:** a direct edit made without the user's approval \
     **Sections:**
