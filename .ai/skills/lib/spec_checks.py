@@ -17,13 +17,14 @@ from pathlib import Path, PurePosixPath
 import citation_links
 import constructs
 import layout
+import reading
 from record_types import (
     CONSTRUCT_KEYS, FACT_HOME, FIELD_KEYS, FIELD_LINE, KEY_VALUE, LAST_TOP_LEVEL, NAME_CITED, RECORD_FORM,
     TYPES, _TEXT_OF, basic_tables, block_findings, block_path, cited_value_findings, closed_set, closed_set_findings,
     _indent, construct_keys, declared_types, derive, nested_lines, opens_key, parse_records, part_citation, read_block, read_fact,
     is_form_template, read_for_records, record_citation, row_citation, type_of, value_of)
 from spec_text import (
-    HEADING, REGISTRY, REGISTRY_RULE, SCOPE_HOME, headings, indexed, lineages, md_files, methodology_files, parse_citation, read, registry, resolve, scope_paths,
+    REGISTRY, REGISTRY_RULE, SCOPE_HOME, headings, indexed, lineages, md_files, methodology_files, parse_citation, read, registry, resolve, scope_paths,
     sections, skill_dirs, strip_fences, tracked)
 
 
@@ -69,7 +70,8 @@ CITATION = constructs.CITATION  # the form written once, in constructs.py, which
 # resolve to a known file, so a passing mention of a directory is not read as one.
 WHOLE_FILE = re.compile(r'`([\w./-]+\.md)`')
 LOOSE_SECTION = re.compile(r'(?<!`)§')
-FENCE = re.compile(r'^```', re.M)
+# what a check of prose leaves aside by where a line stands, as the one reading gives it (reading.py)
+NOT_PROSE = (reading.HEADING, reading.TABLE, reading.THEMATIC_BREAK)
 
 # specs/methodology/spec-style/ordinals-and-counts.md § Ordinals and Counts. The findings are the forms a pattern decides alone.
 ORDINALS_RULE = "spec-style/ordinals-and-counts.md § Ordinals and Counts"
@@ -417,7 +419,7 @@ def field_findings(r, body, found):
             found.append((FIELDS, r, i + 1, f"a field whose key no form declares: {key}"))
             continue
         if place == "diagram":
-            ok = any(raw[j].startswith("```mermaid") for j in range(h + 1, end))
+            ok = any(b.word == "mermaid" and h < b.opens - 1 < end for b in reading.blocks(body))
         elif place == "record section":
             ok = spec is not None and not indent and not dash
         elif place == "environment":
@@ -522,8 +524,10 @@ def diagram_findings(r, body, text_of, known, lineage, found):
     one reader, and its sources citing it back."""
     rule = "modeling-constructs.md § Diagrams"
     lines, secs = body.split("\n"), sections(body)
-    for m in re.finditer(r'^```mermaid\s*$', body, re.M):
-        start = body.count("\n", 0, m.start())
+    for block in reading.blocks(body):
+        if block.word != "mermaid":
+            continue
+        start = block.opens - 1
         owner = [(lin, s) for lin, s in secs.items() if s[0] < start < s[1]]
         if not owner:
             found.append((rule, r, start + 1, "a diagram with no heading of its own"))
@@ -535,7 +539,7 @@ def diagram_findings(r, body, text_of, known, lineage, found):
         if not rest or rest[0][0] != start:
             found.append((rule, r, start + 1, "a diagram's section holds something before the diagram"))
             continue
-        close = next((i for i in range(start + 1, end) if lines[i].startswith("```")), None)
+        close = block.closes - 1 if block.closed and block.closes - 1 < end else None
         rest = [(i, l) for i, l in rest if close is not None and i > close]
         first = opens_key(rest[0][1]) if rest else None
         if not first or first["key"] != "Caption" or first["indent"]:
@@ -828,7 +832,7 @@ def check(root, warned=None):
                 found.append(("acceptance-scenarios.md § Acceptance Scenarios", r, 0,
                               "Test Scenarios is not exactly one level below its capability"))
             after = body.split("## " if lvl == 2 else "#" * lvl + " Test Scenarios", 1)
-            if "```gherkin" not in body:
+            if not any(b.word == "gherkin" for b in reading.blocks(body)):
                 found.append(("acceptance-scenarios.md § Acceptance Scenarios", r, 0,
                               "Test Scenarios section has no ```gherkin fence"))
 
@@ -839,8 +843,10 @@ def check(root, warned=None):
         # no check because a reader stops reading the output.
 
         # every gherkin block parses: each Scenario: carries a Given, When and Then
-        for m in re.finditer(r'^```gherkin\s*\n(.*?)^```', body, re.S | re.M):
-            block = m.group(1)
+        for fenced in reading.blocks(body):
+            if fenced.word != "gherkin" or not fenced.closed:
+                continue
+            block = fenced.content + "\n"
             for chunk in re.split(r'^\s*Scenario:', block, flags=re.M)[1:]:
                 title = chunk.split("\n", 1)[0].strip()[:48]
                 for kw in ("Given", "When", "Then"):
@@ -864,10 +870,10 @@ def check(root, warned=None):
         if r.startswith("specs/"):
             diagram_findings(r, body, text_of, known, lineage, found)
             environment_findings(r, body, found, text_of)
-            for m in re.finditer(r'^```mermaid\s*\n(.*?)^```', body, re.S | re.M):
+            for fenced in (b for b in reading.blocks(body) if b.word == "mermaid" and b.closed):
                 # a diagram opens with a config front matter block, so scan the whole
                 # fence rather than its first line
-                if not re.search(r'^\s*flowchart\b', m.group(1), re.M):
+                if not re.search(r'^\s*flowchart\b', fenced.content, re.M):
                     found.append(("modeling-constructs.md § Diagrams", r, 0,
                                   "a mermaid block that does not declare flowchart"))
 
@@ -952,13 +958,15 @@ def image_findings(root):
 
 
 def level2_section(text, title):
-    """-> the body of the level-2 section titled `title`, or None."""
-    m = re.search(r'^## ' + re.escape(title) + r'\s*$', text, re.M)
-    if not m:
-        return None
-    body = text[m.end():]
-    nxt = re.search(r'^## ', body, re.M)
-    return body[:nxt.start()] if nxt else body
+    """-> the body of the level-2 section titled `title`, from the end of its heading's line to the next level-2
+    heading, the headings as the one reading gives them (reading.py), or None."""
+    lines = text.split("\n")
+    twos = [h for h in reading.headings(text) if h.level == 2]
+    for n, h in enumerate(twos):
+        if h.title == title:
+            last = n + 1 == len(twos)
+            return "\n" + "\n".join(lines[h.line:len(lines) if last else twos[n + 1].line - 1]) + ("" if last else "\n")
+    return None
 
 
 def first_table(text, title, column=None):
@@ -1153,8 +1161,9 @@ def prose_sentences(text):
     """-> (line, sentence as written, sentence masked) for each sentence of prose; headings, tables and
     fenced blocks aside. Inline code is masked at its own length, so a sentence is cut from the line
     as written; the masked sentence also hides quoted text, which a rule quoting a pattern holds."""
+    stands = reading.lines(text)
     for n, line in enumerate(strip_fences(text).split("\n"), 1):
-        if not line.strip() or line.lstrip().startswith(("#", "|", "---")):
+        if not line.strip() or stands[n - 1].kind in NOT_PROSE or line.lstrip().startswith("---"):
             continue
         masked = constructs.CODE_SPAN.sub(lambda m: "X" * len(m.group(0)), line)
         hidden = QUOTED.sub(lambda q: "Q" * len(q.group(0)), masked)
@@ -1325,10 +1334,12 @@ def paragraphs(text):
     between blank lines, a list item, a heading, a table, a field and a fenced block each ending one;
     inline code and quoted text hold no semicolon counted."""
     lines = strip_fences(text).split("\n")
+    stands = reading.lines(text)
     cur, first = [], 0
     for n, line in enumerate(lines + [""], 1):
         stripped = line.lstrip()
-        prose = stripped and not stripped.startswith(("#", "|", "---", "- ", "* ", "> ")) and not re.match(r"^\d+\. ", stripped) \
+        kind = stands[n - 1].kind if n <= len(stands) else reading.BLANK
+        prose = stripped and kind not in NOT_PROSE and kind != reading.LIST_ITEM and not stripped.startswith(("---", "> ")) \
             and not re.match(r"^\*\*[^*]+:\*\*", stripped)
         if prose:
             first = first or n
@@ -1486,11 +1497,15 @@ def abbreviation_findings(root):
         rel = f.relative_to(root).as_posix()
         if not f.is_file():
             continue
-        diagram = False
-        for n, line in enumerate(read(f).split("\n"), 1):
-            if line.strip().startswith("```"):
-                diagram = line.strip() == "```mermaid"
+        text = read(f)
+        # a fenced block is a Markdown file's; a script's text holds none
+        fences = reading.blocks(text) if f.suffix == ".md" else ()
+        for ln in reading.lines(text) if fences else [reading.Line(n, l, reading.TEXT, True, 0, None) for n, l in enumerate(text.split("\n"), 1)]:
+            n, line = ln.number, ln.text
+            held = fences[ln.block] if ln.fenced else None
+            if held is not None and (n == held.opens or (held.closed and n == held.closes)):
                 continue
+            diagram = held is not None and held.word == "mermaid"
             if diagram:
                 # a diagram's node ids are identifiers, not prose; only the text it shows is read
                 line = " ".join(m.group(0) for m in DIAGRAM_LABEL.finditer(line))
@@ -1661,14 +1676,13 @@ def form_template_findings(root):
             out.append((FORM_TEMPLATE_RULE, rel, 1, "a form template whose first placeholder cites no section stating its form"))
             continue
         parts = _form_parts(root, cite.group(1), cite.group(2).strip())
-        lines, fenced, at = body.split("\n"), False, -1
+        lines, at = body.split("\n"), -1
         order = {}
+        stands = reading.lines(body)
         for i, line in enumerate(lines):
-            if line.lstrip().startswith("```"):
-                fenced = not fenced
-            if fenced:
+            if stands[i].fenced:
                 continue
-            if parts is not None and TEMPLATE_HEADING.match(line):
+            if parts is not None and stands[i].kind == reading.HEADING and TEMPLATE_HEADING.match(line):
                 heading = line.strip()
                 if heading not in parts:
                     out.append((FORM_TEMPLATE_RULE, rel, i + 1, f"a heading no part of its form gives: {heading}"))
@@ -1750,8 +1764,7 @@ def scope_findings(root):
     if not scope.exists():
         return found + [(SCOPE_HOME, SCOPE_TREE, 0, "the scope file is missing")]
     text = read(scope)
-    section = re.search(r'^## What Spec of Record Governs\n(.*?)(?=^## )', text, re.S | re.M)
-    rows = re.findall(r'^\|\s*([A-Z][^|]*?)\s*\|[^|]*\|([^|]*)\|', section.group(1) if section else "", re.M)
+    rows = re.findall(r'^\|\s*([A-Z][^|]*?)\s*\|[^|]*\|([^|]*)\|', level2_section(text, "What Spec of Record Governs") or "", re.M)
     rows = [(k, named) for k, named in rows if k != "Kind"]
     kinds = {k for k, _ in rows}
     if kinds != SCOPE_KINDS:
@@ -1762,13 +1775,14 @@ def scope_findings(root):
             if path.endswith((".md", "/")) and not (root / path.rstrip("/")).exists():
                 found.append((SCOPE_HOME, SCOPE_TREE, 0, f"the {kind} row names {path}, which does not exist"))
     # the tree names exactly the methodology's files and folders, each folder alone, and every path it names exists
-    tree = re.search(r'^## The Shape of the Scope\n.*?^```\n(.*?)^```', text, re.S | re.M)
+    shape = reading.sections(text).get(("The Shape of the Scope",))
+    tree = next((b.content + "\n" for b in reading.blocks(text) if shape and shape.line < b.opens and b.closed and not b.info), None)
     rule = "scope/what-spec-of-record-governs.md § The Shape of the Scope"
-    if not tree:
+    if tree is None:
         found.append((rule, SCOPE_TREE, 0, "the scope's tree is missing"))
         return found + skill_findings(root, names)
     stack, listed = [], set()
-    for line in tree.group(1).split("\n"):
+    for line in tree.split("\n"):
         m = re.match(r'^([│ ├└─]*)(\S+)', line)
         if not m or not m.group(2).strip("…"):
             continue
@@ -1850,13 +1864,15 @@ def candidates(root):
 
     for f in md_files(root):
         rel = f.relative_to(root).as_posix()
-        md = strip_fences(read(f)).split("\n")
+        text = read(f)
+        md = strip_fences(text).split("\n")
+        heads = {h.line for h in reading.headings(text)}
         for n, line in enumerate(md, 1):
-            if n < len(md) and md[n].strip() and not HEADING.match(line):
+            if n < len(md) and md[n].strip() and n not in heads:
                 # a count wrapped onto the next line: add that line's opening words
                 line = line + " " + " ".join(md[n].split()[:3])
             patterns = CANDIDATE + ([("count in a heading", re.compile(rf"\b{_NUM}\b|\d", re.I))]
-                                    if HEADING.match(line) else [])
+                                    if n in heads else [])
             scan(rel, n, line, patterns)
     for s in [".ai/skills/" + n for n in skill_dirs(root)]:
         base = root / s
@@ -1972,7 +1988,7 @@ def literal_candidates(root):
         known.update(title for _, title in headings(text))
         # a span written verbatim in a fenced example, a Gherkin keyword or a Mermaid
         # directive, is literal text the tree itself shows
-        fenced += re.findall(r'^```[^\n]*\n(.*?)^```', text, re.S | re.M)
+        fenced += [b.content + "\n" for b in reading.blocks(text) if b.closed]
     fenced_words = set(" ".join(fenced).split())
     fenced_text = "\n".join(fenced)
     literal = re.compile(r'[§/._*\[\]:=()<>#;~]|^-|^[a-z0-9-]+$')

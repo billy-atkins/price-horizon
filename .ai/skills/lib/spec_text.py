@@ -1,5 +1,7 @@
-"""The reading of a spec's text that the skills' scripts share: its fenced blocks, its headings, its sections and
-their lineages, where a citation resolves, and which files are in scope, by the skills registry, and their texts.
+"""A spec's text as the skills' scripts share it: its sections and their lineages, where a citation resolves, and
+which files are in scope, by the skills registry, and their texts. Where a line stands, in a fenced block or under a
+heading, and the form a citation takes are the one reading's (reading.py), which each function here gives in the
+shape its callers read.
 audit-specs, design-specs, implement-specs and verify-spec-implementation read a spec through it, each reading this
 one copy (specs/methodology/skills/authoring-a-skill.md § Authoring a Skill)."""
 import fnmatch
@@ -8,6 +10,7 @@ import subprocess
 from pathlib import Path, PurePosixPath
 
 import citation_links
+import reading
 
 
 class CommitTree:
@@ -182,68 +185,44 @@ def read(path):
     return citation_links.strip(path.read_text(encoding="utf-8"))
 
 
-HEADING = re.compile(r'^(#{1,6})\s+(.*?)\s*$', re.M)
+HEADING = reading.SECTION_HEADING  # a heading naming a section, the one reading's
 
 
-RECORD_SELECTOR = re.compile(r'^(.*?)\s+\[(.*)\]$')
+RECORD_SELECTOR = reading.KEYED  # a citation's keyed part, the one reading's
 
 
 def strip_fences(text):
     """Blank out fenced blocks so examples inside them are not linted as live content: each line of a fenced block, its
-    fences among them, as layout.py's one reading of GFM's blocks finds it, a fence indented within a list item, as a
-    step's Draft stands, among them, and a fence's closing one of its character at least as long (spec-style/markdown.md
+    fences among them, as the one reading finds it (reading.py), a fence indented within a list item, as a step's Draft
+    stands, among them, and a fence's closing one of its character at least as long (spec-style/markdown.md
     § Markdown). An indented code block's lines stand."""
-    import layout  # layout reads this module's helpers as it loads, so its reading is fetched as it is called
-
-    fenced = {i for i, el in enumerate(layout.elements(text)) if el is not None and el.fenced}
-    return "\n".join("" if i in fenced else line for i, line in enumerate(text.split("\n")))
+    return reading.live(text, blank="")
 
 
 def headings(text):
-    """-> [(level, title)] from live content only."""
-    return [(len(m.group(1)), m.group(2)) for m in HEADING.finditer(strip_fences(text))]
+    """-> [(level, title)] of the headings naming sections, the file's title among them, from live content only."""
+    return [(h.level, h.title) for h in reading.headings(text)]
 
 
 def sections(text):
     """-> {lineage: (heading_line, end_line)}, 0-based, over raw lines.
 
     A section's own text is the lines after its heading up to the next heading at any
-    level. Fenced lines are skipped when finding headings, but kept in the numbering,
-    since a diagram's fence is part of the section it sits in.
+    level. A fenced block's lines hold no heading, and are kept in the numbering,
+    since a diagram's fence is part of the section it sits in. Of two headings sharing
+    a lineage, the lineage names the first.
     """
-    lines, heads, inside = text.split("\n"), [], False
-    for i, line in enumerate(lines):
-        if line.startswith("```"):
-            inside = not inside
-        elif not inside:
-            m = HEADING.match(line)
-            if m:
-                heads.append((i, len(m.group(1)), m.group(2)))
-    out, stack = {}, []
-    for n, (i, lvl, title) in enumerate(heads):
-        end = heads[n + 1][0] if n + 1 < len(heads) else len(lines)
-        if lvl == 1:
-            continue
-        depth = lvl - 2
-        stack = stack[:depth]
-        while len(stack) < depth:
-            stack.append(None)
-        stack.append(title)
-        out[" § ".join(t for t in stack if t)] = (i, end)
-    return out
+    return {" § ".join(lineage): (h.line - 1, h.ends - 1) for lineage, h in reading.sections(text).items()}
 
 
 def parse_citation(cite, host):
-    """A citation's (file, lineage, selector); a same-file form resolves to its host, and the selector is the text of
-    a record or part citation's `[...]`, or None."""
-    cite = cite.strip()
-    if cite.startswith("§"):
-        path, target = host, cite.lstrip("§ ").strip()
-    else:
-        path, _, target = cite.partition(" § ")
-        path, target = path.strip(), target.strip()
-    m = RECORD_SELECTOR.match(target)
-    return (path, m.group(1).strip(), m.group(2)) if m else (path, target, None)
+    """A citation's (file, lineage, selector), as the one reading reads its form; a same-file form resolves to its
+    host, and the selector is the text of a record or part citation's `[...]`, or None. Text that is no citation
+    names itself as a file."""
+    c = reading.parse_citation(cite)
+    if c is None:
+        return cite.strip(), "", None
+    return c.file or host, c.path, c.selector
 
 
 def resolve(cite, host):
@@ -260,17 +239,7 @@ def lineages(text):
     level 2. This is why `§ Overview` resolves in a file whose first line is
     `# Payments Service`.
     """
-    out, stack = set(), []
-    for lvl, title in headings(text):
-        if lvl == 1:
-            continue
-        depth = lvl - 2
-        stack = stack[:depth]
-        while len(stack) < depth:
-            stack.append(None)
-        stack.append(title)
-        out.add(" § ".join(t for t in stack if t))
-    return out
+    return {" § ".join(lineage) for lineage in reading.sections(text)}
 
 
 # @canon-spec specs/methodology/scope/what-spec-of-record-governs.md § What Spec of Record Governs

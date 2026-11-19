@@ -48,52 +48,32 @@ import tempfile
 import zlib
 from pathlib import Path
 
+sys.dont_write_bytecode = True  # no cache beside the shared code, untracked in the checkout
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "lib"))
+import reading  # noqa: E402  the one reading of a text's fenced blocks and headings, standard library only
+
 DEFAULT_OUT_DIR = Path(".ai/tmp/author-mermaid-diagram")
-FENCE = re.compile(r"^\s*(?:>\s?)*```\s*mermaid\s*$", re.IGNORECASE)
-FENCE_END = re.compile(r"^\s*(?:>\s?)*```\s*$")
-ANY_FENCE = re.compile(r"^\s*(?:>\s?)*```")
-BLOCKQUOTE = re.compile(r"^(\s*)(?:>\s?)+")
-HEADING = re.compile(r"^\s*(?:>\s?)*(#{1,6})\s+(.*?)\s*#*\s*$")
 PATH_SEP = "_"      # between folder segments; slug() never produces it
 SEP = "--"          # between the path and each heading; slug() never produces it
 MAX_NAME = 150      # under the 255-byte name limit on Linux and macOS, and keeps the
                     # full output path under Windows' 260-character limit
 
 
-def strip_blockquote(line: str) -> str:
-    return BLOCKQUOTE.sub(r"\1", line)
-
-
 def extract_blocks(text: str) -> list[tuple[list[str], str]]:
-    """Return (heading lineage, code) for every ```mermaid block, blockquote
-    prefixes removed. The lineage is the chain of headings above the block, below
-    the level-1 title. Headings inside any other fenced block are ignored, since a
-    `# comment` in a code sample is not a section."""
-    blocks, current, other, stack = [], None, False, []
-    for line in text.splitlines():
-        if other:
-            if FENCE_END.match(line):
-                other = False
+    """Return (heading lineage, code) for every fenced block whose info string is
+    mermaid, as the one reading gives a fenced block (reading.py): a block quoted in
+    a design note among them, its quote prefix taken off, and a block fenced by
+    tildes or indented in a list item. The lineage is the chain of headings the
+    block stands under, below the level-1 title. A heading inside any fenced block
+    is none, since a `# comment` in a code sample is not a section."""
+    stands, found = reading.lines(text), []
+    for block in reading.blocks(text):
+        if block.info.strip().lower() != "mermaid":
             continue
-        if current is None:
-            if FENCE.match(line):
-                current = []
-            elif ANY_FENCE.match(line):
-                other = True
-            elif m := HEADING.match(line):
-                level = len(m.group(1))
-                if level > 1:
-                    stack = [(lv, h) for lv, h in stack if lv < level] + [(level, m.group(2))]
-            continue
-        if FENCE_END.match(line):
-            blocks.append(([h for _, h in stack], "\n".join(current).rstrip()))
-            current = None
-        else:
-            current.append(strip_blockquote(line))
-    if current is not None:
-        sys.stderr.write("warning: unterminated ```mermaid block; rendering it anyway\n")
-        blocks.append(([h for _, h in stack], "\n".join(current).rstrip()))
-    return blocks
+        if not block.closed:
+            sys.stderr.write("warning: unterminated mermaid block; rendering it anyway\n")
+        found.append((list(stands[block.opens - 1].lineage), block.content.rstrip()))
+    return found
 
 
 # Windows refuses these as a file name whatever the extension: CON.png cannot exist.
@@ -234,7 +214,7 @@ def load(file):
         sys.stderr.write(f"no such file: {path}\n")
         return 2
     text = path.read_text(encoding="utf-8")
-    blocks = extract_blocks(text) if "```" in text else [([], text)]
+    blocks = extract_blocks(text) if reading.blocks(text) else [([], text)]
     if not blocks:
         sys.stderr.write("no ```mermaid blocks found\n")
         return 1

@@ -10,6 +10,7 @@ tree or the last commit read through spec_text.CommitTree. Standard library only
 """
 import re
 
+import reading
 from spec_text import indexed, lineages
 
 STACK = "specs/application/technical/stack.md"
@@ -24,7 +25,7 @@ STACK_RULE = "spec-placement/technical-stack.md § The Technical Stack"
 # @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § Citing From Code
 TAG = re.compile(r"@app-spec\b")
 # a plain comment line only: a documentation comment, /// or //! or /** or /*!, is never one
-FORM = re.compile(r"^\s*(?://(?![/!])|#+|--|;+|%+|<!--|/\*(?![*!]))\s*@app-spec (\S.*?)\s*(?:-->|\*/)?\s*$")
+FORM = re.compile(reading.COMMENT + r"@app-spec (\S.*?)" + reading.COMMENT_END)  # the comment an annotation is, the one reading's form
 
 
 def code_roots(root):
