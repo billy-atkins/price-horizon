@@ -4284,8 +4284,9 @@ def created_paths():
 # @canon-spec specs/methodology/working-files/main.md § A Design Document § Applying and Committing
 def within_target(path, target, created):
     """-> whether path lies within the Target: a file it names, or a file created under a directory it names, a
-    path ending in a slash; a file standing under such a directory before the apply lies outside it."""
-    return path in target or (path in created and any(t.endswith("/") and path.startswith(t) for t in target))
+    path ending in a slash, `./` naming the project's root, which every path lies under; a file standing under such a
+    directory before the apply lies outside it."""
+    return path in target or (path in created and any(t.endswith("/") and (t == "./" or path.startswith(t)) for t in target))
 
 
 def target_files(target, created):

@@ -106,6 +106,7 @@ The skills under `.ai/skills/` carry the methodology out. Each is a set of instr
 - `audit-specs` checks the specifications, the agent instructions, the skills and this README against every rule that governs them. Its script clears what programming logic can decide, and a reading audit judges the rest, from an overview that has fallen behind its files to a rule stated twice.
 - `implement-specs` designs the code for one product module from its specifications, takes that design through the same reviews as a change to the specifications, and then writes the code, its tests and the wiring between them.
 - `verify-spec-implementation` checks that code carries out the specifications it cites. Its script checks the annotations and lists the sections no code cites, and an independent agent judges the rest. It reports what it finds and changes nothing.
+- `search-spec-of-record-scope` answers where something is, from an index of the specifications, the skills and the code: every place citing a section, the lines a citation names, every use of a term, the code holding a structure, and the places saying the same thing in other words. Each answer is a list of places to read.
 - `author-mermaid-diagram` writes and revises the diagrams, keeps each in sync with its sources, and renders each before it ships.
 - `configure-spec-of-record` sets up the agent in use for what Spec of Record leaves to it, such as running a review at the reasoning effort the engineer chose.
 
@@ -117,7 +118,7 @@ For the methodology, start with [`specs/AGENTS.md`](/specs/AGENTS.md), then [`sp
 
 ## Try it
 
-Some of the methodology only shows in use, so the best test is to take a change through it with your own AI agent. The skills' scripts run on Python 3, and a Claude Code user can link the skills beforehand, as [Set up AI skills for Claude Code](#set-up-ai-skills-for-claude-code) describes. Have the agent run `configure-spec-of-record` first, so it is set up for what Spec of Record leaves to the agent in use. Then have it read [`specs/AGENTS.md`](/specs/AGENTS.md), which sends each change to the skill that carries it out, and ask it for a change to one PriceHorizon capability, such as a new guarantee an answer makes. The agent starts by agreeing on the change's design goals with you.
+Some of the methodology only shows in use, so the best test is to take a change through it with your own AI agent. The skills' scripts run on Python 3. The search also needs a few Python packages and a small model kept on your machine, and the first time a script lacks one it stops and prints what is missing, why it is needed and the command that installs it. A Claude Code user can link the skills beforehand, as [Set up AI skills for Claude Code](#set-up-ai-skills-for-claude-code) describes. Have the agent run `configure-spec-of-record` first, so it is set up for what Spec of Record leaves to the agent in use. Then have it read [`specs/AGENTS.md`](/specs/AGENTS.md), which sends each change to the skill that carries it out, and ask it for a change to one PriceHorizon capability, such as a new guarantee an answer makes. The agent starts by agreeing on the change's design goals with you.
 
 ## Where it is going
 
@@ -145,7 +146,7 @@ sh scripts/setup-claude-skills.sh
 
 ## License
 
-The specifications, methodology and documentation are licensed under [CC BY 4.0](LICENSE). The scripts under `.ai/skills/*/scripts/`, `.ai/skills/lib/` and `scripts/` are licensed under the [MIT License](LICENSE-CODE).
+The specifications, methodology and documentation are licensed under [CC BY 4.0](LICENSE). The scripts under `.ai/skills/*/scripts/`, `.ai/skills/lib/`, `scripts/` and `tests/spec-of-record/scripts/` are licensed under the [MIT License](LICENSE-CODE).
 
 Attribution: "PriceHorizon by Billy Atkins, https://github.com/billy-atkins/price-horizon"
 
