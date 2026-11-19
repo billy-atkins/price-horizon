@@ -9,6 +9,8 @@ file. The citation is resolved to its one heading first, so the anchor reaches t
 import re
 from pathlib import Path
 
+import reading
+
 # @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § A Citation's Link
 # the files a person reads on GitHub, the only ones carrying links: README.md, the files under docs/, and every spec but
 # specs/AGENTS.md
@@ -19,10 +21,8 @@ UNLINKED_NAMES = ("AGENTS.md",)
 # line, its value ending at the space and the backslash that end a field's line; the list beneath its key is read
 # through the one reader (modeling-constructs.md § Fields)
 UNLINKED_FIELDS = re.compile(r"^\s*\*\*(?:Construct|Extends|Implements):\*\*(?: (?P<value>.*?))?(?: \\)?$")
-SPAN = re.compile(r"(?<!`)(`+)(?!`)(.+?)(?<!`)\1(?!`)")
+SPAN = re.compile(reading.SPAN.pattern)  # a code span, the one reading's form, read here within one line
 LINKED = re.compile(r"\[(?P<span>(?P<d>`+)[^\n]+?(?P=d))\]\((?P<target>[/#][^)\s]*)\)")
-SECTION = re.compile(r"^(?:(?P<path>[\w./-]+\.md)\s+)?§\s+(?P<lineage>.+?)(?:\s+\[[^\]]*\])?$")
-WHOLE_FILE = re.compile(r"^[\w./-]+\.md$")
 
 
 def linked_files(root):
@@ -49,41 +49,21 @@ def slug(title):
 
 
 def live_lines(text):
-    """-> the file's lines, a fenced block's and the front matter's blanked, so neither is read as text a reader sees."""
-    lines, inside = text.split("\n"), False
-    out = []
-    front = bool(lines) and lines[0].strip() == "---"
-    for i, line in enumerate(lines):
-        if front:
-            out.append("")
-            if i > 0 and line.strip() == "---":
-                front = False
-            continue
-        if line.startswith("```"):
-            inside = not inside
-            out.append("")
-        else:
-            out.append("" if inside else line)
-    return out
+    """-> the file's lines, a fenced block's and the front matter's blanked, so neither is read as text a reader sees,
+    as the one reading finds them (reading.py)."""
+    return reading.live(text, front_matter=True, blank="").split("\n")
 
 
 def anchors(text):
-    """-> {lineage: anchor} for each heading below the title, its anchor numbered as GitHub numbers a title met again."""
-    seen, stack, out = {}, [], {}
-    for line in live_lines(text):
-        m = re.match(r"^(#{1,6})\s+(.*?)\s*$", line)
-        if not m:
-            continue
-        lvl, title = len(m.group(1)), m.group(2)
-        base = slug(title)
+    """-> {lineage: anchor} for each heading below the title, its anchor numbered as GitHub numbers a title met again.
+    Of two headings sharing a lineage, the lineage names the first."""
+    seen, out = {}, {}
+    for h in reading.headings(text):
+        base = slug(h.title)
         n = seen.get(base, 0)
         seen[base] = n + 1
-        anchor = base if n == 0 else f"{base}-{n}"
-        if lvl == 1:
-            continue
-        depth = lvl - 2
-        stack = stack[:depth] + [None] * max(0, depth - len(stack)) + [title]
-        out.setdefault(" § ".join(t for t in stack if t), anchor)
+        if h.level > 1:
+            out.setdefault(" § ".join(h.lineage), base if n == 0 else f"{base}-{n}")
     return out
 
 
@@ -111,22 +91,21 @@ class Resolver:
 
     def target(self, span, host):
         """-> the link's target for a citation's span, or None where it is no citation or resolves to nothing."""
-        text = " ".join(span.split())
-        m = SECTION.match(text)
-        if m:
-            rel = m.group("path") or host
+        c = reading.parse_citation(span)  # the one reading of a citation's form
+        if c is None or (c.file and not c.file.endswith(".md")):
+            return None
+        if c.lineage:
+            rel = c.file or host
             if not self.served(rel):
                 return None
             found = self.file_anchors(rel)
-            anchor = found.get(m.group("lineage")) if found else None
+            anchor = found.get(c.path) if found else None
             if anchor is None:
                 return None
-            return f"#{anchor}" if not m.group("path") else f"/{rel}#{anchor}"
+            return f"#{anchor}" if not c.file else f"/{rel}#{anchor}"
         # a whole file is cited by its path from the repository's root; a bare file name, as a row of an index.md
         # naming a file beside it or words naming a kind of file, is no citation
-        if WHOLE_FILE.match(text) and "/" in text and self.served(text):
-            return f"/{text}"
-        return None
+        return f"/{c.file}" if self.served(c.file) else None
 
 
 def strip(text):
@@ -178,6 +157,7 @@ def refresh(text, host, resolver):
     from record_types import _indent, read_block  # the one reader of a block of fields (modeling-constructs.md § Fields)
     lines = strip(text).split("\n")
     live = live_lines("\n".join(lines))
+    stands = reading.lines("\n".join(lines))  # where each line stands, the one reading's
     skip = set()  # the lines of a Construct, an Extends or an Implements field's list, each left as written
     for i, line in enumerate(lines):
         if i in skip:
@@ -189,7 +169,7 @@ def refresh(text, host, resolver):
                 until = fields[1]["line"] if len(fields) > 1 else after
                 skip.update(range(i + 1, until))
             continue
-        if not live[i] or line.lstrip().startswith("#"):
+        if not live[i] or stands[i].kind == reading.HEADING:
             continue
 
         def link(m):

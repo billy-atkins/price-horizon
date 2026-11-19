@@ -5,10 +5,8 @@ copy of the table's Conditions, each checked against the table as it is read. Th
 check through this one copy (specs/methodology/skills/authoring-a-skill.md § Authoring a Skill). A fenced block whose info string is
 `markdown` is read as spec-style/markdown.md § Markdown has it, one code block toward what stands outside it and a file of its
 own within."""
-import re
-from pathlib import Path
-
 import constructs
+import reading
 from spec_text import as_root, sections, strip_fences
 
 # @canon-spec specs/methodology/spec-style/markdown.md § Blank Lines
@@ -29,11 +27,9 @@ CODE_BLOCK = "a code block"
 THEMATIC_BREAK = "a thematic break"
 ELEMENTS = (FRONT_MATTER, HEADING, PARAGRAPH, FIELD, RECORD, LIST_ITEM, TABLE, CODE_BLOCK, THEMATIC_BREAK)
 
-# GFM's blocks as the canon meets them: a fence, a list marker, a thematic break, an ATX heading
-FENCE = re.compile(r"^(`{3,}|~{3,})(.*)$")
-LIST_MARKER = re.compile(r"^(?P<marker>[-*+]|\d{1,9}[.)])(?P<gap> {1,4}(?=\S)| *$)")
-THEMATIC = re.compile(r"^(?:(?:-[ \t]*){3,}|(?:\*[ \t]*){3,}|(?:_[ \t]*){3,})$")
-HEADING_LINE = re.compile(r"^#{1,6}(?:\s|$)")
+# where a line stands, a fence, a list marker and a heading among it, is the one reading's (reading.py); the names
+# kept here are its own, for the scripts that read them from this module
+FENCE = reading.FENCE
 MARKDOWN_INFO = "markdown"
 
 
@@ -47,99 +43,36 @@ class Line:
 
 
 def _indent(line):
-    expanded = line.expandtabs(4)
-    return len(expanded) - len(expanded.lstrip(" ")), expanded
+    return reading.expand(line)
 
 
 def elements(text):
-    """-> [Line or None] for each line of text, None for a blank line: the element each line opens or continues, read as
-    GFM reads blocks and as spec-style/markdown.md § Markdown has a list item end before the first line that is not blank and is
-    indented less than its text."""
-    lines = text.replace("\r\n", "\n").split("\n")
-    out, stack, fence, front = [], [], None, None
-    prev = None  # the last non-blank line's reading, where its element may continue onto the next line
-    continuing_code = False
-    for i, raw in enumerate(lines):
-        indent, line = _indent(raw)
-        content = line[indent:]
-        stripped = content.strip()
-        if i == 0 and stripped == "---":
-            front = True
-            out.append(Line(FRONT_MATTER, True, 0, None))
-            prev = None
-            continue
-        if front:
-            out.append(Line(FRONT_MATTER, False, 0, None))
-            if stripped == "---":
-                front = False
-            continue
-        if fence is not None:
-            char, length, _ = fence
-            closes = re.fullmatch(r"(%s{%d,})\s*" % (re.escape(char), length), content)
-            out.append(Line(CODE_BLOCK, False, indent, stack[-1] if stack else None, fenced=True))
-            if closes:
-                fence = None
-                prev = None
-            continue
-        if not stripped:
+    """-> [Line or None] for each line of text, None for a blank line: the element each line opens or continues. Where
+    a line stands, in a fenced or an indented code block, a heading, a table, a list item or the front matter, is the
+    one reading's (reading.py), read as GFM reads blocks and as spec-style/markdown.md § Markdown has a list item end
+    before the first line that is not blank and is indented less than its text. What this check tells apart for
+    itself is a field, a record and a paragraph within running text."""
+    kinds = {reading.FRONT_MATTER: FRONT_MATTER, reading.HEADING: HEADING, reading.TABLE: TABLE, reading.FENCED: CODE_BLOCK,
+             reading.INDENTED: CODE_BLOCK, reading.THEMATIC_BREAK: THEMATIC_BREAK}
+    out, prev = [], None  # prev: the line above's reading, where running text may continue it
+    for ln in reading.lines(text.replace("\r\n", "\n")):
+        if ln.kind == reading.BLANK:
             out.append(None)
             prev = None
             continue
-        holder_before = stack[-1] if stack else None
-        # a line that is not blank and is indented less than an item's text ends the item (spec-style/markdown.md § Markdown)
-        while stack and indent < stack[-1]:
-            stack.pop()
-        container = stack[-1] if stack else 0
-        rel = indent - container
-        if continuing_code and rel >= 4:
-            out.append(Line(CODE_BLOCK, False, indent, stack[-1] if stack else None))
-            continue
-        continuing_code = False
-        if rel >= 4 and (prev is None or prev.kind not in (PARAGRAPH, FIELD, LIST_ITEM, RECORD)):
-            out.append(Line(CODE_BLOCK, True, indent, stack[-1] if stack else None))
-            continuing_code = True
-            prev = out[-1]
-            continue
-        m = FENCE.match(content)
-        if m:
-            fence = (m.group(1)[0], len(m.group(1)), m.group(2).strip())
-            out.append(Line(CODE_BLOCK, True, indent, stack[-1] if stack else None, fenced=True))
+        if ln.kind in kinds:
+            out.append(Line(kinds[ln.kind], ln.opens, ln.indent, ln.holder, fenced=ln.fenced))
             prev = None
             continue
-        if HEADING_LINE.match(content):
-            out.append(Line(HEADING, True, indent, stack[-1] if stack else None))
-            prev = None
-            continue
-        if THEMATIC.match(content):
-            out.append(Line(THEMATIC_BREAK, True, indent, stack[-1] if stack else None))
-            prev = None
-            continue
-        if content.startswith("|"):
-            opens = not (prev is not None and prev.kind == TABLE)
-            out.append(Line(TABLE, opens, indent, stack[-1] if stack else None))
-            prev = out[-1]
-            continue
-        lm = LIST_MARKER.match(content)
-        if lm:
-            width = len(lm.group("marker"))
-            gap = len(lm.group("gap"))
-            text_indent = indent + width + (1 if gap == 0 or gap > 4 else gap)
-            stack.append(text_indent)
-            f = constructs.FIELD.match(line)
-            kind = RECORD if f and f["marker"] else LIST_ITEM
-            out.append(Line(kind, True, indent, text_indent))
-            prev = out[-1]
-            continue
-        f = constructs.FIELD.match(line)
-        if f and not f["marker"]:
-            out.append(Line(FIELD, True, indent, stack[-1] if stack else None))
-            prev = out[-1]
-            continue
-        if prev is not None and prev.kind in (PARAGRAPH, FIELD, LIST_ITEM, RECORD) and holder_before == (stack[-1] if stack else None):
-            out.append(Line(prev.kind, False, indent, stack[-1] if stack else None))
-            prev = out[-1]
-            continue
-        out.append(Line(PARAGRAPH, True, indent, stack[-1] if stack else None))
+        f = constructs.FIELD.match(ln.text.expandtabs(4))
+        if ln.kind == reading.LIST_ITEM:
+            out.append(Line(RECORD if f and f["marker"] else LIST_ITEM, True, ln.indent, ln.holder))
+        elif f and not f["marker"]:
+            out.append(Line(FIELD, True, ln.indent, ln.holder))
+        elif ln.continues and prev is not None:
+            out.append(Line(prev.kind, False, ln.indent, ln.holder))
+        else:
+            out.append(Line(PARAGRAPH, True, ln.indent, ln.holder))
         prev = out[-1]
     return out
 
@@ -152,25 +85,10 @@ def code_lines(text):
 
 def markdown_blocks(text):
     """-> [(opening fence's 0-based line, closing fence's line, the Markdown the block holds)] for each fenced block
-    whose info string is `markdown`, the block's lines dedented by the fence's indentation."""
-    lines, out, fence = text.replace("\r\n", "\n").split("\n"), [], None
-    for i, raw in enumerate(lines):
-        indent, line = _indent(raw)
-        content = line[indent:]
-        if fence is not None:
-            start, char, length, dedent, held = fence
-            if re.fullmatch(r"(%s{%d,})\s*" % (re.escape(char), length), content):
-                if held is not None:
-                    out.append((start, i, "\n".join(l[dedent:] if l[:dedent].strip() == "" else l.lstrip(" ") for l in held)))
-                fence = None
-            elif held is not None:
-                held.append(line)
-            continue
-        m = FENCE.match(content)
-        if m:
-            info = m.group(2).strip().split(" ")[0] if m.group(2).strip() else ""
-            fence = (i, m.group(1)[0], len(m.group(1)), indent, [] if info == MARKDOWN_INFO else None)
-    return out
+    whose info string is `markdown`, the block's lines dedented by the fence's indentation, as the one reading gives a
+    block."""
+    return [(b.opens - 1, b.closes - 1, b.content) for b in reading.blocks(text.replace("\r\n", "\n"))
+            if b.closed and b.word == MARKDOWN_INFO]
 
 
 _RULES = {}

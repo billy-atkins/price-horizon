@@ -12,6 +12,7 @@ import re
 from datetime import datetime, timedelta, timezone
 
 import expressions
+import reading
 
 RULE = "modeling-constructs.md § Constructs"
 DECLARING = "modeling-constructs.md § Defining Constructs § Declaring a Construct"
@@ -842,7 +843,7 @@ def construct_findings(r, body, found, sections):
         seen[lineage] = line
         # § Constructs § Declared Construct: its section opens with prose describing it, before its Construct field
         h = sections[lineage][0] if lineage in sections else -1
-        if not any(l.strip() and not l.lstrip().startswith(("#", "|", "```")) and not FIELD.match(l) for l in lines[h + 1:line - 1]):
+        if not any(l.strip() and reading.starts(l) is None and not FIELD.match(l) for l in lines[h + 1:line - 1]):
             found.append((DECLARED_RULE, r, line, f"{_a(name)} whose section opens with no description before its Construct field"))
         _fields(r, line, name, fields, found)
         # § Constructs § Record Form: a type extending another may leave out its table of record fields, and so hold none
@@ -3217,9 +3218,10 @@ def algorithm_findings(text_of, found, sections, strip_fences, citation, resolve
 # never the token alone; the one copy of the form, which spec_checks.py reads as its own and an Enforced By names
 # what enforces its rule by
 class _Citations:
-    """sourcing-and-citation/writing-a-citation.md § Writing a Citation: a citation in its code span, opened by one backtick, or by one more
-    than the longest run in a key value it carries verbatim, and closed by as many; read as a pattern is, its text group 1."""
-    _RX = re.compile(r'(?<!`)(`+)(?!`)((?:[\w./-]+\.md\s*)?§\s+(?:[^`]|(?!\1(?!`))`+)+?)(?<!`)\1(?!`)')
+    """sourcing-and-citation/writing-a-citation.md § Writing a Citation: a citation of a section in its code span, the
+    span and the citation's form each as the one reading reads them (reading.py), opened by one backtick, or by one more
+    than the longest run in a key value it carries verbatim, and closed by as many; read as a pattern is, its text
+    group 1."""
 
     class _Match:
         def __init__(self, m):
@@ -3237,26 +3239,32 @@ class _Citations:
         def span(self, n=0):
             return (self.start(n), self.end(n))
 
+    @staticmethod
+    def _cites(m):
+        """Whether a code span holds a citation of a section of a Markdown file, the same file's among them: a whole
+        file's citation is no section's, and a place in a file of code is no section of a spec."""
+        c = reading.parse_citation(m.group(2)) if m else None
+        return c is not None and bool(c.lineage) and (not c.file or c.file.endswith(".md"))
+
     def finditer(self, text):
-        return (self._Match(m) for m in self._RX.finditer(text))
+        return (self._Match(m) for m in reading.SPAN.finditer(text) if self._cites(m))
 
     def findall(self, text):
-        return [m.group(2) for m in self._RX.finditer(text)]
+        return [m.group(1) for m in self.finditer(text)]
 
     def search(self, text):
-        m = self._RX.search(text)
-        return self._Match(m) if m else None
+        return next(self.finditer(text), None)
 
     def fullmatch(self, text):
-        m = self._RX.fullmatch(text)
-        return self._Match(m) if m else None
+        m = reading.SPAN.fullmatch(text)
+        return self._Match(m) if self._cites(m) else None
 
     def sub(self, repl, text):
-        return self._RX.sub((lambda m: repl(self._Match(m))) if callable(repl) else repl, text)
+        return reading.SPAN.sub(lambda m: (repl(self._Match(m)) if callable(repl) else repl) if self._cites(m) else m.group(0), text)
 
     def match(self, text):
-        m = self._RX.match(text)
-        return self._Match(m) if m else None
+        m = reading.SPAN.match(text)
+        return self._Match(m) if self._cites(m) else None
 
 
 CITATION = _Citations()
@@ -3682,19 +3690,20 @@ def column_table_findings(text, sections):
     a kind's row named in words read as no column; and a table of fields' columns, Construct's, and the one more a record
     type's table of record fields takes, the Record Form's. -> [(rule, line, message)]"""
     lines, out = text.split("\n"), []
+    stands = reading.lines(text)  # where each line stands, the one reading's
     for name, lineage in COLUMN_SECTIONS.items():
         rule = TABULAR if name in FORMS else f"{RULE} § {name}"
         if lineage not in sections:
             out.append((rule, 0, f"no section {lineage}"))
             continue
-        start, fenced, tables = sections[lineage][0], False, []
+        start, tables = sections[lineage][0], []
         for i in range(start + 1, len(lines)):
             l = lines[i]
-            if l.startswith("```"):
-                fenced = not fenced
-            elif not fenced and l.startswith("#"):
+            if stands[i].fenced:
+                continue
+            elif stands[i].kind == reading.HEADING:
                 break
-            elif not fenced and _cells(l) == ["Column", "Holds"] and not lines[i - 1].startswith("|"):
+            elif _cells(l) == ["Column", "Holds"] and not lines[i - 1].startswith("|"):
                 rows = []
                 for nxt in lines[i + 2:]:
                     if not nxt.startswith("|"):
@@ -3733,6 +3742,7 @@ def definition_findings(text, sections):
     interface after Construct. -> [(rule, line, message)]"""
     import record_types
     lines, out, defs, order = text.split("\n"), [], {}, {}
+    stands = reading.lines(text)  # where each line stands, the one reading's
     cite = re.compile(r"^`§ Constructs § ([^`§]+)`$")
     members = {m for ms in MEMBERS.values() for m in ms}
     for lineage, (h, end) in sorted(sections.items(), key=lambda x: x[1][0]):
@@ -3741,14 +3751,12 @@ def definition_findings(text, sections):
             continue
         order[parts[1]] = h
         d = {"line": h + 1, "Modifier": None, "Extends": [], "Implements": [], "sets": set(), "lists": set(), "columns": set()}
-        key, fenced, table = None, False, None
+        key, table = None, None
         for k in range(h + 1, end):
             l = lines[k]
-            if l.startswith("```"):
-                fenced = not fenced
-            if fenced or l.startswith("#"):
-                if l.startswith("#"):
-                    break
+            if stands[k].kind == reading.HEADING:
+                break
+            if stands[k].fenced:
                 continue
             f = _margin_field(l)
             if f:

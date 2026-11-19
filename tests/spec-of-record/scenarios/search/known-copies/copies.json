@@ -10,7 +10,7 @@
       "quote": "An agent reads what it loads from a directory in the order that the directory's `index.md` lists"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "dir-read-order",
@@ -23,7 +23,7 @@
       "quote": "That is the order an agent browsing the directory loads them in"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "index-before-working",
@@ -36,7 +36,7 @@
       "quote": "A citation is read where it points, a file or a section of one however deep in a directory, with no `index.md` or `main.md` read on its way."
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "index-not-citable",
@@ -49,7 +49,7 @@
       "quote": "A directory's `index.md` carries no heading lineage of its own."
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "index-not-citable",
@@ -62,7 +62,7 @@
       "quote": "It never reaches an `index.md`, which nothing cites."
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "root-agents-holds",
@@ -75,7 +75,7 @@
       "quote": "A project's root `AGENTS.md` holds that project's own instructions, and the project sets what those instructions reach."
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "root-agents-holds",
@@ -88,7 +88,7 @@
       "quote": "The root `AGENTS.md` holds the project's instructions rather than the methodology's."
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "rules-reach-code",
@@ -101,7 +101,7 @@
       "quote": "The rules in [`specs/methodology/code.md`](/specs/methodology/code.md) reach only code, so they do not reach the methodology either."
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "rules-reach-code",
@@ -114,7 +114,7 @@
       "quote": "The rules of [`specs/AGENTS.md`](/specs/AGENTS.md) and of the methodology reach the files in Spec of Record's scope"
     },
     "says": "the same",
-    "held to": "a known gap"
+    "expected": "in the result"
   },
   {
     "record": "rules-reach-code",
@@ -127,7 +127,7 @@
       "quote": "Governed code does what a product or technical spec states"
     },
     "says": "something related",
-    "held to": "kept out"
+    "expected": "not in the result"
   },
   {
     "record": "methodology-has-index",
@@ -140,7 +140,8 @@
       "quote": "Every directory gets an `index.md`."
     },
     "says": "the same",
-    "held to": "a known gap"
+    "expected": "not in the result",
+    "once an expected failure": true
   },
   {
     "record": "methodology-has-index",
@@ -153,7 +154,7 @@
       "quote": "only where that shape is worth describing as a whole, which not every directory's is"
     },
     "says": "something related",
-    "held to": "kept out"
+    "expected": "not in the result"
   },
   {
     "record": "app-spec-cites-methodology",
@@ -166,7 +167,8 @@
       "quote": "| A `**Construct:**` field, in any spec | the section defining the construct its instance is of, wherever it sits |"
     },
     "says": "something related",
-    "held to": "a known intrusion"
+    "expected": "in the result",
+    "once an expected failure": true
   },
   {
     "record": "app-spec-cites-methodology",
@@ -179,7 +181,8 @@
       "quote": "An application spec cites no methodology spec, and none of"
     },
     "says": "something related",
-    "held to": "a known intrusion"
+    "expected": "in the result",
+    "once an expected failure": true
   },
   {
     "record": "app-spec-cites-methodology",
@@ -192,7 +195,8 @@
       "quote": "That field is the one citation of the methodology an application spec makes."
     },
     "says": "something related",
-    "held to": "a known intrusion"
+    "expected": "in the result",
+    "once an expected failure": true
   },
   {
     "record": "app-spec-cites-methodology",
@@ -205,7 +209,8 @@
       "quote": "An application spec does not reach into the methodology"
     },
     "says": "something related",
-    "held to": "a known intrusion"
+    "expected": "in the result",
+    "once an expected failure": true
   },
   {
     "record": "canon-spec-cites",
@@ -218,7 +223,7 @@
       "quote": "or a check's record, naming the check a unit carries out, or the section a check enforces while its entry stands in a skill's table"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "canon-spec-cites",
@@ -231,7 +236,8 @@
       "quote": "carries a canon-spec annotation citing the check's record, as narrow as the unit"
     },
     "says": "the same",
-    "held to": "a known gap"
+    "expected": "not in the result",
+    "once an expected failure": true
   },
   {
     "record": "canon-spec-cites",
@@ -244,7 +250,7 @@
       "quote": "citing the check's record, or, while the check's entry stands in a skill's table, the section it enforces"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "rule-tier-table-and-prose",
@@ -257,7 +263,7 @@
       "quote": "So a way of doing the work, as how a check is made, lives in a skill while one skill needs it, and in the core canon once two do."
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "rule-home-tier-vs-file",
@@ -270,7 +276,7 @@
       "quote": "has exactly one home: the file whose subject matter it most specifically belongs to"
     },
     "says": "something related",
-    "held to": "kept out"
+    "expected": "not in the result"
   },
   {
     "record": "rule-home-tier-vs-file",
@@ -283,7 +289,7 @@
       "quote": "has its home in a section of its own, at the lowest altitude covering every use"
     },
     "says": "something related",
-    "held to": "kept out"
+    "expected": "not in the result"
   },
   {
     "record": "operating-rule-check",
@@ -296,7 +302,7 @@
       "quote": "A core-canon operating rule's check is a step under a registered skill's `## Workflow` that applies the rule."
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "operating-rule-check",
@@ -309,7 +315,7 @@
       "quote": "whose check is the step carrying them out"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "operating-rule-check",
@@ -322,7 +328,7 @@
       "quote": "the step carries what leaves no trace in the files, and the audits read the rest"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "step-cites-rule",
@@ -335,7 +341,8 @@
       "quote": "The citation belongs to each step applying the rule"
     },
     "says": "the same",
-    "held to": "a known gap"
+    "expected": "not in the result",
+    "once an expected failure": true
   },
   {
     "record": "core-canon-definition",
@@ -348,7 +355,7 @@
       "quote": "the specifications' entry point and the methodology, which state the methodology's rules, the specifications' main file, and the specifications' overview"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "lookup-decision-table",
@@ -361,7 +368,7 @@
       "quote": "A rule that is a lookup, a table there to decide by one condition"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "working-file-named",
@@ -374,7 +381,7 @@
       "quote": "Which specs may name one is set in"
     },
     "says": "something related",
-    "held to": "kept out"
+    "expected": "not in the result"
   },
   {
     "record": "read-in-full",
@@ -387,7 +394,7 @@
       "quote": "Before working on a file, read it again"
     },
     "says": "something related",
-    "held to": "kept out"
+    "expected": "not in the result"
   },
   {
     "record": "main-ahead-of-need",
@@ -400,7 +407,7 @@
       "quote": "Nothing in it is read ahead of need"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "examples-placement",
@@ -413,7 +420,7 @@
       "quote": "A file or folder under `specs/` is named for its subject area's term for what it holds"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "one-word-one-concept",
@@ -426,7 +433,8 @@
       "quote": "A term is defined where it first appears and used the same way after it."
     },
     "says": "the same",
-    "held to": "a known gap"
+    "expected": "not in the result",
+    "once an expected failure": true
   },
   {
     "record": "heading-unique",
@@ -439,7 +447,7 @@
       "quote": "A child heading is guaranteed unique only within its own parent's scope"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "content-to-heading",
@@ -452,7 +460,8 @@
       "quote": "says when such content becomes a heading"
     },
     "says": "something related",
-    "held to": "a known intrusion"
+    "expected": "in the result",
+    "once an expected failure": true
   },
   {
     "record": "content-to-heading",
@@ -465,7 +474,7 @@
       "quote": "Where it does not, it is given a heading before it is cited"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "retitle-updates",
@@ -478,7 +487,7 @@
       "quote": "A heading retitled updates every annotation naming it in the same edit, per"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "standard-before-own-in-file",
@@ -491,7 +500,7 @@
       "quote": "A need a form meets takes a standard's form before one of the canon's own"
     },
     "says": "the same",
-    "held to": "a known gap"
+    "expected": "in the result"
   },
   {
     "record": "standard-before-own-in-file",
@@ -504,7 +513,7 @@
       "quote": "| - | - | - | the canon's own, made as"
     },
     "says": "something related",
-    "held to": "a known intrusion"
+    "expected": "not in the result"
   },
   {
     "record": "standard-before-own-across",
@@ -517,7 +526,7 @@
       "quote": "It adopts a notation an agent or an engineer already knows before the canon invents one."
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "departures-rejudged",
@@ -530,7 +539,7 @@
       "quote": "each row whose Departs For holds `the standard's gap` is judged again"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "feel-function",
@@ -543,7 +552,7 @@
       "quote": "A need FEEL's built-in functions do not meet is met by a function of the canon's own, written once here"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "overview-sources",
@@ -556,7 +565,7 @@
       "quote": "every directory beneath it included, and of what"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "diagram-cites-back",
@@ -569,7 +578,7 @@
       "quote": "Every listed section cites the diagram's heading in its own text"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "counterparts-name-each-other",
@@ -582,7 +591,7 @@
       "quote": "Have each name the other, so the two cannot drift apart silently."
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "skill-kept-rule",
@@ -595,7 +604,7 @@
       "quote": "the rule names that check beside it"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "form-template-field-order",
@@ -608,7 +617,7 @@
       "quote": "is a field that type declares, in the type's order"
     },
     "says": "the same",
-    "held to": "found"
+    "expected": "in the result"
   },
   {
     "record": "version-link-home",
@@ -621,7 +630,7 @@
       "quote": "a link to the text of that version or revision, never to whatever is current"
     },
     "says": "something related",
-    "held to": "kept out"
+    "expected": "not in the result"
   },
   {
     "record": "where-a-check-runs",
@@ -634,6 +643,6 @@
       "quote": "The scope a check runs over a design's work is decided by its answers to the questions"
     },
     "says": "something related",
-    "held to": "kept out"
+    "expected": "not in the result"
   }
 ]

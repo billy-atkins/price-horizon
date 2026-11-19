@@ -40,6 +40,7 @@ from pathlib import Path, PurePosixPath
 import citation_links
 import constructs
 import layout
+import reading
 import record_types
 from spec_text import REGISTRY, lineages, parse_citation, read, registry, scope_paths, sections, skill_dirs, spec_texts
 from spec_text import CommitTree, indexed, strip_fences, tracked
@@ -517,7 +518,7 @@ def read_design(f):
         block, _ = record_types.read_block(head, i, 0, len(head))
         fields = [(DEPENDS_ON if f["key"] == OLD_DEPENDS_ON else f["key"], " ".join(str(record_types.value_of(f)).split()))
                   for f in block]
-    return f.stem, fields, re.findall(r"^## (.+?)\s*$", text, re.M), text
+    return f.stem, fields, [title for title, _ in level_two(text)], text
 
 
 
@@ -576,10 +577,11 @@ def read_entries(entries, changes, design=None):
 def stamped_entry_lines(lines):
     """-> the 0-based lines of each log entry naming a report the validation review reads, which a design's stamp takes
     in, though it leaves out the rest of its Design Log Entries."""
-    head = next((i for i, l in enumerate(lines) if re.match(r"^## %s\s*$" % re.escape(LOG), l)), None)
+    twos = level_two("\n".join(lines))
+    head = next((n for title, n in twos if title == LOG), None)
     if head is None:
         return set()
-    end = next((i for i in range(head + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+    end = next((n for _, n in twos if n > head), len(lines))
     items = records_read("\n".join(lines[head + 1:end])) or []
     entries, spans = [], []
     for it in items:
@@ -600,9 +602,10 @@ def content_hash(text, leave_out=UNSTAMPED, leave_out_sections=UNSTAMPED_SECTION
     raw = text.replace("\r\n", "\n").split("\n")
     kept = stamped_entry_lines(raw) if LOG in leave_out_sections else set()
     lines, dropping = [], False
+    twos = {n: title for title, n in level_two("\n".join(raw))}
     for n, l in enumerate(raw):
-        if l.startswith("## "):
-            dropping = l[3:].strip() in leave_out_sections
+        if n in twos:
+            dropping = twos[n] in leave_out_sections
         if (not dropping or n in kept) and not re.match(r"\*\*(?:%s):\*\*" % keys, l):
             lines.append(l)
     return "sha256:" + hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()[:16]
@@ -633,13 +636,49 @@ def kebab(text):
     return re.sub(r"[^a-z0-9]+", "-", text).strip("-")
 
 
+def level_two(text):
+    """-> [(title, the 0-based line of its heading)] for each level-two heading of a text, as the one reading gives a
+    heading (reading.py), so a line of a fenced block is none."""
+    return [(h.title, h.line - 1) for h in reading.headings(text) if h.level == 2]
+
+
+def level_three(text):
+    """-> [(title, the text beneath it, to the next level-three heading)] for each level-three heading of a text."""
+    lines = text.split("\n")
+    heads = [h.line - 1 for h in reading.headings(text) if h.level == 3]
+    titles = [h.title for h in reading.headings(text) if h.level == 3]
+    return [(title, "\n".join(lines[at + 1:heads[n + 1] if n + 1 < len(heads) else len(lines)])) for n, (title, at) in enumerate(zip(titles, heads))]
+
+
+def part_span(text, title):
+    """-> (the offset the level-two heading of that title starts at, the offset its part's text is read from) of the
+    first such heading, or None. The part's text is read from the last line break before its first text, the blank
+    lines beneath the heading set aside."""
+    starts, at = [], 0
+    for line in text.split("\n"):
+        starts.append(at)
+        at += len(line) + 1
+    for found, n in level_two(text):
+        if found == title:
+            line_end = starts[n + 1] - 1 if n + 1 < len(starts) else len(text)
+            after = line_end - (len(text[starts[n]:line_end]) - len(text[starts[n]:line_end].rstrip()))
+            first = next((i for i in range(after, len(text)) if not text[i].isspace()), len(text))
+            return starts[n], len(text) if first == len(text) else text.rfind("\n", after, first)
+    return None
+
+
 def section(text, title):
-    m = re.search(r"^## " + re.escape(title) + r"\s*$", text, re.M)
-    if not m:
+    """-> the text of the document's part under the level-two heading of that title, to the next level-two heading,
+    or None where it holds none."""
+    span = part_span(text, title)
+    if span is None:
         return None
-    rest = text[m.end():]
-    nxt = re.search(r"^## ", rest, re.M)
-    return rest[:nxt.start()] if nxt else rest
+    lines, at = text.split("\n"), 0
+    for n, line in enumerate(lines):
+        if at > span[0] and any(n == k for _, k in level_two(text)):
+            return text[span[1]:at]
+        at += len(line) + 1
+    return text[span[1]:]
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Design Document
@@ -658,8 +697,7 @@ def not_stated(body):
 
 def frame_parts(text):
     """The design frame's parts, each heading with what it holds."""
-    parts = re.split(r"^### (.+?)\s*$", section(text, "The Design Frame") or "", flags=re.M)[1:]
-    return dict(zip(parts[::2], (p.strip() for p in parts[1::2])))
+    return {title: body.strip() for title, body in level_three(section(text, "The Design Frame") or "")}
 
 
 def check_steers(body, logged=()):
@@ -758,10 +796,11 @@ def read_steps(text):
     record_types._read_fenced gives it, its lines in the design's text; or None where the section holds no Records
     field."""
     lines = text.split("\n")
-    start = next((i for i, l in enumerate(lines) if re.match(r"^## Design Plan Steps\s*$", l)), None)
+    twos = level_two(text)
+    start = next((n for title, n in twos if title == "Design Plan Steps"), None)
     if start is None:
         return None
-    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+    end = next((n for _, n in twos if n > start), len(lines))
     at = start + 1
     items = records_read("\n".join(lines[at:end]))
     if items is None:
@@ -1200,7 +1239,7 @@ def check_form(design):
             problems.append((name, constructs.block_refusal("the design", sections, [s for s in SECTIONS if s != IMPACT or values.get("Kind") == "canon-specs"],
                                                    want, noun="section", owner="its form")))
         frame = frame_parts(text)
-        heads = re.findall(r"^### (.+?)\s*$", section(text, "The Design Frame") or "", re.M)
+        heads = [title for title, _ in level_three(section(text, "The Design Frame") or "")]
         if "The Design Frame" in sections and heads != list(FRAME):
             problems.append((name, constructs.block_refusal("its design frame", heads, FRAME, FRAME, noun="heading", owner="its form")))
         if values.get("Status") in ("approved", "applying", "complete"):
@@ -1493,7 +1532,16 @@ def check_stack(folder):
 # `path/to/file.md § Parent § Child`. A span carrying no path is a same-file
 # citation and is not checked here; see .ai/skills/design-specs/SKILL.md, Verifying a proposal. Its span opens with one backtick or more and closes
 # on a run of as many, a run of another length inside it literal, as GitHub Flavored Markdown has a code span.
-CITATION = re.compile(r'(?<!`)(?P<d>`+)(?!`)(?P<path>[\w./-]+\.md)\s+§\s+(?P<target>(?:[^`]|(?!(?P=d)(?!`))`+)+?)(?<!`)(?P=d)(?!`)')
+def cross_file_citations(text):
+    """-> [(the offset of its span, the path it names, its heading path)] for each citation of a section of another
+    Markdown file, the span and the citation's form each as the one reading reads them (reading.py), a keyed part
+    left off."""
+    out = []
+    for at, held in reading.spans(text):
+        c = reading.parse_citation(held)
+        if c is not None and c.lineage and c.file.endswith(".md"):
+            out.append((at, c.file, c.path))
+    return out
 
 
 def folder_file(folder, target=""):
@@ -1551,10 +1599,8 @@ def check_citations(proposal, root, kept=(), extra=""):
     # working-files/main.md § Design Plan Step § A Draft: a Draft's construct cites sections as the files will stand once
     # the design's steps apply, a heading another of its Drafts creates among them
     spans, drafted = draft_spans(text) if is_design(Path(proposal)) else ([], set())
-    for m in CITATION.finditer(text):
-        path, target = m.group("path"), " ".join(m.group("target").split())
-        # a record citation's [...] selector names a record; only its section resolves here
-        target = re.sub(r'\s+\[[^\]]*\]$', '', target)
+    # a record citation's [...] selector names a record; only its section resolves here
+    for at, path, target in cross_file_citations(text):
         if (path, target) in seen:
             continue
         seen.add((path, target))
@@ -1563,7 +1609,7 @@ def check_citations(proposal, root, kept=(), extra=""):
             results.append((False, path, target, note))
             continue
         found = lineages(read(target_file))
-        if target not in found and any(a <= m.start() < b for a, b in spans) and drafted_heading(target, found, drafted):
+        if target not in found and any(a <= at < b for a, b in spans) and drafted_heading(target, found, drafted):
             results.append((True, path, target, "a heading the design's Drafts create"))
             continue
         results.append((True, path, target, "") if target in found else
@@ -2056,7 +2102,7 @@ def read_diagnosis(text):
         return {m.group(1): m.group(2).strip() for m in re.finditer(r"^\*\*([^*]+):\*\*[ \t]*(.*?)(?:[ \t]*\\)?[ \t]*$", part, re.M)}
     recs = lambda name: [{k: str(v).strip() for k, v in r} for r in records(section(text, name)) or []]
     return (block(head) if head.startswith("# Diagnosis") else None, recs("Flaws"), recs("Root Causes"),
-            block(section(text, "Scope") or ""), re.findall(r"^## (.+?)\s*$", text, re.M))
+            block(section(text, "Scope") or ""), [title for title, _ in level_two(text)])
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Diagnosis § Script Checks [Name: diagnosis-whole-and-in-form]
@@ -2234,19 +2280,19 @@ def log_entry(value):
     block = "\n".join("  " + l + (" \\" if n < len(own) - 1 else "") for n, l in enumerate(own))
     if body is not None and not re.search(r"^\*\*Records:\*\*\s*$", body, re.M):
         # a section copied from the form holds its placeholder alone, which the first entry replaces
-        m = re.search(r"^## %s\s*$" % re.escape(LOG), text, re.M)
-        text = text[:m.start()] + text[m.end() + len(body):].lstrip("\n")
+        m = part_span(text, LOG)
+        text = text[:m[0]] + text[m[1] + len(body):].lstrip("\n")
         body = None
     if body is None:
         # the section stands where the form puts it, before the sections that follow it
         after = SECTIONS[SECTIONS.index(LOG) + 1:]
-        m = next((m for m in (re.search(r"^## %s\s*$" % re.escape(s), text, re.M) for s in after) if m), None)
-        at = m.start() if m else len(text.rstrip("\n")) + 1
+        m = next((m for m in (part_span(text, s) for s in after) if m), None)
+        at = m[0] if m else len(text.rstrip("\n")) + 1
         new = text[:at] + "## %s\n\n**Records:**\n%s\n\n" % (LOG, block) + text[at:]
     else:
-        m = re.search(r"^## %s\s*$" % re.escape(LOG), text, re.M)
-        end = m.end() + len(body)
-        new = text[:m.end()] + body.rstrip("\n") + "\n\n" + block + "\n" + ("\n" if end < len(text) else "") + text[end:]
+        m = part_span(text, LOG)
+        end = m[1] + len(body)
+        new = text[:m[1]] + body.rstrip("\n") + "\n\n" + block + "\n" + ("\n" if end < len(text) else "") + text[end:]
     write_design(design, raw, new)
     print("== log-entry\n" + block + "\n")
     return 0
@@ -4225,13 +4271,9 @@ def phrase_lines(path, phrases):
         text = read(Path(path)).replace("\r\n", "\n")
     except (OSError, UnicodeDecodeError):
         return []
-    out, stack = [], []
+    out, stands = [], reading.lines(text)
     for i, line in enumerate(text.split("\n"), 1):
-        h = re.match(r"^(#{2,6})\s+(.*?)\s*$", line)
-        if h:
-            depth = len(h.group(1)) - 2
-            stack = stack[:depth] + [h.group(2)]
-        lineage = " § ".join(stack)
+        lineage = " § ".join(stands[i - 1].lineage)  # the heading path the line stands under, the one reading's
         for phrase, replacement, places in phrases:
             if not re.search(r"(?<![\w-])%s(?![\w-])" % re.escape(phrase), line, re.I):
                 continue
@@ -4375,8 +4417,12 @@ def refactor_and_refine_lines(text):
     """-> the lines of text a Refactor and Refine cycle carries, blank lines and bare markup set
     aside, and a heading read without its level, since a move raises or lowers it."""
     # a table's separator row, a code fence or a front matter fence carries no text of its own
-    return [re.sub(r"\s*\\$", "", re.sub(r"^#+ ", "", l).strip()).strip() for l in text.replace("\r\n", "\n").split("\n")
-            if l.strip() and not re.fullmatch(r"[|:\- ]+|```\w*", l.strip())]
+    text = text.replace("\r\n", "\n")
+    found = reading.blocks(text)
+    fences = {n for b in found for n in ((b.opens, b.closes) if b.closed else (b.opens,))}
+    return [re.sub(r"\s*\\$", "", (re.sub(r"^#+ ", "", ln.text.strip()) if ln.kind == reading.HEADING else ln.text).strip()).strip()
+            for ln in reading.lines(text)
+            if ln.text.strip() and ln.number not in fences and not re.fullmatch(r"[|:\- ]+", ln.text.strip())]
 
 
 def show_refactor_and_refine_of_existing_specs(baseline):

@@ -1,15 +1,26 @@
 """The search of Spec of Record's scope and the code, one copy the skills' scripts share
-(specs/methodology/skills/authoring-a-skill.md § Authoring a Skill): who cites a place, which lines a citation names,
-where a term is used, which units of code hold a structure, which places say the same as a passage, and which places
-match a pattern. .ai/skills/search-spec-of-record-scope/ runs it for an agent, and another skill's script calls
-`Search` directly.
+(specs/methodology/skills/authoring-a-skill.md § Authoring a Skill): who cites a place, which sections are cited and
+from where, which lines a citation names, where a term is used, which units of code hold a structure, which places say
+the same as a passage, and which places match a pattern. .ai/skills/search-spec-of-record-scope/ runs it for an agent,
+and another skill's script calls `Search` directly.
 
 Every use first checks everything the search requires and stops where any is missing (`check_requirements`). It
 answers from an index kept in its skill's scratch space, built whole on first use and brought up to date by reading
 only the files that changed. Every answer is written as one file in the form its skill states (`Result`).
 
-The reading of a heading, a fenced block and a citation here is the search's own. No other script's reading is
-changed by it, and it reads no version control.
+Where a line stands, under which headings and in which fenced block, and the form a citation takes are the one
+reading's (reading.py). Every place a search gives is a citation of the narrowest of a keyed part, a section or a file
+holding its lines, and says what those lines stand in (`Place`). The search leaves out no place for the section or the
+table it stands in: a caller leaves out by their citations the places it does not want. A search by meaning ranks a
+section's prose alone, and sets places apart when asked by a citation (`meaning`).
+
+A search answers over one target, the durable files as they stand unless it names another: the durable files as a
+commit held them, or the working files it is given the paths of. A search of the committed target is the one search
+that asks version control anything, and it stops where it cannot be answered (`version_control`, `asked`).
+
+A search by meaning ranks what it was asked against every passage and every sentence of a passage holding several,
+and gives the part of that ranking its caller asks for, the first RANKED places where it asks for none. Parts asked
+one after another make up the one ranking (`meaning`, TIERS).
 """
 import ast
 import hashlib
@@ -17,29 +28,130 @@ import importlib.util
 import io
 import os
 import re
+import shutil
 import sqlite3
+import subprocess
 import sys
 import time
 import tokenize
 from pathlib import Path
 
 import code_checks
+import constructs
+import reading
 import spec_text
 
 SKILL = "search-spec-of-record-scope"
 SCRATCH = ".ai/tmp/" + SKILL
 MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 DIMENSIONS = 384
-SCHEMA = "7"
-RANKED = 20       # the places a search by meaning gives
-CANDIDATES = 50   # the places each ranking gives the fusion
+SCHEMA = "11"
+RANKED = 20       # the places a search by meaning gives where its caller asks for no part of its ranking
+CANDIDATES = 50   # the places each ranking gives the fusion of a ranking's first places
 FUSION = 60       # the constant of reciprocal rank fusion
+EMBED_RUN = 256   # the texts given the model in one run, their vectors written before the next
+EMBED_BATCH = 16  # the texts the model takes at once within a run, which sets the memory a run needs
+SENTENCES = 0.5   # what a ranking by one sentence of what was asked weighs, beside a ranking by the whole of it
+# How far each ranking is read, and the place of the whole ranking that reading fills to. A search's first places are
+# fused from each ranking's first CANDIDATES, as cheaply as a search costs with no part asked for, and a part further
+# on reads each ranking further. A tier never reorders the places an earlier one gave, so parts asked one after
+# another make up one ranking.
+TIERS = ((CANDIDATES, 40), (CANDIDATES * 4, 160), (CANDIDATES * 16, 640), (CANDIDATES * 64, None))
+DEEPEST = 4096    # the most places the index's nearest-vector search gives at once
 PASSAGE = 1000    # the most characters of a passage, which the model reads whole
+SENTENCE = 40     # the fewest characters of a passage or a sentence worth ranking
 MAX_NAME = 150    # the length the diagram skill's renders keep to, a name every system holds
 FEW = 20          # the places printed with a result's name
 
-KINDS = ("citers", "lines", "terms", "code structure", "meaning", "pattern")
+KINDS = ("citers", "cited sections", "lines", "terms", "code structure", "meaning", "pattern")
 STRUCTURES = ("defines", "calls", "constructs", "extends", "implements", "references", "annotated-with")
+
+# the files a search answers over, one target to a search and to its result
+CURRENT = "current-durable-files"
+COMMITTED = "committed-durable-files"
+WORKING = "working-files"
+TARGETS = (CURRENT, COMMITTED, WORKING)
+HELD = "working-files-held"   # a working file the index holds and the search in hand was not given, its content kept
+# @canon-spec specs/methodology/working-files/main.md § The Working Files
+WORKING_FILES = (".ai/plans", ".ai/follow-ups.md", ".ai/tmp")
+# where a place's lines stand, as a place says it
+STANDS = {reading.TABLE: "table", reading.HEADING: "heading", reading.FENCED: "fenced block"}
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# The project's version control, which a search of the committed target alone asks
+
+class CannotSearch(Exception):
+    """Raised where a search of the committed target cannot be answered: the project is under no version control the
+    search reads, git is not installed, or git answered with a failure. The search stops and says which."""
+
+
+NONE_READ, NO_GIT, GIT = "none read", "git not installed", "git"
+
+
+def version_control(root):
+    """-> which of the committed target's cases the project is in, told from the files and asked of git only where
+    git can answer: NONE_READ, NO_GIT or GIT. A project is under git where its root or a folder above it holds a
+    repository, `.git` a folder or, in a worktree or a submodule, a file. A search of another target never calls
+    this."""
+    folder = os.path.abspath(root)
+    while not os.path.exists(os.path.join(folder, ".git")):
+        parent = os.path.dirname(folder)
+        if parent == folder:
+            return NONE_READ
+        folder = parent
+    return GIT if shutil.which("git") else NO_GIT
+
+
+def asked(command, root, **given):
+    """-> git's answer to a command, its output as bytes, or a stop naming what was asked and git's own words where it
+    answers with a failure or cannot be run."""
+    said = "`" + " ".join(command) + "`"
+    try:
+        done = subprocess.run(command, cwd=root, capture_output=True, **given)
+    except OSError as e:
+        raise CannotSearch(f"{SKILL}: the committed files cannot be searched, since git could not be run. The search asked {said}, and the answer was: {e}")
+    if done.returncode:
+        words = done.stderr.decode("utf-8", "replace").strip() or f"no words, and the exit code {done.returncode}"
+        raise CannotSearch(f"{SKILL}: the committed files cannot be searched, since git answered with a failure. The search asked {said}, and git answered: {words}")
+    return done.stdout
+
+
+def committed_tree(root, commit=None):
+    """-> (the commit's full name, its files as spec_text.CommitTree reads them), the last commit unless another is
+    named, the search stopping in each case it cannot be answered in."""
+    case = version_control(root)
+    if case == NONE_READ:
+        raise CannotSearch(f"{SKILL}: the committed files cannot be searched, since the project is under no version control the search reads: neither `{Path(root).as_posix()}` nor a folder above it holds a repository. "
+                           f"A search of `{CURRENT}` or of `{WORKING}` needs none.")
+    if case == NO_GIT:
+        raise CannotSearch(f"{SKILL}: the committed files cannot be searched, since the project is under git and git is not installed, or is not on the path. "
+                           f"Install git, or search `{CURRENT}` or `{WORKING}`, which need none.")
+    name = asked(["git", "rev-parse", "--verify", (commit or "HEAD") + "^{commit}"], root).decode("utf-8", "replace").strip()
+    def held():
+        # the one reader of a commit the shared code holds lists the commit's files as it is made, and reads them all,
+        # in one call to git, as the first of them is read: both are asked here, so a failure of either is told as one
+        tree = spec_text.CommitTree(root, name)
+        for rel in sorted(tree.tracked())[:1]:
+            try:
+                (tree / rel).read_bytes()
+            except (ValueError, KeyError):  # git answered without failing and gave no content for a file the commit lists
+                raise CannotSearch(f"{SKILL}: the committed files cannot be searched, since git gave no content for a file the commit lists. "
+                                   f"The search asked `git cat-file --batch` for the files of {name}, and git's answer holds a file it calls missing.")
+        return tree
+
+    return name, through_git(held)
+
+
+def through_git(read):
+    """-> what a reading of a commit gives, or a stop naming what was asked and git's own words where git fails."""
+    try:
+        return read()
+    except subprocess.CalledProcessError as e:
+        words = (e.stderr or b"").decode("utf-8", "replace").strip() or f"no words, and the exit code {e.returncode}"
+        raise CannotSearch(f"{SKILL}: the committed files cannot be searched, since git answered with a failure. The search asked `{' '.join(e.cmd)}`, and git answered: {words}")
+    except OSError as e:
+        raise CannotSearch(f"{SKILL}: the committed files cannot be searched, since git could not be run: {e}")
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -140,26 +252,12 @@ def install_model(root):
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-# The one reading of a Markdown file: its fenced blocks, its headings and its citations
+# A Markdown file as the index holds it, each part taken from the one reading (reading.py)
 
-# @canon-spec specs/methodology/spec-style/markdown.md § Markdown
-FENCE = re.compile(r"^(\s*)(`{3,}|~{3,})(.*)$")
-HEADING = re.compile(r"^ {0,3}(#{1,6})[ \t]+(.*?)(?:[ \t]+#+)?[ \t]*$")
 LINK = re.compile(r"\[(`[^`\n]+`)\]\((?:/|#)[^)\s]*\)")
-# @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation
-SPAN = re.compile(r"(?<!`)(`+)(?!`)(.+?)(?<!`)\1(?!`)", re.S)
-PATH = r"[\w.][\w./-]*"
-CITATION = re.compile(r"^(?:(" + PATH + r") )?§ (.+)$")
-WHOLE = re.compile(r"^" + PATH + r"$")
-BARE = re.compile(r"(?<![\w./-])(" + PATH + r"\.[A-Za-z]+) § ")
-KEYED = re.compile(r"^(.*?) \[(.*)\]$")
-# @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § Citing From Code
-ANNOTATION = re.compile(r"^\s*(?://(?![/!])|#+|--|;+|%+|<!--|/\*(?![*!]))\s*@(app|canon)-spec (\S.*?)\s*(?:-->|\*/)?\s*$")
-
-
-def squeeze(text):
-    """-> text with each run of white space made one space and its ends trimmed, as a form normalizes a field's input."""
-    return " ".join(text.split())
+BARE = reading.BARE
+ANNOTATION = reading.ANNOTATION
+squeeze = reading.squeeze
 
 
 def strip_links(text):
@@ -167,76 +265,40 @@ def strip_links(text):
     return LINK.sub(r"\1", text)
 
 
+def written(rows):
+    """-> the text the rows were read from, which the one reading keeps once read."""
+    return "\n".join(r[0] for r in rows)
+
+
 def markdown_lines(text):
-    """-> [(line, fenced, info)] for each line of a Markdown file: whether it stands in a fenced block, its fences
-    among it, and the block's info string. A fence opens on a run of three or more backticks or tildes, at any
-    indentation, so one standing in a list item or a record's field is read. It closes on a run of its own character at
-    least as long with nothing after it, so a fence nested in a longer one stays inside it. Front matter is read as a
-    block of its own, its info `front matter`."""
-    out, fence, info = [], None, ""
-    lines = text.split("\n")
-    front = len(lines) > 1 and lines[0].strip() == "---"
-    for i, line in enumerate(lines):
-        if front:
-            out.append((line, True, "front matter"))
-            if i > 0 and line.strip() in ("---", "..."):
-                front = False
-            continue
-        m = FENCE.match(line)
-        if fence is None:
-            if m and not (m.group(2)[0] == "`" and "`" in m.group(3)):
-                fence, info = m.group(2), squeeze(m.group(3)).split(" ")[0]
-                out.append((line, True, info))
-            else:
-                out.append((line, False, ""))
-        else:
-            out.append((line, True, info))
-            if m and m.group(2)[0] == fence[0] and len(m.group(2)) >= len(fence) and not m.group(3).strip():
-                fence, info = None, ""
-    return out
+    """-> [(line, fenced, info)] for each line of a Markdown file, as the one reading reads it: whether it stands in
+    a fenced block, its fences among it, and the block's info string. Front matter is read as a block of its own, its
+    info `front matter`."""
+    found = reading.blocks(text)
+    return [(ln.text, ln.kind in (reading.FENCED, reading.FRONT_MATTER),
+             "front matter" if ln.kind == reading.FRONT_MATTER else found[ln.block].word if ln.kind == reading.FENCED else "")
+            for ln in reading.lines(text)]
 
 
 def markdown_headings(rows):
     """-> [(lineage, occurrence, level, line, own_end, subtree_end)], lines 1-based, ends exclusive, from the headings
-    standing outside every fenced block. A level-1 heading is the file's title and opens no lineage. The whole file is
-    the lineage ''. `occurrence` counts the headings sharing a lineage, the first being 1."""
-    heads = []
-    for i, (line, fenced, _) in enumerate(rows):
-        m = None if fenced else HEADING.match(line)
-        if m:
-            heads.append((i + 1, len(m.group(1)), squeeze(m.group(2))))
+    the one reading gives. A level-1 heading is the file's title and opens no lineage. The whole file is the lineage
+    ''. `occurrence` counts the headings sharing a lineage, the first being 1."""
+    heads = [h for h in reading.headings(written(rows)) if h.level > 1]
     total = len(rows) + 1
-    first = next((h[0] for h in heads if h[1] > 1), total)
-    out, stack, seen = [("", 1, 0, 1, first, total)], [], {}
-    for n, (line, level, title) in enumerate(heads):
-        if level == 1:
-            continue
-        stack = stack[:level - 2]
-        while len(stack) < level - 2:
-            stack.append(None)
-        stack.append(title)
-        lineage = " § ".join(t for t in stack if t)
-        own_end = heads[n + 1][0] if n + 1 < len(heads) else total
-        subtree_end = next((h[0] for h in heads[n + 1:] if h[1] <= level), total)
+    out, seen = [("", 1, 0, 1, heads[0].line if heads else total, total)], {}
+    for h in heads:
+        lineage = " § ".join(squeeze(title) for title in h.lineage)
         seen[lineage] = seen.get(lineage, 0) + 1
-        out.append((lineage, seen[lineage], level, line, own_end, subtree_end))
+        out.append((lineage, seen[lineage], h.level, h.line, h.ends, h.subtree_ends))
     return out
 
 
 def parse_citation(written):
-    """-> (path or None for the same file, lineage, key or None) of a citation as written, its white space squeezed, or
-    None where the text is no citation. A whole-file citation gives the lineage ''."""
-    text = squeeze(written)
-    m = CITATION.match(text)
-    if m:
-        target, key = m.group(2), None
-        k = KEYED.match(target)
-        if k:
-            target, key = k.group(1), "; ".join(squeeze(p) for p in k.group(2).split(";"))
-        return m.group(1), " § ".join(squeeze(s) for s in target.split("§")), key
-    if WHOLE.match(text) and "/" in text:
-        return text.rstrip("/"), "", None
-    return None
+    """-> (path or None for the same file, lineage, key or None) of a citation as written, as the one reading reads
+    its form, or None where the text is no citation. A whole-file citation gives the lineage ''."""
+    c = reading.parse_citation(written)
+    return None if c is None else (c.file or None, c.path, c.key)
 
 
 def markdown_citations(rows, headings):
@@ -244,21 +306,7 @@ def markdown_citations(rows, headings):
     code span in a citation's form, one broken across lines among them, an annotation's line in a fenced block, and each
     `technical-specs` entry of the front matter, a label. A same-file citation in a fenced `markdown` block names a
     section of the file that block holds, so it is no citer of the file around it and is left out."""
-    out, text = [], "\n".join(r[0] for r in rows)
-    starts, at = [], 0
-    for line, _, _ in rows:
-        starts.append(at)
-        at += len(line) + 1
-
-    def line_of(offset):
-        lo, hi = 0, len(starts) - 1
-        while lo < hi:
-            mid = (lo + hi + 1) // 2
-            if starts[mid] <= offset:
-                lo = mid
-            else:
-                hi = mid - 1
-        return lo + 1
+    out, text = [], written(rows)
 
     def host(line):
         best = ""
@@ -267,33 +315,19 @@ def markdown_citations(rows, headings):
                 best = lineage
         return best
 
-    # the text outside every fenced block is read apart from each block's own text, so a fence's backticks never
-    # pair with a code span's, and a span never runs across a fence
-    # a fenced line is blanked to its own length, so a place in this text is the same place in the file as written
-    live = "\n".join(" " * len(line) if fenced else line for line, fenced, _ in rows)
-    blocks, block = [], []
-    for i, (line, fenced, info) in enumerate(rows):
-        if fenced and info != "front matter" and not FENCE.match(line):
-            block.append(i)
-        elif block:
-            blocks.append(block)
-            block = []
-    blocks += [block] if block else []
-    regions = [(live, 0)] + [("\n".join(rows[i][0] for i in b), starts[b[0]]) for b in blocks]
+    # a code span is read outside every fenced block and then within each block's own lines, as the one reading gives
+    # them, so a fence's backticks never pair with a code span's, and a span never runs across a fence
     spanned = set()
-    for region, base in regions:
-        for m in SPAN.finditer(region):
-            if "\n\n" in m.group(2):
-                continue
-            parsed = parse_citation(m.group(2))
-            if not parsed:
-                continue
-            line = line_of(base + m.start())
-            _, fenced, info = rows[line - 1]
-            spanned.add(line)
-            if fenced and info == "markdown" and parsed[0] is None:
-                continue
-            out.append((line, host(line), "citation", int(fenced), squeeze(m.group(2)), parsed[0], parsed[1], parsed[2]))
+    for offset, held in reading.spans(text):
+        parsed = parse_citation(held)
+        if not parsed:
+            continue
+        line = reading.line_at(text, offset).number
+        _, fenced, info = rows[line - 1]
+        spanned.add(line)
+        if fenced and info == "markdown" and parsed[0] is None:
+            continue
+        out.append((line, host(line), "citation", int(fenced), squeeze(held), parsed[0], parsed[1], parsed[2]))
     front = False
     for i, (line, fenced, info) in enumerate(rows):
         if info == "front matter":
@@ -309,7 +343,7 @@ def markdown_citations(rows, headings):
             parsed = parse_citation(a.group(2)) if a else None
             if parsed and parsed[0]:
                 out.append((i + 1, host(i + 1), "annotation", 1, squeeze(a.group(2)), parsed[0], parsed[1], parsed[2]))
-            elif not FENCE.match(line):
+            elif not reading.FENCE.match(line.lstrip()):
                 # a citation written bare in a fenced block, as a brief writes one: where it ends is told only by the
                 # headings of the file it names, so the rest of its line is kept and read against them as it is asked for
                 found = list(BARE.finditer(line))
@@ -325,11 +359,12 @@ def markdown_passages(rows, headings):
     its blank lines and then at its sentences. A fenced block's lines are left out, a diagram's and an example's among
     them, since they state nothing in prose."""
     out = []
+    heading = {ln.number for ln in reading.lines(written(rows)) if ln.kind == reading.HEADING}
     for lineage, _, _, start, own_end, _ in headings:
         block, first = [], None
         for n in range(start, own_end + 1):
             row = rows[n - 1] if n < own_end and n - 1 < len(rows) else ("", False, "")
-            live = row[0].strip() and not row[1] and not HEADING.match(row[0])
+            live = row[0].strip() and not row[1] and n not in heading
             if live:
                 block.append(row[0].strip())
                 first = first or n
@@ -345,8 +380,16 @@ def strip_markup(text):
     return re.sub(r"[`*|\\]+", " ", text)
 
 
+def sentences(text):
+    """-> the sentences of a passage worth ranking alone, or none where it holds one: a rule restated in one sentence
+    of a longer passage is ranked by that sentence, which the passage's other sentences would otherwise drown."""
+    out = [s.strip() for s in re.split(r"(?<=[.?!:;]) ", text)]
+    out = [s for s in out if len(s) >= SENTENCE]
+    return out if len(out) > 1 else []
+
+
 def split_passage(text):
-    if len(text) < 40:
+    if len(text) < SENTENCE:
         return []
     if len(text) <= PASSAGE:
         return [text]
@@ -359,7 +402,122 @@ def split_passage(text):
         while len(cur) > PASSAGE:
             out.append(cur[:PASSAGE])
             cur = cur[PASSAGE:]
-    return out + ([cur] if len(cur) >= 40 else [])
+    return out + ([cur] if len(cur) >= SENTENCE else [])
+
+
+def item_field(text):
+    """-> (indentation, key, value) of a line that is a list item opening with a field, or None. The field's form is
+    the one copy constructs.py holds."""
+    m = constructs.FIELD.match(text)
+    return (m.group("indent"), m.group("key"), m.group("value")) if m and m.group("marker") and m.group("value") is not None else None
+
+
+def bare_field(text):
+    """-> (key, value) of a line that is a field standing in no list item, or None."""
+    m = constructs.FIELD.match(text)
+    return (m.group("key"), m.group("value") or "") if m and not m.group("marker") else None
+
+
+def section_parts(rows):
+    """-> (items, table rows) of a section's lines, [(line, text)], read once for every keyed part asked of it: each
+    list item opening with a field, as (its place among the rows, its indentation, the field's key, its value), and
+    each row of each table, as (its line, the Table Name standing above it, the table's header, the row's cells)."""
+    items, tabled, named, header = [], [], None, None
+    for i, (n, text) in enumerate(rows):
+        m, f = item_field(text), bare_field(text)
+        if m:
+            items.append((i, len(m[0]), squeeze(m[1]), squeeze(m[2])))
+        if f and f[0] == "Table Name" and f[1]:
+            named = squeeze(f[1])
+        if not text.strip().startswith("|"):
+            header = None
+            continue
+        cells = [squeeze(c) for c in text.strip().strip("|").split("|")]
+        if header is None:
+            header = cells
+            continue
+        if set(text.strip()) <= set("|-: "):
+            continue
+        tabled.append((n, named, header, cells))
+    return items, tabled
+
+
+def find_part(rows, key, parts=None):
+    """-> (first line, last line) of the keyed part a key names within a section's lines, [(line, text)]: a record, by
+    its identifying fields, or a table's row, by the columns its key names, or None where it names none."""
+    pairs = [tuple(squeeze(x) for x in p.split(":", 1)) for p in key.split("; ") if ":" in p]
+    if not pairs:
+        return None
+    items, tabled = parts or section_parts(rows)
+    table = None
+    if "." in pairs[0][0]:
+        table = pairs[0][0].split(".", 1)[0]
+        pairs = [(k.split(".", 1)[-1], v) for k, v in pairs]
+    for i, indent, name, value in [] if table else items:
+        if (name, value) != pairs[0]:
+            continue
+        n = end = rows[i][0]
+        for n2, t2 in rows[i + 1:]:
+            if t2.strip() and len(t2) - len(t2.lstrip()) <= indent:
+                break
+            if t2.strip():
+                end = n2
+        item = "\n".join(t for nn, t in rows[i:] if nn <= end)
+        if all(re.search(r"\*\*" + re.escape(k) + r":\*\* " + re.escape(v) + r"(?: \\)?\s*$", item, re.M) for k, v in pairs[1:]):
+            return n, end
+    for n, named, header, cells in tabled:
+        if table and named != table:
+            continue
+        if all(k in header and header.index(k) < len(cells) and cells[header.index(k)].strip("`") == v.strip("`") for k, v in pairs):
+            return n, n
+    return None
+
+
+def markdown_parts(texts, fenced, headings):
+    """-> [(lineage, key, first line, last line)] for each keyed part a file's sections hold, as a citation of the part
+    writes its key: a record, by the field its item opens with, and a row of a table declaring a Reference Key or a
+    Table Name, by its key's columns. Only a part its own citation gives back is listed, so a place citing a part never
+    names another: a key two parts of a section share names the first alone. Where two headings share a path, a
+    citation of the path names what both hold together, so the parts under each are listed, and a key both hold names
+    the first."""
+    out, listed = [], set()
+    for lineage, occurrence, _, start, own_end, subtree_end in headings:
+        if not lineage:
+            continue
+        rows = [(n, texts[n - 1]) for n in range(start, min(subtree_end, len(texts) + 1))]
+        parts = section_parts(rows)
+        keys, fields, table = [], {}, None
+        for n in range(start, min(own_end, len(texts) + 1)):
+            text = texts[n - 1]
+            if fenced[n - 1]:
+                continue
+            if not text.strip().startswith("|"):
+                table = None
+                m, f = item_field(text), bare_field(text)
+                if m:
+                    keys.append((n, squeeze(m[1]) + ": " + squeeze(m[2])))
+                if f:
+                    fields[squeeze(f[0])] = squeeze(f[1])
+                elif text.strip() and not m:
+                    fields = {}
+                continue
+            cells = [squeeze(c) for c in text.strip().strip("|").split("|")]
+            if table is None:
+                named = fields.get("Table Name")
+                columns = [squeeze(c) for c in re.split(r"[;,]", fields.get("Reference Key", "")) if squeeze(c)] or ([cells[0]] if named else [])
+                table = (cells, columns if columns and all(c in cells for c in columns) else [], named)
+                fields = {}
+                continue
+            header, columns, named = table
+            if columns and not set(text.strip()) <= set("|-: ") and len(cells) == len(header):
+                keys.append((n, "; ".join((named + "." if named else "") + c + ": " + cells[header.index(c)].strip("`") for c in columns)))
+        for n, key in keys:
+            # a citation is written in a code span, so a key holding a backtick is one no citation can write
+            span = None if "`" in key else find_part(rows, key, parts)
+            if span and span[0] == n and (lineage, key) not in listed:
+                listed.add((lineage, key))
+                out.append((lineage, key, span[0], span[1]))
+    return out
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -560,23 +718,53 @@ def phrase(text):
 # ---------------------------------------------------------------------------------------------------------------------
 # A search's result
 
+class Place(str):
+    """A place to read, as a result writes it: a citation of the narrowest of a keyed part, a section or a file that
+    holds every line the place gives, with its lines and, where they all stand in one, `in a table`, `in a heading` or
+    `in a fenced block`. It keeps what it was written from: its file, its section's heading path, its keyed part's
+    key, and its first and last line."""
+
+    def __new__(cls, path, lineage, key, first, last, stands=""):
+        cite = path + (" § " + lineage if lineage else "") + (f" [{key}]" if key else "")
+        text = f"`{cite}` " + (f"line {first}" if last in (None, first) else f"lines {first}-{last}") + (f", in a {stands}" if stands else "")
+        place = super().__new__(cls, text)
+        place.path, place.lineage, place.key, place.first, place.last, place.stands = path, lineage, key, first, first if last is None else last, stands
+        return place
+
+
+PLACE = re.compile(r"^`[^`\n]+`(?: lines? \d+(?:-\d+)?)?(?:, in a (?:table|heading|fenced block))?(?: cites `[^`\n]+`)?$")
+
+
 class Result:
     """What a search gave, written as one file in the form `.ai/skills/search-spec-of-record-scope/SKILL.md § Search
     Result` states, the same whoever asked."""
 
-    def __init__(self, kind, query, narrowed, run_as, completeness, places, notes=()):
+    def __init__(self, kind, query, narrowed, run_as, completeness, places, notes=(), target=CURRENT, commit=None, part=None):
         self.kind, self.query, self.narrowed, self.run_as = kind, squeeze(query), list(narrowed), run_as
         self.completeness, self.places, self.notes = completeness, list(places), list(notes)
+        self.target, self.commit = target, commit
+        # the part of a ranking the places are: the place of the ranking the first of them is, and how many they are
+        self.part = part if part or completeness == "complete" else (1, len(self.places))
         self.name = self.path = None
+
+    def ranking_part(self):
+        """-> the part of its ranking a ranked result holds, by its first place's number in the ranking and its
+        last's, as `1 to 20`, or `none` where the ranking holds no place there."""
+        first, count = self.part
+        return f"{first} to {first + count - 1}" if count else "none"
 
     def body(self):
         def items(values, pad="      "):
             return "".join(f"{pad}- {v}\n" for v in values)
 
-        out = f"    **Kind:** {self.kind} \\\n    **Query:** {self.query} \\\n"
+        out = f"    **Kind:** {self.kind} \\\n    **Query:** {self.query} \\\n    **Target:** {self.target} \\\n"
+        if self.commit:
+            out += f"    **Commit:** {self.commit} \\\n"
         if self.narrowed:
             out += "    **Narrowed To:**\n" + items(f"`{p}`" for p in self.narrowed) + "\n"
         out += f"    **Run As:** {self.run_as} \\\n    **Completeness:** {self.completeness} \\\n"
+        if self.completeness == "ranked":
+            out += f"    **Ranking Part:** {self.ranking_part()} \\\n"
         out += "    **Places:**" + ("\n" + items(self.places) if self.places else " none\n")
         if self.notes:
             out += "\n    **Notes:**\n" + items(self.notes)
@@ -584,14 +772,16 @@ class Result:
 
     def text(self):
         return ("# Search Result\n\nThe places are places to read, never findings. They are "
-                + ("every place the search found." if self.completeness == "complete" else "the first of a ranking, and never every place.")
+                + ("every place the search found." if self.completeness == "complete" else "a part of a ranking, and never every place.")
                 + "\n\n**Records:**\n  - **Result:** " + self.name + " \\\n" + self.body())
 
     def write(self, folder):
         """Name the result from the kind of search, what was asked and its content, and write it. An earlier result of
-        the same question under another name is cleared. A run that finds a file changed clears every result before it
-        answers, so no result outlives the files it answered for."""
-        asked = hashlib.sha256((self.kind + "\0" + self.query + "\0" + "\0".join(self.narrowed)).encode()).hexdigest()[:6]
+        the same question under another name is cleared, another part of the same ranking being another question. A
+        run that finds a file changed clears every result before it answers, so no result outlives the files it
+        answered for."""
+        part = "\0" + self.run_as if self.completeness == "ranked" else ""
+        asked = hashlib.sha256((self.kind + "\0" + self.query + "\0" + "\0".join(self.narrowed) + "\0" + self.target + "\0" + (self.commit or "") + part).encode()).hexdigest()[:6]
         content = hashlib.sha256(self.body().encode()).hexdigest()[:8]
         kind = self.kind.replace(" ", "-")
         slug = re.sub(r"[^a-z0-9]+", "-", self.query.lower()).strip("-")
@@ -618,9 +808,36 @@ class Result:
         problems = []
         if m.group(1) != path.name:
             problems.append(f"{path.name}: its Result names `{m.group(1)}`, another file")
-        for field in ("Kind", "Query", "Run As", "Completeness", "Places"):
-            if f"\n    **{field}:**" not in text:
+        held = {}
+        for field in ("Kind", "Query", "Target", "Commit", "Run As", "Completeness", "Ranking Part", "Places"):
+            f = re.search(r"^    \*\*" + field + r":\*\*(?: (.*?))?(?: \\)?$", text, re.M)
+            if f:
+                held[field] = (f.group(1) or "").strip()
+            elif field not in ("Commit", "Ranking Part"):
                 problems.append(f"{path.name}: it holds no {field}")
+        if held.get("Kind") not in KINDS + (None,):
+            problems.append(f"{path.name}: its Kind is `{held['Kind']}`, no kind of search")
+        if held.get("Target") not in TARGETS + (None,):
+            problems.append(f"{path.name}: its Target is `{held['Target']}`, not one of {', '.join(TARGETS)}")
+        if (held.get("Target") == COMMITTED) != ("Commit" in held) and "Target" in held:
+            problems.append(f"{path.name}: " + ("it answered over the committed files and names no Commit" if held["Target"] == COMMITTED else "it names a Commit, and its Target is not the committed files"))
+        if held.get("Target") == WORKING and "\n    **Narrowed To:**" not in text:
+            problems.append(f"{path.name}: it answered over the working files and holds no Narrowed To, the paths it was given")
+        listed = re.search(r"^    \*\*Places:\*\*\n((?:      - .*\n)*)", text, re.M)
+        count = len(listed.group(1).splitlines()) if listed else 0
+        if (held.get("Completeness") == "ranked") != ("Ranking Part" in held) and "Completeness" in held:
+            problems.append(f"{path.name}: " + ("its places are a part of a ranking and it names no Ranking Part" if held["Completeness"] == "ranked" else "it names a Ranking Part, and its places are no part of a ranking"))
+        elif "Ranking Part" in held:
+            part = re.fullmatch(r"(\d+) to (\d+)", held["Ranking Part"])
+            if not part and held["Ranking Part"] != "none":
+                problems.append(f"{path.name}: its Ranking Part is `{held['Ranking Part']}`, neither `none` nor its first place's number in the ranking and its last's, as `1 to 20`")
+            elif (int(part.group(2)) - int(part.group(1)) + 1 if part else 0) != count or (part and int(part.group(1)) < 1):
+                problems.append(f"{path.name}: its Ranking Part is `{held['Ranking Part']}`, and it holds {count} place{'' if count == 1 else 's'}")
+        for item in listed.group(1).splitlines() if listed else []:
+            if not PLACE.match(item[8:]):
+                problems.append(f"{path.name}: a place not in its form, a citation with its lines: {item[8:]}")
+            elif (" cites `" in item) != (held.get("Kind") == "cited sections"):
+                problems.append(f"{path.name}: " + ("a place of a listing of cited sections that says nothing of what it cites: " if held.get("Kind") == "cited sections" else "a place saying what it cites, in a result that is no listing of cited sections: ") + item[8:])
         content = hashlib.sha256(text[m.end():].encode()).hexdigest()[:8]
         if not path.stem.endswith("-" + content):
             problems.append(f"{path.name}: its content was changed since the search wrote it, since its name no longer ends with the hash of its content, {content}")
@@ -639,41 +856,75 @@ class Result:
 # The index and the searches
 
 class Search:
-    """The search over one project. `Search(root)` checks everything the search requires, then brings the index up to
-    date. `cover`, given by a test, names the files to cover in place of the canon's listing."""
+    """The search over one project and one target. `Search(root)` checks everything the search requires, then brings
+    the index up to date for the durable files as they stand. `target` names another: COMMITTED, the durable files as
+    `commit` held them, the last commit unless one is named, or WORKING, the working files under `paths`, which that
+    target requires. `cover`, given by a test, names the files to cover in place of the canon's listing."""
 
-    def __init__(self, root, cover=None, scratch=None, quiet=False):
+    def __init__(self, root, cover=None, scratch=None, quiet=False, target=CURRENT, commit=None, paths=None):
         self.root = Path(root).resolve()
         check_requirements(self.root)
+        if target not in TARGETS:
+            raise ValueError(f"no target `{target}`: a target is one of {', '.join(TARGETS)}")
+        if commit and target != COMMITTED:
+            raise ValueError(f"a commit is named for a search of `{COMMITTED}` alone, and this one is of `{target}`")
+        self.target, self.commit, self.tree, self.paths = target, None, None, self._narrow(paths)
+        if target == WORKING:
+            if not self.paths:
+                raise ValueError(f"a search of `{WORKING}` answers over the paths it is given and is given none: name them with --paths")
+            for p in self.paths:
+                if not any(p == w or p.startswith(w + "/") for w in WORKING_FILES):
+                    raise ValueError(f"`{p}` is no working file: a search of `{WORKING}` covers paths under " + ", ".join(f"`{w}`" for w in WORKING_FILES) + " alone")
+        if target == COMMITTED:
+            # asked before anything is read or written, so a search that cannot be answered leaves nothing behind
+            self.commit, self.tree = committed_tree(self.root, commit)
         self.scratch = Path(scratch) if scratch else self.root / SCRATCH
         self.cover, self.quiet, self.embedder = cover, quiet, None
-        self.read_count, self.built, self.seconds, self._lineages = 0, False, 0.0, {}
+        self.read_count, self.built, self.seconds, self._lineages, self.repeated = 0, False, 0.0, {}, set()
         self.scratch.mkdir(parents=True, exist_ok=True)
         self.db = self._open()
         self.update()
 
     # -- the files a search covers
 
-    def covered(self):
-        """-> [path from the root] of every file the search covers: the files of each kind the canon names for the
-        scope, the working files aside, read from the scope's own listing, and the stack's code roots less the paths
-        it excludes. It reads no version control. A cache a tool leaves among them is not listed."""
+    def covered(self, target=None):
+        """-> [path from the root] of every file a target holds, the search's own unless another is named. The durable
+        files are the files of each kind the canon names for the scope, the working files aside, read from the scope's
+        own listing, and the stack's code roots less the paths it excludes: as they stand, read from the folders with
+        no version control asked, or as the commit held them, the scope's listing and the stack read from the commit
+        too. The working files are those under the paths the search was given. A cache a tool leaves among them is
+        not listed."""
+        target = target or self.target
+        if target == WORKING:
+            found = set()
+            for p in self.paths:
+                base = self.root / p
+                found.update([p] if base.is_file() else self._under(base) if base.is_dir() else [])
+            own = SCRATCH + "/"   # the search's own index and results are no place a search reads
+            return sorted(f for f in found if not f.startswith(own) and (self.cover is None or f in self.cover))
+        tree = self.tree if target == COMMITTED else self.root
         if self.cover is not None:
-            return sorted(self.cover)
+            return sorted(f for f in self.cover if target != COMMITTED or (tree / f).is_file())
         out = set()
         # @canon-spec specs/methodology/scope/what-spec-of-record-governs.md § What Spec of Record Governs
-        for place in spec_text.scope_paths(self.root):
-            base = self.root / place
+        for place in spec_text.scope_paths(tree):
+            base = tree / place
             if base.is_file():
                 out.add(place)
             elif base.is_dir():
                 out.update(self._under(base))
-        stack = code_checks.code_roots(self.root)
+        # @canon-spec specs/methodology/spec-placement/technical-stack.md § The Technical Stack
+        stack = code_checks.code_roots(tree)
         if stack:
-            out.update(rel for _, rel in code_checks.code_files(self.root, *stack) if "__pycache__" not in rel.split("/"))
+            out.update(rel for _, rel in code_checks.code_files(tree, *stack) if "__pycache__" not in rel.split("/"))
         return sorted(out)
 
     def _under(self, base):
+        if isinstance(base, spec_text.CommitTree):
+            for f in base.rglob("*"):
+                if f.is_file() and "__pycache__" not in f.rel.split("/") and not f.rel.endswith((".pyc", ".pyo")):
+                    yield f.rel
+            return
         for folder, folders, files in os.walk(base):
             folders[:] = sorted(d for d in folders if d != "__pycache__")
             for name in sorted(files):
@@ -697,9 +948,11 @@ class Search:
                 except sqlite3.OperationalError:
                     pass
             db.executescript(f"""
-                create table files(path text primary key, sha text, size integer, mtime_ns integer);
+                create table placed(target text, path text, sha text, size integer, mtime_ns integer, stamp text, primary key(target, path));
                 create table contents(sha text primary key, kind text, language text, note text);
-                create table lines(sha text, n integer, text text, fenced integer, primary key(sha, n));
+                create table lines(sha text, n integer, text text, stands text, primary key(sha, n));
+                create table parts(sha text, lineage text, key text, line_start integer, line_end integer);
+                create index parts_sha on parts(sha, lineage);
                 create virtual table terms using fts5(norm, sha unindexed, n unindexed, tokenize='porter unicode61');
                 create virtual table term_pairs using fts5(norm, sha unindexed, n unindexed, tokenize='porter unicode61');
                 create table headings(sha text, lineage text, occurrence integer, level integer, line integer, own_end integer, subtree_end integer);
@@ -710,7 +963,12 @@ class Search:
                 create virtual table passage_terms using fts5(norm, pid unindexed, tokenize='porter unicode61');
                 create table embeddings(text_sha text primary key, vector blob);
                 create virtual table passage_vectors using vec0(embedding float[{DIMENSIONS}] distance_metric=cosine);
-                create index files_sha on files(sha);
+                create table sentences(id integer primary key, sha text, pid integer, text text, text_sha text);
+                create virtual table sentence_terms using fts5(norm, pid unindexed, tokenize='porter unicode61');
+                create virtual table sentence_vectors using vec0(embedding float[{DIMENSIONS}] distance_metric=cosine);
+                create index sentences_sha on sentences(sha);
+                create index sentences_text on sentences(text_sha);
+                create index placed_sha on placed(sha);
                 create index headings_sha on headings(sha);
                 create index citations_target on citations(path, lineage);
                 create index citations_sha on citations(sha);
@@ -725,61 +983,108 @@ class Search:
             db.execute("insert or replace into meta values('schema', ?)", (SCHEMA + "/" + MODEL,))
             db.commit()
             self.built = True
+        # the index holds each target's files apart, which content stands at which path in each, and a search reads
+        # its own target's alone: `files` is those, and `known` adds the durable files as they stand for a search of
+        # the working files, which reads a place a working file cites against them and gives no place among them
+        known = (self.target, CURRENT) if self.target == WORKING else (self.target,)
+        db.execute(f"create temp view files as select path, sha, size, mtime_ns from placed where target = '{self.target}'")
+        db.execute("create temp view known as select path, sha from placed where target in (" + ", ".join(f"'{t}'" for t in known) + ")")
         return db
 
     def update(self):
-        """Bring the index up to date: a file is read only where its size or the time it was changed differs from what
-        the index holds, and parsed only where its content is new to the index."""
+        """Bring the index up to date for the search's target, and for the durable files as they stand where a search
+        of the working files reads what its places cite against them. Any file changed clears every result."""
         started = time.perf_counter()
-        db, held = self.db, {p: (sha, size, mtime) for p, sha, size, mtime in self.db.execute("select path, sha, size, mtime_ns from files")}
-        listed, new, left = self.covered(), [], set()
+        changed = self._bring(CURRENT) if self.target == WORKING else False
+        listed, mine = self._bring(self.target, own=True)
+        if changed or mine:
+            for stale in (self.scratch / "results").glob("*.md"):
+                stale.unlink()
+        self.db.commit()
+        self.seconds = time.perf_counter() - started
+        if not self.quiet:
+            if self.built:
+                print(f"index: built whole from {self.read_count} files in {self.seconds:.1f} seconds", file=sys.stderr)
+            else:
+                print(f"index: {listed} files covered, {self.read_count} read again, {self.seconds:.2f} seconds", file=sys.stderr)
+
+    def _bring(self, target, own=False):
+        """Bring one target's files up to date -> whether any changed, with the count listed where `own`. A file as it
+        stands is read only where its size or the time it was changed differs from what the index holds, and a
+        commit's only where git's own name for its content does. A content is parsed only where it is new to the
+        index. A working file the search in hand was not given keeps its content in the index, held apart, so a search
+        given it again reads it only where it changed."""
+        db, tree = self.db, self.tree if target == COMMITTED else None
+        sources = (WORKING, HELD) if target == WORKING else (target,)
+        held = {}
+        for source in sources:
+            for p, sha, size, mtime, stamp in db.execute("select path, sha, size, mtime_ns, stamp from placed where target=?", (source,)):
+                held[p] = (sha, size, mtime, stamp, source)
+        listed, new, left, read, moved = self.covered(target), [], set(), 0, False
+        stack = code_checks.code_roots(tree or self.root) if self.cover is None else None
+        self._roots = stack[0] if stack else []
         for rel in listed:
-            try:
-                stat = (self.root / rel).stat()
-            except OSError:
-                continue
             was = held.get(rel)
-            if was and was[1] == stat.st_size and was[2] == stat.st_mtime_ns:
+            if tree is not None:
+                stamp, size, mtime = tree.store["files"][rel], 0, 0
+                same = was and was[3] == stamp
+            else:
+                try:
+                    stat = (self.root / rel).stat()
+                except OSError:
+                    continue
+                stamp, size, mtime = "", stat.st_size, stat.st_mtime_ns
+                same = was and was[1] == size and was[2] == mtime
+            if same:
+                if was[4] != target:
+                    db.execute("update placed set target=? where target=? and path=?", (target, was[4], rel))
+                    moved = True
                 continue
-            data = (self.root / rel).read_bytes()
-            self.read_count += 1
+            data = ((tree if tree is not None else self.root) / rel).read_bytes()  # a commit's files are held already
+            read += 1
             sha = hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
             if not db.execute("select 1 from contents where sha=?", (sha,)).fetchone():
                 self._index(sha, rel, data)
                 new.append(sha)
             if was:
                 left.add(was[0])
-            db.execute("insert or replace into files values(?,?,?,?)", (rel, sha, stat.st_size, stat.st_mtime_ns))
+                db.execute("delete from placed where target=? and path=?", (was[4], rel))
+            db.execute("insert or replace into placed values(?,?,?,?,?,?)", (target, rel, sha, size, mtime, stamp))
         gone = set(held) - set(listed)
-        left.update(held[p][0] for p in gone)
-        db.executemany("delete from files where path=?", [(p,) for p in gone])
-        if self.read_count or gone:
+        for p in gone:
+            if target == WORKING and (self.root / p).is_file():
+                if held[p][4] != HELD:
+                    db.execute("update placed set target=? where target=? and path=?", (HELD, WORKING, p))
+                    moved = True
+                continue
+            left.add(held[p][0])
+            db.execute("delete from placed where target=? and path=?", (held[p][4], p))
+        gone = {p for p in gone if not (target == WORKING and (self.root / p).is_file())}
+        self.read_count += read
+        if read or gone:
             # only the content a changed or removed file held is looked at again, so this costs what changed
             for sha in left:
-                if not db.execute("select 1 from files where sha=? limit 1", (sha,)).fetchone():
+                if not db.execute("select 1 from placed where sha=? limit 1", (sha,)).fetchone():
                     self._drop(sha)
             self._embed(new)
-            for stale in (self.scratch / "results").glob("*.md"):
-                stale.unlink()
-        db.commit()
-        self.seconds = time.perf_counter() - started
-        if not self.quiet:
-            if self.built:
-                print(f"index: built whole from {len(listed)} files in {self.seconds:.1f} seconds", file=sys.stderr)
-            else:
-                print(f"index: {len(listed)} files covered, {self.read_count} read again, {self.seconds:.2f} seconds", file=sys.stderr)
+        changed = bool(read or gone or moved)
+        return (len(listed), changed) if own else changed
 
     def _drop(self, sha):
         """Take out of the index what one content gave, no file holding that content any more."""
         db = self.db
         passages = db.execute("select id, text_sha from passages where sha=?", (sha,)).fetchall()
+        parts = db.execute("select id, text_sha from sentences where sha=?", (sha,)).fetchall()
         db.executemany("delete from passage_vectors where rowid=?", [(pid,) for pid, _ in passages])
         db.executemany("delete from passage_terms where rowid=?", [(pid,) for pid, _ in passages])
+        db.executemany("delete from sentence_vectors where rowid=?", [(sid,) for sid, _ in parts])
+        db.executemany("delete from sentence_terms where rowid=?", [(sid,) for sid, _ in parts])
         for name, first, last in db.execute("select name, first, last from term_rows where sha=?", (sha,)).fetchall():
             db.execute(f"delete from {name} where rowid between ? and ?", (first, last))
-        for table in ("contents", "lines", "term_rows", "headings", "citations", "units", "structures", "passages"):
+        for table in ("contents", "lines", "parts", "term_rows", "headings", "citations", "units", "structures", "passages", "sentences"):
             db.execute(f"delete from {table} where sha=?", (sha,))
-        db.executemany("delete from embeddings where text_sha=? and not exists (select 1 from passages where text_sha=?)", [(ts, ts) for ts in {ts for _, ts in passages}])
+        db.executemany("delete from embeddings where text_sha=? and not exists (select 1 from passages where text_sha=?) and not exists (select 1 from sentences where text_sha=?)",
+                       [(ts, ts, ts) for ts in {ts for _, ts in passages + parts}])
 
     def _terms(self, name, sha, rows):
         """Index the words of a content's lines under row numbers of its own run, kept so the rows are found again by
@@ -800,13 +1105,15 @@ class Search:
             db.execute("insert into contents values(?,?,?,?)", (sha, "binary", "", "it is no text, and nothing in it is searched"))
             return
         lines = text.split("\n")
-        kind, language, note, fenced = "text", "", "", [0] * len(lines)
+        kind, language, note, stands = "text", "", "", [""] * len(lines)
         if suffix == ".md":
             kind = "markdown"
-            rows = markdown_lines(strip_links(text))
-            fenced = [int(r[1]) for r in rows]
+            plain = strip_links(text)
+            rows = markdown_lines(plain)
+            stands = [STANDS.get(ln.stands_in, "") for ln in reading.lines(plain)]
             heads = markdown_headings(rows)
             db.executemany("insert into headings values(?,?,?,?,?,?,?)", [(sha,) + h for h in heads])
+            db.executemany("insert into parts values(?,?,?,?,?)", [(sha,) + p for p in markdown_parts([r[0] for r in rows], [r[1] for r in rows], heads)])
             db.executemany("insert into citations values(?,?,?,?,?,?,?,?,?,'')", [(sha,) + c for c in markdown_citations(rows, heads)])
             db.executemany("insert into passages(sha, lineage, line_start, line_end, text, text_sha) values(?,?,?,?,?,?)",
                            [(sha, p[0], p[1], p[2], p[3], hashlib.sha256(p[3].encode()).hexdigest()) for p in markdown_passages(rows, heads)])
@@ -839,11 +1146,15 @@ class Search:
                 except (SyntaxError, ValueError):
                     pass
         db.execute("insert into contents values(?,?,?,?)", (sha, kind, language, note))
-        db.executemany("insert into lines values(?,?,?,?)", [(sha, i + 1, line, fenced[i]) for i, line in enumerate(lines)])
+        db.executemany("insert into lines values(?,?,?,?)", [(sha, i + 1, line, stands[i] if i < len(stands) else "") for i, line in enumerate(lines)])
         self._terms("terms", sha, [(normalize(line), i + 1) for i, line in enumerate(lines) if line.strip()])
         self._terms("term_pairs", sha, [(normalize(line + " " + lines[i + 1]), i + 1) for i, line in enumerate(lines[:-1]) if line.strip() and lines[i + 1].strip()])
-        db.executemany("insert into passage_terms(rowid, norm, pid) values(?,?,?)",
-                       [(pid, normalize(t), pid) for pid, t in db.execute("select id, text from passages where sha=?", (sha,)).fetchall()])
+        held = db.execute("select id, text from passages where sha=?", (sha,)).fetchall()
+        db.executemany("insert into passage_terms(rowid, norm, pid) values(?,?,?)", [(pid, normalize(t), pid) for pid, t in held])
+        db.executemany("insert into sentences(sha, pid, text, text_sha) values(?,?,?,?)",
+                       [(sha, pid, s, hashlib.sha256(s.encode()).hexdigest()) for pid, t in held for s in sentences(t)])
+        db.executemany("insert into sentence_terms(rowid, norm, pid) values(?,?,?)",
+                       [(sid, normalize(t), pid) for sid, pid, t in db.execute("select id, pid, text from sentences where sha=?", (sha,)).fetchall()])
 
     def _is_code(self, rel):
         if self.cover is not None:
@@ -856,16 +1167,22 @@ class Search:
     _roots = None
 
     def _embed(self, new):
-        """Give each passage of the contents new to the index its vector: a text the index already holds a vector for
-        is not run through the model again."""
+        """Give each passage of the contents new to the index its vector, and each sentence of a passage holding
+        several: a text the index already holds a vector for is not run through the model again."""
         db, todo = self.db, {}
         for sha in new:
-            for text, text_sha in db.execute("select text, text_sha from passages where sha=? and text_sha not in (select text_sha from embeddings)", (sha,)):
-                todo[text_sha] = text
-        if todo:
-            db.executemany("insert or replace into embeddings values(?,?)", list(zip(todo, self._vectors(list(todo.values())))))
+            for table in ("passages", "sentences"):
+                for text, text_sha in db.execute(f"select text, text_sha from {table} where sha=? and text_sha not in (select text_sha from embeddings)", (sha,)):
+                    todo[text_sha] = text
+        # the model pads a batch to its longest text, and holds what a batch needs: texts of a like length are run
+        # together, a few at a time, and each run's vectors are written before the next, so memory stays level
+        ordered = sorted(todo.items(), key=lambda item: len(item[1]))
+        for at in range(0, len(ordered), EMBED_RUN):
+            run = ordered[at:at + EMBED_RUN]
+            db.executemany("insert or replace into embeddings values(?,?)", list(zip([k for k, _ in run], self._vectors([v for _, v in run]))))
         for sha in new:
             db.execute("insert into passage_vectors(rowid, embedding) select p.id, e.vector from passages p join embeddings e on e.text_sha = p.text_sha where p.sha=?", (sha,))
+            db.execute("insert into sentence_vectors(rowid, embedding) select s.id, e.vector from sentences s join embeddings e on e.text_sha = s.text_sha where s.sha=?", (sha,))
 
     def _vectors(self, texts):
         import sqlite_vec
@@ -873,38 +1190,77 @@ class Search:
             from fastembed import TextEmbedding
             os.environ.setdefault("HF_HUB_OFFLINE", "1")
             self.embedder = TextEmbedding(model_name=MODEL, cache_dir=str(MODEL_FOLDER), local_files_only=True)
-        return [sqlite_vec.serialize_float32([float(x) for x in v]) for v in self.embedder.embed(texts)]
+        return [sqlite_vec.serialize_float32([float(x) for x in v]) for v in self.embedder.embed(texts, batch_size=EMBED_BATCH)]
 
     # -- helpers the searches share
 
     def _narrow(self, narrowed):
-        return [p.replace("\\", "/").strip("/") for p in narrowed or []]
+        """-> the paths a search is narrowed to, a search of the working files being narrowed to the paths it was given
+        where it names none narrower."""
+        return [p.replace("\\", "/").strip("/") for p in narrowed or []] or list(getattr(self, "paths", []))
 
     def _within(self, path, narrowed):
         return not narrowed or any(path == n or path.startswith(n + "/") for n in narrowed)
 
     def _place(self, path, line, end=None):
-        """-> a place to read: a citation of the section or the file holding the line, with its lines."""
-        row = self.db.execute("select h.lineage from files f join headings h on h.sha = f.sha where f.path=? and h.line<=? and h.lineage != '' "
-                              "order by h.line desc limit 1", (path, line)).fetchone()
-        cite = path + (" § " + row[0] if row else "")
-        return f"`{cite}` " + (f"line {line}" if end in (None, line) else f"lines {line}-{end}")
+        """-> a place to read: a citation of the narrowest of a keyed part, a section or a file that holds every line
+        from `line` to `end`, with those lines and what they all stand in. Where two headings of a file share a path,
+        the path names what both hold, read together: a place under either is cited by the path with its own lines, and
+        the result notes that the path stands more than once and where, so its reader reads each."""
+        end = line if end is None else end
+        row = self.db.execute(
+            "select h.lineage, f.sha from files f join headings h on h.sha = f.sha where f.path=? and h.line<=? and h.subtree_end>? and h.lineage != '' "
+            "order by h.line desc limit 1", (path, line, end)).fetchone()
+        lineage, key = (row[0] if row else ""), None
+        if row:
+            if self.db.execute("select count(*) from headings where sha=? and lineage=?", (row[1], lineage)).fetchone()[0] > 1:
+                self.repeated.add((path, lineage))
+            part = self.db.execute("select key from parts where sha=? and lineage=? and line_start<=? and line_end>=? order by line_end - line_start, line_start limit 1",
+                                   (row[1], lineage, line, end)).fetchone()
+            key = part[0] if part else None
+        return Place(path, lineage, key, line, end, self._stands(path, line, end))
+
+    def _stands(self, path, line, end):
+        """-> what every line of a place that is not blank stands in, `table`, `heading` or `fenced block`, or '' where
+        they stand in running text or in more than one."""
+        found = {r[0] for r in self.db.execute("select distinct l.stands from files f join lines l on l.sha=f.sha where f.path=? and l.n between ? and ? and trim(l.text) != ''", (path, line, end))}
+        return found.pop() if len(found) == 1 else ""
 
     def _finish(self, result):
+        result.target, result.commit = self.target, self.commit
+        for path, lineage in sorted(self.repeated):
+            result.notes.append(self._shared(path, lineage))
+        self.repeated.clear()
+        if self.target == WORKING and not result.narrowed:
+            result.narrowed = list(self.paths)
         result.write(self.scratch / "results")
         return result
 
-    def _resolve(self, citation):
-        """-> (path, lineage, key, why): the place a citation names among the files covered, or why it names none."""
+    def _shared(self, path, lineage, among="files"):
+        """-> the note of a path more than one heading of a file holds: how many times it stands and at which lines,
+        so a reader of a place under one of them reads each."""
+        at = [r[0] for r in self.db.execute(f"select h.line from {among} f join headings h on h.sha=f.sha where f.path=? and h.lineage=? order by h.line", (path, lineage))]
+        return (f"`{path}`: the path `{lineage}` stands more than once in the file, {len(at)} times, at lines {', '.join(str(n) for n in at)}. "
+                f"A citation of it names what they hold together, so read each")
+
+    def _rows(self, path, first, last, among="files"):
+        """-> [(line, text, a citation's link set aside)] of a file's lines from `first` up to `last`."""
+        return [(n, strip_links(text)) for n, text in self.db.execute(
+            f"select l.n, l.text from {among} f join lines l on l.sha=f.sha where f.path=? and l.n>=? and l.n<? order by l.n", (path, first, last))]
+
+    def _resolve(self, citation, among="files"):
+        """-> (path, lineage, key, why): the place a citation names among the target's files, or why it names none.
+        With `among` "known", a search of the working files reads it against the durable files as they stand too, for
+        the place a working file cites."""
         parsed = parse_citation(citation.strip().strip("`"))
         if not parsed:
             return None, None, None, "it is not in a citation's form"
         path, lineage, key = parsed
         if path is None:
             return None, None, None, "it names no file, and a search has no file of its own to read a same-file citation against"
-        if not self.db.execute("select 1 from files where path=? or path like ?", (path, path + "/%")).fetchone():
+        if not self.db.execute(f"select 1 from {among} where path=? or path like ?", (path, path + "/%")).fetchone():
             return path, lineage, key, f"`{path}` is not among the files the search covers"
-        if lineage and not self.db.execute("select 1 from files f join headings h on h.sha=f.sha where f.path=? and h.lineage=?", (path, lineage)).fetchone():
+        if lineage and not self.db.execute(f"select 1 from {among} f join headings h on h.sha=f.sha where f.path=? and h.lineage=?", (path, lineage)).fetchone():
             return path, lineage, key, f"`{path}` holds no section `{lineage}`"
         return path, lineage, key, None
 
@@ -916,7 +1272,7 @@ class Search:
     def _citing(self, citation, narrowed=None):
         """-> the result of a search for the places citing a place, not yet written as a file."""
         narrowed = self._narrow(narrowed)
-        path, lineage, key, why = self._resolve(citation)
+        path, lineage, key, why = self._resolve(citation, "known")
         if why and path is None:
             return Result("citers", citation, narrowed, "as asked", "complete", [], [f"the citation does not resolve: {why}"])
         columns = "select f.path, c.line, c.form, c.fenced, c.written, coalesce(c.path, f.path), c.lineage, c.key, c.unit from citations c join files f on f.sha = c.sha "
@@ -957,8 +1313,7 @@ class Search:
                 continue
             place = self._place(host, line)
             marks = [m for m in ("a `technical-specs` label, not a citation" if form == "label" else "",
-                                 f"an annotation over the unit `{unit}`" if form == "annotation" and unit else ("an annotation" if form == "annotation" else ""),
-                                 "stands in a fenced block" if fenced else "") if m]
+                                 f"an annotation over the unit `{unit}`" if form == "annotation" and unit else ("an annotation" if form == "annotation" else "")) if m]
             if how == "cites it":
                 places.append(place)
                 if marks:
@@ -972,13 +1327,36 @@ class Search:
             notes += related
         return Result("citers", citation, narrowed, "as asked", "complete", places, notes)
 
+    # -- which sections are cited, and from where
+
+    def cited_sections(self, narrowed=None):
+        """-> every section, keyed part and file a place of the target cites, each with every place citing it: a place
+        is a citing place of the target and says what it cites, the list ordered by what is cited, so what is cited is
+        no place of the result. What it gives for one agrees with the places `citers` gives asked of that one alone."""
+        narrowed = self._narrow(narrowed)
+        rows = self.db.execute("select f.path, c.line, c.form, c.written, coalesce(c.path, f.path), c.lineage, c.key from citations c join files f on f.sha = c.sha").fetchall()
+        found = set()
+        for host, line, form, written, target, lineage, key in rows:
+            if not self._within(host, narrowed):
+                continue
+            if form == "bare":
+                lineage, key = self._bare(target, lineage)
+                if lineage is None:
+                    continue
+            cited = target + (" § " + lineage if lineage else "") + (f" [{key}]" if key else "")
+            found.add((cited, host, line))
+        places = [f"{self._place(host, line)} cites `{cited}`" for cited, host, line in sorted(found)]
+        run = ("every citation the target's files hold, each read to the section, the keyed part or the file it names, as written: a citation of a place that does not stand is listed as written, "
+               "and a citation of a section within a section is listed under its own and not under the one above it")
+        return self._finish(Result("cited sections", "every place cited", narrowed, run, "complete", places))
+
     def _bare(self, path, rest):
         """-> (lineage, key) a citation written bare names: the longest heading path of the file it names that the rest
         of its line opens with, and the key standing in brackets right after it, or (None, None) where it opens with
         none."""
         if path not in self._lineages:
             self._lineages[path] = sorted((r[0] for r in self.db.execute(
-                "select distinct h.lineage from files f join headings h on h.sha=f.sha where f.path=? and h.lineage != ''", (path,))), key=len, reverse=True)
+                "select distinct h.lineage from known f join headings h on h.sha=f.sha where f.path=? and h.lineage != ''", (path,))), key=len, reverse=True)
         for lineage in self._lineages[path]:
             if rest == lineage or (rest.startswith(lineage) and not (rest[len(lineage)].isalnum() or rest[len(lineage):].startswith(" § "))):
                 key = re.match(r" \[([^\]]*)\]", rest[len(lineage):])
@@ -997,23 +1375,26 @@ class Search:
                                 "where f.path=? order by h.line", (path,)).fetchall()
         total = self.db.execute("select count(*) from files f join lines l on l.sha=f.sha where f.path=?", (path,)).fetchone()[0]
         if not heads:
-            return self._finish(Result("lines", citation, [], "as asked", "complete", [f"`{path}` lines 1-{total}"]))
+            return self._finish(Result("lines", citation, [], "as asked", "complete", [Place(path, "", None, 1, total, self._stands(path, 1, total))]))
+        # where two headings share the path, a citation of it names what both hold together: each one's lines are
+        # given, a keyed part being the first of them to hold its key
         mine = [h for h in heads if h[0] == lineage]
         head, notes = mine[0], []
         if len(mine) > 1:
-            notes.append(f"the path stands {len(mine)} times in the file, and the first is the one a citation names")
+            notes.append(self._shared(path, lineage))
         cite = f"`{path}{' § ' + lineage if lineage else ''}`"
         places = []
         if key:
-            span = self._part(path, head, key)
+            head, span = next(((h, found) for h in mine for found in [self._part(path, h, key)] if found), (head, None))
             if not span:
                 return self._finish(Result("lines", citation, [], "as asked", "complete", [], [f"the citation does not resolve: {cite} holds no part `[{key}]`"]))
-            places.append(f"`{path} § {lineage} [{key}]` " + (f"line {span[0]}" if span[0] == span[1] else f"lines {span[0]}-{span[1]}"))
+            places.append(Place(path, lineage, key, span[0], span[1], self._stands(path, span[0], span[1])))
             notes.append(f"{cite} lines {head[3]}-{head[5] - 1}: the section holding the part")
         else:
-            places.append(f"{cite} lines {head[3]}-{head[4] - 1}")
-            if lineage and head[5] != head[4]:
-                notes.append(f"{cite} lines {head[3]}-{head[5] - 1}: its whole subtree")
+            for h in mine:
+                places.append(Place(path, lineage, None, h[3], h[4] - 1, self._stands(path, h[3], h[4] - 1)))
+                if lineage and h[5] != h[4]:
+                    notes.append(f"{cite} lines {h[3]}-{h[5] - 1}: its whole subtree")
         segments = lineage.split(" § ") if lineage else []
         for depth in range(len(segments) - 1, -1, -1):
             above = " § ".join(segments[:depth])
@@ -1030,53 +1411,13 @@ class Search:
     def _part(self, path, head, key):
         """-> (first line, last line) of the keyed part a citation names within a section: a record, by its
         identifying fields, or a table's row, by the columns its key names."""
-        pairs = [tuple(squeeze(x) for x in p.split(":", 1)) for p in key.split("; ") if ":" in p]
-        if not pairs:
-            return None
-        rows = [(n, strip_links(text)) for n, text in self.db.execute(
-            "select l.n, l.text from files f join lines l on l.sha=f.sha where f.path=? and l.n>=? and l.n<? order by l.n", (path, head[3], head[5]))]
-        table = None
-        if "." in pairs[0][0]:
-            table = pairs[0][0].split(".", 1)[0]
-            pairs = [(k.split(".", 1)[-1], v) for k, v in pairs]
-        field = re.compile(r"^(\s*)(- )?\*\*" + re.escape(pairs[0][0]) + r":\*\* (.*?)(?: \\)?$")
-        for i, (n, text) in enumerate(rows):
-            m = None if table else field.match(text)
-            if m and m.group(2) and squeeze(m.group(3)) == pairs[0][1]:
-                indent, end = len(m.group(1)), n
-                for n2, t2 in rows[i + 1:]:
-                    if t2.strip() and len(t2) - len(t2.lstrip()) <= indent:
-                        break
-                    if t2.strip():
-                        end = n2
-                item = "\n".join(t for nn, t in rows if n <= nn <= end)
-                if all(re.search(r"\*\*" + re.escape(k) + r":\*\* " + re.escape(v) + r"(?: \\)?\s*$", item, re.M) for k, v in pairs[1:]):
-                    return n, end
-        named, header = None, None
-        for n, text in rows:
-            t = re.match(r"^\*\*Table Name:\*\* (.*?)(?: \\)?$", text.strip())
-            if t:
-                named = squeeze(t.group(1))
-            if not text.strip().startswith("|"):
-                header = None
-                continue
-            cells = [squeeze(c) for c in text.strip().strip("|").split("|")]
-            if header is None:
-                header = cells
-                continue
-            if set(text.strip()) <= set("|-: "):
-                continue
-            if table and named != table:
-                continue
-            if all(k in header and header.index(k) < len(cells) and cells[header.index(k)].strip("`") == v.strip("`") for k, v in pairs):
-                return n, n
-        return None
+        return find_part(self._rows(path, head[3], head[5]), key)
 
     # -- where a term is used
 
     def other_names(self, term):
         """-> the other names the glossary gives a term: its abbreviation and each name its entry is also called."""
-        rows = self.db.execute("select l.text from files f join lines l on l.sha=f.sha where f.path='specs/methodology/glossary/glossary.md' and l.text like '|%'").fetchall()
+        rows = self.db.execute("select l.text from known f join lines l on l.sha=f.sha where f.path='specs/methodology/glossary/glossary.md' and l.text like '|%'").fetchall()
         wanted = squeeze(term).lower()
         for (text,) in rows:
             cells = [squeeze(c) for c in strip_links(text).strip().strip("|").split("|")]
@@ -1147,7 +1488,7 @@ class Search:
                                    "and c.written like ? order by f.path, c.line", ("%" + name + "%",)).fetchall()
             for path, line, unit, written in rows:
                 if self._within(path, narrowed):
-                    places.append(f"`{path}` line {line}")
+                    places.append(self._place(path, line))
                     notes.append(f"`{path}` line {line}: the unit `{unit}`, annotated with `{written}`")
         else:
             wanted = [structure] + (["calls"] if structure == "constructs" else [])
@@ -1162,7 +1503,7 @@ class Search:
                 if structure == "constructs" and found == "calls" and not (name in classes or (language == "python" and name[:1].isupper())):
                     continue
                 seen.add((path, line, unit))
-                places.append(f"`{path}` line {line}")
+                places.append(self._place(path, line))
                 notes.append(f"`{path}` line {line}: the unit `{unit}`")
             if structure in ("extends", "implements") and any(r[4] == "c_sharp" for r in rows):
                 notes.append("C#'s syntax does not tell a class extended from an interface implemented, so each name in a type's base list is listed for both.")
@@ -1176,66 +1517,178 @@ class Search:
 
     # -- which places say the same as a passage
 
-    def meaning(self, passage, narrowed=None):
+    def meaning(self, passage, narrowed=None, limit=None, start=None):
+        """-> a part of the ranking of the places saying the same as a passage, or as the section a citation names:
+        `limit` places from the place `start`, the first RANKED where neither is given. What was asked is ranked
+        against every passage and against every sentence of a passage holding several, by its words and by the
+        model's vectors, and so is each sentence of what was asked, weighed less, so a rule restated in one sentence
+        of a longer passage is ranked by that sentence. The place given is the passage a sentence stands in.
+
+        Asked by a citation, the search gives others and not the one it was given: the ranking holds neither that
+        section nor a place whose section cites it, and those places are listed apart, whole, with every part. Asked
+        by a passage, it sets no place apart, and its caller leaves out by their citations the places it does not want.
+        What it ranks is a section's prose: no line of a fenced block, no heading, no front matter, and no passage or
+        sentence shorter than SENTENCE.
+
+        Parts asked one after another make up one ranking while the files stand: the first places are fused from each
+        ranking's first CANDIDATES, and a part further on reads each ranking further without reordering what an
+        earlier reading gave (TIERS)."""
+        limit, start = RANKED if limit is None else limit, 1 if start is None else start
+        if limit < 1 or start < 1:
+            raise ValueError("a ranking's limit and its start are each a whole number from 1")
         narrowed = self._narrow(narrowed)
-        asked, own, notes = squeeze(passage.strip("`")) if passage.strip().startswith("`") else squeeze(passage), None, []
+        asked, own, citing = squeeze(passage.strip("`")) if passage.strip().startswith("`") else squeeze(passage), None, set()
         texts = [asked]
+
+        def nothing(note):
+            return self._finish(Result("meaning", passage, narrowed, "as asked", "ranked", [], [note], part=(start, 0)))
+
         if parse_citation(asked) and parse_citation(asked)[0]:
-            path, lineage, key, why = self._resolve(asked)
+            path, lineage, key, why = self._resolve(asked, "known")
             if why:
-                return self._finish(Result("meaning", passage, narrowed, "as asked", "ranked", [], [f"the citation does not resolve: {why}"]))
+                return nothing(f"the citation does not resolve: {why}")
             own = (path, lineage)
-            texts = [r[0] for r in self.db.execute("select p.text from passages p join files f on f.sha=p.sha where f.path=? and p.lineage=? order by p.line_start", (path, lineage))]
+            texts = [r[0] for r in self.db.execute("select p.text from passages p join known f on f.sha=p.sha where f.path=? and p.lineage=? order by p.line_start", (path, lineage))]
             if not texts:
-                return self._finish(Result("meaning", passage, narrowed, "as asked", "ranked", [], ["the place it names holds no passage of prose to compare"]))
-        scores = {}
-        for text, vector in zip(texts, self._vectors(texts)):
-            by_words = []
+                return nothing("the place it names holds no passage of prose to compare")
+            citing = {(p.path, p.lineage) for p in self._citing(f"{own[0]}{' § ' + own[1] if own[1] else ''}").places}
+        units = [[text] + sentences(text) for text in texts]
+        vectors = iter(self._vectors([u for group in units for u in group]))
+        units = [[(u, next(vectors)) for u in group] for group in units]
+        stands, passage_of = {}, {}
+
+        def where(pid):
+            """-> the file and the section a passage stands in, or None where it stands in no file of the target or
+            outside what the search is narrowed to."""
+            if pid not in stands:
+                at = self.db.execute("select f.path, p.lineage from passages p join files f on f.sha=p.sha where p.id=? order by f.path limit 1", (pid,)).fetchone()
+                stands[pid] = tuple(at) if at and self._within(at[0], narrowed) else None
+            return stands[pid]
+
+        def holding(sids):
+            """-> the passages a ranking of sentences stands in, each once, at its best sentence's place."""
+            for sid in sids:
+                if sid not in passage_of:
+                    passage_of[sid] = self.db.execute("select pid from sentences where id=?", (sid,)).fetchone()[0]
+            return list(dict.fromkeys(passage_of[sid] for sid in sids))
+
+        def rankings(text, vector):
+            """-> the rankings of the passages against one text: by its words and by its vector, each against every
+            passage and against every sentence. Each takes how many rows to read and gives the rows it read and the
+            passages they rank."""
             words = re.findall(r"[^\W_]+", normalize(text))
-            if words:
-                query = " OR ".join('"' + w + '"' for w in dict.fromkeys(words))
-                by_words = [r[0] for r in self.db.execute("select pid from passage_terms where passage_terms match ? order by bm25(passage_terms) limit ?", (query, CANDIDATES * 4))]
-            by_vectors = [r[0] for r in self.db.execute("select rowid from passage_vectors where embedding match ? and k = ? order by distance", (vector, CANDIDATES * 4))]
-            for ranking in (by_words, by_vectors):
-                rank = 0
+            query = " OR ".join('"' + w + '"' for w in dict.fromkeys(words))
+
+            def passage_terms(pool):
+                rows = [r[0] for r in self.db.execute("select pid from passage_terms where passage_terms match ? order by bm25(passage_terms) limit ?", (query, pool))] if words else []
+                return len(rows), rows
+
+            def passage_vectors(pool):
+                rows = [r[0] for r in self.db.execute("select rowid from passage_vectors where embedding match ? and k = ? order by distance", (vector, pool))]
+                return len(rows), rows
+
+            def sentence_terms(pool):
+                rows = [r[0] for r in self.db.execute("select pid from sentence_terms where sentence_terms match ? order by bm25(sentence_terms) limit ?", (query, pool))] if words else []
+                return len(rows), list(dict.fromkeys(rows))
+
+            def sentence_vectors(pool):
+                rows = [r[0] for r in self.db.execute("select rowid from sentence_vectors where embedding match ? and k = ? order by distance", (vector, pool))]
+                return len(rows), holding(rows)
+
+            return passage_terms, passage_vectors, sentence_terms, sentence_vectors
+
+        def candidates(fetch, depth):
+            """-> the first `depth` passages of a ranking that stand in the target's files, within what the search is
+            narrowed to, and whether the ranking held more. The index holds every target's passages, so more of the
+            ranking is read until that many of the target's own are found or the ranking ends."""
+            pool = min(depth * 4, DEEPEST)
+            while True:
+                read, ranking = fetch(pool)
+                kept = []
                 for pid in ranking:
-                    path, lineage = self.db.execute("select f.path, p.lineage from passages p join files f on f.sha=p.sha where p.id=? order by f.path limit 1", (pid,)).fetchone() or (None, None)
-                    if path is None or not self._within(path, narrowed) or (path, lineage) == own:
+                    if where(pid) is None or where(pid) == own:
                         continue
-                    rank += 1
-                    if rank > CANDIDATES:
-                        break
-                    scores[pid] = scores.get(pid, 0.0) + 1.0 / (FUSION + rank)
-        places, seen = [], set()
-        for pid in sorted(scores, key=lambda p: (-scores[p], p)):
-            for path, start, end in self.db.execute("select f.path, p.line_start, p.line_end from passages p join files f on f.sha=p.sha where p.id=? order by f.path", (pid,)):
-                place = self._place(path, start, end)
-                if place not in seen and self._within(path, narrowed):
-                    seen.add(place)
-                    places.append(place)
-            if len(places) >= RANKED * 2:
+                    kept.append(pid)
+                    if len(kept) == depth:
+                        return kept, True
+                if read < pool or pool >= DEEPEST:
+                    return kept, False
+                pool = min(pool * 4, DEEPEST)
+
+        def fused(depth):
+            """-> the places in the order the rankings read to `depth` fuse to, and whether any ranking held more."""
+            scores, more = {}, False
+
+            def add(ranking, weight):
+                for rank, pid in enumerate(ranking, 1):
+                    scores[pid] = scores.get(pid, 0.0) + weight / (FUSION + rank)
+
+            for group in units:
+                for fetch in rankings(*group[0]):
+                    ranking, held = candidates(fetch, depth)
+                    more = more or held
+                    add(ranking, 1.0)
+                # each kind of ranking by the sentences of what was asked is one ranking, a passage standing at the
+                # best place any sentence gives it
+                for kind in range(4) if len(group) > 1 else ():
+                    best = {}
+                    for unit in group[1:]:
+                        ranking, held = candidates(rankings(*unit)[kind], depth)
+                        more = more or held
+                        for rank, pid in enumerate(ranking):
+                            best[pid] = min(best.get(pid, rank), rank)
+                    add(sorted(best, key=lambda p: (best[p], p)), SENTENCES)
+            order, seen = [], set()
+            for pid in sorted(scores, key=lambda p: (-scores[p], p)):
+                for path, first, last in self.db.execute("select f.path, p.line_start, p.line_end from passages p join files f on f.sha=p.sha where p.id=? order by f.path", (pid,)):
+                    place = self._place(path, first, last)
+                    if place not in seen and self._within(path, narrowed):
+                        seen.add(place)
+                        order.append(place)
+            return order, more
+
+        ranking, given, alike = [], set(), None
+        for depth, upto in TIERS:
+            order, more = fused(depth)
+            alike = order if alike is None else alike
+            for place in order:
+                if upto is not None and len(ranking) >= upto:
+                    break
+                if place not in given and (place.path, place.lineage) not in citing:
+                    given.add(place)
+                    ranking.append(place)
+            if len(ranking) >= start - 1 + limit or not more:
                 break
-        if own:
-            citing = {p.split("` ")[0] for p in self._citing(f"{own[0]}{' § ' + own[1] if own[1] else ''}").places}
-            apart = [p for p in places if p.split("` ")[0] in citing]
-            places = [p for p in places if p not in apart]
+        places, notes = ranking[start - 1:start - 1 + limit], []
+        if citing:
+            # the places listed apart are every passage of a section citing the one asked with, the same whatever part
+            # is asked for: those most alike first, in the order the first reading ranks them, then the rest
+            apart = [p for p in alike if (p.path, p.lineage) in citing]
+            held = set(apart)
+            for path, lineage in sorted(citing):
+                for first, last in self.db.execute("select p.line_start, p.line_end from passages p join files f on f.sha=p.sha where f.path=? and p.lineage=? order by p.line_start", (path, lineage)).fetchall():
+                    place = self._place(path, first, last)
+                    if place not in held and self._within(path, narrowed):
+                        held.add(place)
+                        apart.append(place)
             if apart:
                 notes.append("Places whose section cites the passage's own, listed apart, since each may rely on it and not restate it:")
                 notes += apart
-        places = places[:RANKED]
-        run = (f"each passage of what was asked ranked against every passage by its words and by the vectors of the model `{MODEL}`, run on this machine, the two rankings fused, and the first {RANKED} given")
-        return self._finish(Result("meaning", passage, narrowed, run, "ranked", places, notes))
+        run = (f"what was asked, and each sentence of it, ranked against every passage and every sentence of a passage by its words and by the vectors of the model `{MODEL}`, "
+               f"run on this machine, the rankings fused, and {limit} place{'' if limit == 1 else 's'} given from place {start} of the ranking")
+        return self._finish(Result("meaning", passage, narrowed, run, "ranked", places, notes, part=(start, len(places))))
 
 
 # ---------------------------------------------------------------------------------------------------------------------
 # The entry script's actions
 
-USAGE = f"""usage: {SKILL}.py ACTION [--paths PATH ...]
+USAGE = f"""usage: {SKILL}.py ACTION [--target TARGET] [--commit COMMIT] [--limit N] [--start N] [--paths PATH ...]
 
 Each action answers one question over the files of Spec of Record's scope and the code, and writes its result as a
 file under {SCRATCH}/results/. Every search first checks everything the search requires.
 
   --show-citers CITATION                 every place citing a section, a keyed part or a file
+  --show-cited-sections                  each section, keyed part and file cited, with every place citing it
   --show-lines CITATION                  the lines a citation names
   --show-term-uses TERM                  every place using a word, a phrase or an identifier, in every form it takes
   --show-code-structure STRUCTURE NAME   every unit of code holding a structure: {', '.join(STRUCTURES)}
@@ -1245,7 +1698,14 @@ file under {SCRATCH}/results/. Every search first checks everything the search r
   --check-result FILE                    whether a result's file is in its form and its content is as the search wrote it
   --install-model                        download the model's files, the one action that reaches the network
 
-  --paths PATH ...                       answer over these files and folders alone
+  --target TARGET                        the files to answer over, one of:
+                                           {CURRENT}    the durable files as they stand, where none is named
+                                           {COMMITTED}  the durable files as a commit held them
+                                           {WORKING}            the working files under the paths given
+  --commit COMMIT                        the commit a search of {COMMITTED} answers for, the last where none is named
+  --limit N                              how many places of its ranking --show-similar-passages gives, {RANKED} where none is named
+  --start N                              the place of its ranking it gives them from, the first where none is named
+  --paths PATH ...                       answer over these files and folders alone, which a search of {WORKING} requires
 """
 
 
@@ -1263,7 +1723,24 @@ def main(argv, root=None):
         if not narrowed:
             print(USAGE)
             return 2
-    arity = {"--show-citers": 1, "--show-lines": 1, "--show-term-uses": 1, "--show-code-structure": 2, "--show-similar-passages": 1,
+    given = {}
+    for flag in ("--target", "--commit", "--limit", "--start"):
+        if flag in args:
+            at = args.index(flag)
+            if at + 1 >= len(args) or args[at + 1].startswith("--"):
+                print(USAGE)
+                return 2
+            given[flag] = args[at + 1]
+            del args[at:at + 2]
+    part = {}
+    for flag in ("--limit", "--start"):
+        # a part is asked of a ranking alone, and by a whole number from 1
+        if flag in given and (not given[flag].isdigit() or int(given[flag]) < 1 or "--show-similar-passages" not in args):
+            print(USAGE)
+            return 2
+        if flag in given:
+            part[flag[2:]] = int(given[flag])
+    arity = {"--show-citers": 1, "--show-cited-sections": 0, "--show-lines": 1, "--show-term-uses": 1, "--show-code-structure": 2, "--show-similar-passages": 1,
              "--show-pattern-matches": 1, "--check-requirements": 0, "--install-model": 0, "--check-result": 1}
     if not args or args[0] not in arity or len(args) != 1 + arity[args[0]]:
         print(USAGE)
@@ -1284,9 +1761,11 @@ def main(argv, root=None):
         if action == "--install-model":
             print(f"{SKILL}: the model's files are in {install_model(root).relative_to(HOME).as_posix()}")
             return 0
-        search = Search(root)
+        search = Search(root, target=given.get("--target", CURRENT), commit=given.get("--commit"), paths=narrowed if given.get("--target") == WORKING else None)
         if action == "--show-citers":
             result = search.citers(values[0], narrowed)
+        elif action == "--show-cited-sections":
+            result = search.cited_sections(narrowed)
         elif action == "--show-lines":
             result = search.lines(values[0], narrowed)
         elif action == "--show-term-uses":
@@ -1294,10 +1773,11 @@ def main(argv, root=None):
         elif action == "--show-code-structure":
             result = search.code_structure(values[0], values[1], narrowed)
         elif action == "--show-similar-passages":
-            result = search.meaning(values[0], narrowed)
+            result = search.meaning(values[0], narrowed, **part)
         else:
             result = search.pattern(values[0], narrowed)
-    except MissingRequirements as e:
+        search.db.close()
+    except (MissingRequirements, CannotSearch) as e:
         print(e)
         return 1
     except (ValueError, re.error) as e:

@@ -11,6 +11,7 @@ from pathlib import PurePosixPath
 
 import constructs
 import layout
+import reading
 from spec_text import RECORD_SELECTOR, resolve, sections, strip_fences
 
 CITATION = constructs.CITATION  # the form written once, in constructs.py
@@ -195,7 +196,7 @@ def read_block(lines, i, indent, end=None, problems=None, consumed=None, first=F
                     problems.append((FIELDS, item["line"], f"a field's list whose items stand other than two spaces beyond its key: {field['key']}"))
                 field["items"].append(item)
                 continue
-            if field["items"] is not None or _indent(line) < indent or opens_key(line) or line.lstrip().startswith(("|", "#", "```")):
+            if field["items"] is not None or _indent(line) < indent or opens_key(line) or reading.starts(line) is not None:
                 break
             field["value"] = (field["value"] + " " + _own_line(lines, j, end, problems, consumed).strip()).strip()
             field["lines"].append(j)
@@ -205,28 +206,23 @@ def read_block(lines, i, indent, end=None, problems=None, consumed=None, first=F
 
 
 def _fence(line):
-    """-> the layout.FENCE match where the line, past its indentation, opens a fenced block, else None."""
-    return layout.FENCE.match(line.expandtabs(4).lstrip(" "))
+    """-> the match where the line, past its indentation, opens a fenced block, as the one reading reads a fence
+    (reading.py), else None."""
+    return reading.opens_fence(line.expandtabs(4).lstrip(" "))
 
 
 def _read_fenced(lines, k, end, consumed):
     """modeling-constructs.md § Fields: a fenced block of a field's value, opening with its fence at line k and closing
     at the first line after it that is a fence of the same character at least as long, or at `end` ->
     ({"line", "lines", "info", "text"}, the line after it): its 0-based lines, its fences among them, the info string's
-    first word, and the lines between its fences dedented by the opening fence's indentation, as layout.markdown_blocks
-    reads a `markdown` block's file."""
-    m = _fence(lines[k])
-    char, length, at = m.group(1)[0], len(m.group(1)), _indent(lines[k])
-    info = (m.group(2).strip().split(" ") or [""])[0]
-    n = k + 1
-    while n < end and not re.fullmatch(r"\s*%s{%d,}\s*" % (re.escape(char), length), lines[n]):
-        n += 1
-    close = min(n, end - 1)
-    held = [l.expandtabs(4) for l in lines[k + 1:n]]
-    text = "\n".join(l[at:] if l[:at].strip() == "" else l.lstrip(" ") for l in held)
+    first word, and the lines between its fences dedented by the opening fence's indentation, the block read as the
+    one reading reads one (reading.py)."""
+    at = _indent(lines[k])
+    block = reading.blocks("\n".join(reading.dedented(l.expandtabs(4), at) for l in lines[k:end]))[0]
+    close = min(k + block.closes - 1, end - 1)
     if consumed is not None:
         consumed.update(range(k, close + 1))
-    return {"line": k, "lines": list(range(k, close + 1)), "info": info, "text": text}, close + 1
+    return {"line": k, "lines": list(range(k, close + 1)), "info": block.word, "text": block.content}, close + 1
 
 
 # @canon-spec specs/methodology/modeling-constructs.md § Fields § A Nested Construct
@@ -807,7 +803,7 @@ def basic_tables(body):
         while k >= 0 and not lines[k].strip():
             k -= 1
         start = k
-        while start >= 0 and lines[start].strip() and not lines[start].lstrip().startswith(("|", "#", "```")):
+        while start >= 0 and lines[start].strip() and reading.starts(lines[start]) is None:
             start -= 1
         first = next((n for n in range(start + 1, k + 1) if opens_key(lines[n]) and _indent(lines[n]) == 0), None)
         given = {}
