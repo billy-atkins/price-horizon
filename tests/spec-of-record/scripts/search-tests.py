@@ -457,17 +457,31 @@ def targets_suite():
         check("a search of the committed target answers for the files as the last commit held them, the code among them by the code roots the stack named then",
               paths_of(r) == ["code/sample.py", "specs/target.md"], paths_of(r))
         check("and gives no line written since, whatever the files hold now", not s.terms("egret").places and paths_of(s.terms("ibis")) == ["specs/target.md"], s.terms("egret").places)
-        check("its result names the target and the commit, and passes the check of a result's form",
-              r.target == search.COMMITTED and r.commit == second and f"**Commit:** {second}" in r.path.read_text(encoding="utf-8") and search.Result.check(r.path) == [], (r.commit, search.Result.check(r.path)))
-        check("a result of the committed files naming no commit is not in its form",
-              any("names no Commit" in p for p in _changed(r.path, f"    **Commit:** {second} \\\n", "")), _changed(r.path, f"    **Commit:** {second} \\\n", ""))
+        held = r.path.read_text(encoding="utf-8")
+        check("its result names the target and, its asker having named no commit, the last commit it read under a name of its own, and passes the check of a result's form",
+              r.target == search.COMMITTED and r.commit is None and r.last_commit == second and f"**Last Commit:** {second}" in held and "**Commit:**" not in held and search.Result.check(r.path) == [],
+              (r.commit, r.last_commit, search.Result.check(r.path)))
+        check("a result of the committed files holding neither a Commit nor a Last Commit is not in its form",
+              any("holds neither" in p for p in _changed(r.path, f"    **Last Commit:** {second} \\\n", "")), _changed(r.path, f"    **Last Commit:** {second} \\\n", ""))
+        check("and one holding both is not in its form",
+              any("holds both" in p for p in _changed(r.path, f"    **Last Commit:** {second} \\\n", f"    **Commit:** {second} \\\n    **Last Commit:** {second} \\\n")))
         lines = s.lines("specs/target.md § Target")
         check("the lines a citation names are the commit's", [(p.first, p.last) for p in lines.places] == [(3, 8)], lines.places)
         s.db.close()
 
+        s = searched(target=search.COMMITTED, commit=second)
+        check("a search naming the last commit by its name holds it as the Commit its asker named", s.terms("heron").commit == second and s.terms("heron").last_commit is None, (s.terms("heron").commit, s.terms("heron").last_commit))
+        s.db.close()
+
         s = searched(target=search.COMMITTED, commit=first)
+        named = s.terms("heron")
+        held = named.path.read_text(encoding="utf-8")
         check("a search naming another commit answers for that one, and its result names it",
-              not s.terms("ibis").places and paths_of(s.terms("heron")) == ["code/sample.py", "specs/target.md"] and s.terms("heron").commit == first, (s.terms("ibis").places, s.commit))
+              not s.terms("ibis").places and paths_of(named) == ["code/sample.py", "specs/target.md"] and named.commit == first, (s.terms("ibis").places, s.commit))
+        check("a result holds a Commit only where its asker named one, and then no Last Commit, so a record copied from it pins a search only where one was asked for",
+              named.last_commit is None and f"**Commit:** {first}" in held and "**Last Commit:**" not in held and search.Result.check(named.path) == [], (named.last_commit, search.Result.check(named.path)))
+        check("a result of the durable files as they stand that names a commit is not in its form",
+              any("its Target is not the committed files" in p for p in _changed(named.path, "    **Target:** committed-durable-files \\\n", "    **Target:** current-durable-files \\\n")))
         s.db.close()
 
         for given, why in (({}, "is given none"), ({"paths": ["specs"]}, "is no working file")):
@@ -598,6 +612,265 @@ def git_cases_suite():
         os.environ["PATH"] = path
         for folder in (under_git, unreadable, under_none, empty):
             clear(folder)
+
+
+def moved_in_time(path):
+    """Move a file's time of change and leave what it holds."""
+    held = path.stat()
+    os.utime(path, ns=(held.st_atime_ns + 5_000_000_000, held.st_mtime_ns + 5_000_000_000))
+
+
+def snapshot_suite():
+    print("the snapshot code: the state of a target's files, on every result and on request")
+    root, scratch = outside("snapshot"), fresh("snapshot")
+    try:
+        a_project(root)
+        git(root, "init", "-q")
+        git(root, "add", "specs", "code")
+        git(root, "commit", "-q", "-m", "first")
+
+        def searched(**given):
+            return search.Search(root, scratch=scratch, quiet=True, **given)
+
+        s = searched()
+        r, narrow, cite = s.terms("heron"), s.terms("heron", ["specs"]), s.citers("specs/target.md § Target")
+        code = r.snapshot
+        check("every result carries a snapshot code, sixteen hexadecimal digits, which its file holds, and passes the check of a result's form",
+              bool(search.SNAPSHOT.fullmatch(code or "")) and f"**Snapshot:** {code} \\" in r.path.read_text(encoding="utf-8") and search.Result.check(r.path) == [], (code, search.Result.check(r.path)))
+        check("one code stands for the whole target, whatever a search was narrowed to and whatever its kind", narrow.snapshot == code == cite.snapshot and narrow.narrowed == ["specs"], (code, narrow.snapshot, cite.snapshot))
+        check("a result whose Snapshot is not in a code's form fails the check of its form",
+              any("not a snapshot code" in p for p in _changed(r.path, f"**Snapshot:** {code}", "**Snapshot:** the-files-as-i-found-them")), _changed(r.path, f"**Snapshot:** {code}", "**Snapshot:** the-files-as-i-found-them"))
+        check("and one holding none fails it", any("holds no Snapshot" in p for p in _changed(r.path, f"    **Snapshot:** {code} \\\n", "")))
+        s.db.close()
+        check("the search gives the present code on request, equal to a result's while no file of the target holds anything new", search.snapshot(root, scratch=scratch) == code, search.snapshot(root, scratch=scratch))
+        ran, printed = script(root, "--show-snapshot-code")
+        check("the script gives it too, from an index of its own, the code built from the files and never from an index", ran == 0 and code in printed.split("\n"), (ran, printed))
+        s = searched(target=search.COMMITTED)
+        check("the code is built one way whatever the target: the files the last commit held take the code the files as they stand take, each file holding the same",
+              s.terms("heron").snapshot == code and search.snapshot(root, target=search.COMMITTED, scratch=scratch) == code, s.terms("heron").snapshot)
+        s.db.close()
+
+        moved_in_time(root / "specs" / "target.md")
+        s = searched()
+        check("a file whose time of change alone moved is read again and leaves the code as it was", s.read_count == 1 and s.terms("heron").snapshot == code, (s.read_count, s.terms("heron").snapshot))
+        s.db.close()
+
+        put(root, "specs/target.md", "# Target File\n\n## Target\n\nThe heron stands in the reeds.\n\nThe egret is not yet committed.\n")
+        s = searched()
+        after = s.terms("heron").snapshot
+        check("once a file of the target holds something new the code differs, on a result and on request", after != code and search.snapshot(root, scratch=scratch) == after, (code, after))
+        s.db.close()
+        check("and the code of the committed files stands as it did, no commit having changed", search.snapshot(root, target=search.COMMITTED, scratch=scratch) == code)
+        put(root, "specs/target.md", "# Target File\n\n## Target\n\nThe heron stands in the reeds.\n")
+        check("a file brought back to what it held brings the code back", search.snapshot(root, scratch=scratch) == code)
+
+        s = searched(target=search.WORKING, paths=[".ai/plans/design-specs"])
+        one = s.terms("heron").snapshot
+        s.db.close()
+        check("a result of the working files holds the code of the paths it names, which the search gives on request for those paths",
+              bool(search.SNAPSHOT.fullmatch(one)) and one != code and search.snapshot(root, target=search.WORKING, paths=[".ai/plans/design-specs"], scratch=scratch) == one, one)
+        check("and other paths take another code", search.snapshot(root, target=search.WORKING, paths=[".ai/plans"], scratch=scratch) != one)
+        put(root, ".ai/plans/other-plan.md", "# Another Plan\n\n## Notes\n\nA heron in another plan, changed.\n")
+        put(root, "specs/target.md", "# Target File\n\n## Target\n\nThe heron stands in the reeds, changed.\n")
+        check("a working file changed outside the paths named, and a durable file changed, leave that code as it was: it stands for the paths named alone",
+              search.snapshot(root, target=search.WORKING, paths=[".ai/plans/design-specs"], scratch=scratch) == one)
+        put(root, ".ai/plans/design-specs/a-design.md", "# Design Document\n\n## The Problem\n\nThe heron, changed.\n")
+        check("and a working file changed under them changes it", search.snapshot(root, target=search.WORKING, paths=[".ai/plans/design-specs"], scratch=scratch) != one)
+    finally:
+        clear(root)
+
+
+def same_answer(one, other):
+    """-> whether two results hold the same answer: the same record but its name, each place the same place."""
+    places = lambda r: [(str(p), getattr(p, "path", None), getattr(p, "first", None), getattr(p, "last", None), getattr(p, "lineage", None), getattr(p, "key", None), getattr(p, "stands", None)) for p in r.places]
+    return one.body() == other.body() and places(one) == places(other) and one.notes == other.notes and one.names_nothing == other.names_nothing
+
+
+def kept_suite():
+    print("the answers the search keeps: given again while nothing changed, computed anew once anything did")
+    root, scratch = outside("kept"), fresh("kept")
+    try:
+        a_project(root)
+        put(root, "specs/target.md", "# Target File\n\n## Target\n\nThe heron stands in the reeds.\n\n## Citing\n\nThe reeds are cited as `specs/target.md § Target`.\n")
+        put(root, "code/sample.py", "class Heron:\n    pass\n\n\ndef heron():\n    return Heron()\n")
+        git(root, "init", "-q")
+        git(root, "add", "specs", "code")
+        git(root, "commit", "-q", "-m", "first")
+
+        def searched(**given):
+            return search.Search(root, scratch=scratch, quiet=True, **given)
+
+        asks = {
+            "citers": lambda s: s.citers("specs/target.md § Target"),
+            "cited sections": lambda s: s.cited_sections(),
+            "lines": lambda s: s.lines("specs/target.md § Target"),
+            "terms": lambda s: s.terms("heron"),
+            "code structure": lambda s: s.code_structure("defines", "heron"),
+            "pattern": lambda s: s.pattern("heron +stands"),
+        }
+        s = searched()
+        first = {kind: ask(s) for kind, ask in asks.items()}
+        check("an answer computed is no answer the search kept, and each is computed once", not any(r.kept for r in first.values()) and s.computed == len(asks), s.computed)
+        again = {kind: ask(s) for kind, ask in asks.items()}
+        check("asked the same again while the files stand, the search gives the answer it kept of each kind resting on its target's files alone, and computes nothing anew",
+              all(r.kept for r in again.values()) and s.computed == len(asks), ([k for k, r in again.items() if not r.kept], s.computed))
+        check("and the answer it kept is the answer it computed, written as a result of the same name",
+              all(same_answer(first[k], again[k]) and first[k].name == again[k].name and again[k].path.is_file() for k in asks), [k for k in asks if not same_answer(first[k], again[k])])
+        s.db.close()
+        s = searched()
+        later = {kind: ask(s) for kind, ask in asks.items()}
+        check("a later run gives the kept answers too, computing nothing", all(r.kept for r in later.values()) and s.computed == 0, s.computed)
+        other = search.Search(root, scratch=fresh("kept-fresh"), quiet=True)
+        computed = {kind: ask(other) for kind, ask in asks.items()}
+        other.db.close()
+        check("an answer the search gives from what it kept is the answer a fresh computing gives, from an index built anew",
+              not any(r.kept for r in computed.values()) and all(same_answer(later[k], computed[k]) for k in asks), [k for k in asks if not same_answer(later[k], computed[k])])
+        for stale in (scratch / "results").glob("*.md"):
+            stale.unlink()
+        check("what the search keeps is no result's file: with every result's file gone it still gives the answer it kept, and writes the result again",
+              s.terms("heron").kept and s.terms("heron").path.is_file())
+
+        before = s.computed
+        check("a question differing in what was asked is computed anew", not s.terms("egret").kept and not s.terms("reeds").kept and s.computed == before + 2, s.computed)
+        check("and one differing in the paths it is narrowed to, which is then kept as a question of its own",
+              not s.terms("heron", ["specs"]).kept and s.terms("heron", ["specs"]).kept and paths_of(s.terms("heron", ["specs"])) == ["specs/target.md"] and s.terms("heron").kept)
+        check("and one differing in its kind", not s.pattern("heron").kept and s.pattern("heron").kept)
+        s.db.close()
+        s = searched(target=search.COMMITTED)
+        check("and one differing in its target, an answer kept for the files as they stand being none for the committed files", not s.terms("heron").kept and s.terms("heron").kept)
+        last = s.commit
+        s.db.close()
+        s = searched(target=search.COMMITTED, commit=last)
+        check("and one differing in the commit its asker named, though it names the last commit", not s.terms("heron").kept and s.terms("heron").commit == last)
+        s.db.close()
+
+        moved_in_time(root / "specs" / "target.md")
+        s = searched()
+        check("a file whose time of change alone moved leaves the kept answer standing", s.read_count == 1 and s.terms("heron").kept)
+        s.db.close()
+        put(root, "specs/target.md", "# Target File\n\n## Target\n\nThe heron stands in the reeds.\n\n## Citing\n\nThe reeds are cited as `specs/target.md § Target`.\n\nA second heron came.\n")
+        s = searched()
+        r = s.terms("heron")
+        check("once a file of the target holds something new, every answer is computed anew and gives the new place",
+              not r.kept and len([p for p in r.places if p.path == "specs/target.md"]) == 2 and not s.citers("specs/target.md § Target").kept, (r.kept, r.places))
+        check("and is then kept under the code the files now take", s.terms("heron").kept)
+        s.db.close()
+        s = searched(target=search.COMMITTED)
+        check("an answer kept for the committed files stands while no commit changed them, whatever the files as they stand came to hold", s.terms("heron").kept)
+        s.db.close()
+
+        s = searched()
+        reading = search.own_reading()
+        search._OWN_READING = "0" * 16   # the search's own code as another checkout holds it
+        try:
+            changed = s.terms("heron")
+            check("once the search's own code has changed, a kept answer is not given: the answer is computed anew by the code that runs", not changed.kept)
+        finally:
+            search._OWN_READING = None
+        check("the code of the search's own reading is built from its own script and the shared modules it imports",
+              search.own_reading() == reading and bool(search.SNAPSHOT.fullmatch(reading)))
+        check("and an answer that other code computed is not given by this code, which computes its own and keeps it", not s.terms("heron").kept and s.terms("heron").kept)
+
+        m, n = s.meaning("The heron stands in the reeds."), s.meaning("The heron stands in the reeds.")
+        c, d = s.code_structure("constructs", "Heron"), s.code_structure("constructs", "Heron")
+        check("no answer is kept of a search by meaning or of a search for constructions, each computed whenever it is asked",
+              not (m.kept or n.kept or c.kept or d.kept) and paths_of(c) == ["code/sample.py"], (m.kept, n.kept, c.kept, d.kept, c.places))
+        s.db.close()
+        put(root, ".ai/plans/other-plan.md", "# Another Plan\n\n## Notes\n\nThe heron stands in the reeds of another plan.\n\nclass Heron:\n")
+        s = searched(target=search.WORKING, paths=[".ai/plans"])
+        s.terms("heron")
+        s.db.close()
+        s = searched()
+        before = s.computed
+        m, c = s.meaning("The heron stands in the reeds."), s.code_structure("constructs", "Heron")
+        check("asked again after another target's files changed, each is computed anew, while a search of a kind kept gives what it kept",
+              not m.kept and not c.kept and s.computed == before + 2 and s.terms("heron").kept and s.computed == before + 2, (m.kept, c.kept, s.computed - before))
+        s.db.close()
+
+        s = searched(target=search.WORKING, paths=[".ai/plans/design-specs"])
+        w = s.citers("specs/target.md § Target")
+        check("an answer of a search of the working files is kept", not w.kept and len(w.places) == 1 and s.citers("specs/target.md § Target").kept, w.places)
+        s.db.close()
+        put(root, "specs/target.md", "# Target File\n\n## Retitled\n\nThe heron stands in the reeds.\n")
+        s = searched(target=search.WORKING, paths=[".ai/plans/design-specs"])
+        w = s.citers("specs/target.md § Target")
+        check("and also under the code of the durable files as they stand, which it reads what its places cite against: a durable file changed, it is computed anew, no working file having changed",
+              s.read_count == 1 and not w.kept and any("does not resolve" in n for n in w.notes), (s.read_count, w.kept, w.notes))
+        s.db.close()
+    finally:
+        search._OWN_READING = None
+        clear(root)
+
+
+def names_nothing_suite():
+    print("a question naming nothing to ask of: told to the caller, each case apart")
+    root = SCENARIOS / "corpus"
+    s = search.Search(root, cover=files_under(root), scratch=fresh("names-nothing"), quiet=True)
+    asked = s.citers("specs/target.md § Target")
+    check("a question naming something tells its caller nothing of the kind", asked.names_nothing == [] and len(asked.places) > 0, asked.names_nothing)
+    for kind, r in (("citers", s.citers("specs/target.md § No Such Section")), ("lines", s.lines("specs/target.md § No Such Section")), ("citers of a file", s.citers("specs/no-such-file.md § Target")),
+                    ("meaning", s.meaning("specs/target.md § No Such Section"))):
+        check(f"a citation that names no place among the files is told, and the answer stands as no place given ({kind})",
+              r.names_nothing == [search.NO_PLACE] and r.places == [] and any("does not resolve" in n for n in r.notes), (r.names_nothing, r.places, r.notes))
+    r = s.terms("--- !!! ---")
+    check("a term reducing to no word is told", r.names_nothing == [search.NO_WORD] and r.places == [] and any("reduces to no word" in n for n in r.notes), (r.names_nothing, r.notes))
+    r = s.meaning("--- !!! ---")
+    check("a passage reducing to no word is told", r.names_nothing == [search.NO_WORD] and any("reduces to no word" in n for n in r.notes), (r.names_nothing, r.notes))
+    r = s.terms("posting", ["specs/nowhere"])
+    check("a path the search is narrowed to under which no file of its target stands is told, with the path",
+          r.names_nothing == [search.NO_FILE] and r.places == [] and any("`specs/nowhere`" in n for n in r.notes), (r.names_nothing, r.notes))
+    r = s.terms("posting", ["specs", "specs/nowhere"])
+    check("it is told of the one path holding no file where another holds some, the answer standing for the other", r.names_nothing == [search.NO_FILE] and len(r.places) > 0, (r.names_nothing, r.places))
+    r = s.pattern("posting", ["code/nowhere"])
+    check("it is told of a pattern's narrowing too, a pattern holding no word being a question as any other", r.names_nothing == [search.NO_FILE] and s.pattern("§  +").names_nothing == [], r.names_nothing)
+    r = s.terms("--- !!! ---", ["specs/nowhere"])
+    check("each case is told apart from the others, a question holding two holding both", sorted(r.names_nothing) == sorted([search.NO_WORD, search.NO_FILE]) and len(set(search.NAMES_NOTHING)) == 3, r.names_nothing)
+    again = s.terms("posting", ["specs/nowhere"])
+    check("an answer the search kept tells it as the answer computed did", again.kept and again.names_nothing == [search.NO_FILE] and same_answer(again, s.terms("posting", ["specs/nowhere"])))
+    s.db.close()
+    root = outside("names-nothing")
+    try:
+        a_project(root)
+        w = search.Search(root, scratch=fresh("names-nothing-working"), quiet=True, target=search.WORKING, paths=[".ai/plans/no-such-plans"])
+        r = w.terms("heron")
+        check("a search of the working files given a path holding no file is told so", r.names_nothing == [search.NO_FILE] and r.places == [], (r.names_nothing, r.places))
+        w.db.close()
+        ran, printed = script(root, "--show-citers", "specs/target.md § No Such Section")
+        check("the script says it of a question it ran, in words of its own for each case", ran == 0 and "the question names nothing to ask of: " + search.NO_PLACE in printed, printed)
+        ran, printed = script(root, "--show-term-uses", "heron", "--paths", "specs/nowhere")
+        check("and of a path holding no file", ran == 0 and "the question names nothing to ask of: " + search.NO_FILE in printed, printed)
+    finally:
+        clear(root)
+
+
+def research_failures_suite():
+    print("the three failures of a design's research, each a test of what the search does")
+    root = SCENARIOS / "research-failures"
+    s = search.Search(root, cover=files_under(root), scratch=fresh("research-failures"), quiet=True)
+    against = line_holding(root, "specs/reading.md", "read against")
+    r = s.terms("read again")
+    check("a search for the words `read again` finds them, and gives no place saying only `read against`",
+          lines_of(r.places) == {("specs/reading.md", line_holding(root, "specs/reading.md", "checked is read again"))} and ("specs/reading.md", against) not in lines_of(r.places), (lines_of(r.places), against))
+    apart = line_holding(root, "specs/running.md", "runs each Search again")
+    r = s.terms("run again")
+    check("a search for `run again` finds the words standing together, in whatever form each takes",
+          ("specs/running.md", line_holding(root, "specs/running.md", "is run again")) in lines_of(r.places), r.places)
+    # a limit of the search, stated in its skill: a term is searched as a phrase, its words in their order with none between
+    check("and does not find them where other words stand between, as in `runs each Search again`: a limit the skill states", ("specs/running.md", apart) not in lines_of(r.places), r.places)
+    s.db.close()
+    root = SCENARIOS / "known-copies" / "files"
+    s = search.Search(root, cover=files_under(root), scratch=fresh("research-failures-meaning"), quiet=True)
+    rule = line_holding(root, "specs/methodology/working-files/main.md", "reads the files at the last commit wherever it would otherwise read the files as they stand")
+    r = s.meaning("Which state of the files does a search answer for?")
+    found = any(p.path == "specs/methodology/working-files/main.md" and p.first <= rule <= p.last for p in r.places)
+    # a limit of the search, stated in its skill: asked a question, it ranks the places worded as the question is, and
+    # the rule answering it, which shares none of its words, stands outside the first twenty
+    check("a search by meaning asked which state of the files a search answers for does not give, among its first twenty places, the rule on reading the last commit while a send-back's changes are kept: a limit the skill states",
+          not found and r.ranking_part() == f"1 to {search.RANKED}", [str(p) for p in r.places[:5]])
+    r = s.meaning("While changes are kept in a checkout, a reading for a design reads the files as the last commit held them, not as they stand.")
+    check("asked with the rule in other words, it gives that rule among its first twenty places",
+          any(p.path == "specs/methodology/working-files/main.md" and p.first <= rule <= p.last for p in r.places), [str(p) for p in r.places[:5]])
+    s.db.close()
 
 
 def rerun_suite():
@@ -874,7 +1147,11 @@ if __name__ == "__main__":
     if sys.argv[1:2] == ["--build"]:
         build(*sys.argv[2:5])
         sys.exit(0)
-    suites = [reading_suite, corpus_suite, places_suite, cited_sections_suite, targets_suite, git_cases_suite, rerun_suite, requirements_suite, ranking_suite, known_copies_suite] + ([scale_suite] if "--scale" in sys.argv else [])
+    suites = [reading_suite, corpus_suite, places_suite, cited_sections_suite, targets_suite, git_cases_suite, snapshot_suite, kept_suite, names_nothing_suite, research_failures_suite,
+              rerun_suite, requirements_suite, ranking_suite, known_copies_suite] + ([scale_suite] if "--scale" in sys.argv else [])
+    named = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if named:
+        suites = [suite for suite in suites if suite.__name__ in named or suite.__name__[:-len("_suite")] in named]
     for suite in suites:
         suite()
     print(f"{len(FAILED)} failed" if FAILED else "every check passed")

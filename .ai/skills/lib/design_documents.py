@@ -683,13 +683,17 @@ def section(text, title):
 
 # @canon-spec specs/methodology/working-files/main.md § A Design Document
 def not_stated(body):
-    """-> whether a frame part reads `Not yet stated.`, a canon design's Scope holding only its Search Sub-scopes
-    after it, from their settling on."""
+    """-> whether a frame part reads `Not yet stated.`."""
     if body is None:
         return False
     b = body.strip()
-    if b == NOT_YET_STATED:
-        return True
+    return b == NOT_YET_STATED or scope_holding_sub_scopes_alone(b)
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § What the Design Script Checks
+def scope_holding_sub_scopes_alone(b):
+    """-> whether a Scope written before research searched every durable file reads `Not yet stated.` with its
+    Search Sub-scopes field alone after it, which is read as not yet stated."""
     rest = b[len(NOT_YET_STATED):].strip() if b.startswith(NOT_YET_STATED + "\n") else ""
     keys = re.findall(r"^\*\*([^*]+):\*\*", rest, re.M)
     return keys == [SEARCH_SUB_SCOPES] and field_of(rest, SEARCH_SUB_SCOPES) is not None
@@ -1789,6 +1793,12 @@ def design_problems(design):
     read_ = research_indexes(design, entries, read_entries(entries, steer_changes(text), design))
     found += [(name, "%s (%s)" % (msg, rule)) for rule, msg in
               union_coverage_problems(repo_root(), design, text, entries, among=read_)]
+    # working-files/main.md § A Check's Report § Script Checks [Name: goals-searched-over-every-durable-file], asked at
+    # the validation review alone: an approved design owes it only where it takes research in afterwards, as its
+    # entry is appended
+    if dict(fields).get("Status") not in ("approved", "applying", "complete"):
+        found += [(name, "%s (%s)" % (msg, rule)) for rule, msg in
+                  goals_searched_problems(repo_root(), design, text, entries, among=read_)]
     found += [(name, p) for p in item_citation_problems(text)]
     if dict(fields).get("Status") not in ("approved", "applying", "complete"):
         found += [(name, "its design frame's %s is not yet stated" % p) for p in FRAME if not_stated(frame_parts(text).get(p))]
@@ -2737,7 +2747,15 @@ def form_problems(rep, ctx, types, parts):
             if plural == "Settlements" and (before or ctx.get("settled_before_indicators")):
                 unheld = ASSESSED if before else INDICATORS
                 spec = dict(spec, required=[f for f in spec["required"] if f not in unheld])
-            spec_checks._check_records(raw[plural], spec, WF, "the report", lambda i: i + 1, got, "its %s" % plural)
+            rows = raw[plural]
+            if plural == "Searches" and ctx.get("logged"):
+                # a Search of a report the log holds, written before its record held a Kind, read under the field names
+                # it was written with
+                logged = [r for r in rows if logged_form({k: v for k, v, _ in r})]
+                rows = [r for r in rows if r not in logged]
+                was = dict(spec, fields=list(LOGGED_SEARCH_FIELDS), required=list(LOGGED_SEARCH_FIELDS[:4]), values={}, defaults={})
+                spec_checks._check_records(logged, was, WF, "the report", lambda i: i + 1, got, "its %s" % plural)
+            spec_checks._check_records(rows, spec, WF, "the report", lambda i: i + 1, got, "its %s" % plural)
             found += [g for g in got if not (before and plural == "Causes" and legacy_places(g[3]))]
     out += [(canon_rule(r), "line %d: %s" % (line, msg)) for r, _, line, msg in found]
     # each field its conditions require, and no other
@@ -2764,18 +2782,34 @@ def form_problems(rep, ctx, types, parts):
             out.append((rule("Read Assessments"), "line %d, Read Assessment %s's Impact is not a list holding none alone, "
                         "or one or both of %s, one to an item" % (a["_line"] + 1, a.get("Area", ""),
                                                                    " and ".join(m for m in members if m != "none"))))
-    # a Search's and a Read Assessment's Goals, each held from a design's first research, a Search's in a report of
-    # research alone, one holding Read Assessments, each item a goal's Name the design holds
-    for plural, one, key, condition, condition_text in (
-            ("Searches", "Search", "Search", bool(recs["Read Assessments"]), "where it stands in a report of research"),
-            ("Read Assessments", "Read Assessment", "Area", True, "of every Read Assessment")):
-        cond = []
-        for r in recs[plural]:
-            where = "line %d, %s %s" % (r["_line"] + 1, one, r.get(key, ""))
-            require(cond, where, r, "Goals", condition, condition_text)
-            cond += ["%s's Goals name %s, which is no design goal's Name" % (where, g)
-                     for g in names_of_text(r.get("Goals", "")) if g not in ctx["goals"]]
-        out += [(rule(plural), c) for c in cond]
+    # a Read Assessment's Goals, and a Search's: each item a goal's Name the design holds. A Search written before its
+    # record held a Kind holds its Goals in a report of research alone, as it was written. One written in the form
+    # names its goals whoever recorded it, or `none` alone where it was made for a check, a finding or a defect naming
+    # no goal of the design
+    cond = []
+    for r in recs["Read Assessments"]:
+        where = "line %d, Read Assessment %s" % (r["_line"] + 1, r.get("Area", ""))
+        require(cond, where, r, "Goals", True, "of every Read Assessment")
+        cond += ["%s's Goals name %s, which is no design goal's Name" % (where, g)
+                 for g in names_of_text(r.get("Goals", "")) if g not in ctx["goals"]]
+    out += [(rule("Read Assessments"), c) for c in cond]
+    cond = []
+    for s in recs["Searches"]:
+        where = "line %d, Search %s" % (s["_line"] + 1, s.get("Search", ""))
+        named = names_of_text(s.get("Goals", ""))
+        if logged_form(s):
+            require(cond, where, s, "Goals", bool(recs["Read Assessments"]), "where it stands in a report of research")
+        else:
+            cond += search_form_problems(s, where)
+            if named == ["none"]:
+                if not serves_no_goal(s, rep, ctx):
+                    cond.append("%s's Goals hold none, which a reviewer's Search, one in the report of an audit's triage and one a "
+                                "tactical fix names whose settled Findings each name no goal alone may hold" % where)
+                continue
+            if "none" in named:
+                cond.append("%s's Goals hold none beside a goal, where none stands alone" % where)
+        cond += ["%s's Goals name %s, which is no design goal's Name" % (where, g) for g in named if g not in ctx["goals"] and g != "none"]
+    out += [(rule("Searches"), c) for c in cond]
     if reviewer:
         return out
     cond = []
@@ -3257,34 +3291,10 @@ def check_audits(value):
                                                     + names[a]) for a in sorted(owed - accounted)])
 
 
-# @canon-spec specs/methodology/working-files/main.md § A Design Document
-# the field of a canon design's Scope naming the sub-scopes its research is settled on
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § What the Design Script Checks
+# the field a canon design's Scope held before research searched every durable file, naming the sub-scopes its
+# research was settled on: read only for the ground of a Search logged before a Search held a Kind
 SEARCH_SUB_SCOPES = "Search Sub-scopes"
-# @canon-spec specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews § The Sub-scopes a Design Settles § The Sub-scopes of a Canon Design's Research
-# the sub-scopes a canon design's research always holds, the two its kind spans
-RESEARCH_REQUIRED = ("core-canon", "skills")
-# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: research-sub-scopes-recorded]
-RESEARCH_SUB_SCOPES_RULE = WF + " § A Check's Report § Script Checks [Name: research-sub-scopes-recorded]"
-
-
-# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: research-sub-scopes-recorded]
-def research_sub_scope_problems(design_text):
-    """-> [(rule, message)] refusing a canon design's research while its Scope holds no Search Sub-scopes, names
-    anything but a sub-scope in them, or leaves out one its research always holds; [] for any other design."""
-    kind = re.search(r"^\*\*Kind:\*\*\s*(\S+)", design_text, re.M)
-    if not kind or kind.group(1) != "canon-specs":
-        return []
-    field = field_of(frame_parts(design_text).get("Scope"), SEARCH_SUB_SCOPES)
-    if field is None:
-        return [(RESEARCH_SUB_SCOPES_RULE, "a canon design's research, but its Scope holds no %s" % SEARCH_SUB_SCOPES)]
-    named = names_of(field)
-    if named is None:
-        return [(RESEARCH_SUB_SCOPES_RULE, "its Scope's %s is not a list of sub-scopes, one to an item" % SEARCH_SUB_SCOPES)]
-    out = [(RESEARCH_SUB_SCOPES_RULE, "its Scope's %s names %s, not one of %s" % (SEARCH_SUB_SCOPES, s, ", ".join(SUB_SCOPES)))
-           for s in named if s not in SUB_SCOPES]
-    out += [(RESEARCH_SUB_SCOPES_RULE, "its Scope's %s leave out %s, which a canon design's research always holds" % (SEARCH_SUB_SCOPES, s))
-            for s in RESEARCH_REQUIRED if s not in named]
-    return out
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § What the Design Script Checks
@@ -3317,35 +3327,199 @@ def search_ground(root, design_rel, design_text, target, kept):
     return ground
 
 
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Search
+# the fields a Search held before its record held a Kind, under which a report the log holds is still read
+LOGGED_SEARCH_FIELDS = ("Search", "For", "Pattern", "Places", "Goals")
+# the kind of search giving a part of a ranking, every other giving every place
+MEANING = "meaning"
+SEARCH_KINDS = ("citers", "cited sections", "lines", "terms", "code structure", MEANING, "pattern")
+CURRENT_FILES, COMMITTED_FILES, WORKING_FILES_TARGET = "current-durable-files", "committed-durable-files", "working-files"
+# the moments a Search is read as its own report is checked: as a cold agent hands its report back, as the builder
+# takes it up, and as the settled report is checked and its entry appended
+HANDED_BACK, TAKEN_UP, SETTLED = "handed back", "taken up", "settled"
+# where a question names nothing to ask of, as the search tells its caller, by what each refusal of a research's report
+# turns on: the Query alone, or what the checkout holds
+NAMES_NO_WORD = "a term or a passage reducing to no word"
+NAMES_NO_PLACE = "a citation naming no place among the files the search reads"
+NAMES_NO_FILE = "a path under which no file of the target stands"
+SNAPSHOT_CODE = re.compile(r"[0-9a-f]{16}")
+
+
+def logged_form(s):
+    """Whether a Search is written as one was before its record held a Kind: it holds a Pattern and no Kind."""
+    return "Pattern" in s and "Kind" not in s
+
+
+def unquoted(value):
+    """-> a field's value with the one pair of backticks or quotes around the whole of it taken off."""
+    value = str(value or "").strip()
+    return value[1:-1] if len(value) > 1 and value[0] == value[-1] and value[0] in "`\"" else value
+
+
+def search_target(s):
+    """-> (the target a Search names, the commit it holds or None, the paths it is narrowed to)."""
+    commit = unquoted(s.get("Commit", ""))
+    return (unquoted(s.get("Target", "")) or CURRENT_FILES, commit if commit and commit != "none" else None,
+            [n for n in names_of_text(s.get("Narrowed To", "")) if n != "the whole"])
+
+
+def reviewer_keys(rep):
+    """-> what the key of a reviewer's Search opens with, its Reviewer Reading's key and a hyphen, for each reviewer."""
+    return tuple(k for k in (as_record(r).get("Reviewer", "") + "-" for r in rep["raw"].get(REVIEW_READING, []) if r and r[0][0] is not None) if k != "-")
+
+
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]
-def search_problems(rep, ctx):
-    """-> [(rule, message)]: each match of a Search's Pattern, run again over its ground, in a place its Places do not
-    cover. A reviewer's Search, its key naming its Reviewer Reading
-    before it, is run again by --check-handed-back alone, before the round's change is made. A Search in a report of
-    research, one holding Read Assessments, is held here to nothing, research-covers-its-matches holding it over the
-    union of the binding research."""
-    out = []
-    # a Search in a report of research, one holding Read Assessments, is held to its matches over the union of the
-    # design's binding research, as research-covers-its-matches has it, its own Places recording only its share
+def serves_no_goal(s, rep, ctx):
+    """Whether a Search may hold `none` in its Goals: a reviewer's, one in the report of an audit's triage, or one a
+    tactical fix's Proposed Change names where each Finding its Cause settles names no goal in its Affected Goals. A
+    Search in a report of research never may."""
     if rep["records"].get("Read Assessments"):
-        return []
-    reviewers = tuple(as_record(r).get("Reviewer", "") + "-" for r in rep["raw"].get(REVIEW_READING, []) if r and r[0][0] is not None)
+        return False
+    key = s.get("Search", "")
+    if ctx["kind"] in AUDITS or (reviewer_keys(rep) and key.startswith(reviewer_keys(rep))):
+        return True
+    for c in rep["records"]["Causes"]:
+        if any(isinstance(ch, dict) and ch.get("Kind") == "tactical fix" and ch.get("Search") == key for ch in c.get("Proposed Change") or []):
+            settled = [f for st in rep["settlements"] if cause_key(st.get("Cause", ""), ctx["report_rel"]) == c.get("Cause") for f in findings_of(rep, st)]
+            if settled and not any(names_of_text(f.get("Affected Goals", "")) for f in settled):
+                return True
+    return False
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]
+def search_form_problems(s, where):
+    """-> [message]: a Search written in the form out of what its fields' conditions give: its Snapshot no snapshot
+    code, its Narrowed To wanting where its Target is the working files, and, where its Kind is a ranking's, its
+    Ranking Part wanting or its Places more than that part spans, or `none` other than where the part is none."""
+    out, kind = [], unquoted(s.get("Kind", ""))
+    if "Snapshot" in s and not SNAPSHOT_CODE.fullmatch(unquoted(s["Snapshot"])):
+        out.append("%s's Snapshot is %s, not a snapshot code, sixteen hexadecimal digits" % (where, s["Snapshot"]))
+    require(out, where, s, "Narrowed To", search_target(s)[0] == WORKING_FILES_TARGET or "Narrowed To" in s, "where its Target is working-files")
+    require(out, where, s, "Ranking Part", kind == MEANING, "where its Kind is meaning")
+    if kind == MEANING and "Ranking Part" in s:
+        part, held = unquoted(s["Ranking Part"]), len(place_list(s.get("Places", "")))
+        span = re.fullmatch(r"(\d+) to (\d+)", part)
+        if not span and part != "none":
+            out.append("%s's Ranking Part is %s, neither none nor its first place's number in the ranking and its last's, as 1 to 20" % (where, part))
+        elif part == "none" and held:
+            out.append("%s's Ranking Part is none, and its Places hold %d" % (where, held))
+        elif span and (int(span.group(1)) < 1 or held > int(span.group(2)) - int(span.group(1)) + 1):
+            out.append("%s holds %d Places, more than its Ranking Part, %s, spans" % (where, held, part))
+        elif span and not held and "".join(names_of_text(s.get("Places", ""))) == "none":
+            out.append("%s's Places hold none, which a Search by meaning holds only where its Ranking Part is none" % where)
+    return out
+
+
+def search_place(place):
+    """-> a place the search gave as a place a report cites, (path, lineage or None, selector or None), or None."""
+    m = re.match(r"`([^`]+)`", str(place))
+    return place_of("`%s`" % m.group(1)) if m else None
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § What the Design Script Checks
+def run_search(s, ctx):
+    """-> (the places a Search written in the form gives, where its question names nothing, None), run through the
+    search the skills share exactly as it was asked: its Kind and its Query, over the files its Target asks of, within
+    the paths it was narrowed to; or (None, None, why, whether the search itself refused what was asked) where it
+    cannot be run. A Search naming the durable files as they stand is run over them as every reading of the files as
+    they stand is made, at the last commit where ctx["kept"] has such a reading take it; one naming the committed files
+    is run over the commit it holds, and over the last commit where it holds none; and the working files it names are
+    read as they stand. Each Search is run once for each reading, and the design script keeps nothing of a run: the
+    search gives the answer it kept where what was asked, the files and its own reading stand."""
+    kind, query = unquoted(s.get("Kind", "")), unquoted(s.get("Query", ""))
+    target, commit, narrowed = search_target(s)
+    asked = (kind, query, target, commit, tuple(narrowed))
+    held = ctx.setdefault("runs", {})
+    if asked in held:
+        return held[asked]
+    try:
+        import search as searching
+    except ImportError as exc:
+        held[asked] = (None, None, "the search the skills share cannot be loaded: %s" % exc, False)
+        return held[asked]
+    reads = COMMITTED_FILES if target == CURRENT_FILES and ctx.get("kept") else target
+    try:
+        engines = ctx.setdefault("engines", {})
+        at = (reads, commit, tuple(narrowed) if reads == WORKING_FILES_TARGET else ())
+        if at not in engines:
+            engines[at] = searching.Search(ctx["root"], quiet=True, target=reads, commit=commit, paths=narrowed if reads == WORKING_FILES_TARGET else None)
+        engine = engines[at]
+        if kind == "citers":
+            result = engine.citers(query, narrowed)
+        elif kind == "cited sections":
+            result = engine.cited_sections(narrowed)
+        elif kind == "lines":
+            result = engine.lines(query)
+        elif kind == "terms":
+            result = engine.terms(query, narrowed)
+        elif kind == "code structure":
+            structure, _, name = query.partition(" ")
+            result = engine.code_structure(structure, name.strip(), narrowed)
+        elif kind == "pattern":
+            result = engine.pattern(query, narrowed)
+        else:
+            raise ValueError("no kind of search giving every place: %s" % (kind or "none named"))
+        places = [p for p in (search_place(x) for x in result.places) if p]
+        held[asked] = ([p for i, p in enumerate(places) if p not in places[:i]], list(result.names_nothing), None, False)
+    except searching.MissingRequirements as exc:
+        held[asked] = (None, None, "the search cannot be run, since something it requires is missing: %s" % exc, False)
+    except searching.CannotSearch as exc:
+        held[asked] = (None, None, str(exc), True)
+    except (ValueError, re.error) as exc:
+        held[asked] = (None, None, "the search refuses what it asks: %s" % exc, True)
+    return held[asked]
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]
+def search_problems(rep, ctx, moment=SETTLED):
+    """-> [(rule, message)]: each Search of a report read as its own report is checked. A Search whose Kind gives every
+    place, in a report other than research's, is run as it was asked and each place it gives must stand among its
+    Places; one the search refuses refuses the report. A reviewer's Search, its key naming its Reviewer Reading before
+    it, is run as its report is handed back and taken up alone, before the round's change is made. A Search in a report
+    of research, one holding Read Assessments, is run as its report is handed back and taken up and held to nothing it
+    gives: its report is refused where the search refuses what the Search asks or its term or passage reduces to no
+    word, and, as it is handed back alone, where its citation names no place or a path it is narrowed to holds no
+    file. A Search by meaning is never run. A Search logged holding a Pattern is read as it was before the record held
+    a Kind, its Pattern run over its ground and its matches held to its Places, a research's held here to nothing."""
+    out, research = [], bool(rep["records"].get("Read Assessments"))
+    reviewers = reviewer_keys(rep)
     for s in rep["records"]["Searches"]:
-        if not ctx["reviewer"] and s.get("Search", "").startswith(tuple(r for r in reviewers if r != "-")):
+        key = s.get("Search", "")
+        own = bool(reviewers) and key.startswith(reviewers)
+        if logged_form(s):
+            if research or (own and not ctx["reviewer"]):
+                continue
+            matched = search_matches(s, ctx)
+            if isinstance(matched, re.error):
+                out.append("Search %s's Pattern is no regular expression Python's re reads: %s" % (key, matched))
+                continue
+            listed = place_list(s.get("Places", ""))
+            out += ["Search %s's Pattern matches in %s, which its Places do not cover" % (key, cite(p))
+                    for p in matched if not covered(listed, p)]
             continue
-        matched = search_matches(s, ctx)
-        if isinstance(matched, re.error):
-            out.append("Search %s's Pattern is no regular expression Python's re reads: %s" % (s.get("Search", ""), matched))
+        if unquoted(s.get("Kind", "")) == MEANING or (research and moment == SETTLED) or (own and not ctx["reviewer"]):
             continue
-        listed = place_list(s.get("Places", ""))
-        out += ["Search %s's Pattern matches in %s, which its Places do not cover" % (s.get("Search", ""), cite(p))
-                for p in matched if not covered(listed, p)]
+        places, nothing, why, _ = run_search(s, ctx)
+        if why:
+            out.append("Search %s cannot be run as it was asked: %s" % (key, why))
+        elif research:
+            if NAMES_NO_WORD in nothing:
+                out.append("Search %s asks nothing: its term or passage reduces to no word" % key)
+            if moment == HANDED_BACK and NAMES_NO_PLACE in nothing:
+                out.append("Search %s asks nothing: its citation names no place among the files its Target asks of" % key)
+            if moment == HANDED_BACK and NAMES_NO_FILE in nothing:
+                out.append("Search %s asks nothing under a path it is narrowed to, where no file of its Target stands" % key)
+        else:
+            listed = place_list(s.get("Places", ""))
+            out += ["Search %s gives %s, which its Places do not cover" % (key, cite(p)) for p in places if not covered(listed, p)]
     return [(ctx["rule"]("Searches"), p) for p in out]
 
 
 def search_matches(s, ctx):
-    """-> the places a Search's Pattern, run again over its ground, matches in, each once in the order found, or the
-    error where Python's re reads no regular expression in it; run once for each Search a report holds."""
+    """-> the places the Pattern of a Search logged before its record held a Kind matches in, run again over its ground
+    by the design script's own reading of a regular expression, `^` and `$` matching where a file's text starts and
+    ends, each once in the order found, or the error where Python's re reads no regular expression in it; run once for
+    each such Search a report holds."""
     pattern = s.get("Pattern", "")
     pattern = pattern[1:-1] if len(pattern) > 1 and pattern[0] == pattern[-1] == "`" else pattern
     held = ctx.setdefault("matches", {})
@@ -3708,14 +3882,29 @@ def settling_read_problems(rep, ctx):
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: tactical-fixes-cover-their-searches]
 def tactical_fix_problems(rep, ctx):
-    """-> [(rule, message)]: a place a tactical fix's Search found that its Places leave out."""
+    """-> [(rule, message)]: a tactical fix naming a Search by meaning, or one of files its defect cannot stand in, the
+    durable files as they stand with no path it is narrowed to in a report over applied work and the working files with
+    the design document among its paths in any other; and a place a tactical fix's Search found that its Places leave
+    out. A Search logged before its record held a Kind is held to its Places alone, as it was."""
     out, searches = [], {s.get("Search"): s for s in rep["records"]["Searches"]}
     for c in rep["records"]["Causes"]:
         for change in c.get("Proposed Change") or []:
             if isinstance(change, dict) and change.get("Kind") == "tactical fix" and change.get("Search") in searches:
+                s, where = searches[change["Search"]], "Cause %s's tactical fix" % c.get("Cause")
+                if not logged_form(s):
+                    target, _, narrowed = search_target(s)
+                    if unquoted(s.get("Kind", "")) == MEANING:
+                        out.append((ctx["rule"]("Causes"), "%s names Search %s, a search by meaning, which gives a part of a ranking and "
+                                                           "never every place its defect stands in" % (where, s.get("Search"))))
+                    elif ctx["applied"] and (target != CURRENT_FILES or narrowed):
+                        out.append((ctx["rule"]("Causes"), "%s names Search %s, which over applied work is to name %s and be narrowed "
+                                                           "to no path, so it reads every durable file" % (where, s.get("Search"), CURRENT_FILES)))
+                    elif not ctx["applied"] and (target != WORKING_FILES_TARGET or ctx["design_rel"] not in narrowed):
+                        out.append((ctx["rule"]("Causes"), "%s names Search %s, which before the apply is to name %s with the design "
+                                                           "document among the paths it is narrowed to" % (where, s.get("Search"), WORKING_FILES_TARGET)))
                 wrote = change_places(change)
-                out += [(ctx["rule"]("Causes"), "Cause %s's tactical fix leaves out %s, a place its Search found" % (c.get("Cause"), cite(p)))
-                        for p in place_list(searches[change["Search"]].get("Places", "")) if not covered(wrote, p)]
+                out += [(ctx["rule"]("Causes"), "%s leaves out %s, a place its Search found" % (where, cite(p)))
+                        for p in place_list(s.get("Places", "")) if not covered(wrote, p)]
     return out
 
 
@@ -3802,6 +3991,7 @@ def report_context(root, design, design_text, kind, n, entries, reviewer=False):
             "judgment_settlements": judgment_settlements(design, entries) if kind in REVIEWS and not reviewer else [],
             "ground": search_ground(root, rel_to(design, root), design_text,
                                     re.findall(r"`([^`]+)`", fields.get("Target", "")), kept),
+            "kept": bool(kept),
             "record": phase_record(design, entries, applied, root) if not reviewer else [],
             "goals": {dict(r).get("Name", "").strip() for r in records(section(design_text, "Design Goals")) or []},
             "counted": counted_reports(root, design, entries[:own]) | {rel_to(path, root)},
@@ -3848,11 +4038,10 @@ def entry_report_problems(root, design, design_text, kind, n, report_text=None):
         if own is None:
             if kind in REVIEWS + (JUDGMENT,):
                 problems += cold_parts_problems(rep, kind)
-            if kind == JUDGMENT and rep["records"].get("Read Assessments"):
-                problems += research_sub_scope_problems(design_text)
             problems += cause_problems(rep, ctx, design, entries, named)
             if coverage_due(design, kind, entries):
                 problems += union_coverage_problems(root, design, design_text, entries, ctx)
+                problems += goals_searched_problems(root, design, design_text, entries)
     return [(rule, "%s: %s" % (ctx["report_rel"], msg)) for rule, msg in problems], rep
 
 
@@ -3954,9 +4143,14 @@ def coverage_due(design, kind, entries):
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: research-covers-its-matches]
 def union_coverage_problems(root, design, design_text, entries, ctx=None, among=None):
-    """-> [(rule, message)]: each match outside the design document of a Search any of the design's binding research
-    reports holds, its Pattern run again over its ground, lying within no Read Assessment's Area of any of them; among,
-    where given, the indexes of the research entries read, else every binding research report."""
+    """-> [(rule, message)]: each place a Search of any of the design's binding research reports gives or holds, lying
+    within no Read Assessment's Area of any of them. A Search of the durable files giving every place is run as it was
+    asked, over the files its Target asks of and within the paths it was narrowed to, and is not held to its own
+    Places; a Search by meaning is not run, and each place its record holds is read; a research's Search of the working
+    files is read at no moment but the check of its own report; and a Search the search refuses gives no place and is
+    passed over. A Search logged holding a Pattern is read as it was, its Pattern run over its ground and each match
+    outside the design document read. among, where given, the indexes of the research entries read, else every binding
+    research report."""
     idx = research_indexes(design, entries, binding(entries, design)) if among is None else among
     reports = [(rel_to(report_file(design, entries[i][0], entries[i][1]), root),
                 load_report(design, entries[i][0], entries[i][1])) for i in idx]
@@ -3967,18 +4161,91 @@ def union_coverage_problems(root, design, design_text, entries, ctx=None, among=
         kept = [] if over_applied(entries) else kept_changes(root, design_text)
         ctx = {"ground": search_ground(root, rel_to(design, root), design_text,
                                        re.findall(r"`([^`]+)`", fields.get("Target", "")), kept),
+               "kept": bool(kept), "root": root,
                "steps": step_lines(design_text), "design_rel": rel_to(design, root)}
     areas = [p for _, rep in reports for a in rep["records"]["Read Assessments"] for p in [place_of(a.get("Area", ""))] if p]
     out, seen = [], set()
     for path, rep in reports:
         for s in rep["records"]["Searches"]:
-            matched = search_matches(s, ctx)
-            for p in [] if isinstance(matched, re.error) else matched:
+            if logged_form(s):
+                matched = search_matches(s, ctx)
+                gave, verb = [] if isinstance(matched, re.error) else matched, "matches in"
+            elif unquoted(s.get("Kind", "")) == MEANING:
+                gave, verb = place_list(s.get("Places", "")), "holds"
+            elif search_target(s)[0] == WORKING_FILES_TARGET:
+                continue
+            else:
+                places, _, why, refused = run_search(s, ctx)
+                if why and not refused:
+                    out.append((RESEARCH_COVERS_RULE, "Search %s of %s cannot be run: %s" % (s.get("Search", ""), path, why)))
+                gave, verb = places or [], "gives"
+            for p in gave:
                 if p[0] == ctx["design_rel"] or covered(areas, p) or place_key(p) in seen:
                     continue
                 seen.add(place_key(p))
-                out.append((RESEARCH_COVERS_RULE, "Search %s of %s matches in %s, which no binding research report's "
-                            "Read Assessment's Area covers" % (s.get("Search", ""), path, cite(p))))
+                out.append((RESEARCH_COVERS_RULE, "Search %s of %s %s %s, which no binding research report's "
+                            "Read Assessment's Area covers" % (s.get("Search", ""), path, verb, cite(p))))
+    return out
+
+
+GOALS_SEARCHED_RULE = WF + " § A Check's Report § Script Checks [Name: goals-searched-over-every-durable-file]"
+# the kinds of search that between them read the whole of what a file holds, and what each reads
+COVERING_KINDS = ((MEANING, "by meaning"), ("terms", "by terms"))
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: goals-searched-over-every-durable-file]
+def covering_files(root):
+    """-> the durable files a design's research is asked to have searched: those the last commit holds, or those
+    standing where the project is under no version control or holds no commit yet. No search is run and no index
+    opened."""
+    import search as searching
+    return searching.durable_files(root, committed=last_commit(root) is not None)
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: goals-searched-over-every-durable-file]
+def goals_searched_problems(root, design, design_text, entries, among=None, files=None):
+    """-> [(rule, message)]: among the research binding a design, read together, each goal the design holds named by
+    no Search by meaning of the durable files naming no commit, or by none by terms, and each goal whose Searches of
+    one of those kinds were narrowed to paths that together leave a durable file out, naming the goal, the kind of
+    search and the files. A Search narrowed to no path covers every file. A Search of the working files, one of a
+    commit by name, one of any other Kind and one logged before a Search held a Kind count for nothing. The check runs
+    no search: it reads the paths each Search was narrowed to against the durable files the last commit holds, so a
+    file an apply has written and not committed is not asked for. among, where given, the indexes of the research
+    entries read, else every binding research report; files, given by a test, the durable files asked of."""
+    idx = research_indexes(design, entries, binding(entries, design)) if among is None else among
+    reports = [load_report(design, entries[i][0], entries[i][1]) for i in idx]
+    if not reports:
+        return []
+    asked = {}
+    for rep in reports:
+        for s in rep["records"]["Searches"]:
+            kind = unquoted(s.get("Kind", ""))
+            target, commit, narrowed = search_target(s)
+            if logged_form(s) or kind not in dict(COVERING_KINDS) or target not in (CURRENT_FILES, COMMITTED_FILES) or commit:
+                continue
+            for goal in names_of_text(s.get("Goals", "")):
+                asked.setdefault((goal, kind), []).append([n.rstrip("/") for n in narrowed])
+    out, held = [], None
+    for goal in read_plan(design_text)["goals"]:
+        for kind, how in COVERING_KINDS:
+            narrowings = asked.get((goal, kind))
+            if not narrowings:
+                out.append((GOALS_SEARCHED_RULE, "the goal %s is named by no Search %s of the durable files naming no commit, among "
+                            "the research binding the design" % (goal, how)))
+                continue
+            if any(not n for n in narrowings):
+                continue
+            if held is None:
+                try:
+                    held = covering_files(root) if files is None else list(files)
+                except Exception as exc:  # the search's own account of why the committed files cannot be listed
+                    return out + [(GOALS_SEARCHED_RULE, "the durable files the last commit holds cannot be listed: %s" % exc)]
+            paths = [n for narrowed in narrowings for n in narrowed]
+            left = [f for f in held if not any(f == n or f.startswith(n + "/") for n in paths)]
+            if left:
+                out.append((GOALS_SEARCHED_RULE, "the Searches %s naming the goal %s were narrowed to paths that together leave out %s%s"
+                            % (how, goal, ", ".join("`%s`" % f for f in left[:5]),
+                               ", and %d more durable file%s" % (len(left) - 5, "" if len(left) == 6 else "s") if len(left) > 5 else "")))
     return out
 
 
@@ -4067,19 +4334,20 @@ def check_handed_back(value):
     design_text = read(design).replace("\r\n", "\n")
     rep = read_report(read(Path(value)))
     ctx = report_context(root, design, design_text, kind, n, log_entries(design_text), reviewer=True)
-    return report("check-handed-back " + rel_to(value, root), handed_back_problems(root, design, kind, n, value))
+    return report("check-handed-back " + rel_to(value, root), handed_back_problems(root, design, kind, n, value, moment=HANDED_BACK))
 
 
-def handed_back_problems(root, design, kind, n, value, text=None):
+def handed_back_problems(root, design, kind, n, value, text=None, moment=TAKEN_UP):
     """-> [(rule, message)]: a review's or a handed-off judgment's report as its cold agent hands it back, its parts held
     to their form and no part held that the builder or the design script writes; text, where given, the report's text
-    in place of its file's."""
+    in place of its file's. moment says which reading it is: as the cold agent hands the report back, which alone asks
+    of a research's Search what turns on the checkout, or as the builder takes it up."""
     design_text = read(design).replace("\r\n", "\n")
     rep = read_report(text if text is not None else read(Path(value)))
     ctx = report_context(root, design, design_text, kind, n, log_entries(design_text), reviewer=True)
     problems = form_problems(rep, ctx, report_types(root), report_parts(root))
     if rep["in_form"]:
-        problems += layout_problems(rep, root) + places_problems(rep, report_types(root)) + search_problems(rep, ctx)
+        problems += layout_problems(rep, root) + places_problems(rep, report_types(root)) + search_problems(rep, ctx, moment)
         problems += reads_assessed_problems(rep, ctx) + anchor_problems(rep, ctx)
         problems += key_problems(rep, ctx, named_reports(design, ctx["entries"], root), handed_back=True)
         problems += [(COLD_PARTS_KEPT, "a part its cold agent does not write, the builder's or the design script's: " + p)
@@ -4207,8 +4475,6 @@ def take_up_report(value):
         return 2
     design, kind, n = found
     problems = handed_back_problems(root, design, kind, n, value)
-    if kind == JUDGMENT and read_report(read(Path(value)))["records"].get("Read Assessments"):
-        problems += research_sub_scope_problems(read(design).replace("\r\n", "\n"))
     if problems:
         return report("take-up-report, not taken up " + rel_to(value, root), problems)
     text = read(Path(value)).replace("\r\n", "\n").rstrip("\n")
@@ -4264,23 +4530,34 @@ def places(value):
     return out
 
 
-def phrase_lines(path, phrases):
-    """-> (line number, line, phrase, replacement) for each line of a file holding a retired phrase as whole words,
-    regardless of case, outside the places it stays right."""
+# @canon-spec specs/methodology/working-files/main.md § Retired Phrase
+def phrase_places(root, phrases, committed=False):
+    """-> [(path, line number, line, phrase, replacement)] for each line of a durable file holding a retired phrase in
+    whatever form it takes, a plural and an identifier among them, outside the places it stays right: found by the
+    search the skills share as it finds a term, over the durable files as they stand or, committed, as the last
+    commit held them. A file outside Spec of Record's scope is no durable file and is not read."""
+    import search as searching
+    engine = searching.Search(root, quiet=True, target=searching.COMMITTED if committed else searching.CURRENT)
+    out, texts = [], {}
     try:
-        text = read(Path(path)).replace("\r\n", "\n")
-    except (OSError, UnicodeDecodeError):
-        return []
-    out, stands = [], reading.lines(text)
-    for i, line in enumerate(text.split("\n"), 1):
-        lineage = " § ".join(stands[i - 1].lineage)  # the heading path the line stands under, the one reading's
-        for phrase, replacement, places in phrases:
-            if not re.search(r"(?<![\w-])%s(?![\w-])" % re.escape(phrase), line, re.I):
-                continue
-            if any(p == path and (s is None or lineage == s or lineage.startswith(s + " § ")) for p, s in places):
-                continue
-            out.append((i, line.strip(), phrase, replacement))
-    return out
+        for phrase, replacement, stays in phrases:
+            for place in engine.terms(phrase).places:
+                path, lineage = place.path, place.lineage or ""
+                if any(p == path and (s is None or lineage == s or lineage.startswith(s + " § ")) for p, s in stays):
+                    continue
+                if path not in texts:
+                    try:
+                        data = (engine.tree / path).read_bytes() if committed else (Path(root) / path).read_bytes()
+                        texts[path] = data.decode("utf-8", "replace").replace("\r\n", "\n").split("\n")
+                    except (OSError, ValueError, KeyError):
+                        texts[path] = []
+                for n in range(place.first, place.last + 1):
+                    line = texts[path][n - 1].strip() if n <= len(texts[path]) else ""
+                    if (path, n, phrase) not in {(a, b, c) for a, b, _, c, _ in out}:
+                        out.append((path, n, line, phrase, replacement))
+    finally:
+        engine.db.close()
+    return sorted(out)
 
 
 def scope_files(root):
@@ -4336,37 +4613,50 @@ def target_files(target, created):
     return sorted({t for t in target if not t.endswith("/")} | {p for p in created if within_target(p, target, created)})
 
 
+# @canon-spec specs/methodology/working-files/main.md § Retired Phrase
 def show_reach(value):
-    """--show-reach DESIGN: each line in scope holding a retired phrase, those outside the Target marked; -> 0."""
+    """--show-reach DESIGN: each line of a durable file holding a retired phrase in whatever form it takes, those
+    outside the Target marked, found by the search the skills share over the durable files as they stand, and as the
+    last commit held them while a design's uncommitted changes are kept; -> 0, and 2 where the search cannot be run."""
     design = design_file(value)
     if design is None:
         return 2
     _, fields, _, text = read_design(design)
     phrases, target = retired_phrases(text), set(re.findall(r"`([^`]+)`", dict(fields).get("Target", "")))
-    created = created_paths()
+    created, root = created_paths(), repo_root()
+    kept = [] if over_applied(log_entries(text)) else kept_changes(root, text)
+    try:
+        found = phrase_places(root, phrases, committed=bool(kept)) if phrases else []
+    except Exception as exc:  # the search's own account of what it requires and lacks
+        sys.stderr.write("--show-reach finds a retired phrase by the search the skills share, which cannot be run: %s\n" % exc)
+        return 2
     print("== show-reach " + design.stem)
-    n = 0
-    for path in scope_files(Path.cwd()):
-        for i, line, phrase, _ in phrase_lines(path, phrases):
-            n += 1
-            inside = within_target(path, target, created)
-            print("%s:%d%s  [%s]  %s" % (path, i, "" if inside else "  (outside the Target)", phrase, line[:160]))
-    print("%d line%s\n" % (n, "" if n == 1 else "s"))
+    for path, i, line, phrase, _ in found:
+        inside = within_target(path, target, created)
+        print("%s:%d%s  [%s]  %s" % (path, i, "" if inside else "  (outside the Target)", phrase, line[:160]))
+    print("%d line%s\n" % (len(found), "" if len(found) == 1 else "s"))
     return 0
 
 
 def check_retired_wording(value):
-    """--check-retired-wording DESIGN: each line of the Target's files, and of the files created under a Target
-    directory, holding a retired phrase, with its replacement; -> 1 where any stands."""
+    """--check-retired-wording DESIGN: each line of the Target's durable files, and of the durable files created under
+    a Target directory, holding a retired phrase in whatever form it takes, with its replacement, found by the search
+    the skills share over the durable files as they stand; a file of the Target outside Spec of Record's scope is not
+    read; -> 1 where any stands, and 2 where the search cannot be run."""
     design = design_file(value)
     if design is None:
         return 2
     _, fields, _, text = read_design(design)
     phrases = retired_phrases(text)
     target = set(re.findall(r"`([^`]+)`", dict(fields).get("Target", "")))
+    read_ = set(target_files(target, created_paths()))
+    try:
+        found = phrase_places(repo_root(), phrases) if phrases else []
+    except Exception as exc:  # the search's own account of what it requires and lacks
+        sys.stderr.write("--check-retired-wording finds a retired phrase by the search the skills share, which cannot be run: %s\n" % exc)
+        return 2
     problems = [(path, "line %d holds %s, retired for %s: %s" % (i, phrase, replacement, line[:160]))
-                for path in target_files(target, created_paths())
-                for i, line, phrase, replacement in phrase_lines(path, phrases)]
+                for path, i, line, phrase, replacement in found if path in read_]
     return report("check-retired-wording " + design.stem, problems)
 
 
@@ -4671,13 +4961,31 @@ def around_and_up(text, line):
     return lines, names
 
 
-CITED_SPAN = re.compile(r"`([^`]*?(?:§|\.md)[^`]*)`")
+# @canon-spec specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Zoom-Out
+def citing_places(root):
+    """-> [(the file a citation stands in, its 1-based line, the file it cites, the heading path it cites or "")] for
+    each citation the durable files as they stand hold, found by the search the skills share, its search for every
+    cited section, and by no pattern of the design script's own."""
+    import search as searching
+    engine = searching.Search(root, quiet=True)
+    try:
+        given = engine.cited_sections().places
+    finally:
+        engine.db.close()
+    out = []
+    for place in given:
+        m = re.match(r"`([^`]+)` lines? (\d+).* cites `([^`]+)`$", str(place))
+        if not m:
+            continue
+        cited, _, lineage = re.sub(r" \[[^\]]*\]$", "", m.group(3)).partition(" § ")
+        out.append((m.group(1).split(" § ")[0], int(m.group(2)), cited, lineage))
+    return out
 
 
-def markdown_reach(text_of, changes):
+def markdown_reach(text_of, changes, citing):
     """-> {path: 0-based lines} the builder zooms out to from each line a change wrote in a Markdown file in scope:
     around, up, and across, each passage citing what it read around, an ancestor or the file whole, read around and
-    up in turn."""
+    up in turn. citing gives each citation the durable files hold, as citing_places finds them by the search."""
     reach, read_names = {}, {}
     for path, lines in changes.items():
         if path not in text_of:
@@ -4686,13 +4994,10 @@ def markdown_reach(text_of, changes):
             got, names = around_and_up(text_of[path], line)
             reach.setdefault(path, set()).update(got)
             read_names.setdefault(path, set()).update(names)
-    for host, text in text_of.items():
-        for n, line in enumerate(strip_fences(text).split("\n"), 1):
-            for m in CITED_SPAN.finditer(line):
-                cited, lineage = resolve_citation(m.group(1), host)
-                if cited in read_names and (lineage in read_names[cited] or not lineage):
-                    got, _ = around_and_up(text, n)
-                    reach.setdefault(host, set()).update(got)
+    for host, n, cited, lineage in citing:
+        if host in text_of and cited in read_names and (lineage in read_names[cited] or not lineage):
+            got, _ = around_and_up(text_of[host], n)
+            reach.setdefault(host, set()).update(got)
     return reach
 
 
@@ -4783,7 +5088,13 @@ def check_work(value):
             new = max(0, len(now_found) - before[key])
             reported += added + others[:max(0, new - len(added))]
         text_of = {p: t for p, t in spec_texts(root).items()}
-        reach = {p: {n + 1 for n in lines} for p, lines in markdown_reach(text_of, changes).items()}
+        try:
+            citing = citing_places(root)
+        except Exception as exc:  # the search's own account of what it requires and lacks
+            sys.stderr.write("--check-work finds the places citing what the work changed by the search the skills share, which "
+                             "cannot be run: %s\n" % exc)
+            return 2
+        reach = {p: {n + 1 for n in lines} for p, lines in markdown_reach(text_of, changes, citing).items()}
         for p, lines in script_reach(root, changes).items():
             reach.setdefault(p, set()).update(lines)
         candidates = [(h, [tuple(c) for c in rows if c[0] in reach and (not c[1] or c[1] in reach[c[0]])])
@@ -4846,15 +5157,15 @@ FLAGS = (
     ("--check-settled-report", "REPORT", check_settled_report,
      "check a check's report at its path in a design's folder once it is settled, by every check --log-entry runs on it as it logs the check's entry: its form, its layout, its values holding places in their form, each finding settled once, each key naming a record, each Search's matches covered, each place it matched or read assessed where it holds Read Assessments, each marked Finding anchored in the design, and its records covering what working-files/main.md § A Check's Report § What the Design Script Checks has the script check of them; writes no file, a self-review's report read with the Script Output --log-entry would write into it; the builder runs it as a check's settling ends, before logging its entry"),
     ("--show-reach", "DESIGN", show_reach,
-     "list each line in Spec of Record's scope holding a phrase the design's Retired Phrases record, outside its Stays Right, marking those outside the Target; the builder runs it at drafting"),
+     "list each line of a durable file holding a phrase the design's Retired Phrases record in whatever form it takes, outside its Stays Right, marking those outside the Target, found by the search the skills share, at the last commit while a design's uncommitted changes are kept; the builder runs it at drafting"),
     ("--check-retired-wording", "DESIGN", check_retired_wording,
-     "report each line of the Target's files holding a retired phrase outside its Stays Right, with its replacement; the builder runs it at its self-review before the post-apply review"),
+     "report each line of the Target's durable files holding a retired phrase in whatever form it takes outside its Stays Right, with its replacement, found by the search the skills share; the builder runs it at its self-review before the post-apply review"),
     ("--check-changed-files", "DESIGN", check_changed_files,
      "list each file changed against the last commit outside the working files that the Target does not name, marking the user's edits and the direct edits the log names; the builder runs it at its self-review before the post-apply review"),
     ("--check-audits", "DESIGN", check_audits,
      "refuse a design whose log, after its last apply entry, records neither the run nor the user's bypass of an audit it must run, the specs audit where it changed a file of any sub-scope and the code audit where it changed code, its changes read as working-files/main.md § A Design Document § Applying and Committing has them read; writes no file; the builder runs it before it brings the user the commit, or, with no version control, before the design becomes applied"),
     ("--check-work", "DESIGN", check_work,
-     "run the specs' and the code's script checks over the design's work, the files changed against the last commit, whatever they touch: each finding the scope holds now that it did not hold then, each tree by the checks as they stood in it, matched by its rule, its file and its message, its repeats counted, a matched finding on a line the change added reported too; then, apart, each candidate in the reach the builder zooms out to from what the change wrote; with no version control, every finding the scope holds; writes no file; the builder runs it at its self-review, and the post-apply review runs it"),
+     "run the specs' and the code's script checks over the design's work, the files changed against the last commit, whatever they touch: each finding the scope holds now that it did not hold then, each tree by the checks as they stood in it, matched by its rule, its file and its message, its repeats counted, a matched finding on a line the change added reported too; then, apart, each candidate in the reach the builder zooms out to from what the change wrote, the places citing it found by the search the skills share; with no version control, every finding the scope holds; writes no file; the builder runs it at its self-review, and the post-apply review runs it"),
     ("--refresh-links", "ROOT", refresh_links,
      "write and refresh the link every citation in a file a person reads on GitHub carries, README.md, the files under docs/ and every spec but specs/AGENTS.md; the apply runs it once the text its steps call for is written; reads the repository holding the current directory unless given a root"),
     ("--check-constructs", "FILE", check_constructs,

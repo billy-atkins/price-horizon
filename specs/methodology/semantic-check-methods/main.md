@@ -28,8 +28,9 @@ The checks that read for these faults are [`specs/methodology/semantic-check-met
 
 ### A Passage Still Stating Replaced Wording
 
-A change to what a section states leaves two kinds of place to read again. Each takes a search of its own:
-- **By citation.** The reader gathers every citation of the changed section. This finds each passage that cites it. It does not find a passage that restates the fact and cites nothing.
-- **By wording.** The reader takes a distinctive phrase from the wording the change replaced and searches the files for it. This finds each passage still stating the old fact, whether or not the passage cites anything.
+A change to what a section states leaves places of these kinds to read again, each kind taking a search of its own, made by `.ai/skills/search-spec-of-record-scope/`:
+- **By citation.** A search for the changed section's citers gathers every citation of it. This finds each passage that cites it. It does not find a passage that restates the fact and cites nothing.
+- **By wording.** A search by terms for a distinctive phrase from the wording the change replaced finds that phrase in whatever form it takes. This finds each passage still stating the old fact in its words, whether or not the passage cites anything.
+- **By meaning.** A search by meaning for the fact the change replaced ranks the passages saying it in other words, which neither other search finds. It gives a part of a ranking and never every such passage, and `.ai/skills/search-spec-of-record-scope/` gives what one does not find, so its answer is not taken for every place.
 
-The reader makes both searches, because each finds what the other misses. A passage that restates without citing is common in the places meant to follow a change: a diagram, the prose of an `architecture.md`, and a table row showing a rule stated elsewhere. A search by citation alone can come back clean while copies of the old wording still stand in a paragraph and in a diagram's node, neither of them citing anything.
+The reader makes each search, because each finds what the others miss. A passage that restates without citing is common in the places meant to follow a change: a diagram, the prose of an `architecture.md`, and a table row showing a rule stated elsewhere. A search by citation alone can come back clean while copies of the old wording still stand in a paragraph and in a diagram's node, neither of them citing anything.

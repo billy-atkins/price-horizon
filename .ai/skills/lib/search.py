@@ -21,11 +21,18 @@ that asks version control anything, and it stops where it cannot be answered (`v
 A search by meaning ranks what it was asked against every passage and every sentence of a passage holding several,
 and gives the part of that ranking its caller asks for, the first RANKED places where it asks for none. Parts asked
 one after another make up the one ranking (`meaning`, TIERS).
+
+Every result carries a snapshot code for the state of the files of its target, built from what each file holds, and
+the search gives the present one on request (`snapshot`, `Search.snapshot_code`). The search keeps each answer it
+computes of a kind resting on the files of its target alone, and gives it again while what was asked, the files and
+its own reading stand (`Search.kept_answer`, `own_reading`). It tells its caller where a question names nothing to ask
+of (`Result.names_nothing`).
 """
 import ast
 import hashlib
 import importlib.util
 import io
+import json
 import os
 import re
 import shutil
@@ -76,6 +83,48 @@ HELD = "working-files-held"   # a working file the index holds and the search in
 WORKING_FILES = (".ai/plans", ".ai/follow-ups.md", ".ai/tmp")
 # where a place's lines stand, as a place says it
 STANDS = {reading.TABLE: "table", reading.HEADING: "heading", reading.FENCED: "fenced block"}
+# the form a snapshot code is written in, sixteen hexadecimal digits
+SNAPSHOT = re.compile(r"[0-9a-f]{16}")
+# where a question names nothing to ask of, each told apart from the others
+NO_PLACE = "a citation naming no place among the files the search reads"
+NO_WORD = "a term or a passage reducing to no word"
+NO_FILE = "a path under which no file of the target stands"
+NAMES_NOTHING = (NO_PLACE, NO_WORD, NO_FILE)
+# the kinds of search whose answer rests on the files of its target alone, so the search keeps it: a search by meaning
+# ranks over every content the index holds, and a search of the structure `constructs` reads the classes all of it defines
+KEPT_KINDS = ("citers", "cited sections", "lines", "terms", "code structure", "pattern")
+NOT_KEPT_STRUCTURES = ("constructs",)
+
+
+_OWN_READING = None
+
+
+def own_reading():
+    """-> the code of the search's own reading: built from what this script and each module of the shared code it
+    imports hold, as the checkout running it has them, with the form of its index and the name of its model. An answer
+    the search kept is given again only under the reading that computed it."""
+    global _OWN_READING
+    if _OWN_READING is None:
+        lib, seen, todo = Path(__file__).resolve().parent, {}, [Path(__file__).resolve()]
+        while todo:
+            script = todo.pop()
+            if script.name in seen:
+                continue
+            data = script.read_bytes().replace(b"\r\n", b"\n")
+            seen[script.name] = hashlib.sha256(data).hexdigest()
+            try:
+                tree = ast.parse(data.decode("utf-8-sig"))
+            except (SyntaxError, UnicodeDecodeError):
+                continue
+            for node in ast.walk(tree):
+                names = [a.name for a in node.names] if isinstance(node, ast.Import) else [node.module] if isinstance(node, ast.ImportFrom) and node.module and not node.level else []
+                for name in names:
+                    module = lib / (name.split(".")[0] + ".py")
+                    if module.is_file():
+                        todo.append(module)
+        held = "\n".join(f"{name}\0{sha}" for name, sha in sorted(seen.items())) + "\n" + SCHEMA + "/" + MODEL
+        _OWN_READING = hashlib.sha256(held.encode()).hexdigest()[:16]
+    return _OWN_READING
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -739,10 +788,17 @@ class Result:
     """What a search gave, written as one file in the form `.ai/skills/search-spec-of-record-scope/SKILL.md § Search
     Result` states, the same whoever asked."""
 
-    def __init__(self, kind, query, narrowed, run_as, completeness, places, notes=(), target=CURRENT, commit=None, part=None):
+    def __init__(self, kind, query, narrowed, run_as, completeness, places, notes=(), target=CURRENT, commit=None, part=None, names_nothing=()):
         self.kind, self.query, self.narrowed, self.run_as = kind, squeeze(query), list(narrowed), run_as
         self.completeness, self.places, self.notes = completeness, list(places), list(notes)
-        self.target, self.commit = target, commit
+        # the commit its asker named to the search, and the last commit where a search of the committed files named
+        # none: a result holds the first only where one was asked for, so a record copied from it pins no search
+        self.target, self.commit, self.last_commit = target, commit, None
+        # the snapshot code of the files of the target as the search answered
+        self.snapshot = None
+        # where the question names nothing to ask of, each one of NAMES_NOTHING, and whether the answer is one the
+        # search kept and gave again
+        self.names_nothing, self.kept = list(names_nothing), False
         # the part of a ranking the places are: the place of the ranking the first of them is, and how many they are
         self.part = part if part or completeness == "complete" else (1, len(self.places))
         self.name = self.path = None
@@ -760,8 +816,11 @@ class Result:
         out = f"    **Kind:** {self.kind} \\\n    **Query:** {self.query} \\\n    **Target:** {self.target} \\\n"
         if self.commit:
             out += f"    **Commit:** {self.commit} \\\n"
+        if self.last_commit:
+            out += f"    **Last Commit:** {self.last_commit} \\\n"
         if self.narrowed:
             out += "    **Narrowed To:**\n" + items(f"`{p}`" for p in self.narrowed) + "\n"
+        out += f"    **Snapshot:** {self.snapshot} \\\n"
         out += f"    **Run As:** {self.run_as} \\\n    **Completeness:** {self.completeness} \\\n"
         if self.completeness == "ranked":
             out += f"    **Ranking Part:** {self.ranking_part()} \\\n"
@@ -809,18 +868,26 @@ class Result:
         if m.group(1) != path.name:
             problems.append(f"{path.name}: its Result names `{m.group(1)}`, another file")
         held = {}
-        for field in ("Kind", "Query", "Target", "Commit", "Run As", "Completeness", "Ranking Part", "Places"):
+        for field in ("Kind", "Query", "Target", "Commit", "Last Commit", "Snapshot", "Run As", "Completeness", "Ranking Part", "Places"):
             f = re.search(r"^    \*\*" + field + r":\*\*(?: (.*?))?(?: \\)?$", text, re.M)
             if f:
                 held[field] = (f.group(1) or "").strip()
-            elif field not in ("Commit", "Ranking Part"):
+            elif field not in ("Commit", "Last Commit", "Ranking Part"):
                 problems.append(f"{path.name}: it holds no {field}")
         if held.get("Kind") not in KINDS + (None,):
             problems.append(f"{path.name}: its Kind is `{held['Kind']}`, no kind of search")
         if held.get("Target") not in TARGETS + (None,):
             problems.append(f"{path.name}: its Target is `{held['Target']}`, not one of {', '.join(TARGETS)}")
-        if (held.get("Target") == COMMITTED) != ("Commit" in held) and "Target" in held:
-            problems.append(f"{path.name}: " + ("it answered over the committed files and names no Commit" if held["Target"] == COMMITTED else "it names a Commit, and its Target is not the committed files"))
+        if "Target" in held:
+            # a Commit is the one its asker named, and a Last Commit the one a search naming none read: a result of
+            # the committed files holds exactly one of the two, and a result of another target neither
+            commits = [name for name in ("Commit", "Last Commit") if name in held]
+            if held["Target"] == COMMITTED and len(commits) != 1:
+                problems.append(f"{path.name}: it answered over the committed files and " + ("holds neither the Commit its asker named nor the Last Commit it read" if not commits else "holds both a Commit and a Last Commit"))
+            elif held["Target"] != COMMITTED and commits:
+                problems.append(f"{path.name}: it names a {commits[0]}, and its Target is not the committed files")
+        if "Snapshot" in held and not SNAPSHOT.fullmatch(held["Snapshot"]):
+            problems.append(f"{path.name}: its Snapshot is `{held['Snapshot']}`, not a snapshot code, sixteen hexadecimal digits")
         if held.get("Target") == WORKING and "\n    **Narrowed To:**" not in text:
             problems.append(f"{path.name}: it answered over the working files and holds no Narrowed To, the paths it was given")
         listed = re.search(r"^    \*\*Places:\*\*\n((?:      - .*\n)*)", text, re.M)
@@ -855,6 +922,48 @@ class Result:
 # ---------------------------------------------------------------------------------------------------------------------
 # The index and the searches
 
+def under(base, root):
+    """-> each file under a folder, as a path from the root, a cache a tool leaves aside: the folder one of the files
+    as they stand, or one of a commit's."""
+    if isinstance(base, spec_text.CommitTree):
+        for f in base.rglob("*"):
+            if f.is_file() and "__pycache__" not in f.rel.split("/") and not f.rel.endswith((".pyc", ".pyo")):
+                yield f.rel
+        return
+    for folder, folders, files in os.walk(base):
+        folders[:] = sorted(d for d in folders if d != "__pycache__")
+        for name in sorted(files):
+            if not name.endswith((".pyc", ".pyo")):
+                yield (Path(folder) / name).relative_to(root).as_posix()
+
+
+def listed(tree, root):
+    """-> [path from the root] of every durable file a tree holds, the files as they stand or a commit's: the files of
+    each kind the canon names for the scope, read from the scope's own listing, and the stack's code roots less the
+    paths it excludes."""
+    out = set()
+    # @canon-spec specs/methodology/scope/what-spec-of-record-governs.md § What Spec of Record Governs
+    for place in spec_text.scope_paths(tree):
+        base = tree / place
+        if base.is_file():
+            out.add(place)
+        elif base.is_dir():
+            out.update(under(base, root))
+    # @canon-spec specs/methodology/spec-placement/technical-stack.md § The Technical Stack
+    stack = code_checks.code_roots(tree)
+    if stack:
+        out.update(rel for _, rel in code_checks.code_files(tree, *stack) if "__pycache__" not in rel.split("/"))
+    return sorted(out)
+
+
+def durable_files(root, committed=False):
+    """-> [path from the root] of every durable file, as the files stand or, committed, as the last commit holds them,
+    listed with no search run and no index opened: nothing the search requires is asked for, but git for the committed
+    files, the search stopping as `committed_tree` has it where they cannot be read."""
+    root = Path(root).resolve()
+    return listed(committed_tree(root)[1] if committed else root, root)
+
+
 class Search:
     """The search over one project and one target. `Search(root)` checks everything the search requires, then brings
     the index up to date for the durable files as they stand. `target` names another: COMMITTED, the durable files as
@@ -869,6 +978,9 @@ class Search:
         if commit and target != COMMITTED:
             raise ValueError(f"a commit is named for a search of `{COMMITTED}` alone, and this one is of `{target}`")
         self.target, self.commit, self.tree, self.paths = target, None, None, self._narrow(paths)
+        # whether its asker named the commit: a search naming none reads the last commit, and its result says so
+        self.named = bool(commit)
+        self.computed, self._codes = 0, {}
         if target == WORKING:
             if not self.paths:
                 raise ValueError(f"a search of `{WORKING}` answers over the paths it is given and is given none: name them with --paths")
@@ -905,31 +1017,10 @@ class Search:
         tree = self.tree if target == COMMITTED else self.root
         if self.cover is not None:
             return sorted(f for f in self.cover if target != COMMITTED or (tree / f).is_file())
-        out = set()
-        # @canon-spec specs/methodology/scope/what-spec-of-record-governs.md § What Spec of Record Governs
-        for place in spec_text.scope_paths(tree):
-            base = tree / place
-            if base.is_file():
-                out.add(place)
-            elif base.is_dir():
-                out.update(self._under(base))
-        # @canon-spec specs/methodology/spec-placement/technical-stack.md § The Technical Stack
-        stack = code_checks.code_roots(tree)
-        if stack:
-            out.update(rel for _, rel in code_checks.code_files(tree, *stack) if "__pycache__" not in rel.split("/"))
-        return sorted(out)
+        return listed(tree, self.root)
 
     def _under(self, base):
-        if isinstance(base, spec_text.CommitTree):
-            for f in base.rglob("*"):
-                if f.is_file() and "__pycache__" not in f.rel.split("/") and not f.rel.endswith((".pyc", ".pyo")):
-                    yield f.rel
-            return
-        for folder, folders, files in os.walk(base):
-            folders[:] = sorted(d for d in folders if d != "__pycache__")
-            for name in sorted(files):
-                if not name.endswith((".pyc", ".pyo")):
-                    yield (Path(folder) / name).relative_to(self.root).as_posix()
+        return under(base, self.root)
 
     # -- the index
 
@@ -983,6 +1074,10 @@ class Search:
             db.execute("insert or replace into meta values('schema', ?)", (SCHEMA + "/" + MODEL,))
             db.commit()
             self.built = True
+        # the answers the search kept, one to a question: what was asked, the snapshot code of the files it answered
+        # over, the code of the search's own reading, and for a search of the working files the code of the durable
+        # files as they stand (`kept_answer`)
+        db.execute("create table if not exists answers(asked text primary key, snapshot text, reading text, durable text, held text)")
         # the index holds each target's files apart, which content stands at which path in each, and a search reads
         # its own target's alone: `files` is those, and `known` adds the durable files as they stand for a search of
         # the working files, which reads a place a working file cites against them and gives no place among them
@@ -1227,7 +1322,9 @@ class Search:
         return found.pop() if len(found) == 1 else ""
 
     def _finish(self, result):
-        result.target, result.commit = self.target, self.commit
+        result.target = self.target
+        result.commit, result.last_commit = (self.commit, None) if self.named else (None, self.commit)
+        result.snapshot = self.snapshot_code()
         for path, lineage in sorted(self.repeated):
             result.notes.append(self._shared(path, lineage))
         self.repeated.clear()
@@ -1235,6 +1332,85 @@ class Search:
             result.narrowed = list(self.paths)
         result.write(self.scratch / "results")
         return result
+
+    # -- the state of the files a search answers for, and the answers the search keeps
+
+    def snapshot_code(self, target=None):
+        """-> the snapshot code of the files of a target as the index now holds them, the search's own unless another
+        is named: built from the path and the content of each file, in the order of their paths, and written as
+        sixteen hexadecimal digits. One code for the whole target, whatever paths a search is narrowed to; for the
+        working files, the code of the paths the search was given. It is built one way whatever the target, so the
+        files a commit held and the files as they stand take one code where each file holds the same."""
+        target = target or self.target
+        if target not in self._codes:
+            held = hashlib.sha256()
+            for path, sha in self.db.execute("select path, sha from placed where target=? order by path", (target,)):
+                held.update(f"{path}\0{sha}\n".encode())
+            self._codes[target] = held.hexdigest()[:16]
+        return self._codes[target]
+
+    def _asked(self, kind, query, narrowed):
+        """-> the name the search keeps an answer under: the kind of search, what was asked, the target, with the
+        commit its asker named, and the paths it was narrowed to."""
+        asked = [kind, squeeze(query), self.target, self.commit if self.named else "", "\0".join(narrowed), "\0".join(self.paths)]
+        return hashlib.sha256("\1".join(asked).encode()).hexdigest()
+
+    def kept_answer(self, kind, query, narrowed):
+        """-> the answer the search kept for this question, or None where it kept none that still stands: the same kind of
+        search, Query, Target, with the Commit, and paths, kept under the snapshot code the Target's files now take and under
+        the code of the search's own reading, built from what this script and each module of the shared code it imports hold
+        as the checkout running it has them, with the index's form and the model's name. An answer is kept only of a kind
+        resting on its Target's files alone: none of a search by meaning, and none of a search of the structure `constructs`.
+        Each other answer the search computes is kept so, with the index."""
+        if not self._keeps(kind, query):
+            return None
+        row = self.db.execute("select snapshot, reading, durable, held from answers where asked=?", (self._asked(kind, query, narrowed),)).fetchone()
+        if not row or (row[0], row[1], row[2]) != (self.snapshot_code(), own_reading(), self._durable()):
+            return None
+        held = json.loads(row[3])
+        places = [Place(*p) if isinstance(p, list) else p for p in held["places"]]
+        result = Result(kind, held["query"], held["narrowed"], held["run_as"], held["completeness"], places, held["notes"], names_nothing=held["names_nothing"])
+        result.kept = True
+        return result
+
+    def _keeps(self, kind, query):
+        return kind in KEPT_KINDS and not (kind == "code structure" and squeeze(query).split(" ")[0] in NOT_KEPT_STRUCTURES)
+
+    def _durable(self):
+        """-> the snapshot code of the durable files as they stand, which a search of the working files reads what its
+        places cite against and so keeps its answer under too, or '' for a search of another target."""
+        return self.snapshot_code(CURRENT) if self.target == WORKING else ""
+
+    def _keep(self, result, query, narrowed):
+        """Keep an answer the search computed, in place of any it kept for the same question."""
+        if not self._keeps(result.kind, query):
+            return
+        places = [[p.path, p.lineage, p.key, p.first, p.last, p.stands] if isinstance(p, Place) else str(p) for p in result.places]
+        held = json.dumps({"query": result.query, "narrowed": result.narrowed, "run_as": result.run_as, "completeness": result.completeness,
+                           "places": places, "notes": [str(n) for n in result.notes], "names_nothing": result.names_nothing})
+        self.db.execute("insert or replace into answers values(?,?,?,?,?)", (self._asked(result.kind, query, narrowed), self.snapshot_code(), own_reading(), self._durable(), held))
+        self.db.commit()
+
+    def _answer(self, kind, query, narrowed, compute):
+        """-> the result of a search of a kind the search may keep an answer of: the answer it kept where one still
+        stands, and otherwise the answer computed anew, which it then keeps."""
+        kept = self.kept_answer(kind, query, narrowed)
+        if kept is not None:
+            return self._finish(kept)
+        self.computed += 1
+        result = compute()
+        self._nothing_under(result, narrowed)
+        result = self._finish(result)
+        self._keep(result, query, narrowed)
+        return result
+
+    def _nothing_under(self, result, narrowed):
+        """Tell the caller of each path the search was narrowed to under which no file of its target stands."""
+        for path in narrowed:
+            if not self.db.execute("select 1 from files where path=? or (path > ? and path < ?) limit 1", (path, path + "/", path + "0")).fetchone():
+                result.notes.append(f"the search was narrowed to `{path}`, and no file of `{self.target}` stands under it, so it asked of nothing there")
+                if NO_FILE not in result.names_nothing:
+                    result.names_nothing.append(NO_FILE)
 
     def _shared(self, path, lineage, among="files"):
         """-> the note of a path more than one heading of a file holds: how many times it stands and at which lines,
@@ -1267,14 +1443,15 @@ class Search:
     # -- who cites a place
 
     def citers(self, citation, narrowed=None):
-        return self._finish(self._citing(citation, narrowed))
+        narrowed = self._narrow(narrowed)
+        return self._answer("citers", citation, narrowed, lambda: self._citing(citation, narrowed))
 
     def _citing(self, citation, narrowed=None):
         """-> the result of a search for the places citing a place, not yet written as a file."""
         narrowed = self._narrow(narrowed)
         path, lineage, key, why = self._resolve(citation, "known")
         if why and path is None:
-            return Result("citers", citation, narrowed, "as asked", "complete", [], [f"the citation does not resolve: {why}"])
+            return Result("citers", citation, narrowed, "as asked", "complete", [], [f"the citation does not resolve: {why}"], names_nothing=[NO_PLACE])
         columns = "select f.path, c.line, c.form, c.fenced, c.written, coalesce(c.path, f.path), c.lineage, c.key, c.unit from citations c join files f on f.sha = c.sha "
         rows = sorted(set(
             self.db.execute(columns + "where c.path = ?", (path,)).fetchall()
@@ -1325,7 +1502,7 @@ class Search:
         if related:
             notes.append("Related places, each told apart from the places citing it:")
             notes += related
-        return Result("citers", citation, narrowed, "as asked", "complete", places, notes)
+        return Result("citers", citation, narrowed, "as asked", "complete", places, notes, names_nothing=[NO_PLACE] if why else [])
 
     # -- which sections are cited, and from where
 
@@ -1334,6 +1511,9 @@ class Search:
         is a citing place of the target and says what it cites, the list ordered by what is cited, so what is cited is
         no place of the result. What it gives for one agrees with the places `citers` gives asked of that one alone."""
         narrowed = self._narrow(narrowed)
+        return self._answer("cited sections", "every place cited", narrowed, lambda: self._cited_sections(narrowed))
+
+    def _cited_sections(self, narrowed):
         rows = self.db.execute("select f.path, c.line, c.form, c.written, coalesce(c.path, f.path), c.lineage, c.key from citations c join files f on f.sha = c.sha").fetchall()
         found = set()
         for host, line, form, written, target, lineage, key in rows:
@@ -1348,7 +1528,7 @@ class Search:
         places = [f"{self._place(host, line)} cites `{cited}`" for cited, host, line in sorted(found)]
         run = ("every citation the target's files hold, each read to the section, the keyed part or the file it names, as written: a citation of a place that does not stand is listed as written, "
                "and a citation of a section within a section is listed under its own and not under the one above it")
-        return self._finish(Result("cited sections", "every place cited", narrowed, run, "complete", places))
+        return Result("cited sections", "every place cited", narrowed, run, "complete", places)
 
     def _bare(self, path, rest):
         """-> (lineage, key) a citation written bare names: the longest heading path of the file it names that the rest
@@ -1366,16 +1546,19 @@ class Search:
     # -- which lines a citation names
 
     def lines(self, citation, narrowed=None):
+        return self._answer("lines", citation, [], lambda: self._lines(citation))
+
+    def _lines(self, citation):
         path, lineage, key, why = self._resolve(citation)
         if why:
-            return self._finish(Result("lines", citation, [], "as asked", "complete", [], [f"the citation does not resolve: {why}"]))
+            return Result("lines", citation, [], "as asked", "complete", [], [f"the citation does not resolve: {why}"], names_nothing=[NO_PLACE])
         if (self.root / path).is_dir():
-            return self._finish(Result("lines", citation, [], "as asked", "complete", [f"`{path}/`"], ["it names a folder, which holds no lines of its own"]))
+            return Result("lines", citation, [], "as asked", "complete", [f"`{path}/`"], ["it names a folder, which holds no lines of its own"])
         heads = self.db.execute("select h.lineage, h.occurrence, h.level, h.line, h.own_end, h.subtree_end from files f join headings h on h.sha=f.sha "
                                 "where f.path=? order by h.line", (path,)).fetchall()
         total = self.db.execute("select count(*) from files f join lines l on l.sha=f.sha where f.path=?", (path,)).fetchone()[0]
         if not heads:
-            return self._finish(Result("lines", citation, [], "as asked", "complete", [Place(path, "", None, 1, total, self._stands(path, 1, total))]))
+            return Result("lines", citation, [], "as asked", "complete", [Place(path, "", None, 1, total, self._stands(path, 1, total))])
         # where two headings share the path, a citation of it names what both hold together: each one's lines are
         # given, a keyed part being the first of them to hold its key
         mine = [h for h in heads if h[0] == lineage]
@@ -1387,7 +1570,7 @@ class Search:
         if key:
             head, span = next(((h, found) for h in mine for found in [self._part(path, h, key)] if found), (head, None))
             if not span:
-                return self._finish(Result("lines", citation, [], "as asked", "complete", [], [f"the citation does not resolve: {cite} holds no part `[{key}]`"]))
+                return Result("lines", citation, [], "as asked", "complete", [], [f"the citation does not resolve: {cite} holds no part `[{key}]`"], names_nothing=[NO_PLACE])
             places.append(Place(path, lineage, key, span[0], span[1], self._stands(path, span[0], span[1])))
             notes.append(f"{cite} lines {head[3]}-{head[5] - 1}: the section holding the part")
         else:
@@ -1406,7 +1589,7 @@ class Search:
                 notes.append(f"{label} lines {h[3]}-{h[5] - 1}: its parent whole")
             if h[4] > h[3]:
                 notes.append(f"{label} lines {h[3]}-{h[4] - 1}: " + ("its file's text before its first section" if not above else "an ancestor's text before its first child heading"))
-        return self._finish(Result("lines", citation, [], "as asked", "complete", places, notes))
+        return Result("lines", citation, [], "as asked", "complete", places, notes)
 
     def _part(self, path, head, key):
         """-> (first line, last line) of the keyed part a citation names within a section: a record, by its
@@ -1432,6 +1615,9 @@ class Search:
 
     def terms(self, term, narrowed=None):
         narrowed = self._narrow(narrowed)
+        return self._answer("terms", term, narrowed, lambda: self._terms_used(term, narrowed))
+
+    def _terms_used(self, term, narrowed):
         forms = [squeeze(term)] + self.other_names(term)
         found = {}
         for form in forms:
@@ -1448,13 +1634,20 @@ class Search:
         places = [self._place(path, n) for path, n in sorted(found)]
         run = ("each form searched as a phrase, every word reduced to its stem and every identifier split into its words: "
                + ", ".join(f"`{f}`" for f in forms) + (". The glossary gives the term no other name" if len(forms) == 1 else ". The names after the first are the glossary's other names for it"))
-        return self._finish(Result("terms", term, narrowed, run, "complete", places))
+        result = Result("terms", term, narrowed, run, "complete", places)
+        if not phrase(squeeze(term)):
+            result.notes.append("the term reduces to no word, so the search asked of nothing by it")
+            result.names_nothing.append(NO_WORD)
+        return result
 
     # -- which places match a pattern
 
     def pattern(self, expression, narrowed=None):
         narrowed = self._narrow(narrowed)
-        regex = re.compile(expression, re.M)
+        regex = re.compile(expression, re.M)   # a pattern that is no regular expression is refused before anything is read
+        return self._answer("pattern", expression, narrowed, lambda: self._pattern(expression, regex, narrowed))
+
+    def _pattern(self, expression, regex, narrowed):
         places = []
         for path, sha in self.db.execute("select path, sha from files order by path").fetchall():
             if not self._within(path, narrowed):
@@ -1473,8 +1666,8 @@ class Search:
                 if (first, last) not in seen:
                     seen.add((first, last))
                     places.append(self._place(path, first, last))
-        return self._finish(Result("pattern", expression, narrowed, "as asked, in Python's `re` syntax with `^` and `$` matching at each line, over each file's whole text. A pattern is for a fault of form: a term, a citer or a structure has a search of its own",
-                                   "complete", places))
+        return Result("pattern", expression, narrowed, "as asked, in Python's `re` syntax with `^` and `$` matching at each line, over each file's whole text. A pattern is for a flaw in formatting or structure: a term, a citer or a structure has a search of its own",
+                      "complete", places)
 
     # -- which units of code hold a structure
 
@@ -1482,6 +1675,9 @@ class Search:
         narrowed = self._narrow(narrowed)
         if structure not in STRUCTURES:
             raise ValueError(f"no structure `{structure}`: a structure is one of {', '.join(STRUCTURES)}")
+        return self._answer("code structure", f"{structure} {name}", narrowed, lambda: self._code_structure(structure, name, narrowed))
+
+    def _code_structure(self, structure, name, narrowed):
         places, notes = [], []
         if structure == "annotated-with":
             rows = self.db.execute("select f.path, c.line, c.unit, c.written from citations c join files f on f.sha=c.sha where c.form='annotation' and c.fenced=0 "
@@ -1513,7 +1709,7 @@ class Search:
             notes.append("Files no structure was searched in, or not wholly:")
             notes += [f"`{p}`: {n}" for p, n in blind]
         run = "as asked, matched on the name as the code writes it, in no comment and no string. The answer holds what the syntax shows, and is blind to a call made by reflection or by a name built as the code runs"
-        return self._finish(Result("code structure", f"{structure} {name}", narrowed, run, "complete", places, notes))
+        return Result("code structure", f"{structure} {name}", narrowed, run, "complete", places, notes)
 
     # -- which places say the same as a passage
 
@@ -1540,13 +1736,13 @@ class Search:
         asked, own, citing = squeeze(passage.strip("`")) if passage.strip().startswith("`") else squeeze(passage), None, set()
         texts = [asked]
 
-        def nothing(note):
-            return self._finish(Result("meaning", passage, narrowed, "as asked", "ranked", [], [note], part=(start, 0)))
+        def nothing(note, names=()):
+            return self._finish(Result("meaning", passage, narrowed, "as asked", "ranked", [], [note], part=(start, 0), names_nothing=names))
 
         if parse_citation(asked) and parse_citation(asked)[0]:
             path, lineage, key, why = self._resolve(asked, "known")
             if why:
-                return nothing(f"the citation does not resolve: {why}")
+                return nothing(f"the citation does not resolve: {why}", [NO_PLACE])
             own = (path, lineage)
             texts = [r[0] for r in self.db.execute("select p.text from passages p join known f on f.sha=p.sha where f.path=? and p.lineage=? order by p.line_start", (path, lineage))]
             if not texts:
@@ -1676,7 +1872,27 @@ class Search:
                 notes += apart
         run = (f"what was asked, and each sentence of it, ranked against every passage and every sentence of a passage by its words and by the vectors of the model `{MODEL}`, "
                f"run on this machine, the rankings fused, and {limit} place{'' if limit == 1 else 's'} given from place {start} of the ranking")
-        return self._finish(Result("meaning", passage, narrowed, run, "ranked", places, notes, part=(start, len(places))))
+        self.computed += 1
+        result = Result("meaning", passage, narrowed, run, "ranked", places, notes, part=(start, len(places)))
+        if own is None and not re.findall(r"[^\W_]+", normalize(asked)):
+            result.notes.append("the passage reduces to no word, so nothing of it was ranked by its words")
+            result.names_nothing.append(NO_WORD)
+        self._nothing_under(result, narrowed)
+        return self._finish(result)
+
+
+def snapshot(root, target=CURRENT, paths=None, commit=None, cover=None, scratch=None):
+    """-> the snapshot code of the files of a target as they stand, fresh: the files are walked, a file whose size or
+    time of change moved is read again, as the index is brought up to date today, and the code is built from the path
+    and the content of each file, in the order of their paths. One code for the whole target, whatever paths a search
+    is narrowed to; for the working files, the code of the paths named. The code is built one way whatever the target,
+    so the files a commit held and the files as they stand take one code where each file holds the same. Nothing is
+    kept running between calls."""
+    search = Search(root, cover=cover, scratch=scratch, quiet=True, target=target, commit=commit, paths=paths if target == WORKING else None)
+    try:
+        return search.snapshot_code()
+    finally:
+        search.db.close()
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -1693,7 +1909,8 @@ file under {SCRATCH}/results/. Every search first checks everything the search r
   --show-term-uses TERM                  every place using a word, a phrase or an identifier, in every form it takes
   --show-code-structure STRUCTURE NAME   every unit of code holding a structure: {', '.join(STRUCTURES)}
   --show-similar-passages PASSAGE        the places stating the same as a passage, or as a cited section, in other words
-  --show-pattern-matches EXPRESSION      every place a regular expression matches, for a fault of form
+  --show-pattern-matches EXPRESSION      every place a regular expression matches, for a flaw in formatting or structure
+  --show-snapshot-code                   the present snapshot code of a target's files, read fresh
   --check-requirements                   what the search requires, and whether each is present
   --check-result FILE                    whether a result's file is in its form and its content is as the search wrote it
   --install-model                        download the model's files, the one action that reaches the network
@@ -1741,7 +1958,7 @@ def main(argv, root=None):
         if flag in given:
             part[flag[2:]] = int(given[flag])
     arity = {"--show-citers": 1, "--show-cited-sections": 0, "--show-lines": 1, "--show-term-uses": 1, "--show-code-structure": 2, "--show-similar-passages": 1,
-             "--show-pattern-matches": 1, "--check-requirements": 0, "--install-model": 0, "--check-result": 1}
+             "--show-pattern-matches": 1, "--show-snapshot-code": 0, "--check-requirements": 0, "--install-model": 0, "--check-result": 1}
     if not args or args[0] not in arity or len(args) != 1 + arity[args[0]]:
         print(USAGE)
         return 2
@@ -1762,6 +1979,13 @@ def main(argv, root=None):
             print(f"{SKILL}: the model's files are in {install_model(root).relative_to(HOME).as_posix()}")
             return 0
         search = Search(root, target=given.get("--target", CURRENT), commit=given.get("--commit"), paths=narrowed if given.get("--target") == WORKING else None)
+        if action == "--show-snapshot-code":
+            code = search.snapshot_code()
+            search.db.close()
+            print(code)
+            print(f"the snapshot code of `{search.target}`" + (f" under {', '.join('`' + p + '`' for p in search.paths)}" if search.target == WORKING else "")
+                  + (f" at the commit {search.commit}" if search.target == COMMITTED else "") + ", as its files now stand")
+            return 0
         if action == "--show-citers":
             result = search.citers(values[0], narrowed)
         elif action == "--show-cited-sections":
@@ -1784,6 +2008,8 @@ def main(argv, root=None):
         print(f"{SKILL}: {e}")
         return 2
     print(result.summary(root))
+    for nothing in result.names_nothing:
+        print("  the question names nothing to ask of: " + nothing)
     for note in result.notes[:FEW] if len(result.places) <= FEW else []:
         print("  note: " + note)
     return 0

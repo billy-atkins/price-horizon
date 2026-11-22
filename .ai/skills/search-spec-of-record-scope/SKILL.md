@@ -1,6 +1,6 @@
 ---
 name: search-spec-of-record-scope
-description: Search the files of Spec of Record's scope and the code for where something is. Use when you need every place citing a section, a keyed part or a file, before retitling or moving it; every cited section with the places citing it; the exact lines a citation names; every use of a term, a phrase or an identifier in whatever form it takes; the units of code that define, call, construct, extend or implement a name, or carry an annotation; the places saying the same thing as a passage in other words, when checking whether a fact already has a home or a rule is stated twice; or every place a fault of form stands. It answers over the durable files as they stand, as a commit held them, or over working files you name. Use it before writing a regular expression of your own, which matches a mention as readily as a citation and finds no passage worded differently.
+description: Search the files of Spec of Record's scope and the code for where something is. Use when you need every place citing a section, a keyed part or a file, before retitling or moving it; every cited section with the places citing it; the exact lines a citation names; every use of a term, a phrase or an identifier in whatever form it takes; the units of code that define, call, construct, extend or implement a name, or carry an annotation; the places saying the same thing as a passage in other words, when checking whether a fact already has a home or a rule is stated twice; or every place a flaw in formatting or structure stands. It answers over the durable files as they stand, as a commit held them, or over working files you name. Use it before writing a regular expression of your own, which matches a mention as readily as a citation and finds no passage worded differently.
 ---
 
 # Searching Spec of Record's scope
@@ -28,7 +28,9 @@ The search's code is `.ai/skills/lib/search.py`, shared code, so another skill's
 | meaning | `--show-similar-passages` | the places saying the same as a passage, or as a cited section, in other words | the part of a ranking asked for, its first twenty places where none is |
 | pattern | `--show-pattern-matches` | every place a regular expression matches | every place |
 
-Use `--show-pattern-matches` for a fault of form alone, such as a doubled space or a citation broken across lines. A regular expression matches every mention of its words and cannot tell a citation of a section from a mention of its title, so a term, a citer and a structure each have a search of their own.
+Use `--show-pattern-matches` for a flaw in formatting or structure alone, such as a doubled space or a citation broken across lines. A regular expression matches every mention of its words and cannot tell a citation of a section from a mention of its title, so a term, a citer and a structure each have a search of their own.
+
+A search by terms finds a phrase where its words stand together in their order, each in whatever form it takes. It does not find them where other words stand between: asked for `run again`, it gives "is run again" and "runs again", and not "runs each Search again". Ask for the fewest words that must stand together, or ask a search by meaning.
 
 **Choose the files to answer over.** A search answers over one target, named with `--target`, and its result holds places of that target alone:
 
@@ -45,6 +47,8 @@ The search takes the durable files by the kinds of file Spec of Record's scope n
 
 A search of the working files answers over the paths it is given and is refused where it is given none. It takes a path only where the working files sit, as `specs/methodology/working-files/main.md § The Working Files` names those places, and it never reads its own scratch space. So a caller bound in what it may read, as a reviewer is (`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § What a Review Reads`), names the working files it may read and is given no place outside them.
 
+**Choose the target a design's work asks of.** As `specs/methodology/working-files/main.md § A Check's Report § Search` sets it, a search made in a design's work asks of `current-durable-files` for the files the design works from, and of `committed-durable-files` for the state before a design's work and for every search of the durable files made while that design's uncommitted changes are kept, naming no commit. Name a commit with `--commit` only to ask of that one commit, as a reviewer reading the baseline of a Refactor and Refine cycle does. A search of `committed-durable-files` naming none asks of the last commit, whichever that is when it is asked. No check holds a recorder to the target it asks.
+
 **Run the script from the project's root.** Give the citation, the term, the passage or the expression in quotes:
 
 ```text
@@ -59,11 +63,16 @@ python <skill-dir>/scripts/search-spec-of-record-scope.py --show-pattern-matches
 python <skill-dir>/scripts/search-spec-of-record-scope.py --show-term-uses "design frame" --paths specs/methodology .ai/skills
 python <skill-dir>/scripts/search-spec-of-record-scope.py --show-term-uses "design frame" --target committed-durable-files
 python <skill-dir>/scripts/search-spec-of-record-scope.py --show-term-uses "design frame" --target working-files --paths .ai/plans/design-specs
+python <skill-dir>/scripts/search-spec-of-record-scope.py --show-snapshot-code --target committed-durable-files
 ```
 
 `--paths` takes files and folders, and the search then answers over those alone. A citation is given as `specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation` writes one for a place in another file, without its backticks, and loose white space in it is squeezed. A structure is one of `defines`, `calls`, `constructs`, `extends`, `implements`, `references` and `annotated-with`.
 
 **Read the result's file, then read the places.** The script prints the file's name, the count of its places and whether they are every place or a part of a ranking. It prints the places too where they are few. The file holds all of them, in the form `§ Search Result` states. A place is a place to read and never a finding.
+
+**Read which state of the files a result answered for.** Every result holds a snapshot code (`specs/methodology/glossary/glossary.md`) in its Snapshot: one code for the state of the files of its target, built from what each file holds. It stands for the whole target whatever paths the search was narrowed to, and for the paths named where the target is the working files. It is built one way whatever the target, so the files a commit held and the files as they stand take one code where each file holds the same. Two results holding one code answered for the same files. `--show-snapshot-code` gives the present code of a target, read fresh from its files, with `--target`, `--commit` and `--paths` as a search takes them: it equals a result's code while no file of the target holds anything new, and differs once one does. A file whose time of change alone moved leaves the code as it was. What a changed code means is its caller's to decide. A code does not show everything. A file whose content changed while its size and its time of change did not is not read again, so the code repeats what the index holds, as every answer does. The code of a search of the working files stands for the paths it names alone, never for the durable files that search reads its places against. A result of the committed files holds a Commit only where its asker named one with `--commit`. Where its asker named none, it holds the commit it read as its Last Commit, so a record copied from a result names a commit only where one was asked for.
+
+**Read where a question named nothing.** The search tells its caller where a question names nothing to ask of, each case apart: a citation that names no place among the files it reads, a term or a passage that reduces to no word, and a path it is narrowed to under which no file of its target stands. Its answer stands as it otherwise would, no place given for what names nothing. The result's Notes say which case and of what, the script prints a line for each, and a script calling the search reads them from the result it is given.
 
 **Read where each place stands.** Each place is written in the form `§ A Place` states: a citation with its lines, and what its lines stand in. A caller that wants no place of a given section, none beneath it, or none in a table, tells them by this and leaves them out itself.
 
@@ -108,6 +117,8 @@ A search of the durable files as they stand, or of the working files, answers th
 The index, the model's files and the results sit in `.ai/tmp/search-spec-of-record-scope/`, this skill's scratch space, as `specs/methodology/working-files/main.md § The Working Files` gives a skill one. The first use builds the whole index, which takes minutes, and says how long it took. Each later run reads only the files that changed. The index keeps each target's files apart, and holds one commit's files at a time. Deleting the index loses nothing but the time to build it.
 
 Results go to `results/` in that folder. Each part of a ranking is a result of its own. A run that finds a file changed clears every result in that folder before it answers, since each answered for files that no longer stand so. A caller that wants to keep a result moves its file to a folder of its own before the files change, and the file's name still says what its content must be.
+
+The search keeps each answer it computes of a kind whose answer rests on the files of its Target alone, with its index. It keeps it under what was asked, the Kind, the Query, the Target, with the Commit, and the paths it was narrowed to, under the snapshot code of the files it answered over, and under a code of its own reading, built from what the search's own script and each module of the shared code it imports hold, with the form of its index and the name of its model. Asked the same again while each of those stands, it gives the answer it kept and computes nothing anew. Where any differs it computes anew. It keeps no answer of a search by meaning, which ranks over every content its index holds, so each part of a ranking is computed as it is asked, and none of a search of the code structure `constructs`, which reads the classes every content its index holds defines. An answer of a search of the working files is kept also under the snapshot code of the durable files as they stand. What the search keeps is its own: it is no result's file, a caller cannot move it, and nothing reads it but the search.
 
 ## A Place
 
@@ -158,8 +169,10 @@ What a search gave, written by the script as one file, the same form whoever ask
 | Kind | no | yes | | "citers", "cited sections", "lines", "terms", "code structure", "meaning", "pattern" | the kind of search |
 | Query | no | yes | | text | what was asked |
 | Target | no | yes | | "current-durable-files", "committed-durable-files", "working-files" | the files the search answered over |
-| Commit | no | where the Target is "committed-durable-files" | | text | the commit whose files the search answered over, by its full name |
+| Commit | no | where its asker named one | | text | the commit its asker named to the search, by its full name, which a search of "committed-durable-files" alone can name |
+| Last Commit | no | where the Target is "committed-durable-files" and its asker named no commit | | text | the last commit, whose files the search answered over, by its full name |
 | Narrowed To | no | no | the whole | text | a list, the paths the search was narrowed to, which a search of the working files always holds |
+| Snapshot | no | yes | | text | the snapshot code (`specs/methodology/glossary/glossary.md`) of the files of the Target as the search answered: one code for the whole Target whatever the search was narrowed to, and for the paths named where the Target is "working-files"; written as sixteen hexadecimal digits |
 | Run As | no | yes | | text | what the script ran for the Query, `as asked` where it added nothing |
 | Completeness | no | yes | | "complete", "ranked" | whether the Places are every place of the Kind or a part of a ranking |
 | Ranking Part | no | where the Completeness is "ranked" | | text | the part of the ranking the Places are, by the numbers its places hold in the ranking, as `1 to 20`; `none` where the ranking holds no place there |
@@ -179,6 +192,8 @@ A search by meaning is held to a set of known pairs of passages, kept with Spec 
 **A rule stated in general where the original states one case of it.** A place stating a rule for every case may not be found from a place stating it of one case among other things. `specs/methodology/scope/what-spec-of-record-governs.md` says of one directory "it has an `index.md`, and an `architecture.md` summarizing it". `specs/methodology/spec-placement/where-a-file-goes.md` says "Every directory gets an `index.md`." Asked with the sentence of `what-spec-of-record-governs.md`, the search does not give the sentence of `where-a-file-goes.md`.
 
 **A clause of a sentence that says several things.** The search ranks a sentence and nothing smaller. A rule that is one clause of a long sentence, restated as one clause of another, may not be found. `specs/methodology/sourcing-and-citation/writing-a-citation.md` lists, in one sentence, an annotation "on a unit carrying out a check, citing the check's record" among other cases. `specs/methodology/skills/authoring-a-skill.md` says a unit "carries a canon-spec annotation citing the check's record, as narrow as the unit". Asked with the clause of `writing-a-citation.md`, the search does not give the clause of `authoring-a-skill.md`.
+
+**A question in place of the rule's own words.** The search ranks the places worded as what it was asked is. Asked a question, it gives places that speak of the question's subject, and may not give the rule that answers it, which shares few of the question's words. Asked "Which state of the files does a search answer for?", it does not give the rule of `specs/methodology/working-files/main.md` that a reading made while a send-back's changes are kept "reads the files at the last commit wherever it would otherwise read the files as they stand". Asked with that rule in other words, it gives it. Ask with a sentence the rule you look for might say.
 
 **A place beside the original, on the same subject.** A place in the original's own section, or in a section beneath it, that says something else of the same subject is given among the places a ranking opens with. In `specs/methodology/sourcing-and-citation/which-citations-are-allowed.md`, a search for "The table is the whole permission" gives "An application spec does not reach into the methodology", which stands in the same section. A caller that wants no such place leaves it out by its citation.
 

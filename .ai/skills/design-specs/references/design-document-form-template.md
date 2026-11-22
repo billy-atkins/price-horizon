@@ -35,9 +35,6 @@
 
 {the sweep's method (`specs/methodology/working-files/main.md § A Design Document`)}
 
-**Search Sub-scopes:** {this field only in a canon design, from the settling of its research's sub-scopes on (`specs/methodology/working-files/main.md § A Design Document`)}
-  - {a sub-scope's name, one to an item, as the user settles them (`specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews § The Sub-scopes a Design Settles § The Sub-scopes of a Canon Design's Research`)}
-
 **Reliances:** {this field only where the design relies on another design (`specs/methodology/working-files/main.md § A Design Document § Reliance`)}
   - **Design:** {the Name of a design relied on (`specs/methodology/working-files/main.md § A Design Document § Reliance`)} \
     **Relies On:** {what the design relies on from it (`specs/methodology/working-files/main.md § A Design Document § Reliance`)} \
@@ -121,7 +118,7 @@
 
 {this section only in a canon design, as `specs/methodology/working-files/main.md § A Design Document` has it}
 
-{a list of items, or that none was found and how the research covered the application specs, or that the sub-scopes its research settled left them out (`specs/methodology/working-files/main.md § A Design Document`)}
+{a list of items, or that none was found and how the research covered the application specs (`specs/methodology/working-files/main.md § A Design Document`)}
 
 ## Design Log Entries
 

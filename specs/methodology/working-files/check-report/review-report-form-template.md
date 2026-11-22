@@ -66,12 +66,20 @@
 **Records:**
   - **Search:** {its key, its reviewer's file's name before it where a reviewer ran it ([`specs/methodology/working-files/main.md § A Check's Report § Search`](/specs/methodology/working-files/main.md#search))} \
     **For:** {the fact whose home it sought, the defect whose every place it found, or what the research it serves sought: a rule's reach, the frame's sweep or what restates a change ([`specs/methodology/working-files/main.md § A Check's Report § Search`](/specs/methodology/working-files/main.md#search))} \
-    **Pattern:** {the regular expression it ran, in Python's `re` syntax (the section External References [Name: Python]), its flags written inline ([`specs/methodology/working-files/main.md § A Check's Report § Search`](/specs/methodology/working-files/main.md#search))} \
-    **Places:**
-      - {the places its matches lie in, a list as the section A Value Holding Places has a value holding places written, `none` where it matched nothing ([`specs/methodology/working-files/main.md § A Check's Report § Search`](/specs/methodology/working-files/main.md#search))}
-
     **Goals:**
-      - {kept where it stands in a report of research: a list, each item the Name of a design goal (the section Design Goal) the research it serves was made for, so a change at the goals finds the research it reaches ([`specs/methodology/working-files/main.md § A Check's Report § Search`](/specs/methodology/working-files/main.md#search))}
+      - {a list, each item the Name of a design goal (the section Design Goal) the search serves, so a change at the goals finds the searches it reaches; or `none` alone, where the Search was made for a check, a finding or a defect naming no goal of the design ([`specs/methodology/working-files/main.md § A Check's Report § Search`](/specs/methodology/working-files/main.md#search))}
+
+    **Kind:** {the kind of search made, a Kind of a search's result, whose form the search's skill states ([`specs/methodology/working-files/main.md § A Check's Report § Search`](/specs/methodology/working-files/main.md#search))} \
+    **Query:** {what was asked, as it was given the search: a citation, a term, a structure with its name, a passage, or, where the Kind is pattern, a regular expression ([`specs/methodology/working-files/main.md § A Check's Report § Search`](/specs/methodology/working-files/main.md#search))} \
+    **Target:** {left out where it is current-durable-files: the target the search was run with, one target to a Search, which a run of the Search reads; a search of the durable files made while a design's uncommitted changes are kept is run with committed-durable-files ([`specs/methodology/working-files/main.md § A Check's Report § Search`](/specs/methodology/working-files/main.md#search))} \
+    **Commit:** {left out where it is none: the Commit the search's result holds, which a result holds only where its asker named a commit to the search, by its full name; a run of the Search reads that commit, and the last commit as it stands at the run where a Search of committed-durable-files holds none ([`specs/methodology/working-files/main.md § A Check's Report § Search`](/specs/methodology/working-files/main.md#search))} \
+    **Narrowed To:**
+      - {kept where the Target is working-files, and wherever the search was narrowed: a list, the paths the search was narrowed to, which a search of the working files always names; a Search a tactical fix names holds no path of the durable files ([`specs/methodology/working-files/main.md § A Check's Report § Search`](/specs/methodology/working-files/main.md#search))}
+
+    **Ranking Part:** {kept where the Kind is meaning: the part of the ranking read, by the numbers its places hold in the ranking, as `1 to 40`; `none` where the ranking held no place there, the Places then `none` ([`specs/methodology/working-files/main.md § A Check's Report § Search`](/specs/methodology/working-files/main.md#search))} \
+    **Snapshot:** {the snapshot code the search's result carried, in the form a search's result writes one, which the search's skill states, standing for the files of its Target as the search was made, so Searches holding one code were made against the same files ([`specs/methodology/working-files/main.md § A Check's Report § Search`](/specs/methodology/working-files/main.md#search))} \
+    **Places:**
+      - {the places the search gave, a list as the section A Value Holding Places has a value holding places written, `none` where it gave none; where the Kind is meaning, no more places than its Ranking Part spans ([`specs/methodology/working-files/main.md § A Check's Report § Search`](/specs/methodology/working-files/main.md#search))}
 
 ## Hand-back
 
