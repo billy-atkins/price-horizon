@@ -987,7 +987,7 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
     **Rule:** [`specs/methodology/working-files/main.md § A Design Document § Blocked and to Revise`](/specs/methodology/working-files/main.md#blocked-and-to-revise) \
     **Leaves:** a statement of what a design relies on that its finished dependency does not settle \
     **Caught By:**
-      - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`](/specs/AGENTS.md#check-roles)
+      - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the builder's self-review]`](/specs/AGENTS.md#check-roles)
       - the user
 
   - **Failure:** a decision of the user's left out of the steers \
