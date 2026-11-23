@@ -699,6 +699,7 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
     **Leaves:** Assessed Areas missing a passage stating part of a rule the change states or a use of a term it defines or redefines \
     **Caught By:**
       - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`](/specs/AGENTS.md#check-roles)
+      - [`specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: goals-searched-over-every-durable-file]`](/specs/methodology/working-files/main.md#script-checks-1)
 
   - **Failure:** a working file changed by a design's step \
     **Sections:**
@@ -1188,24 +1189,6 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
     **Leaves:** nothing the script reads \
     **Caught By:**
       - the user
-
-  - **Failure:** a canon design's research run with its sub-scopes not settled with the user \
-    **Sections:**
-      - [`specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews`](/specs/methodology/design-workflow/designs-reviews.md#a-designs-reviews)
-
-    **Rule:** [`specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews § The Sub-scopes a Design Settles § The Sub-scopes of a Canon Design's Research`](/specs/methodology/design-workflow/designs-reviews.md#the-sub-scopes-of-a-canon-designs-research) \
-    **Leaves:** nothing the script reads \
-    **Caught By:**
-      - the user
-
-  - **Failure:** a canon design's research run with its sub-scopes unrecorded \
-    **Sections:**
-      - [`specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews`](/specs/methodology/design-workflow/designs-reviews.md#a-designs-reviews)
-
-    **Rule:** [`specs/methodology/design-workflow/designs-reviews.md § A Design's Reviews § The Sub-scopes a Design Settles § The Sub-scopes of a Canon Design's Research`](/specs/methodology/design-workflow/designs-reviews.md#the-sub-scopes-of-a-canon-designs-research) \
-    **Leaves:** a canon design's Scope holding no Search Sub-scopes, or Search Sub-scopes naming anything but a sub-scope or leaving out `core-canon` or `skills` \
-    **Caught By:**
-      - [`specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: research-sub-scopes-recorded]`](/specs/methodology/working-files/main.md#script-checks-1)
 
   - **Failure:** a reviewer definition left in version control \
     **Sections:**
