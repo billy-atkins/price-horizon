@@ -41,6 +41,10 @@ A flag setting how an action runs, rather than choosing one, is named for what i
 
 **A unit carrying out a check cites its record.** A unit of a skill's script, or of the code the skills share, that carries out a check carries a canon-spec annotation citing the check's record, as narrow as the unit. The annotation sits as an app-spec annotation sits on the code carrying out its spec ([`specs/methodology/code.md § Citing the Specs From Code`](/specs/methodology/code.md#citing-the-specs-from-code)), so a cold agent finds which check the unit carries out. Until a check's entry in a skill's table moves into a record, the code carrying it out takes no annotation for it, and an annotation it does carry cites the section the entry enforces.
 
+**A script's kept tests stand outside Spec of Record's scope.** A script's kept tests are the tests of it kept in the repository and run again at each change to it. They stand under `tests/spec-of-record/scripts/`, outside Spec of Record's scope, so no rule of the methodology governs how a test is written. A set of kept tests is one file there, named for its script and ending `-tests.py`, as `search-tests.py` is the search's. A set says which files are its script's by the names `SCRIPT_FILES` and `FORM_FILES`, each written out at its top level as a tuple of paths. `SCRIPT_FILES` holds the files holding the script's code, and `FORM_FILES` each file of the canon the script reads a form from as it runs. A path ending in a slash names each file beneath it. A script is its code together with those files of the canon, so a change to a form alone changes the script. A test drives the script as an agent does, through a skill's entry script. A test may drive the code the skills share instead, importing it from `.ai/skills/lib/`, where no entry script reaches what it tests. A set is run alone, by Python, from the checkout's root, and passes where it exits 0. A kept comparison stands beside a script's kept tests, named for the same script and ending `-comparison.py`, and names the same files by the same names. The design script holds one, which shows the designs a change reads differently, as [`specs/methodology/working-files/main.md § A Check's Report § Kinds of Builder Check [Check Kind: differential test]`](/specs/methodology/working-files/main.md#kinds-of-builder-check) has it judged.
+
+**A script's kept tests are run whenever a change holds one of its files.** The design script's `--check-kept-tests` runs them. Given a set of changed files, it runs the kept tests of each script whose files they hold, and each kept comparison whose script's files they hold, and reports what each gave. It fails where a test fails or a kept file cannot be run, and never for what a comparison lists. The design script runs the tests itself, so no builder records a run in place of one. In a design, `--log-entry` runs the action over the design's changes as it appends the entry of a self-review over applied work, as [`§ Authoring a Skill § Script Checks [Name: kept-tests-pass-at-the-self-review]`](#script-checks) has it. Outside a design, a direct edit of one of a script's files runs it before the user approves the edit, as [`specs/AGENTS.md § Design, Refactor, Refine § Direct Edits`](/specs/AGENTS.md#direct-edits) has a direct edit made. A changed script that no set of kept tests names holds none, and the action says so.
+
 **Record what actually went wrong.** A skill earns its length by naming the failures that motivated it: the trap that only shows up at the wrong moment, and the fix that is not obvious from the symptom. Anything a reader can derive from the underlying tool's own documentation does not need to be in the skill.
 
 ### Script Checks
@@ -53,3 +57,14 @@ A flag setting how an action runs, rather than choosing one, is named for what i
 
     **Carried Out By:**
       - `.ai/skills/audit-specs/` `--check-scope`
+
+  - **Name:** kept-tests-pass-at-the-self-review \
+    **Tests:** as the entry of a self-review over applied work is appended, a pass's among them, the kept tests of each script any of whose files the design's changes hold pass, a script's files being its code and each file of the canon it reads a form from, as its kept tests name them, and the comparison has run where those changes hold a file of the design script, each run by the design script itself and its result written into the report's Script Output, as [`§ Authoring a Skill`](#authoring-a-skill) has a script's kept tests run whenever a design's changes hold one of its files: `--log-entry` refuses the entry where a test fails or cannot be run, and no check of the settled report made apart from the entry runs one \
+    **Reads:**
+      - `canon-specs`
+      - `other`
+      - `working-files`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--log-entry`
+      - `.ai/skills/implement-specs/` `--log-entry`

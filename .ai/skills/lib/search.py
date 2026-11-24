@@ -68,6 +68,7 @@ DEEPEST = 4096    # the most places the index's nearest-vector search gives at o
 PASSAGE = 1000    # the most characters of a passage, which the model reads whole
 SENTENCE = 40     # the fewest characters of a passage or a sentence worth ranking
 MAX_NAME = 150    # the length the diagram skill's renders keep to, a name every system holds
+MAX_PATH = 259    # the longest path every system opens, the folders above a file counted, which a result's file keeps to
 FEW = 20          # the places printed with a result's name
 
 KINDS = ("citers", "cited sections", "lines", "terms", "code structure", "meaning", "pattern")
@@ -215,12 +216,45 @@ def _module(name):
     return lambda root: importlib.util.find_spec(name) is not None
 
 
-HOME = Path(__file__).resolve().parents[3]   # the project the search's own skill stands in, which keeps the model's files
-MODEL_FOLDER = HOME / SCRATCH / "model"
+def main_checkout(checkout):
+    """-> the main checkout of the project a checkout is of, told from the files alone and asked of no version
+    control: where the checkout is a worktree, its `.git` a file naming its own folder in the main checkout's
+    repository, and that folder naming the repository all the project's checkouts share, the checkout holding that
+    repository; else the checkout itself, the main checkout, one under no version control and a submodule among them."""
+    checkout = Path(checkout).resolve()
+    named = checkout / ".git"
+    try:
+        words = named.read_text(encoding="utf-8").strip() if named.is_file() else ""
+        if words.startswith("gitdir:"):
+            own = (checkout / words[len("gitdir:"):].strip()).resolve()
+            shared = (own / (own / "commondir").read_text(encoding="utf-8").strip()).resolve()
+            if shared.name == ".git" and shared.parent.is_dir():
+                return shared.parent
+    except (OSError, UnicodeDecodeError):
+        pass
+    return checkout
+
+
+_HOME = None
+
+
+def home():
+    """-> the project that keeps what the search needs beside the files it reads, the model's files: the main checkout
+    of the project the search's own skill stands in. Every checkout of the project gives the same one, a worktree
+    wherever it sits among them, so what was set up once on the machine is found from each."""
+    global _HOME
+    if _HOME is None:
+        _HOME = main_checkout(Path(__file__).resolve().parents[3])
+    return _HOME
+
+
+def model_folder():
+    """-> where the model's files sit: the skill's scratch space in `home()`."""
+    return home() / SCRATCH / "model"
 
 
 def _model_present(root):
-    folder = MODEL_FOLDER
+    folder = model_folder()
     return folder.is_dir() and any(f.is_file() and f.suffix == ".onnx" for f in folder.rglob("*"))
 
 
@@ -288,12 +322,12 @@ def check_requirements(root):
 
 
 def install_model(root):
-    """Download the model's files into the skill's scratch space: the one action that reaches the network, run by the
-    user's own command and never by a search."""
+    """Download the model's files into the skill's scratch space in `home()`, where every checkout of the project finds
+    them: the one action that reaches the network, run by the user's own command and never by a search."""
     if not _module("fastembed")(root):
         raise MissingRequirements(f"{SKILL}: fastembed is missing, and it downloads the model's files.\n  install it with: python -m pip install fastembed")
     from fastembed import TextEmbedding
-    folder = MODEL_FOLDER
+    folder = model_folder()
     folder.mkdir(parents=True, exist_ok=True)
     model = TextEmbedding(model_name=MODEL, cache_dir=str(folder))
     list(model.embed(["a passage"]))
@@ -835,17 +869,21 @@ class Result:
                 + "\n\n**Records:**\n  - **Result:** " + self.name + " \\\n" + self.body())
 
     def write(self, folder):
-        """Name the result from the kind of search, what was asked and its content, and write it. An earlier result of
-        the same question under another name is cleared, another part of the same ranking being another question. A
-        run that finds a file changed clears every result before it answers, so no result outlives the files it
-        answered for."""
+        """Name the result from the kind of search, what was asked and its content, and write it. The name tells the
+        result apart by its two hashes, and holds as many of the words asked as fit: no more than MAX_NAME, and no
+        more than leaves the file's whole path within MAX_PATH, so a folder standing deep, as one of a checkout kept
+        beneath another's working files does, shortens the words and never makes a path too long to open. An earlier
+        result of the same question under another name is cleared, another part of the same ranking being another
+        question. A run that finds a file changed clears every result before it answers, so no result outlives the
+        files it answered for."""
         part = "\0" + self.run_as if self.completeness == "ranked" else ""
         asked = hashlib.sha256((self.kind + "\0" + self.query + "\0" + "\0".join(self.narrowed) + "\0" + self.target + "\0" + (self.commit or "") + part).encode()).hexdigest()[:6]
         content = hashlib.sha256(self.body().encode()).hexdigest()[:8]
         kind = self.kind.replace(" ", "-")
         slug = re.sub(r"[^a-z0-9]+", "-", self.query.lower()).strip("-")
-        room = MAX_NAME - len(kind) - len(asked) - len(content) - len(".md") - 3
-        slug = slug[:room].strip("-") or "query"
+        longest = min(MAX_NAME, MAX_PATH - len(str(Path(folder).resolve())) - 1)
+        room = longest - len(kind) - len(asked) - len(content) - len(".md") - 3
+        slug = slug[:max(room, 0)].strip("-") or "query"
         self.name = f"{kind}-{slug}-{asked}-{content}.md"
         folder.mkdir(parents=True, exist_ok=True)
         for stale in folder.glob(f"{kind}-*-{asked}-*.md"):
@@ -1284,7 +1322,7 @@ class Search:
         if self.embedder is None:
             from fastembed import TextEmbedding
             os.environ.setdefault("HF_HUB_OFFLINE", "1")
-            self.embedder = TextEmbedding(model_name=MODEL, cache_dir=str(MODEL_FOLDER), local_files_only=True)
+            self.embedder = TextEmbedding(model_name=MODEL, cache_dir=str(model_folder()), local_files_only=True)
         return [sqlite_vec.serialize_float32([float(x) for x in v]) for v in self.embedder.embed(texts, batch_size=EMBED_BATCH)]
 
     # -- helpers the searches share
@@ -1926,8 +1964,17 @@ file under {SCRATCH}/results/. Every search first checks everything the search r
 """
 
 
+def checkout_run_in():
+    """-> the checkout a search naming no project is run in: the nearest folder at or above the working directory that
+    holds the search's own skill, as every checkout of the project does, whichever checkout holds the script being
+    run. It is told from the files. Where the working directory lies in no checkout, the search answers over the one
+    its own script stands in."""
+    here = Path.cwd().resolve()
+    return next((p for p in (here, *here.parents) if (p / ".ai" / "skills" / SKILL).is_dir()), Path(__file__).resolve().parents[3])
+
+
 def main(argv, root=None):
-    root = Path(root).resolve() if root else Path(__file__).resolve().parents[3]
+    root = Path(root).resolve() if root else checkout_run_in()
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8")
@@ -1976,7 +2023,7 @@ def main(argv, root=None):
         return 1 if count else 0
     try:
         if action == "--install-model":
-            print(f"{SKILL}: the model's files are in {install_model(root).relative_to(HOME).as_posix()}")
+            print(f"{SKILL}: the model's files are in {install_model(root).as_posix()}, where every checkout of the project finds them")
             return 0
         search = Search(root, target=given.get("--target", CURRENT), commit=given.get("--commit"), paths=narrowed if given.get("--target") == WORKING else None)
         if action == "--show-snapshot-code":

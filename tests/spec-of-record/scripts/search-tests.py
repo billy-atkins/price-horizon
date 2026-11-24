@@ -4,7 +4,11 @@
   search-tests.py            every suite but the one on scale
   search-tests.py --scale    the suite on scale too, which copies the project's files ten times over and takes minutes
 
-Each suite builds an index of its own under .ai/tmp/search-spec-of-record-scope/tests/, cleared as the suite starts. A
+The tests take the project from the checkout they are run in: the nearest folder at or above the working directory
+holding the search's code, whichever checkout holds this file, so a run in a worktree tests that worktree's search over
+that worktree's scenarios. Each suite builds an index of its own under .ai/tmp/search-spec-of-record-scope/tests/ of
+that checkout, cleared as the suite starts. A project a suite makes for itself, and the copies the suite on scale
+makes, stand in a folder outside the checkout, so no path a test writes grows with the place the checkout sits in. A
 suite prints each check it makes, and the run exits 1 where any failed. The scenarios hold faults on purpose: a doubled
 space in a citation, a heading path standing twice, a heading inside a fenced block.
 """
@@ -13,6 +17,7 @@ import gc
 import io
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -22,10 +27,18 @@ import time
 from pathlib import Path
 
 sys.dont_write_bytecode = True
-HERE = Path(__file__).resolve()
-PROJECT = HERE.parents[3]
-SCENARIOS = HERE.parents[1] / "scenarios" / "search"
-sys.path.insert(0, str(PROJECT / ".ai" / "skills" / "lib"))
+# The files of the script these tests are of, the search: its code, and each file of the canon it reads a form from as
+# it runs. A path ending in a slash names each file beneath it. The design script reads the two names from this file's
+# text, and runs these tests where a set of changed files holds one of the files they name.
+SCRIPT_FILES = (".ai/skills/lib/search.py", ".ai/skills/lib/reading.py", ".ai/skills/lib/spec_text.py", ".ai/skills/lib/code_checks.py",
+                ".ai/skills/lib/constructs.py", ".ai/skills/search-spec-of-record-scope/scripts/")
+FORM_FILES = ("specs/methodology/glossary/glossary.md", "specs/methodology/skills/registered-skills.md")
+LIB = Path(".ai") / "skills" / "lib"
+RUN_IN = Path.cwd().resolve()
+# the checkout the tests are run in, or, run from outside every checkout, the one holding this file
+PROJECT = next((p for p in (RUN_IN, *RUN_IN.parents) if (p / LIB / "search.py").is_file()), Path(__file__).resolve().parents[3])
+SCENARIOS = PROJECT / "tests" / "spec-of-record" / "scenarios" / "search"
+sys.path.insert(0, str(PROJECT / LIB))
 import reading  # noqa: E402
 import search  # noqa: E402
 
@@ -898,6 +911,71 @@ def rerun_suite():
     third.db.close()
 
 
+def checkout_suite():
+    print("the checkout: where the model is found, how long a result's path grows, and which checkout a search runs over")
+    # a project of its own, outside this checkout, holding a copy of the search's code as this checkout holds it, under
+    # version control, with a second checkout of it, a worktree kept among its own working files
+    root = outside("checkout")
+    try:
+        shutil.copytree(PROJECT / LIB, root / LIB, ignore=shutil.ignore_patterns("__pycache__"))
+        a_project(root)
+        put(root, ".ai/skills/%s/SKILL.md" % search.SKILL, "# The Search's Skill\n\nA stand-in, so each checkout of the project holds the skill's folder.\n")
+        git(root, "init", "-q")
+        git(root, "add", "-A")
+        git(root, "commit", "-q", "-m", "a project made for a test")
+        second = root / ".ai" / "tmp" / "worktrees" / "second"
+        git(root, "worktree", "add", "-q", "--detach", str(second), "HEAD")
+
+        def model_of(checkout):
+            """-> where the search whose code stands in a checkout looks for its model, asked of that code itself."""
+            asked = subprocess.run([sys.executable, "-c", "import sys\nsys.dont_write_bytecode = True\nsys.path.insert(0, sys.argv[1])\nimport search\nprint(search.model_folder())",
+                                    str(checkout / LIB)], capture_output=True, text=True, encoding="utf-8", cwd=checkout)
+            return Path(asked.stdout.strip()).resolve() if asked.returncode == 0 and asked.stdout.strip() else asked.stderr[-300:]
+
+        kept = (root / search.SCRATCH / "model").resolve()
+        check("the search whose code stands in a project's main checkout looks for its model in that checkout's scratch space", model_of(root) == kept, model_of(root))
+        check("the search whose code stands in a second checkout, a worktree, looks for its model where the main checkout keeps it", model_of(second) == kept, model_of(second))
+        check("a checkout under no version control is its own main checkout, and a worktree's is the checkout holding the repository",
+              search.main_checkout(root / "code") == root / "code" and search.main_checkout(second) == root and search.main_checkout(root) == root,
+              (search.main_checkout(second), root))
+
+        # a result written in a folder standing deep: its whole path stays one every system opens
+        deep = root
+        while len(str(deep)) < 200:
+            deep = deep / "a-folder-standing-deep"
+        asked = "the lighthouse keeper trims the lamp wick each evening before dark and the ferry crosses the estuary at the turn of the tide " * 3
+        result = search.Result("terms", asked, [], "each form searched as a phrase", "complete", [])
+        try:
+            written = result.write(deep / "results")
+            wrote = written.is_file()
+        except OSError as failed:
+            written, wrote = deep / "results" / (result.name or ""), "the result could not be written: %s" % failed
+        check("a result written in a folder standing deep keeps its whole path within the longest every system opens, and is written",
+              wrote is True and len(str(written.resolve())) <= search.MAX_PATH, (wrote, len(str(written)), search.MAX_PATH))
+        check("and its name still tells it apart by its two hashes, with the words asked that fit",
+              wrote is True and bool(re.fullmatch(r"terms-the-lighthouse[a-z0-9-]*-[0-9a-f]{6}-[0-9a-f]{8}\.md", written.name)), written.name)
+        shallow = search.Result("terms", asked, [], "each form searched as a phrase", "complete", []).write(root / "results")
+        check("in a folder standing shallow the same result's name holds the words asked up to the length a name may take, and ends in the same two hashes",
+              search.MAX_NAME - 1 <= len(shallow.name) <= search.MAX_NAME and shallow.name[-18:] == written.name[-18:], (len(shallow.name), shallow.name[-18:], written.name[-18:]))
+
+        # a search naming no project answers over the checkout it is run in, whichever checkout holds the script
+        was = Path.cwd()
+        out = io.StringIO()
+        try:
+            os.chdir(second)
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(out):
+                code = search.main(["search-spec-of-record-scope.py", "--show-term-uses", "heron"])
+        finally:
+            os.chdir(was)
+        check("a search naming no project, run in a second checkout, answers over that checkout's files and writes its result there",
+              code == 0 and "`specs/target.md § Target` line 5" in out.getvalue() and len(list((second / search.SCRATCH / "results").glob("terms-heron-*.md"))) == 1
+              and not (root / search.SCRATCH / "results").exists(),
+              (code, out.getvalue()[-400:], [p.name for p in (second / search.SCRATCH / "results").glob("*")], (root / search.SCRATCH / "results").exists()))
+    finally:
+        gc.collect()
+        clear(root)
+
+
 def requirements_suite():
     print("what the search requires")
     held = search.REQUIREMENTS
@@ -1069,36 +1147,40 @@ def scale_suite():
     live.db.close()
     times, memory = {}, {}
     for copies in (1, 10):
-        root, scratch = fresh(f"scale-{copies}-files"), fresh(f"scale-{copies}")
-        cover = []
-        for c in range(copies):
-            for rel in listed:
-                target = root / f"c{c}" / rel
-                target.parent.mkdir(parents=True, exist_ok=True)
-                # each copy holds a line of its own, so its content is the index's own to hold, and ten copies give
-                # ten times the lines, the citations and the passages
-                target.write_bytes((PROJECT / rel).read_bytes() + f"\n\nThis sentence stands in copy {c} of {rel} alone, so no two copies hold the same content.\n".encode("utf-8"))
-                cover.append(f"c{c}/{rel}")
-        # the whole index is built by a process of its own, since the most memory a process held never falls again
-        # and this one has run every suite before this
-        listing = scratch.parent / f"scale-{copies}-cover.json"
-        listing.write_text(json.dumps(cover), encoding="utf-8")
-        built = subprocess.run([sys.executable, str(Path(__file__).resolve()), "--build", str(root), str(scratch), str(listing)], capture_output=True, text=True, encoding="utf-8")
-        assert built.returncode == 0, built.stderr
-        seconds, memory[copies] = (float(x) for x in built.stdout.split())
-        print(f"        {len(cover)} files: the whole index built in {seconds:.1f} seconds, holding at most {memory[copies]:.2f} GB")
-        runs = []
-        for attempt in range(3):
-            with open(root / "c0" / "README.md", "a", encoding="utf-8", newline="\n") as f:
-                f.write(f"\nA sentence added for run {attempt}, so this one file has changed.\n")
-            started = time.perf_counter()
-            s = search.Search(root, cover=cover, scratch=scratch, quiet=True)
-            s.citers("c0/specs/AGENTS.md § Writing specs")
-            runs.append(time.perf_counter() - started)
-            assert s.read_count == 1, s.read_count
-            s.db.close()
-        times[copies] = min(runs)
-        print(f"        {len(cover)} files: a run after one changed file took {times[copies]:.2f} seconds")
+        # the copies stand outside the checkout, so a copy's path is no longer for the place the checkout sits in
+        root, scratch = outside(f"scale-{copies}"), fresh(f"scale-{copies}")
+        try:
+            cover = []
+            for c in range(copies):
+                for rel in listed:
+                    target = root / f"c{c}" / rel
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    # each copy holds a line of its own, so its content is the index's own to hold, and ten copies
+                    # give ten times the lines, the citations and the passages
+                    target.write_bytes((PROJECT / rel).read_bytes() + f"\n\nThis sentence stands in copy {c} of {rel} alone, so no two copies hold the same content.\n".encode("utf-8"))
+                    cover.append(f"c{c}/{rel}")
+            # the whole index is built by a process of its own, since the most memory a process held never falls
+            # again and this one has run every suite before this
+            listing = scratch.parent / f"scale-{copies}-cover.json"
+            listing.write_text(json.dumps(cover), encoding="utf-8")
+            built = subprocess.run([sys.executable, str(Path(__file__).resolve()), "--build", str(root), str(scratch), str(listing)], capture_output=True, text=True, encoding="utf-8")
+            assert built.returncode == 0, built.stderr
+            seconds, memory[copies] = (float(x) for x in built.stdout.split())
+            print(f"        {len(cover)} files: the whole index built in {seconds:.1f} seconds, holding at most {memory[copies]:.2f} GB")
+            runs = []
+            for attempt in range(3):
+                with open(root / "c0" / "README.md", "a", encoding="utf-8", newline="\n") as f:
+                    f.write(f"\nA sentence added for run {attempt}, so this one file has changed.\n")
+                started = time.perf_counter()
+                s = search.Search(root, cover=cover, scratch=scratch, quiet=True)
+                s.citers("c0/specs/AGENTS.md § Writing specs")
+                runs.append(time.perf_counter() - started)
+                assert s.read_count == 1, s.read_count
+                s.db.close()
+            times[copies] = min(runs)
+            print(f"        {len(cover)} files: a run after one changed file took {times[copies]:.2f} seconds")
+        finally:
+            clear(root)
     check("on a corpus ten times the size, a run after one changed file takes no more than three times as long", times[10] <= 3 * times[1], times)
     check(f"building the whole index holds no more than {MEMORY_BOUND} GB of memory, on this project's files and on ten times as many",
           all(m <= MEMORY_BOUND for m in memory.values()), memory)
@@ -1148,7 +1230,7 @@ if __name__ == "__main__":
         build(*sys.argv[2:5])
         sys.exit(0)
     suites = [reading_suite, corpus_suite, places_suite, cited_sections_suite, targets_suite, git_cases_suite, snapshot_suite, kept_suite, names_nothing_suite, research_failures_suite,
-              rerun_suite, requirements_suite, ranking_suite, known_copies_suite] + ([scale_suite] if "--scale" in sys.argv else [])
+              rerun_suite, checkout_suite, requirements_suite, ranking_suite, known_copies_suite] + ([scale_suite] if "--scale" in sys.argv else [])
     named = [a for a in sys.argv[1:] if not a.startswith("--")]
     if named:
         suites = [suite for suite in suites if suite.__name__ in named or suite.__name__[:-len("_suite")] in named]
