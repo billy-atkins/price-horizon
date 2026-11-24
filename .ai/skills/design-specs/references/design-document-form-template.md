@@ -35,11 +35,6 @@
 
 {the sweep's method (`specs/methodology/working-files/main.md § A Design Document`)}
 
-**Reliances:** {this field only where the design relies on another design (`specs/methodology/working-files/main.md § A Design Document § Reliance`)}
-  - **Design:** {the Name of a design relied on (`specs/methodology/working-files/main.md § A Design Document § Reliance`)} \
-    **Relies On:** {what the design relies on from it (`specs/methodology/working-files/main.md § A Design Document § Reliance`)} \
-    **Version:** {this field only where the design relied on stands past its default version: the version the design script gives in that design's header as the reliance is stated (`specs/methodology/working-files/main.md § A Design Document § Reliance`)}
-
 ### Assessed Areas
 
 **Records:**

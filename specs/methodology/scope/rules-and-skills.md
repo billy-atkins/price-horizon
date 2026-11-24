@@ -248,9 +248,18 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
       - [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)
 
     **Rule:** [`specs/methodology/working-files/main.md § A Check's Report § Kinds of Builder Check`](/specs/methodology/working-files/main.md#kinds-of-builder-check) \
-    **Leaves:** a self-review's report recording no differential test of the script \
+    **Leaves:** a self-review's report recording no differential test of a changed script, or, of the design script, no judgment of each design the comparison lists \
     **Caught By:**
       - [`specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: builder-checks-required]`](/specs/methodology/working-files/main.md#script-checks-1)
+
+  - **Failure:** a direct edit of a script's file approved with no result of its kept tests shown \
+    **Sections:**
+      - [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)
+
+    **Rule:** [`specs/AGENTS.md § Design, Refactor, Refine § Direct Edits`](/specs/AGENTS.md#direct-edits) \
+    **Leaves:** nothing in the files, the edit standing as any other direct edit does \
+    **Caught By:**
+      - the user
 
   - **Failure:** a self-review over applied work of a `canon-specs` or `application-specs` design with no construct choice recorded \
     **Sections:**
@@ -269,6 +278,15 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
     **Leaves:** nothing the script reads \
     **Caught By:**
       - the user
+
+  - **Failure:** goals proposed from a Problem not read again \
+    **Sections:**
+      - [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)
+
+    **Rule:** [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame) \
+    **Leaves:** the first self-review of a major version recording no `problem re-evaluation` Builder Check, or one whose Places Checked leave out a place the Problem cites \
+    **Caught By:**
+      - [`specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: builder-checks-required]`](/specs/methodology/working-files/main.md#script-checks-1)
 
   - **Failure:** a settlement stating no cause or no miss \
     **Sections:**
@@ -397,12 +415,12 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
     **Caught By:**
       - the user
 
-  - **Failure:** a design reassessment made with no diagnosis \
+  - **Failure:** a design reassessment chosen at the step back made with no diagnosis \
     **Sections:**
       - [`specs/methodology/working-files/main.md § A Diagnosis`](/specs/methodology/working-files/main.md#a-diagnosis)
 
     **Rule:** [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) \
-    **Leaves:** a design rebuilt after the step back whose log holds no `design-reassessment` entry naming a diagnosis before the rebuilt goals' `goals-agreed` entry \
+    **Leaves:** a design rebuilt after the step back whose log holds, before the rebuilt goals' `goals-agreed` entry, no `design-reassessment` entry whose Cause is a step back and whose Diagnosis names a diagnosis \
     **Caught By:**
       - the user
 
@@ -789,20 +807,24 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
       - [`specs/methodology/working-files/main.md § A Design Document § The Record's Checks`](/specs/methodology/working-files/main.md#the-records-checks)
 
     **Rule:** [`specs/methodology/working-files/main.md § A Design Document § What Blocks What`](/specs/methodology/working-files/main.md#what-blocks-what) \
-    **Leaves:** a design whose Depends On Designs the workstack does not bear out \
+    **Leaves:** designs whose Depends On Designs lead back to one another, or a design its builder goes on working while its Depends On Designs names a finished or gone design, each entry but the one freeing it refused \
     **Caught By:**
       - `.ai/skills/design-specs/` `--check-workstack`
       - `.ai/skills/implement-specs/` `--check-workstack`
+      - `.ai/skills/design-specs/` `--log-entry`
+      - `.ai/skills/implement-specs/` `--log-entry`
 
   - **Failure:** a design's Status out of sync with the workstack \
     **Sections:**
       - [`specs/methodology/working-files/main.md § A Design Document § The Record's Checks`](/specs/methodology/working-files/main.md#the-records-checks)
 
-    **Rule:** [`specs/methodology/working-files/main.md § A Design Document § Blocked and to Revise`](/specs/methodology/working-files/main.md#blocked-and-to-revise) \
-    **Leaves:** a design whose Status the workstack does not bear out \
+    **Rule:** [`specs/methodology/working-files/main.md § A Design Document § The States It Moves Through`](/specs/methodology/working-files/main.md#the-states-it-moves-through) \
+    **Leaves:** a design whose Depends On Designs names an unfinished design standing approved or applying, or worked past its agreed goals and frame, each entry that begins or continues that work refused \
     **Caught By:**
       - `.ai/skills/design-specs/` `--check-workstack`
       - `.ai/skills/implement-specs/` `--check-workstack`
+      - `.ai/skills/design-specs/` `--log-entry`
+      - `.ai/skills/implement-specs/` `--log-entry`
 
   - **Failure:** a design's citation of another file unresolved \
     **Sections:**
@@ -965,7 +987,7 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
       - [`specs/methodology/working-files/main.md § A Design Document`](/specs/methodology/working-files/main.md#a-design-document)
 
     **Rule:** [`specs/methodology/working-files/main.md § A Design Document`](/specs/methodology/working-files/main.md#a-design-document) \
-    **Leaves:** an Out of Scope naming another working file, a dependency named with no statement of what the design relies on from it, or a canon design's Impact on the Application Specs holding no item and not saying how its research was done \
+    **Leaves:** an Out of Scope naming another working file, or a canon design's Impact on the Application Specs holding no item and not saying how its research was done \
     **Caught By:**
       - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`](/specs/AGENTS.md#check-roles)
       - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the builder's self-review]`](/specs/AGENTS.md#check-roles)
@@ -976,16 +998,6 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
 
     **Rule:** [`specs/methodology/working-files/main.md § A Design Document § Spawning a Change of Its Own`](/specs/methodology/working-files/main.md#spawning-a-change-of-its-own) \
     **Leaves:** an item of Out of Scope or of Impact on the Application Specs handing on work no design or follow-up holds \
-    **Caught By:**
-      - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the builder's self-review]`](/specs/AGENTS.md#check-roles)
-      - the user
-
-  - **Failure:** a reliance no longer matching its dependency \
-    **Sections:**
-      - [`specs/methodology/working-files/main.md § A Design Document § Blocked and to Revise`](/specs/methodology/working-files/main.md#blocked-and-to-revise)
-
-    **Rule:** [`specs/methodology/working-files/main.md § A Design Document § Blocked and to Revise`](/specs/methodology/working-files/main.md#blocked-and-to-revise) \
-    **Leaves:** a statement of what a design relies on that its finished dependency does not settle \
     **Caught By:**
       - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the builder's self-review]`](/specs/AGENTS.md#check-roles)
       - the user
