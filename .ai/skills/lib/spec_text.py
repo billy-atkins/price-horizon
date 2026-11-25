@@ -293,9 +293,24 @@ def skill_dirs(root):
     return registry(root)[0] + (["lib"] if (root / ".ai/skills/lib").is_dir() else [])
 
 
-def scope_paths(root):
-    """The files in scope: the root AGENTS.md, the documentation, specs/, each registered skill, and the code they share."""
-    return ["AGENTS.md", "README.md", "docs", "specs"] + [".ai/skills/" + n for n in skill_dirs(root)]
+KEPT_TESTS = "tests/spec-of-record"  # the folder of the skills' kept tests
+FIXTURES = KEPT_TESTS + "/fixtures"  # the one folder of the kept tests' fixture files
+OPERATIVE, FIXTURE = "operative", "fixture"  # the two kinds of durable file
+
+
+def durable_kind(path):
+    """-> the kind of durable file a path from the root is: a fixture file where it stands under the kept tests'
+    fixtures folder, whatever it holds, and an operative file anywhere else."""
+    return FIXTURE if path == FIXTURES or path.startswith(FIXTURES + "/") else OPERATIVE
+
+
+def scope_paths(root, kind=OPERATIVE):
+    """The places in scope holding durable files of a kind. The operative files: the root AGENTS.md, the documentation,
+    specs/, each registered skill, the code they share, and the kept tests' folder, whose fixtures folder a caller walking
+    it leaves out by `durable_kind`. The fixture files: the fixtures folder alone."""
+    if kind == FIXTURE:
+        return [FIXTURES]
+    return ["AGENTS.md", "README.md", "docs", "specs"] + [".ai/skills/" + n for n in skill_dirs(root)] + [KEPT_TESTS]
 
 
 # @canon-spec specs/methodology/scope/progressive-disclosure.md § Progressive Disclosure
@@ -327,17 +342,19 @@ def methodology_files(root):
             if p.name != "index.md" and not p.relative_to(root).as_posix().startswith(EXAMPLES)]
 
 
-def md_files(root):
-    """The Markdown files in scope: the specifications' as the index walk finds them, and every other scope path's."""
+def md_files(root, kind=OPERATIVE):
+    """The Markdown files in scope of a kind of durable file: of the operative files, the specifications' as the index
+    walk finds them and every other scope path's, no fixture file among them; of the fixture files, each Markdown file of
+    the fixtures folder."""
     out = []
-    for s in scope_paths(root):
+    for s in scope_paths(root, kind):
         p = root / s
         if s == "specs":
             out += indexed(root, "specs")
         elif p.is_file() and p.suffix == ".md":
             out.append(p)
         elif p.is_dir():
-            out += [f for f in p.rglob("*.md")]
+            out += [f for f in p.rglob("*.md") if durable_kind(f.relative_to(root).as_posix()) == kind]
     return sorted(set(out))
 
 
@@ -345,3 +362,132 @@ def spec_texts(root):
     """-> {path from the root: text, citations' links stripped} for every Markdown file in scope."""
     root = root if isinstance(root, CommitTree) else Path(root)
     return {f.relative_to(root).as_posix(): read(f) for f in md_files(root)}
+
+
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Kept Tests § Fixture
+# the form of a fixture file: its one field opening the fixtures, each fixture's three fields in their order, and the
+# name of the index of the fixtures' folder
+FIXTURE_RECORDS, FIXTURE_FIELDS, FIXTURES_INDEX = "**Records:**", ("Fixture", "Holds", "Snippet"), "index.md"
+FIXTURE_INDENT = 6  # the spaces a fixture's fenced block stands in from, as a record's block field stands
+FIXTURE_KEY = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+
+
+def fixtures_of(text):
+    """-> ([{key, holds, language, snippet, line}], [(1-based line, problem)]) for a fixture file's text: each fixture
+    it holds, its snippet as the tests read it, the fenced block's own indent taken off and each line ending in a line
+    feed, and each line that is no part of a fixture in its form. Nothing is said of what a snippet holds."""
+    lines = text.replace("\r\n", "\n").split("\n")
+    found, problems, n = [], [], 0
+    while n < len(lines) and not lines[n].strip():
+        n += 1
+    if n == len(lines) or lines[n].rstrip() != FIXTURE_RECORDS:
+        return found, [(n + 1 if n < len(lines) else 1, "the file does not open with %s, so it holds no fixture in its form" % FIXTURE_RECORDS)]
+    n += 1
+    opening = re.compile(r"  - \*\*%s:\*\* (.+?) \\$" % FIXTURE_FIELDS[0])
+    while n < len(lines):
+        if not lines[n].strip():
+            n += 1
+            continue
+        at, start = n + 1, opening.match(lines[n])
+        if not start:
+            problems.append((at, "text that is no part of a fixture: %s" % lines[n].strip()[:80]))
+            n += 1
+            continue
+        key = start.group(1).strip()
+        if not FIXTURE_KEY.fullmatch(key):
+            problems.append((at, "the fixture's key, %s, is not lower-case words joined by hyphens" % key))
+        if key in [f["key"] for f in found]:
+            problems.append((at, "the key %s is held by an earlier fixture of the file" % key))
+        holds = re.match(r"    \*\*%s:\*\* (.+?) \\$" % FIXTURE_FIELDS[1], lines[n + 1]) if n + 1 < len(lines) else None
+        named = n + 2 < len(lines) and lines[n + 2].rstrip() == "    **%s:**" % FIXTURE_FIELDS[2]
+        m = n + 3
+        while m < len(lines) and not lines[m].strip():
+            m += 1
+        fence = re.match(r" {%d}(`{3,}|~{3,})(\S*)\s*$" % FIXTURE_INDENT, lines[m]) if m < len(lines) else None
+        if not holds or not named or not fence:
+            problems.append((at, "the fixture %s lacks %s" % (key, "its Holds, what the snippet holds" if not holds else
+                                                             "its Snippet" if not named else "a fenced block holding its snippet")))
+            n += 1
+            continue
+        if not fence.group(2):
+            problems.append((m + 1, "the fenced block of the fixture %s names no language" % key))
+        closing = re.compile(r" {%d}%s{%d,}\s*$" % (FIXTURE_INDENT, re.escape(fence.group(1)[0]), len(fence.group(1))))
+        end = next((e for e in range(m + 1, len(lines)) if closing.match(lines[e])), None)
+        if end is None:
+            problems.append((m + 1, "the fenced block of the fixture %s is never closed" % key))
+            break
+        body = lines[m + 1:end]
+        shallow = [m + 2 + i for i, l in enumerate(body) if l.strip() and not l.startswith(" " * FIXTURE_INDENT)]
+        if shallow:
+            problems.append((shallow[0], "a line of the fixture %s's snippet stands outside its fenced block's indent" % key))
+        found.append({"key": key, "holds": holds.group(1).strip(), "language": fence.group(2), "line": at,
+                      "snippet": "".join(l[FIXTURE_INDENT:] + "\n" for l in body)})
+        n = end + 1
+    return found, problems
+
+
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Kept Tests § A Run
+# where a run of the kept tests writes, among the working files, the report it leaves there, and the name a run
+# started by another is told its own folder under
+KEPT_RUN, KEPT_REPORT, KEPT_RUN_NAMED = ".ai/tmp/kept-tests", "report.xml", "SPEC_OF_RECORD_KEPT_RUN"
+
+
+def clear_run(folder, keep=()):
+    """The one clean-up of a run of the kept tests: removes everything a folder holds but the names kept, files git
+    left read-only among it, and leaves the folder standing. It runs before and after a test, over the test's own
+    folder, and before and after a run, over the run's, where the run's report is kept."""
+    import os
+    import shutil
+    import stat
+
+    def writable(function, path, _):
+        try:
+            os.chmod(path, stat.S_IWRITE)
+            function(path)
+        except OSError:
+            pass
+    folder = Path(folder)
+    folder.mkdir(parents=True, exist_ok=True)
+    for held in folder.iterdir():
+        if held.name in keep:
+            continue
+        if held.is_dir() and not held.is_symlink():
+            shutil.rmtree(held, onerror=writable)
+        else:
+            try:
+                held.unlink()
+            except OSError:
+                writable(os.unlink, str(held), None)
+
+
+# @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § Citing From Code
+# the comment sign is written by its code, so the line reads as no annotation itself
+ANNOTATION = re.compile(r"\s*\x23\s*@canon-spec\s+(.+?)\s*$")
+CHECK_NAMED = re.compile(r"\[Name: ([^\]]+)\]\s*$")
+
+
+def test_annotations(text):
+    """-> {a test function's name: [the citation of each canon-spec annotation standing over it]} for a kept test
+    file's text, an annotation standing over a function where it is among the comment lines directly above the
+    function's first line, its decorators' among it."""
+    import ast
+    lines, out = text.replace("\r\n", "\n").split("\n"), {}
+    for node in ast.walk(ast.parse(text)):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        at = min([node.lineno] + [d.lineno for d in node.decorator_list]) - 2
+        cited = []
+        while at >= 0 and lines[at].lstrip().startswith("#"):
+            named = ANNOTATION.match(lines[at])
+            if named:
+                cited.insert(0, named.group(1))
+            at -= 1
+        if cited:
+            out[node.name] = cited
+    return out
+
+
+def check_named(citation):
+    """-> the Name of the check's record a citation names, or None where it names no record by a Name."""
+    named = CHECK_NAMED.search(citation)
+    return named.group(1).strip() if named else None

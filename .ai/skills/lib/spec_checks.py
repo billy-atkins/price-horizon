@@ -31,7 +31,7 @@ from spec_text import (
 LINK_RULE = "sourcing-and-citation/writing-a-citation.md § Writing a Citation § A Citation's Link"
 
 # @canon-spec specs/methodology/scope/what-spec-of-record-governs.md § What Spec of Record Governs
-SCOPE_KINDS = {"Agent instructions", "Specs", "Skills", "Documentation", "Working files", "Code"}
+SCOPE_KINDS = {"Agent instructions", "Specs", "Skills", "Fixture files", "Documentation", "Working files", "Code"}
 AUTHORING = "specs/methodology/skills/authoring-a-skill.md § Authoring a Skill"
 SCOPE_TREE = "specs/methodology/scope/what-spec-of-record-governs.md"
 SPECS_AGENTS = "specs/AGENTS.md"
@@ -59,6 +59,20 @@ IMAGE = re.compile(r"!\[[^\]]*\][(\[]|<img\b", re.I)
 WORKING_FILES = "specs/methodology/working-files/main.md"
 WORKING_FILES_RULE = "working-files.md § The Working Files"
 SCRIPT_SUFFIXES = {".py", ".ps1", ".sh"}
+# the name the kept tests' code is listed under where code is listed by the skill holding it: it is a file of the
+# skills and belongs to none of them, so nothing it cites counts as a skill's unit carrying a check out
+KEPT_TESTS_CODE = "kept tests"
+
+
+# @canon-spec specs/methodology/scope/what-spec-of-record-governs.md § What Spec of Record Governs
+def kept_test_scripts(root):
+    """-> each file of code kept under the kept tests' folder that is no fixture file, in its paths' order: the tests'
+    code, the kept comparison and what every test is handed, which the checks of the skills' code reach as they reach
+    the code the skills share."""
+    import spec_text
+    base = root / spec_text.KEPT_TESTS
+    return sorted(f for f in base.rglob("*") if f.suffix in SCRIPT_SUFFIXES and "__pycache__" not in f.parts
+                  and spec_text.durable_kind(f.relative_to(root).as_posix()) == spec_text.OPERATIVE) if base.is_dir() else []
 # @canon-spec specs/methodology/sourcing-and-citation/which-citations-are-allowed.md § Which Citations Are Allowed
 LAYER = {"methodology": "specs/methodology/", "product": "specs/application/product/",
          "technical": "specs/application/technical/"}
@@ -1373,6 +1387,7 @@ def style_and_agent_candidates(root):
         base = root / ".ai/skills" / name
         if base.is_dir():
             instructions += sorted(p for p in base.rglob("*") if p.suffix in {".md"} | SCRIPT_SUFFIXES)
+    instructions += kept_test_scripts(root)
     for f in instructions:
         if not f.exists():
             continue
@@ -1493,6 +1508,7 @@ def abbreviation_findings(root):
         base = root / ".ai/skills" / name
         if base.is_dir():
             files += sorted(p for p in base.rglob("*") if p.suffix in {".md"} | SCRIPT_SUFFIXES)
+    files += kept_test_scripts(root)
     for f in files:
         rel = f.relative_to(root).as_posix()
         if not f.is_file():
@@ -1563,8 +1579,9 @@ CANON_SPEC_FORM = re.compile(r"^\s*# " + CANON_SPEC_TAG + r" (\S.*?)\s*$")
 
 
 def canon_spec_annotations(root):
-    """Each line of a registered skill's scripts or the code the skills share naming the canon-spec tag ->
-    [(the skill's directory name, the script's path, its 1-based line, the line)], in the files' order and their lines'."""
+    """Each line of a registered skill's scripts, the code the skills share or the kept tests' code naming the
+    canon-spec tag -> [(the skill's directory name, or KEPT_TESTS_CODE for the kept tests' code, the script's path, its
+    1-based line, the line)], in the files' order and their lines'."""
     out = []
     for name in skill_dirs(root):
         for f in sorted((root / ".ai/skills" / name).rglob("*")):
@@ -1572,6 +1589,9 @@ def canon_spec_annotations(root):
                 continue
             rel = f.relative_to(root).as_posix()
             out += [(name, rel, i, line) for i, line in enumerate(read(f).split("\n"), 1) if CANON_SPEC.search(line)]
+    for f in kept_test_scripts(root):
+        rel = f.relative_to(root).as_posix()
+        out += [(KEPT_TESTS_CODE, rel, i, line) for i, line in enumerate(read(f).split("\n"), 1) if CANON_SPEC.search(line)]
     return out
 
 
@@ -1712,11 +1732,12 @@ def form_template_findings(root):
 # @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: script-check-carried-out]
 def script_check_carried_out_findings(root):
     """Each Script Check record standing in the specs, a record in a fenced block aside, cited by a canon-spec
-    annotation in the scripts of a skill its Carried Out By names, or in the code the skills share."""
+    annotation in the scripts of a skill its Carried Out By names, or in the code the skills share. A kept test's
+    annotation says the test holds the check, and never counts as a unit's that carries it out."""
     cited = {}
     for name, _, _, line in canon_spec_annotations(root):
         m = CANON_SPEC_FORM.match(line)
-        if m:
+        if m and name != KEPT_TESTS_CODE:
             cited.setdefault(m.group(1), set()).add(name)
     out = []
     for f in md_files(root):
@@ -1874,19 +1895,15 @@ def candidates(root):
             patterns = CANDIDATE + ([("count in a heading", re.compile(rf"\b{_NUM}\b|\d", re.I))]
                                     if n in heads else [])
             scan(rel, n, line, patterns)
-    for s in [".ai/skills/" + n for n in skill_dirs(root)]:
-        base = root / s
-        if not base.is_dir():
-            continue
-        for f in sorted(base.rglob("*")):
-            if f.suffix not in SCRIPT_SUFFIXES:
-                continue
-            rel = f.relative_to(root).as_posix()
-            lines = script_lines(f)
-            for k, (n, line) in enumerate(lines):
-                # a count wrapped onto the next line, "three" then "architecture.md files"
-                nxt = " " + lines[k + 1][1].strip() if k + 1 < len(lines) else ""
-                scan(rel, n, line + nxt, CANDIDATE + [("numbered comment", NUMBERED_COMMENT)])
+    scripts = [f for n in skill_dirs(root) if (root / ".ai/skills" / n).is_dir()
+               for f in sorted((root / ".ai/skills" / n).rglob("*")) if f.suffix in SCRIPT_SUFFIXES] + kept_test_scripts(root)
+    for f in scripts:
+        rel = f.relative_to(root).as_posix()
+        lines = script_lines(f)
+        for k, (n, line) in enumerate(lines):
+            # a count wrapped onto the next line, "three" then "architecture.md files"
+            nxt = " " + lines[k + 1][1].strip() if k + 1 < len(lines) else ""
+            scan(rel, n, line + nxt, CANDIDATE + [("numbered comment", NUMBERED_COMMENT)])
     return out
 
 
@@ -1919,8 +1936,8 @@ def direction_candidates(root):
             if m:
                 s, e = max(0, m.start() - 60), min(len(line), m.end() + 40)
                 out.append((rel, n, "pointed at by direction", line[s:e].strip()))
-    for base in [root / ".ai/skills" / n for n in skill_dirs(root)]:
-        for f in sorted(base.rglob("*")) if base.is_dir() else []:
+    for base in [root / ".ai/skills" / n for n in skill_dirs(root)] + [None]:
+        for f in kept_test_scripts(root) if base is None else sorted(base.rglob("*")) if base.is_dir() else []:
             if f.suffix in SCRIPT_SUFFIXES:
                 for n, line in script_lines(f):
                     m = DIRECTION.search(line)

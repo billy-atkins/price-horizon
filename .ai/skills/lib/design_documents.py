@@ -44,8 +44,9 @@ import constructs
 import layout
 import reading
 import record_types
-from spec_text import REGISTRY, lineages, parse_citation, read, registry, scope_paths, sections, skill_dirs, spec_texts
+from spec_text import REGISTRY, lineages, parse_citation, md_files, read, registry, scope_paths, sections, skill_dirs, spec_texts
 from spec_text import CommitTree, indexed, strip_fences, tracked
+from spec_text import FIXTURE, FIXTURES, KEPT_TESTS as KEPT_FOLDER, OPERATIVE, durable_kind
 from spec_text import resolve as resolve_citation
 
 
@@ -136,13 +137,28 @@ ASSESSMENT_HOME = ("specs/methodology/working-files/main.md", "A Check's Report 
 IMPACTS_HOME = ("specs/methodology/working-files/main.md", "A Check's Report § Read Assessment § Read Assessment Impacts")
 
 
+def run_in_folders():
+    """-> the folders a canon file is looked for in, nearest first: where the script is run, and each folder above it
+    up to the root of the project it is run in, as `repo_root` gives it. A project under no version control is its own
+    root, so nothing above where the script is run is read. Worked out once for each folder the script is run in."""
+    cwd = Path.cwd().resolve()
+    if cwd not in run_in_folders.held:
+        top = repo_root().resolve()
+        run_in_folders.held[cwd] = [cwd] + [p for p in cwd.parents if p == top or top in p.parents]
+    return run_in_folders.held[cwd]
+
+
+run_in_folders.held = {}
+
+
 def declaration(home, root=None):
     """-> (the text of the section declaring a type, or None, and the file's path): a level-two section whole, or a
     section beneath one, named by its lineage, its own text, to its next heading."""
     path, title = home
-    # the checkout's root: the one given, or the nearest directory at or above where the script is run that holds the
-    # declaration's file, so a form is read from the checkout the script is run in, whichever checkout holds this file
-    base = Path(root) if root else next((p for p in (Path.cwd(), *Path.cwd().parents) if (p / path).exists()), Path.cwd())
+    # the checkout's root: the one given, or the nearest directory holding the declaration's file from where the script
+    # is run up to the root of the project it is run in and no further, so a form is read from the checkout the script
+    # is run in, whichever checkout holds this file, and never from a project standing above that one
+    base = Path(root) if root else next((p for p in run_in_folders() if (p / path).exists()), Path.cwd())
     if not (base / path).exists():
         return None, path
     text = read((base / path)).replace("\r\n", "\n")
@@ -815,7 +831,7 @@ def not_stated(body):
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § What the Design Script Checks
 def scope_holding_sub_scopes_alone(b):
-    """-> whether a Scope written before research searched every durable file reads `Not yet stated.` with its
+    """-> whether a Scope written before research searched every operative file reads `Not yet stated.` with its
     Search Sub-scopes field alone after it, which is read as not yet stated."""
     rest = b[len(NOT_YET_STATED):].strip() if b.startswith(NOT_YET_STATED + "\n") else ""
     keys = re.findall(r"^\*\*([^*]+):\*\*", rest, re.M)
@@ -1490,10 +1506,15 @@ def draft_problems(design, text, root):
 
 # @canon-spec specs/methodology/working-files/main.md § A Design Document § The Kinds of Change
 def kind_of(path, skills):
-    """canon-specs, application-specs, or None for any other file; skills, the registered skills' directories and lib."""
+    """-> the kind a design must be of to change a file: canon-specs, application-specs, or None for any other file;
+    skills, the registered skills' directories and lib. The kept tests' folder lies within canon-specs whole, its
+    fixture files among it, so a design changing the canon changes a test and the fixture files it reads together. What
+    kind of file a path is, for a reading made by kind, is `file_kind`'s to answer."""
     if path in ("specs/AGENTS.md", "specs/main.md", "specs/architecture.md") or path.startswith("specs/methodology/"):
         return "canon-specs"
     if any(path.startswith(".ai/skills/" + n + "/") for n in skills):
+        return "canon-specs"
+    if path == KEPT_FOLDER or path.startswith(KEPT_FOLDER + "/"):
         return "canon-specs"
     if path.startswith("specs/application/"):
         return "application-specs"
@@ -1699,14 +1720,11 @@ def resolve(path, root, target=""):
     if exact.is_file():
         return exact, ""
     tail = "/" + path.lstrip("./")
-    # the specifications' files as the index walk finds them, and every other Markdown file under the root, the skills'
-    # own output aside: each judged by its place within the root, so the root's own place decides nothing, a checkout
-    # kept beneath another's working files resolving as any other does
-    walked = [p for p in indexed(root, "specs")]
-    hits = sorted(
-        p for p in walked + [p for p in root.rglob("*.md") if not p.relative_to(root).as_posix().startswith("specs/")]
-        if ("/" + p.relative_to(root).as_posix()).endswith(tail) and not p.relative_to(root).as_posix().startswith(".ai/tmp/")
-    )
+    # a shorthand is resolved over the operative files, as the scripts' one listing gives them: the specifications' files
+    # as the index walk finds them and each other operative Markdown file, never a fixture file, which may end in a
+    # spec's path, and never a file outside the scope. Each is judged by its place within the root, so the root's own
+    # place decides nothing, a checkout kept beneath another's working files resolving as any other does
+    hits = sorted(p for p in md_files(root) if ("/" + p.relative_to(root).as_posix()).endswith(tail))
     if len(hits) == 1:
         return hits[0], ""
     # a document laid out as a folder, named by its bare file name, is read through its files: the one holding the
@@ -1919,7 +1937,7 @@ def design_problems(design):
     found = check_form(design)[1] + steer_table_problems(None)
     found += [(name, p) for p in lineage_problems(design, text)]
     # working-files/main.md § A Check's Report § Script Checks [Name: research-covers-its-matches] and
-    # [Name: goals-searched-over-every-durable-file], over the research reports the validation review reads, of a design
+    # [Name: goals-searched-over-every-operative-file], over the research reports the validation review reads, of a design
     # not yet approved alone: once the plan is approved the frame is frozen and the files come to hold the apply's
     # writing, so research taken in from then on is held as the entry of the round taking it in is appended
     approved = dict(fields).get("Status") in ("approved", "applying", "complete")
@@ -2626,6 +2644,8 @@ OWN_SETTLING, DECIDED, CUT_SHORT = "its own settling", "decided", "cut short"
 # the parts a cold agent writes in a review's or a handed-off judgment's report, its Title among them, the parts the
 # builder and the design script write in it, and the parts holding records, each by its type's Plural Name
 REVIEWER_PARTS = ("Title", "Reading", "Findings", "Searches", "Read Assessments", "Traces", "Builder Checks")
+# the one part of a review's report both hands write: its reviewer's Searches, and the builder's after them
+SEARCHES_PART = "Searches"
 BUILDER_PARTS = ("Hand-back", "Script Output", "Causes", "Settlement")
 HAND_BACK = "Hand-back"
 # a Hand-back line: a part's name and the fingerprint of its text, and, for a review's Searches, the lines it covers
@@ -3515,11 +3535,20 @@ def line_places(path, text, steps=None):
     return lambda n: (path, "Design Plan Steps", "Name: " + steps[n]) if n in steps else (path, holding.get(n), None)
 
 
+# @canon-spec specs/methodology/checks.md § Check
+# the value a check's Reads and an audit's Kind name the fixture files by
+FIXTURE_FILES = "fixture-files"
+
+
 # @canon-spec specs/methodology/working-files/main.md § A Design Document § The Kinds of Change
 def file_kind(path, skills, code):
-    """-> a file's kind of change, or None for a working file; code, the code roots and the paths excluded from them."""
+    """-> the kind of file a path is, for each reading made by kind: a kind of change, for an operative file of it; the
+    fixture files, for a file under the kept tests' fixtures folder; or None for a working file. code, the code roots
+    and the paths excluded from them."""
     if is_working_file(path):
         return None
+    if durable_kind(path) == FIXTURE:
+        return FIXTURE_FILES
     roots, excluded = code
     inside = lambda p, dirs: any(p == d or p.startswith(d + "/") for d in dirs)
     if inside(path, roots) and not inside(path, excluded):
@@ -3534,8 +3563,10 @@ def file_kind(path, skills, code):
 # log's check both read
 def sub_scope_of(path, kind):
     """-> the sub-scope a file of the kind file_kind gives it lies in, or None for code and the working files."""
+    if kind == FIXTURE_FILES:
+        return "skills"
     if kind == "canon-specs":
-        return "skills" if path.startswith(".ai/skills/") else "core-canon"
+        return "skills" if path.startswith((".ai/skills/", KEPT_FOLDER + "/")) else "core-canon"
     return kind if kind in SUB_SCOPES else None
 
 
@@ -3595,7 +3626,7 @@ def check_audits(value):
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § What the Design Script Checks
-# the field a canon design's Scope held before research searched every durable file, naming the sub-scopes its
+# the field a canon design's Scope held before research searched every operative file, naming the sub-scopes its
 # research was settled on: read only for the ground of a Search logged before a Search held a Kind
 SEARCH_SUB_SCOPES = "Search Sub-scopes"
 
@@ -3614,7 +3645,7 @@ def search_ground(root, design_rel, design_text, target, kept):
             kind = lambda p: file_kind(p, skills, code)
             # a canon design's ground holds the two sub-scopes its kind spans before its Target names a file
             design_kind = re.search(r"^\*\*Kind:\*\*\s*(\S+)", design_text, re.M)
-            kinds = {kind(p) for p in target} | ({"canon-specs"} if design_kind and design_kind.group(1) == "canon-specs" else set())
+            kinds = ({kind(p) for p in target} - {FIXTURE_FILES}) | ({"canon-specs"} if design_kind and design_kind.group(1) == "canon-specs" else set())
             field = field_of(frame_parts(design_text).get("Scope"), SEARCH_SUB_SCOPES)
             settled = set(names_of(field) or []) if "canon-specs" in kinds and field is not None else set()
             scope = set(scope_files(root)) if settled else set()
@@ -3636,7 +3667,31 @@ LOGGED_SEARCH_FIELDS = ("Search", "For", "Pattern", "Places", "Goals")
 # the kind of search giving a part of a ranking, every other giving every place
 MEANING = "meaning"
 SEARCH_KINDS = ("citers", "cited sections", "lines", "terms", "code structure", MEANING, "pattern")
-CURRENT_FILES, COMMITTED_FILES, WORKING_FILES_TARGET = "current-durable-files", "committed-durable-files", "working-files"
+CURRENT_FILES, COMMITTED_FILES, WORKING_FILES_TARGET = "current-operative-files", "committed-operative-files", "working-files"
+CURRENT_FIXTURES, COMMITTED_FIXTURES = "current-fixture-files", "committed-fixture-files"
+EARLIER_NAMES = re.compile(r"^\|\s*Earlier Name\s*\|\s*Read As\s*\|\s*$")
+
+
+def earlier_targets(root):
+    """-> {a name a target held before: the target it is read as}, read from the table of earlier names standing
+    beside the Search record type in the canon as it stands, so no code holds such a name; {} where the canon holds no
+    such table."""
+    held = earlier_targets.held
+    key = str(root)
+    if key not in held:
+        out, path = {}, Path(root) / WF
+        lines = read(path).replace("\r\n", "\n").split("\n") if path.is_file() else []
+        at = next((i for i, l in enumerate(lines) if EARLIER_NAMES.match(l)), None)
+        for line in lines[at + 2:] if at is not None else []:
+            cells = [unquoted(c.strip()) for c in line.strip().strip("|").split("|")]
+            if not line.startswith("|") or len(cells) != 2:
+                break
+            out[cells[0]] = cells[1]
+        held[key] = out
+    return held[key]
+
+
+earlier_targets.held = {}
 # the moments a Search is read as its own report is checked: as a cold agent hands its report back, as the builder
 # takes it up, and as the settled report is checked and its entry appended
 HANDED_BACK, TAKEN_UP, SETTLED = "handed back", "taken up", "settled"
@@ -3660,9 +3715,11 @@ def unquoted(value):
 
 
 def search_target(s):
-    """-> (the target a Search names, the commit it holds or None, the paths it is narrowed to)."""
-    commit = unquoted(s.get("Commit", ""))
-    return (unquoted(s.get("Target", "")) or CURRENT_FILES, commit if commit and commit != "none" else None,
+    """-> (the target a Search names, the commit it holds or None, the paths it is narrowed to). A target logged under
+    a name it held before is given as the canon's table of earlier names reads it, so each reader of a Search runs it
+    and measures it over the files that target reads as they stand."""
+    commit, target = unquoted(s.get("Commit", "")), unquoted(s.get("Target", "")) or CURRENT_FILES
+    return (earlier_targets(repo_root()).get(target, target), commit if commit and commit != "none" else None,
             [n for n in names_of_text(s.get("Narrowed To", "")) if n != "the whole"])
 
 
@@ -3724,8 +3781,8 @@ def run_search(s, ctx):
     """-> (the places a Search written in the form gives, where its question names nothing, None), run through the
     search the skills share exactly as it was asked: its Kind and its Query, over the files its Target asks of, within
     the paths it was narrowed to; or (None, None, why, whether the search itself refused what was asked) where it
-    cannot be run. A Search naming the durable files as they stand is run over them as every reading of the files as
-    they stand is made, at the last commit where ctx["kept"] has such a reading take it; one naming the committed files
+    cannot be run. A Search naming the operative files or the fixture files as they stand is run over them as every
+    reading of the files as they stand is made, at the last commit where ctx["kept"] has such a reading take it; one naming the committed files
     is run over the commit it holds, and over the last commit where it holds none; and the working files it names are
     read as they stand. Each Search is run once for each reading, and the design script keeps nothing of a run: the
     search gives the answer it kept where what was asked, the files and its own reading stand."""
@@ -3740,7 +3797,7 @@ def run_search(s, ctx):
     except ImportError as exc:
         held[asked] = (None, None, "the search the skills share cannot be loaded: %s" % exc, False)
         return held[asked]
-    reads = COMMITTED_FILES if target == CURRENT_FILES and ctx.get("kept") else target
+    reads = {CURRENT_FILES: COMMITTED_FILES, CURRENT_FIXTURES: COMMITTED_FIXTURES}.get(target, target) if ctx.get("kept") else target
     try:
         engines = ctx.setdefault("engines", {})
         at = (reads, commit, tuple(narrowed) if reads == WORKING_FILES_TARGET else ())
@@ -4199,14 +4256,14 @@ def settling_read_problems(rep, ctx):
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: tactical-fixes-cover-their-searches]
 def tactical_fix_problems(rep, ctx):
     """-> [(rule, message)]: a tactical fix naming a Search by meaning, or one of files its defect cannot stand in, the
-    durable files as they stand with no path it is narrowed to in a report over applied work and the working files with
+    operative files as they stand with no path it is narrowed to in a report over applied work and the working files with
     the design document among its paths in any other; and a place a tactical fix's Search found that its Places leave
     out. A Search logged before its record held a Kind is held to its Places alone, as it was."""
     out, searches = [], {s.get("Search"): s for s in rep["records"]["Searches"]}
     for c in rep["records"]["Causes"]:
         for change in c.get("Proposed Change") or []:
             if isinstance(change, dict) and change.get("Kind") == "tactical fix" and change.get("Search") in searches:
-                s, where = searches[change["Search"]], "Cause %s's tactical fix" % c.get("Cause")
+                s, where, also = searches[change["Search"]], "Cause %s's tactical fix" % c.get("Cause"), []
                 if not logged_form(s):
                     target, _, narrowed = search_target(s)
                     if unquoted(s.get("Kind", "")) == MEANING:
@@ -4214,13 +4271,21 @@ def tactical_fix_problems(rep, ctx):
                                                            "never every place its defect stands in" % (where, s.get("Search"))))
                     elif ctx["applied"] and (target != CURRENT_FILES or narrowed):
                         out.append((ctx["rule"]("Causes"), "%s names Search %s, which over applied work is to name %s and be narrowed "
-                                                           "to no path, so it reads every durable file" % (where, s.get("Search"), CURRENT_FILES)))
+                                                           "to no path, so it reads every operative file" % (where, s.get("Search"), CURRENT_FILES)))
+                    elif ctx["applied"] and holds_fixture_file(target_named(ctx["design_text"])):
+                        # the Search of the fixture files standing beside it: one asking the same of them, narrowed to no path
+                        beside = [b for b in searches.values() if not logged_form(b) and search_target(b)[0] == CURRENT_FIXTURES and not search_target(b)[2]
+                                  and unquoted(b.get("Kind", "")) == unquoted(s.get("Kind", "")) and unquoted(b.get("Query", "")) == unquoted(s.get("Query", ""))]
+                        if not beside:
+                            out.append((ctx["rule"]("Causes"), "%s names Search %s of the operative files with no Search of %s asking the same "
+                                                               "beside it, though the design's Target holds a fixture file" % (where, s.get("Search"), CURRENT_FIXTURES)))
+                        also += [p for b in beside for p in place_list(b.get("Places", ""))]
                     elif not ctx["applied"] and (target != WORKING_FILES_TARGET or ctx["design_rel"] not in narrowed):
                         out.append((ctx["rule"]("Causes"), "%s names Search %s, which before the apply is to name %s with the design "
                                                            "document among the paths it is narrowed to" % (where, s.get("Search"), WORKING_FILES_TARGET)))
                 wrote = change_places(change)
                 out += [(ctx["rule"]("Causes"), "%s leaves out %s, a place its Search found" % (where, cite(p)))
-                        for p in place_list(s.get("Places", "")) if not covered(wrote, p)]
+                        for p in place_list(s.get("Places", "")) + also if not covered(wrote, p)]
     return out
 
 
@@ -4469,7 +4534,7 @@ def coverage_due(design, kind, entries):
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: research-covers-its-matches]
 def union_coverage_problems(root, design, design_text, entries, ctx=None, among=None):
     """-> [(rule, message)]: each place a Search of any of the design's binding research reports gives or holds, lying
-    within no Read Assessment's Area of any of them. A Search of the durable files giving every place is run as it was
+    within no Read Assessment's Area of any of them. A Search of the operative files giving every place is run as it was
     asked, over the files its Target asks of and within the paths it was narrowed to, and is not held to its own
     Places; a Search by meaning is not run, and each place its record holds is read; a research's Search of the working
     files is read at no moment but the check of its own report; and a Search the search refuses gives no place and is
@@ -4513,30 +4578,30 @@ def union_coverage_problems(root, design, design_text, entries, ctx=None, among=
     return out
 
 
-GOALS_SEARCHED_RULE = WF + " § A Check's Report § Script Checks [Name: goals-searched-over-every-durable-file]"
+GOALS_SEARCHED_RULE = WF + " § A Check's Report § Script Checks [Name: goals-searched-over-every-operative-file]"
 # the kinds of search that between them read the whole of what a file holds, and what each reads
 COVERING_KINDS = ((MEANING, "by meaning"), ("terms", "by terms"))
 
 
-# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: goals-searched-over-every-durable-file]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: goals-searched-over-every-operative-file]
 def covering_files(root):
-    """-> the durable files a design's research is asked to have searched: those the last commit holds, or those
+    """-> the operative files a design's research is asked to have searched: those the last commit holds, or those
     standing where the project is under no version control or holds no commit yet. No search is run and no index
     opened."""
     import search as searching
-    return searching.durable_files(root, committed=last_commit(root) is not None)
+    return searching.operative_files(root, committed=last_commit(root) is not None)
 
 
-# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: goals-searched-over-every-durable-file]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: goals-searched-over-every-operative-file]
 def goals_searched_problems(root, design, design_text, entries, among=None, files=None):
     """-> [(rule, message)]: among the research binding a design, read together, each goal the design holds named by
-    no Search by meaning of the durable files naming no commit, or by none by terms, and each goal whose Searches of
-    one of those kinds were narrowed to paths that together leave a durable file out, naming the goal, the kind of
+    no Search by meaning of the operative files naming no commit, or by none by terms, and each goal whose Searches of
+    one of those kinds were narrowed to paths that together leave an operative file out, naming the goal, the kind of
     search and the files. A Search narrowed to no path covers every file. A Search of the working files, one of a
     commit by name, one of any other Kind and one logged before a Search held a Kind count for nothing. The check runs
-    no search: it reads the paths each Search was narrowed to against the durable files the last commit holds, so a
+    no search: it reads the paths each Search was narrowed to against the operative files the last commit holds, so a
     file an apply has written and not committed is not asked for. among, where given, the indexes of the research
-    entries read, else every binding research report; files, given by a test, the durable files asked of."""
+    entries read, else every binding research report; files, given by a test, the operative files asked of."""
     idx = research_indexes(design, entries, binding(entries, design)) if among is None else among
     reports = [load_report(design, entries[i][0], entries[i][1]) for i in idx]
     if not reports:
@@ -4555,7 +4620,7 @@ def goals_searched_problems(root, design, design_text, entries, among=None, file
         for kind, how in COVERING_KINDS:
             narrowings = asked.get((goal, kind))
             if not narrowings:
-                out.append((GOALS_SEARCHED_RULE, "the goal %s is named by no Search %s of the durable files naming no commit, among "
+                out.append((GOALS_SEARCHED_RULE, "the goal %s is named by no Search %s of the operative files naming no commit, among "
                             "the research binding the design" % (goal, how)))
                 continue
             if any(not n for n in narrowings):
@@ -4564,112 +4629,422 @@ def goals_searched_problems(root, design, design_text, entries, among=None, file
                 try:
                     held = covering_files(root) if files is None else list(files)
                 except Exception as exc:  # the search's own account of why the committed files cannot be listed
-                    return out + [(GOALS_SEARCHED_RULE, "the durable files the last commit holds cannot be listed: %s" % exc)]
+                    return out + [(GOALS_SEARCHED_RULE, "the operative files the last commit holds cannot be listed: %s" % exc)]
             paths = [n for narrowed in narrowings for n in narrowed]
             left = [f for f in held if not any(f == n or f.startswith(n + "/") for n in paths)]
             if left:
                 out.append((GOALS_SEARCHED_RULE, "the Searches %s naming the goal %s were narrowed to paths that together leave out %s%s"
                             % (how, goal, ", ".join("`%s`" % f for f in left[:5]),
-                               ", and %d more durable file%s" % (len(left) - 5, "" if len(left) == 6 else "s") if len(left) > 5 else "")))
+                               ", and %d more operative file%s" % (len(left) - 5, "" if len(left) == 6 else "s") if len(left) > 5 else "")))
     return out
 
 
-# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill
-# where a script's kept tests stand, outside Spec of Record's scope; what a file there is named for, the script it is
-# of and then its kind, a set of kept tests or a kept comparison; and the two names by which each says which files are
-# its script's, its code and each file of the canon it reads a form from as it runs
-KEPT = "tests/spec-of-record/scripts"
-KEPT_TESTS, KEPT_COMPARISON = "-tests.py", "-comparison.py"
-KEPT_FILES = ("SCRIPT_FILES", "FORM_FILES")
-KEPT_TESTS_RULE = "specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: kept-tests-pass-at-the-self-review]"
-# the lines of a run's output written into a report where it prints more: each line reporting a failure, and its last
-KEPT_OUTPUT, KEPT_FAILURE = 40, "FAIL"
+AUTHORING_HOME = "specs/methodology/skills/authoring-a-skill.md"
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Kept Tests
+# where the skills' kept tests stand, as the canon's home has them: a set of kept tests a folder named for its script,
+# whose conftest.py says which files are its script's by the names of KEPT_FILES, each a tuple of paths, and which
+# file states its actions, under the name FLAGS; the kept comparison standing in a set; and the files every set is run
+# with, the runner's settings and what each test is handed
+KEPT = KEPT_FOLDER + "/scripts"
+KEPT_DECLARES, KEPT_COMPARISON, KEPT_TEST_FILES = "conftest.py", "comparison.py", "test_*.py"
+KEPT_FILES, KEPT_ACTIONS, KEPT_ACTIONS_NAME = ("SCRIPT_FILES", "FORM_FILES"), "ACTIONS_IN", "FLAGS"
+KEPT_SHARED = (KEPT_FOLDER + "/pytest.ini", KEPT_FOLDER + "/conftest.py")
+KEPT_WAYS = ("passes", "reports")
+KEPT_CHECKS = AUTHORING_HOME + " § Authoring a Skill § Script Checks [Name: %s]"
+KEPT_TESTS_RULE = KEPT_CHECKS % "kept-tests-pass-at-the-self-review"
+KEPT_HELD_RULE = KEPT_CHECKS % "each-script-check-and-action-held-by-a-test"
+KEPT_NO_INSTRUCTIONS_RULE = KEPT_CHECKS % "no-instructions-name-kept-under-the-tests"
+KEPT_INDEX_RULE = KEPT_CHECKS % "fixtures-index-lists-its-folder"
+KEPT_FIXTURE_FORM_RULE = KEPT_CHECKS % "fixture-file-holds-fixtures-in-their-form"
+KEPT_FIXTURE_READ_RULE = KEPT_CHECKS % "each-fixture-read-by-a-kept-test"
+KEPT_REPORT_RULE = KEPT_CHECKS % "kept-test-results-read-from-the-report"
+# @canon-spec specs/methodology/external-references.md § External References
+INSTRUCTIONS_NAME = "AGENTS.md"
 # a line of the comparison's output naming a design the two sides read differently
 COMPARED = re.compile(r"^design (\S+)$", re.M)
 
 
-# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Kept Tests
 def kept_scripts(root):
-    """-> [(a kept file's path from the root, the script it is named for, whether it is a comparison, the files it says
-    are its script's or None, why it cannot be read or None)] for each set of kept tests and each kept comparison
-    standing under KEPT, read from the file's text and never run: the two names of KEPT_FILES, each a tuple of paths
-    written out at the file's top level."""
+    """-> [a set of kept tests] for each folder standing under KEPT that holds a conftest.py, read from the files'
+    text and never run: {script, the folder's name; folder, its path from the root; files, the files it says are its
+    script's, or None; actions_in, the file it says states the script's actions, or None; tests, its files of tests;
+    comparison, its kept comparison or None; why, why it cannot be read, or None}."""
     import ast
     out, folder = [], Path(root) / KEPT
-    for path in sorted(folder.glob("*.py")) if folder.is_dir() else []:
-        ending = next((e for e in (KEPT_TESTS, KEPT_COMPARISON) if path.name.endswith(e)), None)
-        if ending is None:
+    for held in sorted(p for p in folder.iterdir() if p.is_dir()) if folder.is_dir() else []:
+        declares = held / KEPT_DECLARES
+        if not declares.is_file():
             continue
-        rel, named = rel_to(path, root), {}
+        rel, named = rel_to(held, root), {}
+        one = {"script": held.name, "folder": rel, "files": None, "actions_in": None, "why": None,
+               "tests": sorted(rel_to(p, root) for p in held.rglob(KEPT_TEST_FILES)),
+               "comparison": rel + "/" + KEPT_COMPARISON if (held / KEPT_COMPARISON).is_file() else None}
+        out.append(one)
         try:
-            for node in ast.parse(read(path)).body:
-                if isinstance(node, ast.Assign) and len(node.targets) == 1 and getattr(node.targets[0], "id", None) in KEPT_FILES:
+            for node in ast.parse(declares.read_text(encoding="utf-8")).body:
+                if isinstance(node, ast.Assign) and len(node.targets) == 1 and getattr(node.targets[0], "id", None) in KEPT_FILES + (KEPT_ACTIONS,):
                     named[node.targets[0].id] = ast.literal_eval(node.value)
         except (SyntaxError, ValueError) as exc:
-            out.append((rel, path.name[:-len(ending)], ending == KEPT_COMPARISON, None, "it cannot be read: %s" % exc))
+            one["why"] = "its %s cannot be read: %s" % (KEPT_DECLARES, exc)
             continue
         wrong = [k for k in KEPT_FILES if not isinstance(named.get(k), (tuple, list)) or not all(isinstance(p, str) for p in named[k])]
-        files = None if wrong else tuple(p for k in KEPT_FILES for p in named[k])
-        out.append((rel, path.name[:-len(ending)], ending == KEPT_COMPARISON, files,
-                    "it names no %s as a tuple of paths at its top level" % " and no ".join(wrong) if wrong else None))
+        if wrong:
+            one["why"] = "its %s names no %s as a tuple of paths at its top level" % (KEPT_DECLARES, " and no ".join(wrong))
+            continue
+        one["files"] = tuple(p for k in KEPT_FILES for p in named[k])
+        one["actions_in"] = named.get(KEPT_ACTIONS) if isinstance(named.get(KEPT_ACTIONS), str) else None
     return out
 
 
 def kept_file_holds(files, path):
-    """Whether a path is among the files a kept file names: one it names, or one beneath a folder it names, a path
-    ending in a slash."""
+    """Whether a path is among the files a set of kept tests names: one it names, or one beneath a folder it names, a
+    path ending in a slash."""
     return any(path == f or (f.endswith("/") and path.startswith(f)) for f in files)
+
+
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Kept Tests
+def stated_actions(root, path):
+    """-> the flag of each action a script states in the home's form, read from the file's text and never run: the
+    first of each row of the tuple named FLAGS at its top level; None where the file holds no such tuple."""
+    import ast
+    try:
+        body = ast.parse((Path(root) / path).read_text(encoding="utf-8")).body
+    except (OSError, SyntaxError, ValueError):
+        return None
+    for node in body:
+        if isinstance(node, ast.Assign) and len(node.targets) == 1 and getattr(node.targets[0], "id", None) == KEPT_ACTIONS_NAME \
+                and isinstance(node.value, (ast.Tuple, ast.List)):
+            flags = [row.elts[0].value for row in node.value.elts if isinstance(row, (ast.Tuple, ast.List)) and row.elts
+                     and isinstance(row.elts[0], ast.Constant) and isinstance(row.elts[0].value, str)]
+            return flags if len(flags) == len(node.value.elts) else None
+    return None
+
+
+SCRIPT_CHECK_NAMED = re.compile(r"\s*- \*\*Name:\*\* (\S+)")
+CARRIED_BY_SKILL = re.compile(r"`\.ai/skills/([^`/]+)/`")
+
+
+def script_check_records(root):
+    """-> {a Script Check record's Name: the registered skills its Carried Out By names} for each Script Check record
+    standing in the specs as they stand, a record in a fenced block aside."""
+    out = {}
+    for path in md_files(root):
+        if not rel_to(path, root).startswith("specs/"):
+            continue
+        lines, heading, fenced = read(path).replace("\r\n", "\n").split("\n"), "", False
+        for i, line in enumerate(lines):
+            if line.lstrip().startswith(("```", "~~~")):
+                fenced = not fenced
+            if line.startswith("#") and not fenced:
+                heading = line
+            named = SCRIPT_CHECK_NAMED.match(line)
+            if not named or fenced or not heading.rstrip().endswith("Script Checks"):
+                continue
+            end = next((j for j in range(i + 1, len(lines)) if SCRIPT_CHECK_NAMED.match(lines[j]) or lines[j].startswith("#")), len(lines))
+            out[named.group(1)] = set(CARRIED_BY_SKILL.findall("\n".join(lines[i:end]).partition("**Carried Out By:**")[2]))
+    return out
+
+
+def held_by_script(files, records):
+    """-> the Name of each Script Check record a script carries out: one whose Carried Out By names a skill whose
+    scripts are among the script's files."""
+    return sorted(name for name, skills in records.items() if any(kept_file_holds(files, ".ai/skills/%s/scripts/x" % s) for s in skills))
+
+
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: each-script-check-and-action-held-by-a-test]
+def held_both_ways(names, rows):
+    """-> [(a name, the way no test holds it)] for each action or Script Check among names that no test among rows,
+    what the runner gave of each test, holds where it passes, or none where it reports. A test holds a name it names,
+    among its actions or the Script Checks it cites, each way its markers say: a way's marker with no name given holds
+    every name the test names that way, and one given names holds those alone."""
+    out = []
+    for name in names:
+        naming = [r for r in rows if name in r["actions"] or name in r["script_checks"]]
+        for way in KEPT_WAYS:
+            if not any(way in r["ways"] and (not r["ways"][way] or name in r["ways"][way]) for r in naming):
+                out.append((name, way))
+    return out
+
+
+def coverage_problems(root, one, rows, records):
+    """-> [(rule, message)] of one set of kept tests: its script stating no actions in the home's form, each action it
+    states and each Script Check it carries out that no test of the set holds both ways, and each test naming an action
+    or a Script Check its script does not hold."""
+    where = "%s/%s" % (one["folder"], KEPT_DECLARES)
+    actions = stated_actions(root, one["actions_in"]) if one["actions_in"] else None
+    if actions is None:
+        return [(KEPT_HELD_RULE, "%s names no file stating its script's actions under %s, or the file it names, %s, holds no tuple "
+                 "named %s at its top level with a row to each action opening with its flag, so its actions cannot be read"
+                 % (where, KEPT_ACTIONS, one["actions_in"] or "none", KEPT_ACTIONS_NAME))]
+    checks = held_by_script(one["files"], records)
+    mine = [r for r in rows if r["file"].startswith(one["folder"] + "/")]
+    out = [(KEPT_HELD_RULE, "the %s %s of %s is held by no kept test where it %s" % ("action" if name in actions else "Script Check", name, one["script"], way))
+           for name, way in held_both_ways(actions + checks, mine)]
+    for r in mine:
+        out += [(KEPT_HELD_RULE, "%s names the action %s, which its script does not state" % (r["test"], a)) for a in r["actions"] if a not in actions]
+        out += [(KEPT_HELD_RULE, "%s cites the Script Check %s, which its script does not carry out" % (r["test"], c)) for c in r["script_checks"] if c not in checks]
+    return out
+
+
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: each-fixture-read-by-a-kept-test]
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: fixture-file-holds-fixtures-in-their-form]
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: fixtures-index-lists-its-folder]
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: no-instructions-name-kept-under-the-tests]
+def tests_folder_problems(root, rows):
+    """-> [(rule, message)] of the kept tests' folder as a whole, read from the files alone: a file kept there under
+    the name of an agent instructions file; a file of the fixtures' folder its index does not list, and one it lists
+    that does not stand there; a file of the fixtures' folder that is neither the index nor a Markdown file holding
+    fixtures in their form and no other text; and, rows being what the runner gave of each test, a fixture no kept test
+    reads and a test naming a fixture that does not stand. rows None, the runner having given nothing, leaves the
+    last two unread."""
+    from spec_text import FIXTURES_INDEX, fixtures_of
+    folder, out = Path(root) / KEPT_FOLDER, []
+    if not folder.is_dir():
+        return out
+    standing = sorted(p for p in folder.rglob("*") if p.is_file() and "__pycache__" not in p.parts)
+    out += [(KEPT_NO_INSTRUCTIONS_RULE, "%s carries the name of an agent instructions file" % rel_to(p, root))
+            for p in standing if p.name.lower() == INSTRUCTIONS_NAME.lower()]
+    fixtures, index = Path(root) / FIXTURES, Path(root) / FIXTURES / FIXTURES_INDEX
+    files = sorted(p.relative_to(fixtures).as_posix() for p in standing if fixtures in p.parents and p != index)
+    if not files and not index.is_file():
+        return out
+    listed = re.findall(r"^\|\s*`([^`]+)`\s*\|", read(index), re.M) if index.is_file() else []
+    if not index.is_file():
+        out.append((KEPT_INDEX_RULE, "%s holds no %s" % (FIXTURES, FIXTURES_INDEX)))
+    out += [(KEPT_INDEX_RULE, "%s/%s does not list %s, which stands in its folder" % (FIXTURES, FIXTURES_INDEX, f)) for f in files if f not in listed]
+    out += [(KEPT_INDEX_RULE, "%s/%s lists %s, which does not stand in its folder" % (FIXTURES, FIXTURES_INDEX, f)) for f in listed if f not in files]
+    held = {}
+    for f in files:
+        rel = "%s/%s" % (FIXTURES, f)
+        if not f.endswith(".md"):
+            out.append((KEPT_FIXTURE_FORM_RULE, "%s is neither the folder's index nor a Markdown file of fixtures" % rel))
+            continue
+        found, problems = fixtures_of((fixtures / f).read_text(encoding="utf-8"))
+        out += [(KEPT_FIXTURE_FORM_RULE, "%s line %d: %s" % (rel, line, problem)) for line, problem in problems]
+        if not found and not problems:
+            out.append((KEPT_FIXTURE_FORM_RULE, "%s holds no fixture" % rel))
+        held[f] = [x["key"] for x in found]
+    if rows is not None:
+        read_ = {(f, key): r["test"] for r in rows for f, key in r["reads"]}
+        out += [(KEPT_FIXTURE_READ_RULE, "the fixture %s of %s/%s is read by no kept test" % (key, FIXTURES, f))
+                for f in sorted(held) for key in held[f] if (f, key) not in read_]
+        out += [(KEPT_FIXTURE_READ_RULE, "%s names the fixture %s of %s, which does not stand" % (test, key, f))
+                for (f, key), test in sorted(read_.items()) if key not in held.get(f, [])]
+    return out
+
+
+# @canon-spec specs/methodology/external-references.md § External References
+# the registered schema of a run's report, junit-10.xsd: each element it declares, with the attributes it requires, the
+# attributes it allows beside them, and the elements it may hold
+JUNIT_RERUN = (("type",), ("message",), ("stackTrace", "system-out", "system-err"))
+JUNIT_OUTCOME = ((), ("type", "message"), ())
+JUNIT = {
+    "testsuites": ((), ("name", "time", "tests", "failures", "errors"), ("testsuite",)),
+    "testsuite": (("name", "tests", "failures", "errors"),
+                  ("group", "time", "skipped", "timestamp", "hostname", "id", "package", "file", "log", "url", "version"),
+                  ("testsuite", "properties", "testcase", "system-out", "system-err")),
+    "testcase": (("name",), ("time", "classname", "group"),
+                 ("skipped", "error", "failure", "rerunFailure", "rerunError", "flakyFailure", "flakyError", "system-out", "system-err")),
+    "failure": JUNIT_OUTCOME, "error": JUNIT_OUTCOME, "skipped": JUNIT_OUTCOME,
+    "properties": ((), (), ("property",)), "property": (("name", "value"), (), ()),
+    "system-out": ((), (), ()), "system-err": ((), (), ()), "stackTrace": ((), (), ()),
+    "rerunFailure": JUNIT_RERUN, "rerunError": JUNIT_RERUN, "flakyFailure": JUNIT_RERUN, "flakyError": JUNIT_RERUN,
+}
+JUNIT_ROOTS = ("testsuites", "testsuite")
+JUNIT_TIME = re.compile(r"(([0-9]{0,3},)*[0-9]{3}|[0-9]{0,3})*(\.[0-9]{0,3})?")  # the schema's SUREFIRE_TIME
+JUNIT_FAILED = ("failure", "error")
+
+
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: kept-test-results-read-from-the-report]
+def junit_problems(element, top=True):
+    """-> [what puts a report out of the registered schema], for an element of it and each element beneath."""
+    if element.tag not in JUNIT or (top and element.tag not in JUNIT_ROOTS):
+        return ["an element the schema does not declare%s: %s" % (" as a report's root" if top else "", element.tag)]
+    required, allowed, holds = JUNIT[element.tag]
+    out = ["%s lacks the attribute %s" % (element.tag, a) for a in required if a not in element.attrib]
+    out += ["%s holds the attribute %s, which the schema does not declare of it" % (element.tag, a) for a in element.attrib if a not in required + allowed]
+    if element.tag in JUNIT_ROOTS and "time" in element.attrib and not JUNIT_TIME.fullmatch(element.attrib["time"]):
+        out.append("%s holds a time out of the schema's form: %s" % (element.tag, element.attrib["time"]))
+    for child in element:
+        out += ["%s holds %s, which the schema does not declare within it" % (element.tag, child.tag)] if child.tag not in holds else junit_problems(child, False)
+    return out
+
+
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: kept-test-results-read-from-the-report]
+def read_kept_report(path):
+    """-> ([{test, the test's name with its class before it; outcome, passed, failed or skipped; said, what a failing
+    test reported; time, its seconds as the report holds them}], the report's root element) for a run's report, or
+    (None, why it cannot be read): the file not standing, no XML, or out of the registered schema."""
+    import xml.etree.ElementTree as ET
+    path = Path(path)
+    if not path.is_file():
+        return None, "the run left no report at %s" % path.name
+    try:
+        root = ET.parse(path).getroot()
+    except ET.ParseError as exc:
+        return None, "the run's report is no XML: %s" % exc
+    problems = junit_problems(root)
+    if problems:
+        return None, "the run's report is out of the registered schema: %s" % "; ".join(problems[:3])
+    out = []
+    for case in root.iter("testcase"):
+        failed = [c for c in case if c.tag in JUNIT_FAILED]
+        said = (failed[0].text or failed[0].attrib.get("message", "")).strip() if failed else ""
+        out.append({"test": "%s::%s" % (case.attrib.get("classname", ""), case.attrib["name"]), "said": said, "time": case.attrib.get("time", ""),
+                    "outcome": "failed" if failed else "skipped" if case.find("skipped") is not None else "passed"})
+    return out, root
+
+
+def kept_run_folder(root):
+    from spec_text import KEPT_RUN
+    return Path(root) / KEPT_RUN
+
+
+def run_pytest(root, folder, args):
+    """Runs the registered runner over the kept tests, as a process of its own, from the checkout's root, told the
+    folder it writes within and to compile no module to a file -> the completed process."""
+    from spec_text import KEPT_RUN_NAMED
+    return subprocess.run([sys.executable, "-B", "-m", "pytest"] + args, cwd=root, capture_output=True,
+                          env=dict(os.environ, PYTHONIOENCODING="utf-8", PYTHONDONTWRITEBYTECODE="1", **{KEPT_RUN_NAMED: str(folder)}))
+
+
+def kept_links(root, run):
+    """-> (what the runner gives of each kept test it finds, running none: its file, the actions it names, the way it
+    holds them, the Script Checks it cites and the fixtures it takes; None), or (None, why the runner could not find
+    the tests)."""
+    links = run / "links.json"
+    found = run_pytest(root, run / "found", [KEPT_FOLDER, "--collect-only", "-q", "--kept-links", str(links)])
+    try:
+        rows = json.loads(links.read_text(encoding="utf-8")) if links.is_file() else None
+    except ValueError:
+        rows = None
+    if found.returncode not in (0, 5) or rows is None:
+        said = (found.stdout + found.stderr).decode("utf-8", "replace").replace("\r\n", "\n").strip().split("\n")
+        return None, "the runner could not find the kept tests, exit %d: %s" % (found.returncode, " | ".join(l for l in said[-6:] if l.strip()))
+    return rows, None
 
 
 # @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: kept-tests-pass-at-the-self-review]
 def kept_tests_run(root, changed):
-    """Runs the kept tests of each script whose files a set of changed files holds, a script's files being its code
-    and each file of the canon it reads a form from as it runs, as its kept tests name them, and each kept comparison
-    whose script's files they hold -> (what each run gave, as text; [(rule, message)] for each test that fails and
-    each kept file that cannot be run; the designs a comparison lists as read differently, each a path, or None where
-    none was run). Which kept files the changed files call for is worked out first. Those are then run at once, each
-    alone in a process of its own, by this Python, from the checkout's root, and all are waited for: the kept files
-    share no working space, each keeping to folders of its own, so none waits on another. A kept file passes where it
-    exits 0. What each gave is written in the order kept_scripts gives the kept files, whichever ended first, so the
-    text reads the same from run to run. A comparison's listing is no failure: the builder judges each design it
-    lists. A changed script no kept file names is said to hold no kept tests, and refuses nothing. A comparison of a
-    script holding no set of kept tests is run, and reported as a script whose kept tests cannot be run, since a
-    comparison stands beside its script's tests."""
+    """Runs, by the registered runner, the kept tests of each script whose files a set of changed files holds, and
+    each kept comparison whose script's files they hold, with the checks made with a run -> (what the run gave, as
+    text; [(rule, message)] for each test that fails, each set that cannot be run and each check that reports; the
+    designs a comparison lists as read differently, each a path, or None where none was run).
+
+    A script's files are its code and each file of the canon it reads a form from, as its set names them, the set's
+    own files, the files every set is run with, and each fixture file its tests read a fixture from, as the runner
+    gives which test takes which fixture. The run writes only within the run's folder among the working files, cleared
+    as it starts. Each file of tests the changed files call for is run as a process of its own, all at once and all
+    waited for, each within a folder of its own inside the run's, a file every one of whose tests is marked slow
+    aside, which a run asking for no slow test has nothing to run of; each result is read from the report its process
+    wrote, never from what it printed; and the reports are joined into the run's one report, which is all the folder
+    holds as the run ends. A comparison's listing is no failure: the builder judges each design it lists. With each
+    set run, what its tests hold is checked. The checks of the tests' folder as a whole are made where a set is run or
+    the changed files hold a file under the tests. A changed script no set names is said to hold no kept tests, and
+    refuses nothing."""
     import code_checks
     import concurrent.futures
-    kept, changed = kept_scripts(root), sorted(changed)
-    lines, problems, listed = [], [(KEPT_TESTS_RULE, "%s cannot be run: %s" % (rel, why)) for rel, _, _, _, why in kept if why], None
-    tested = {script: files for _, script, comparison, files, why in kept if not comparison and not why}
-    # the kept files the changed files call for, in the order kept_scripts gives them, each with the changed files it
-    # is run for
-    called = [(rel, script, comparison, files, [p for p in changed if kept_file_holds(files, p)])
-              for rel, script, comparison, files, _ in kept if files is not None]
-    called = [c for c in called if c[4]]
+    import xml.etree.ElementTree as ET
+    from spec_text import KEPT_REPORT, KEPT_RUN, clear_run
+    root = Path(root)
+    sets, changed, run = kept_scripts(root), sorted(changed), kept_run_folder(root)
+    lines, listed = [], None
+    problems = [(KEPT_TESTS_RULE, "%s cannot be run: %s" % (one["folder"], one["why"])) for one in sets if one["why"]]
+    under_tests = [p for p in changed if p == KEPT_FOLDER or p.startswith(KEPT_FOLDER + "/")]
+    rows = None
+    if sets or under_tests:
+        clear_run(run)
+        rows, why = kept_links(root, run)
+        if why:
+            problems.append((KEPT_TESTS_RULE, why))
+    reads = {one["folder"]: {"%s/%s" % (FIXTURES, f) for r in rows or [] if r["file"].startswith(one["folder"] + "/") for f, _ in r["reads"]} for one in sets}
+    called = []
+    for one in sets:
+        if one["files"] is None:
+            continue
+        files = one["files"] + (one["folder"] + "/",) + KEPT_SHARED + tuple(sorted(reads[one["folder"]]))
+        held = [p for p in changed if kept_file_holds(files, p)]
+        if held:
+            called.append((one, held))
 
-    def run(rel):
-        return subprocess.run([sys.executable, str(Path(root) / rel)], cwd=root, capture_output=True,
+    def run_file(numbered):
+        n, rel = numbered
+        folder = run / ("run-%d" % n)
+        return run_pytest(root, folder, [rel, "-q", "--junitxml", str(folder / KEPT_REPORT)]), folder / KEPT_REPORT
+
+    def run_comparison(rel):
+        return subprocess.run([sys.executable, "-B", str(root / rel)], cwd=root, capture_output=True,
                               env=dict(os.environ, PYTHONIOENCODING="utf-8", PYTHONDONTWRITEBYTECODE="1"))
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, len(called))) as at_once:
-        ran_all = list(at_once.map(run, [rel for rel, _, _, _, _ in called]))
-    for (rel, script, comparison, files, held), ran in zip(called, ran_all):
-        if comparison and script not in tested:
-            problems.append((KEPT_TESTS_RULE, "%s is the comparison of a script holding no set of kept tests, %s/%s%s, so "
-                                              "that script's kept tests cannot be run" % (rel, KEPT, script, KEPT_TESTS)))
-        elif comparison and set(tested[script]) != set(files):
-            problems.append((KEPT_TESTS_RULE, "%s and %s/%s%s name different files as their script's, so which changes run "
-                                              "them cannot be told" % (rel, KEPT, script, KEPT_TESTS)))
-        gave = (ran.stdout + ran.stderr).decode("utf-8", "replace").replace("\r\n", "\n").rstrip("\n").split("\n")
-        if not comparison and len(gave) > KEPT_OUTPUT:
-            gave = [l for l in gave[:-1] if KEPT_FAILURE in l] + gave[-1:]
-        lines += ["$ python %s" % rel, "run for %s" % ", ".join(held)] + gave + ["exit %d" % ran.returncode, ""]
-        if comparison and ran.returncode == 0:
-            listed = (listed or []) + COMPARED.findall("\n".join(gave))
-        elif ran.returncode:
-            problems.append((KEPT_TESTS_RULE, "%s %s, exit %d" % (rel, "could not be made" if comparison else "holds a test that fails, or "
-                                                                    "could not be run", ran.returncode)))
+    # what the runner found in each file of tests: a file it found no test in is run by nothing and reported, and so is
+    # run by nothing a file every one of whose tests a run asking for no slow test leaves out, which is no problem
+    found_in = {rel: [r for r in rows if r["file"] == rel] for one, _ in called for rel in one["tests"]} if rows is not None else {}
+    none_found = {rel for rel, found in found_in.items() if not found}
+    all_slow = {rel for rel, found in found_in.items() if found and all(r.get("slow") for r in found)}
+    test_files = [rel for one, _ in called for rel in one["tests"] if rel not in none_found | all_slow]
+    comparisons = [one["comparison"] for one, _ in called if one["comparison"]]
+    # four at once and no more: a file of the search's tests loads the search's model, and eight such processes
+    # together have exhausted a machine's memory
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, min(4, os.cpu_count() or 2))) as at_once:
+        ran_tests = list(at_once.map(run_file, enumerate(test_files)))
+        ran_comparisons = list(at_once.map(run_comparison, comparisons))
+    gave, joined = dict(zip(test_files, ran_tests)), ET.Element("testsuites", {"name": "the kept tests"})
+    for one, held in called:
+        lines += ["the kept tests of %s, run for %s" % (one["script"], ", ".join(held))]
+        if not one["tests"]:
+            problems.append((KEPT_TESTS_RULE, "%s holds no file of tests" % one["folder"]))
+        for rel in one["tests"]:
+            if rel in none_found:
+                problems.append((KEPT_TESTS_RULE, "%s holds no test the runner finds" % rel))
+                continue
+            if rel in all_slow:
+                lines.append("%s is not run: each of its %d tests is marked slow" % (rel, len(found_in[rel])))
+                continue
+            ran, report_at = gave[rel]
+            cases, suite = read_kept_report(report_at)
+            lines.append("$ python -B -m pytest %s" % rel)
+            if cases is None:
+                said = (ran.stdout + ran.stderr).decode("utf-8", "replace").replace("\r\n", "\n").strip().split("\n")
+                lines += ["  " + l for l in said[-8:] if l.strip()] + ["exit %d" % ran.returncode]
+                problems.append((KEPT_REPORT_RULE, "%s could not be run: %s, exit %d" % (rel, suite, ran.returncode)))
+                continue
+            failed = [c for c in cases if c["outcome"] == "failed"]
+            lines.append("  %d test%s, %d failed" % (len(cases), "" if len(cases) == 1 else "s", len(failed)))
+            for c in failed:
+                lines += ["  FAILED %s" % c["test"]] + ["    " + l for l in c["said"].split("\n")[:12]]
+                problems.append((KEPT_TESTS_RULE, "%s holds a test that fails: %s" % (rel, c["test"])))
+            if not cases:
+                problems.append((KEPT_TESTS_RULE, "%s holds no test the runner finds" % rel))
+            elif ran.returncode and not failed:
+                problems.append((KEPT_TESTS_RULE, "%s could not be run whole, exit %d" % (rel, ran.returncode)))
+            for element in ([suite] if suite.tag == "testsuite" else list(suite)):
+                element.set("name", rel)
+                joined.append(element)
+        if one["comparison"]:
+            ran = ran_comparisons[comparisons.index(one["comparison"])]
+            said = (ran.stdout + ran.stderr).decode("utf-8", "replace").replace("\r\n", "\n").rstrip("\n").split("\n")
+            lines += ["$ python -B %s" % one["comparison"]] + said + ["exit %d" % ran.returncode]
+            if ran.returncode == 0:
+                listed = (listed or []) + COMPARED.findall("\n".join(said))
+            else:
+                problems.append((KEPT_TESTS_RULE, "%s could not be made, exit %d" % (one["comparison"], ran.returncode)))
+        if rows is not None:
+            problems += coverage_problems(root, one, rows, script_check_records(root))
+        lines.append("")
+    if called or under_tests:
+        problems += tests_folder_problems(root, rows)
+        lines.append("the checks of %s as a whole were made" % KEPT_FOLDER)
+    if sets or under_tests:
+        clear_run(run)
+        if test_files:
+            for total in ("tests", "failures", "errors"):
+                joined.set(total, str(sum(int(s.attrib.get(total) or 0) for s in joined)))
+            ET.ElementTree(joined).write(run / KEPT_REPORT, encoding="utf-8", xml_declaration=True)
+            lines.append("the run's report: %s/%s" % (KEPT_RUN, KEPT_REPORT))
     skills, code = skill_dirs(root), code_checks.code_roots(root) or ([], [])
-    named = [files for _, _, _, files, _ in kept if files is not None]
-    untested = [p for p in changed if p.endswith(SCRIPTS) and not p.startswith("tests/") and file_kind(p, skills, code) not in (None, "code")
+    named = [one["files"] for one in sets if one["files"] is not None]
+    untested = [p for p in changed if p.endswith(SCRIPTS) and file_kind(p, skills, code) not in (None, "code")
+                and kind_of(p, skills) == "canon-specs" and not p.startswith(KEPT_FOLDER + "/")
                 and not any(kept_file_holds(files, p) for files in named)]
     lines += ["no set of kept tests names %s" % p for p in untested]
     if not lines:
@@ -4679,9 +5054,10 @@ def kept_tests_run(root, changed):
 
 def check_kept_tests(value):
     """--check-kept-tests [FILE ...]: the kept tests of each script whose files the changed files given hold, and each
-    kept comparison whose script's files they hold, run, with what each gave; given no file, the files the checkout
-    holds changed against the last commit, the working files aside. It names no design, so a direct edit outside a
-    design runs it; -> 1 where a test fails or a kept file cannot be run, else 0, whatever a comparison lists."""
+    kept comparison whose script's files they hold, run by the registered runner, with what the run's report holds of
+    each and the checks made with a run; given no file, the files the checkout holds changed against the last commit,
+    the working files aside. It names no design, so a direct edit outside a design runs it; -> 1 where a test fails,
+    a set cannot be run or a check reports, else 0, whatever a comparison lists."""
     root = repo_root()
     changed = {rel_to(v, root) for v in value} if value else {p for p in uncommitted_changes(root) if not is_working_file(p)}
     output, problems, _ = kept_tests_run(root, changed)
@@ -4690,6 +5066,67 @@ def check_kept_tests(value):
         print("%s\n  %s" % (rule, problem))
     print("%d problem%s\n" % (len(problems), "" if len(problems) == 1 else "s"))
     return 1 if problems else 0
+
+
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Kept Tests § When the Kept Tests Are Run
+def show_test_coverage(value):
+    """--show-test-coverage: for every script of the skills, a registered skill's entry script and each script holding
+    a set of kept tests, each action it states and each Script Check it carries out that no kept test holds where it
+    passes, or none where it reports, a script holding no kept tests among them. It says of a script stating no
+    actions in the home's form that its actions cannot be read. It runs no test; -> 0 whatever it shows, and 2 where
+    the runner cannot find the tests."""
+    root = repo_root()
+    sets, records, run = kept_scripts(root), script_check_records(root), kept_run_folder(root)
+    from spec_text import KEPT_REPORT, clear_run
+    rows = []
+    if sets:
+        clear_run(run, keep=(KEPT_REPORT,))
+        rows, why = kept_links(root, run)
+        clear_run(run, keep=(KEPT_REPORT,))
+        if why:
+            sys.stderr.write("--show-test-coverage: %s\n" % why)
+            return 2
+    print("== show-test-coverage")
+    scripts = [(one["script"], one["files"] or (), one["actions_in"], [r for r in rows if r["file"].startswith(one["folder"] + "/")], True) for one in sets]
+    held = [files for _, files, _, _, _ in scripts]
+    for skill in skill_dirs(root):
+        entry = ".ai/skills/%s/scripts/%s.py" % (skill, skill)
+        if (root / entry).is_file() and not any(kept_file_holds(files, entry) for files in held):
+            scripts.append((skill, (".ai/skills/%s/scripts/" % skill,), entry, [], False))
+    unheld = 0
+    for script, files, actions_in, mine, kept in scripts:
+        actions = stated_actions(root, actions_in) if actions_in else None
+        checks = held_by_script(files, records)
+        print("%s: %s, %d test%s" % (script, "a set of kept tests" if kept else "no kept tests", len(mine), "" if len(mine) == 1 else "s"))
+        if actions is None:
+            print("  its actions cannot be read: %s states none in the form of %s" % (actions_in or "no file", KEPT_ACTIONS_NAME))
+        for name, way in held_both_ways((actions or []) + checks, mine):
+            unheld += 1
+            print("  %s %s: held by no kept test where it %s" % ("action" if name in (actions or []) else "Script Check", name, way))
+    print("%d not held\n" % unheld)
+    return 0
+
+
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: kept-test-results-read-from-the-report]
+def show_kept_test_times(value):
+    """--show-kept-test-times: each test of the last run of the kept tests with its result and its time, the slowest
+    first, read from the run's report; -> 0, and 2 where no report in the registered schema stands."""
+    from spec_text import KEPT_REPORT, KEPT_RUN
+    cases, why = read_kept_report(kept_run_folder(repo_root()) / KEPT_REPORT)
+    if cases is None:
+        sys.stderr.write("--show-kept-test-times reads %s/%s: %s\n" % (KEPT_RUN, KEPT_REPORT, why))
+        return 2
+
+    def seconds(case):
+        try:
+            return float(case["time"].replace(",", ""))
+        except ValueError:
+            return 0.0
+    print("== show-kept-test-times, %d test%s" % (len(cases), "" if len(cases) == 1 else "s"))
+    for case in sorted(cases, key=seconds, reverse=True):
+        print("%8.2f s  %-7s %s" % (seconds(case), case["outcome"], case["test"]))
+    print()
+    return 0
 
 
 def self_review_output(root, design, design_text):
@@ -4888,7 +5325,9 @@ def unmatched_cold_parts(texts):
 def cold_parts_problems(rep, kind):
     """-> [(rule, message)]: a report a cold agent wrote, taken up by the builder: a Hand-back holding a fingerprint of
     each part the cold agent wrote, each part still matching it, as unmatched_cold_parts reads them, and no part the
-    cold agent writes added after the take-up."""
+    cold agent writes added after the take-up. A review's Searches are the one part both hands write: where its
+    reviewer handed none back, the Hand-back holds no fingerprint of them, and the part the builder then adds holds the
+    builder's Searches alone."""
     texts = part_texts(rep["text"])
     if HAND_BACK not in texts:
         return [(COLD_PARTS_KEPT, "it holds no Hand-back part: a report a cold agent wrote is taken up by "
@@ -4898,7 +5337,7 @@ def cold_parts_problems(rep, kind):
     out = [(COLD_PARTS_KEPT, "a Hand-back line that is no part's fingerprint: " + line) for line in lines if not FINGERPRINT.match(line)]
     out += unmatched_cold_parts(texts)
     for p in texts:
-        if p in REVIEWER_PARTS and p not in held:
+        if p in REVIEWER_PARTS and p not in held and not (p == SEARCHES_PART and kind in REVIEWS):
             out.append((COLD_PARTS_KEPT, "a part its cold agent writes, added after the builder took the report up: " + p))
     return out
 
@@ -4906,11 +5345,13 @@ def cold_parts_problems(rep, kind):
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Who Writes Each Part § The Report's Workflow
 def cleared_report(text, kind):
     """-> a report's text holding the parts its cold agent wrote alone, every part the builder and the take-up wrote
-    cleared: its Hand-back, its Script Output, its Causes, its Settlement, and the builder's Searches after a review's."""
+    cleared: its Hand-back, its Script Output, its Causes, its Settlement, and the builder's Searches, those after a
+    review's and the whole of a Searches part its reviewer handed none of."""
     texts, lines = part_texts(text), []
     counts = fingerprinted(texts)
     for p, held in texts.items():
-        if p in REVIEWER_PARTS:
+        # a part the Hand-back holds no fingerprint of is none the cold agent wrote, where a Hand-back stands
+        if p in REVIEWER_PARTS and (p in counts or not counts):
             lines += held[:counts.get(p)] + [""]
     return "\n".join(lines).rstrip("\n") + "\n"
 
@@ -5009,37 +5450,56 @@ def places(value):
 
 
 # @canon-spec specs/methodology/working-files/main.md § Retired Phrase
-def phrase_places(root, phrases, committed=False):
-    """-> [(path, line number, line, phrase, replacement)] for each line of a durable file holding a retired phrase in
-    whatever form it takes, a plural and an identifier among them, outside the places it stays right: found by the
-    search the skills share as it finds a term, over the durable files as they stand or, committed, as the last
-    commit held them. A file outside Spec of Record's scope is no durable file and is not read."""
+def phrase_places(root, phrases, committed=False, fixtures=None):
+    """-> [(path, line number, line, phrase, replacement)] for each line of an operative file holding a retired phrase
+    in whatever form it takes, a plural and an identifier among them, outside the places it stays right: found by the
+    search the skills share as it finds a term, over the operative files as they stand or, committed, as the last
+    commit held them. fixtures, where given, says of a fixture file's path whether a design's Target holds it: the
+    fixture files are then searched too, each by a search of its own target, and a line of one the Target holds is
+    given. A fixture file no Target holds is read for no design's wording, and a file outside Spec of Record's scope
+    is not read."""
     import search as searching
-    engine = searching.Search(root, quiet=True, target=searching.COMMITTED if committed else searching.CURRENT)
+    asked = [(searching.COMMITTED_OPERATIVE if committed else searching.CURRENT_OPERATIVE, lambda path: True)]
+    if fixtures is not None:
+        asked.append((searching.COMMITTED_FIXTURE if committed else searching.CURRENT_FIXTURE, fixtures))
     out, texts = [], {}
-    try:
-        for phrase, replacement, stays in phrases:
-            for place in engine.terms(phrase).places:
-                path, lineage = place.path, place.lineage or ""
-                if any(p == path and (s is None or lineage == s or lineage.startswith(s + " § ")) for p, s in stays):
-                    continue
-                if path not in texts:
-                    try:
-                        data = (engine.tree / path).read_bytes() if committed else (Path(root) / path).read_bytes()
-                        texts[path] = data.decode("utf-8", "replace").replace("\r\n", "\n").split("\n")
-                    except (OSError, ValueError, KeyError):
-                        texts[path] = []
-                for n in range(place.first, place.last + 1):
-                    line = texts[path][n - 1].strip() if n <= len(texts[path]) else ""
-                    if (path, n, phrase) not in {(a, b, c) for a, b, _, c, _ in out}:
-                        out.append((path, n, line, phrase, replacement))
-    finally:
-        engine.db.close()
+    for target, read_of in asked:
+        engine = searching.Search(root, quiet=True, target=target)
+        try:
+            for phrase, replacement, stays in phrases:
+                for place in engine.terms(phrase).places:
+                    path, lineage = place.path, place.lineage or ""
+                    if not read_of(path) or any(p == path and (s is None or lineage == s or lineage.startswith(s + " § ")) for p, s in stays):
+                        continue
+                    if path not in texts:
+                        try:
+                            data = (engine.tree / path).read_bytes() if committed else (Path(root) / path).read_bytes()
+                            texts[path] = data.decode("utf-8", "replace").replace("\r\n", "\n").split("\n")
+                        except (OSError, ValueError, KeyError):
+                            texts[path] = []
+                    for n in range(place.first, place.last + 1):
+                        line = texts[path][n - 1].strip() if n <= len(texts[path]) else ""
+                        if (path, n, phrase) not in {(a, b, c) for a, b, _, c, _ in out}:
+                            out.append((path, n, line, phrase, replacement))
+        finally:
+            engine.db.close()
     return sorted(out)
 
 
+def target_named(design_text):
+    """-> the paths a design's Target names, read from its text."""
+    target = re.search(r"^\*\*Target:\*\*(.*)$", design_text, re.M)
+    return set(re.findall(r"`([^`]+)`", target.group(1))) if target else set()
+
+
+def holds_fixture_file(target):
+    """Whether a design's Target, its paths, holds a fixture file: one it names, or the fixtures' folder or a folder
+    holding it."""
+    return any(durable_kind(p.rstrip("/")) == FIXTURE or FIXTURES.startswith(p.rstrip("/") + "/") for p in target)
+
+
 def scope_files(root):
-    """-> the files in Spec of Record's scope, tracked or new, the working files aside."""
+    """-> the operative files in Spec of Record's scope, tracked or new, the working files aside."""
     scope = scope_paths(root)
     found = subprocess.run(["git", "ls-files", "--cached", "--others", "--exclude-standard", "--"] + scope,
                            capture_output=True, text=True, encoding="utf-8", cwd=root)
@@ -5048,7 +5508,8 @@ def scope_files(root):
         [p.relative_to(root).as_posix() for s in scope if (root / s).is_dir() for p in (root / s).rglob("*") if p.is_file()]
     # the specifications' files as the index walk finds them, so a file no index names is the index check's to report
     walked = {p.relative_to(root).as_posix() for p in indexed(root, "specs")}
-    return sorted(p for p in paths if p and not is_working_file(p) and (not p.startswith("specs/") or p in walked))
+    return sorted(p for p in paths if p and not is_working_file(p) and durable_kind(p) == OPERATIVE
+                  and (not p.startswith("specs/") or p in walked))
 
 
 def git_changes():
@@ -5093,9 +5554,10 @@ def target_files(target, created):
 
 # @canon-spec specs/methodology/working-files/main.md § Retired Phrase
 def show_reach(value):
-    """--show-reach DESIGN: each line of a durable file holding a retired phrase in whatever form it takes, those
-    outside the Target marked, found by the search the skills share over the durable files as they stand, and as the
-    last commit held them while a design's uncommitted changes are kept; -> 0, and 2 where the search cannot be run."""
+    """--show-reach DESIGN: each line of an operative file holding a retired phrase in whatever form it takes, those
+    outside the Target marked, and each such line of a fixture file the Target holds, found by the search the skills
+    share over the files as they stand, and as the last commit held them while a design's uncommitted changes are
+    kept; -> 0, and 2 where the search cannot be run."""
     design = design_file(value)
     if design is None:
         return 2
@@ -5103,8 +5565,9 @@ def show_reach(value):
     phrases, target = retired_phrases(text), set(re.findall(r"`([^`]+)`", dict(fields).get("Target", "")))
     created, root = created_paths(), repo_root()
     kept = [] if over_applied(log_entries(text)) else kept_changes(root, text)
+    held = (lambda path: within_target(path, target, created)) if holds_fixture_file(target) else None
     try:
-        found = phrase_places(root, phrases, committed=bool(kept)) if phrases else []
+        found = phrase_places(root, phrases, committed=bool(kept), fixtures=held) if phrases else []
     except Exception as exc:  # the search's own account of what it requires and lacks
         sys.stderr.write("--show-reach finds a retired phrase by the search the skills share, which cannot be run: %s\n" % exc)
         return 2
@@ -5117,9 +5580,9 @@ def show_reach(value):
 
 
 def check_retired_wording(value):
-    """--check-retired-wording DESIGN: each line of the Target's durable files, and of the durable files created under
+    """--check-retired-wording DESIGN: each line of the Target's operative files, and of the operative files created under
     a Target directory, holding a retired phrase in whatever form it takes, with its replacement, found by the search
-    the skills share over the durable files as they stand; a file of the Target outside Spec of Record's scope is not
+    the skills share over the operative files as they stand; a file of the Target outside Spec of Record's scope is not
     read; -> 1 where any stands, and 2 where the search cannot be run."""
     design = design_file(value)
     if design is None:
@@ -5127,9 +5590,11 @@ def check_retired_wording(value):
     _, fields, _, text = read_design(design)
     phrases = retired_phrases(text)
     target = set(re.findall(r"`([^`]+)`", dict(fields).get("Target", "")))
-    read_ = set(target_files(target, created_paths()))
+    created = created_paths()
+    read_ = set(target_files(target, created))
+    held = (lambda path: within_target(path, target, created)) if holds_fixture_file(target) else None
     try:
-        found = phrase_places(repo_root(), phrases) if phrases else []
+        found = phrase_places(repo_root(), phrases, fixtures=held) if phrases else []
     except Exception as exc:  # the search's own account of what it requires and lacks
         sys.stderr.write("--check-retired-wording finds a retired phrase by the search the skills share, which cannot be run: %s\n" % exc)
         return 2
@@ -5223,8 +5688,10 @@ def show_refactor_and_refine_of_existing_specs(baseline):
     then_files = git("ls-tree", "-r", "--name-only", baseline, "--", *REFACTOR_AND_REFINE_PATHS).stdout.split()
     now_files = sorted(set(git("ls-files", "--", *REFACTOR_AND_REFINE_PATHS).stdout.split())
                        | set(git("ls-files", "--others", "--exclude-standard", "--", *REFACTOR_AND_REFINE_PATHS).stdout.split()))
-    then, then_where = count((f, git("show", "%s:%s" % (baseline, f)).stdout) for f in then_files)
-    now, where = count((f, read(Path(f))) for f in now_files if Path(f).is_file())
+    # @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § A Citation's Link
+    # both sides are read the same way, each citation's link set aside, so a line differs only where its text does
+    then, then_where = count((f, citation_links.strip(git("show", "%s:%s" % (baseline, f)).stdout)) for f in then_files)
+    now, where = count((f, citation_links.strip(Path(f).read_text(encoding="utf-8"))) for f in now_files if Path(f).is_file())
     # a line of six words or more repeats only by being copied or by design; a shorter line,
     # a heading or a table's header, repeats by nature, so a gain in one is listed as new instead
     repeated = sorted(t for t in now if now[t] > 1 and now[t] > then.get(t, 0) and len(t.split()) >= 6)
@@ -5454,7 +5921,7 @@ def around_and_up(text, line):
 # @canon-spec specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Zoom-Out
 def citing_places(root):
     """-> [(the file a citation stands in, its 1-based line, the file it cites, the heading path it cites or "")] for
-    each citation the durable files as they stand hold, found by the search the skills share, its search for every
+    each citation the operative files as they stand hold, found by the search the skills share, its search for every
     cited section, and by no pattern of the design script's own."""
     import search as searching
     engine = searching.Search(root, quiet=True)
@@ -5475,7 +5942,7 @@ def citing_places(root):
 def markdown_reach(text_of, changes, citing):
     """-> {path: 0-based lines} the builder zooms out to from each line a change wrote in a Markdown file in scope:
     around, up, and across, each passage citing what it read around, an ancestor or the file whole, read around and
-    up in turn. citing gives each citation the durable files hold, as citing_places finds them by the search."""
+    up in turn. citing gives each citation the operative files hold, as citing_places finds them by the search."""
     reach, read_names = {}, {}
     for path, lines in changes.items():
         if path not in text_of:
@@ -5651,9 +6118,9 @@ FLAGS = (
     ("--check-settled-report", "REPORT", check_settled_report,
      "check a check's report at its path in a design's folder once it is settled, by every check --log-entry runs on it as it logs the check's entry: its form, its layout, its values holding places in their form, each finding settled once, each key naming a record, each Search's matches covered, each marked Finding anchored in the design, and its records covering what working-files/main.md § A Check's Report § What the Design Script Checks has the script check of them; of a report a cold agent wrote it reads the builder's parts alone, holding each part that agent wrote to the fingerprint the take-up wrote of it and to nothing the design or the files have come to hold since; writes no file, a self-review's report read with the Script Output --log-entry would write into it; the builder runs it as a check's settling ends, before logging its entry"),
     ("--show-reach", "DESIGN", show_reach,
-     "list each line of a durable file holding a phrase the design's Retired Phrases record in whatever form it takes, outside its Stays Right, marking those outside the Target, found by the search the skills share, at the last commit while a design's uncommitted changes are kept; the builder runs it at drafting"),
+     "list each line of an operative file holding a phrase the design's Retired Phrases record in whatever form it takes, outside its Stays Right, marking those outside the Target, found by the search the skills share, at the last commit while a design's uncommitted changes are kept; the builder runs it at drafting"),
     ("--check-retired-wording", "DESIGN", check_retired_wording,
-     "report each line of the Target's durable files holding a retired phrase in whatever form it takes outside its Stays Right, with its replacement, found by the search the skills share; the builder runs it at its self-review before the post-apply review"),
+     "report each line of the Target's operative files holding a retired phrase in whatever form it takes outside its Stays Right, with its replacement, found by the search the skills share; the builder runs it at its self-review before the post-apply review"),
     ("--check-changed-files", "DESIGN", check_changed_files,
      "list each file changed against the last commit outside the working files that the Target does not name, marking the user's edits and the direct edits the log names; the builder runs it at its self-review before the post-apply review"),
     ("--check-audits", "DESIGN", check_audits,
@@ -5661,7 +6128,11 @@ FLAGS = (
     ("--check-work", "DESIGN", check_work,
      "run the specs' and the code's script checks over the design's work, the files changed against the last commit, whatever they touch: each finding the scope holds now that it did not hold then, each tree by the checks as they stood in it, matched by its rule, its file and its message, its repeats counted, a matched finding on a line the change added reported too; then, apart, each candidate in the reach the builder zooms out to from what the change wrote, the places citing it found by the search the skills share; with no version control, every finding the scope holds; writes no file; the builder runs it at its self-review, and the post-apply review runs it"),
     ("--check-kept-tests", "[FILE ...]", check_kept_tests,
-     "run the kept tests of each script whose files the changed files given hold, a script's files being its code and each file of the canon it reads a form from as it runs, as its kept tests under tests/spec-of-record/scripts/ name them, and each kept comparison whose script's files they hold, the design script's among them, printing what each gave; given no file, read the files the checkout holds changed against the last commit, the working files aside; names no design, so a direct edit of such a file runs it before the user approves the edit; fails where a test fails or a kept file cannot be run, and never for what a comparison lists; --log-entry runs it as it appends the entry of a self-review over applied work, over the design's changes"),
+     "run, by the registered runner, the kept tests of each script whose files the changed files given hold, a script's files being its code, each file of the canon it reads a form from as it runs, its set of kept tests under tests/spec-of-record/scripts/ and each fixture file its tests read a fixture from, and each kept comparison whose script's files they hold; read each result from the run's report, .ai/tmp/kept-tests/report.xml, naming each test that failed; check with each set run that each action its script states and each Script Check it carries out is held by a test where it passes and by one where it reports; check the kept tests' folder as a whole where a set is run or the changed files hold a file under the tests; given no file, read the files the checkout holds changed against the last commit, the working files aside; names no design, so a direct edit of such a file runs it before the user approves the edit; fails where a test fails, a set cannot be run or a check reports, and never for what a comparison lists; --log-entry runs it as it appends the entry of a self-review over applied work, over the design's changes"),
+    ("--show-test-coverage", "", show_test_coverage,
+     "show, for every script of the skills, each action it states and each Script Check it carries out that no kept test holds where it passes, or none where it reports, a script holding no kept tests among them, and say of a script stating no actions in the form the kept tests' rule gives that its actions cannot be read; runs no test and fails nothing for what it shows"),
+    ("--show-kept-test-times", "", show_kept_test_times,
+     "show each test of the last run of the kept tests with its result and its time, the slowest first, read from the run's report; refuses where no report in the registered schema stands"),
     ("--refresh-links", "ROOT", refresh_links,
      "write and refresh the link every citation in a file a person reads on GitHub carries, README.md, the files under docs/ and every spec but specs/AGENTS.md; the apply runs it once the text its steps call for is written; reads the repository holding the current directory unless given a root"),
     ("--check-constructs", "FILE", check_constructs,
@@ -5687,6 +6158,9 @@ def main(argv, plans=PLANS):
             parser.add_argument(flag, metavar="ARG", nargs="+", action="append", help=metavar + ": " + help_text)
         elif flag == "--check-kept-tests":
             parser.add_argument(flag, metavar="FILE", nargs="*", action="append", help=help_text)
+        elif not metavar:
+            # an action taking no value
+            parser.add_argument(flag, action="append_const", const="", help=help_text)
         else:
             parser.add_argument(flag, metavar=metavar, action="append", help=help_text)
     args = vars(parser.parse_args(argv[1:]))

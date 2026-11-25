@@ -9,12 +9,15 @@ Spec of Record governs files by kind. For each kind, the table gives what it hol
 |---|---|---|
 | Agent instructions | the methodology's entry point, and a project's own instructions to an agent, each an AGENTS.md file ([`specs/methodology/external-references.md § External References [Name: AGENTS.md]`](/specs/methodology/external-references.md#external-references)) | [`specs/AGENTS.md`](/specs/AGENTS.md), and `AGENTS.md` at the project's root |
 | Specs | the specifications, the methodology among them | their place under `specs/`, [`specs/AGENTS.md`](/specs/AGENTS.md) aside |
-| Skills | the procedures that apply the methodology's rules, and the code their scripts share | [`specs/methodology/skills/registered-skills.md § Registered Skills`](/specs/methodology/skills/registered-skills.md#registered-skills) |
+| Skills | the procedures that apply the methodology's rules, the code their scripts share, and the files of their scripts' kept tests that are no fixture file, the tests' code and what runs and compares with it | [`specs/methodology/skills/registered-skills.md § Registered Skills`](/specs/methodology/skills/registered-skills.md#registered-skills), and, for the kept tests' files, their place under `tests/spec-of-record/`, the fixtures' folder aside |
+| Fixture files | the files standing in the folder of the kept tests' fixtures, each a file of fixtures or the index of them ([`specs/methodology/skills/authoring-a-skill.md § Authoring a Skill`](/specs/methodology/skills/authoring-a-skill.md#authoring-a-skill)), which a reader reads only where it names the fixture files or one of them | their place under `tests/spec-of-record/fixtures/` |
 | Documentation | the project's README and its guides | `README.md` at the project's root, and the files under `docs/` |
 | Working files | the working files | [`specs/methodology/working-files/main.md § The Working Files`](/specs/methodology/working-files/main.md#the-working-files) |
 | Code | the application's code, governed code and the wiring connecting it | the code roots the technical specs' stack names ([`specs/methodology/spec-placement/technical-stack.md § The Technical Stack`](/specs/methodology/spec-placement/technical-stack.md#the-technical-stack)) |
 
-Whatever is not named so is outside the scope, and the methodology's rules do not reach it. Those rules, the rules of the methodology's files and of [`specs/AGENTS.md`](/specs/AGENTS.md), reach every file in scope but code. A rule reaches less only where its own text scopes it to something a file is not. No exemption granted elsewhere narrows a rule. Code is reached by the rules in [`specs/methodology/code.md`](/specs/methodology/code.md) and the rules that file cites for code, and by no other rule. A project's root `AGENTS.md` holds that project's own instructions, and the project sets what those instructions reach.
+Whatever is not named so is outside the scope, and the methodology's rules do not reach it. Those rules, the rules of the methodology's files and of [`specs/AGENTS.md`](/specs/AGENTS.md), reach every file in scope but code and the fixture files. A rule reaches less only where its own text scopes it to something a file is not. No exemption granted elsewhere narrows a rule. Code is reached by the rules in [`specs/methodology/code.md`](/specs/methodology/code.md) and the rules that file cites for code, and by no other rule. A fixture file is reached by the rules [`specs/methodology/skills/authoring-a-skill.md § Authoring a Skill`](/specs/methodology/skills/authoring-a-skill.md#authoring-a-skill) states for the kept tests and their fixtures, and by no other rule. The constitutional principles bind code and the fixture files as they bind every file in scope ([`specs/AGENTS.md § Constitutional Principles`](/specs/AGENTS.md#constitutional-principles)). A project's root `AGENTS.md` holds that project's own instructions, and the project sets what those instructions reach.
+
+**What reads a fixture file.** A file is a fixture file by standing under the fixtures' folder, whatever its name, its size or what it holds. Each reader of the scope's files says what it reads: a search by its target, a script by the kinds it asks the scripts' listing for, a check by its Reads ([`specs/methodology/checks.md § Check`](/specs/methodology/checks.md#check)), an audit by its Kind and its unit, and a design's work and its reviews by the design's Target and their reach. Where a reader names a kind of change, it names the operative files ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md)) of that kind, and the fixture files are named by a value of their own. So a search asked for no target reads none, and neither does a check or an audit naming a kind of change and not the fixture files. What a design of a kind may change is another question, which [`specs/methodology/working-files/main.md § A Design Document § The Kinds of Change`](/specs/methodology/working-files/main.md#the-kinds-of-change) answers: a design changing the canon may change the kept tests' folder whole, its fixture files among it.
 
 ## The Shape of the Scope
 
@@ -53,6 +56,10 @@ specs/
 └── skills/
     ├── <skill-name>/          a registered skill: SKILL.md, its entry point, references/ and scripts/
     └── lib/                   the code the registered skills' scripts share
+tests/
+└── spec-of-record/            the kept tests of the skills' scripts, with the runner's settings
+    ├── scripts/               the tests' code, and what runs and compares with it
+    └── fixtures/              the fixture files the tests read, and their index
 ```
 
 The tree:

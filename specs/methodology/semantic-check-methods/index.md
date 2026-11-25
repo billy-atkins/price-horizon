@@ -18,7 +18,7 @@
 | `placement.md` | How a directory is read for where its files sit and how they are named. |
 | `finished-style.md` | How the prose is read for what a finished spec reads like, and when a listed word or construction is a finding. |
 | `agent-agnostic.md` | How the instructions are read for anything that assumes one agent. |
-| `skill-form.md` | How each skill, and the checks the canon records, are read for their form. |
+| `skill-form.md` | How each skill, and the checks the canon records, are read for their form. How a kept test is read against the rule for one, a fixture with the tests reading it, found by their `reads` marker, and the index of the fixture files against what its files hold. |
 | `diagram-currency.md` | How a diagram is read against its sources and its host file, from its source and from its render. |
 | `principles-held.md` | How the files are read against the constitutional principles. |
 | `code-against-its-specs.md` | How the application's code is read against the specs it cites. |
