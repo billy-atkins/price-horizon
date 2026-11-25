@@ -1,6 +1,6 @@
 ## Skill Form
 
-This check reads each skill for its form, and reads the checks the canon records.
+This check reads each skill for its form, and reads the checks the canon records. It also reads the kept tests of the skills' scripts, the fixtures those tests read and the index of the fixture files.
 
 The reader reads:
 - **Each skill no registry row names.** Against the test of [`specs/methodology/skills/registered-skills.md § Registered Skills`](/specs/methodology/skills/registered-skills.md#registered-skills).
@@ -11,6 +11,9 @@ The reader reads:
 - **The checks standing under each section.** Whether, between them, they cover each of the section's rules, as [`specs/methodology/scope/rules-and-skills.md § Rules and Skills`](/specs/methodology/scope/rules-and-skills.md#rules-and-skills) has them. Whether each check falls in one area, the area of the rule it enforces, as [`specs/methodology/checks.md § The Areas of Checking`](/specs/methodology/checks.md#the-areas-of-checking) has it.
 - **Each place that names a check standing as a record.** [`specs/methodology/checks.md § Check`](/specs/methodology/checks.md#check) has such a place cite the record. The places are a skill's step, a state of [`specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work`](/specs/methodology/design-workflow/order-of-a-designs-work.md#the-order-of-a-designs-work), and the Runs of a Check Role record of [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles`](/specs/AGENTS.md#check-roles).
 - **Where a skill says its output and its plans go.** Against the paragraphs of [`specs/methodology/working-files/main.md § The Working Files`](/specs/methodology/working-files/main.md#the-working-files) on a skill's scratch space and on its plans.
+- **Each kept test.** Against the rule [`specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Kept Tests`](/specs/methodology/skills/authoring-a-skill.md#kept-tests) gives a kept test. A script decides whether a test names an action or a Script Check that its script holds. The reader judges what no script decides: whether the test's own code checks what its markers and its annotation say it holds, and whether it is written by the runner's own means.
+- **Each fixture, with the tests reading it.** The reader first finds those tests. A test takes a fixture by its `reads` marker, which names the fixture's file and then its key, so a search by terms for the key over the tests' code gives each test taking it (`.ai/skills/search-spec-of-record-scope/`). That marker is the runner's link from a test to what it is handed. It is no citation, so no reader follows it from the fixture, and the fixture names no test. The reader then reads the fixture's snippet against its Holds, and against what each of those tests does with it, as [`specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Kept Tests § Fixture`](/specs/methodology/skills/authoring-a-skill.md#fixture) has a fixture governed. A Holds that does not say what the snippet holds is a finding. So is each part of the snippet that none of those tests needs. The reader judges a fixture by no rule for a spec: a snippet breaking one is no finding.
+- **The index of the fixture files.** Against the form [`specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Kept Tests § Fixture`](/specs/methodology/skills/authoring-a-skill.md#fixture) gives it. A script decides whether the index lists each file of its folder. The reader reads each description with its file open, as [`specs/methodology/semantic-check-methods/main.md § Semantic Check Methods`](/specs/methodology/semantic-check-methods/main.md#semantic-check-methods) has a passage read with its source beside it. A description that does not say what its file's fixtures hold is a finding.
 
 What is easy to miss, each against [`specs/methodology/skills/authoring-a-skill.md § Authoring a Skill`](/specs/methodology/skills/authoring-a-skill.md#authoring-a-skill):
 - a spelling or a usage that is not American English, in a skill's text or in its scripts' comments and messages. [`specs/methodology/spec-style/clear-prose.md § Clear Prose`](/specs/methodology/spec-style/clear-prose.md#clear-prose) has both written in it. One in a quotation, a title or a name from outside the specs is no finding;
@@ -19,4 +22,8 @@ What is easy to miss, each against [`specs/methodology/skills/authoring-a-skill.
 - a section stating operating rules that a Workflow cites only from steps that do not carry those rules out;
 - a skill's description of what its script does that is no longer true of the script;
 - a script's copy of values the canon states that carries no canon-spec annotation, or one whose annotation points to an area the values do not come from;
-- an annotation that cites a check its unit does not carry out.
+- an annotation that cites a check its unit does not carry out;
+- a kept test whose annotation or markers name what its own code never checks;
+- a fixture written into a test's code, or a file kept under the tests that is a copy of a file of the canon;
+- a fixture widened so that a second test may read it, each test then reading more than it needs;
+- a Holds, or a description in the index, that calls a snippet right or wrong or names a test.

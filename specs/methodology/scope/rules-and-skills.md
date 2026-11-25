@@ -1,6 +1,6 @@
 ## Rules and Skills
 
-The methodology's files state Spec of Record's methodology rules. They do not sequence the work, record what goes wrong while following it, or check whether a result conforms. The skills that [`specs/methodology/skills/registered-skills.md § Registered Skills`](/specs/methodology/skills/registered-skills.md#registered-skills) registers do those things, and a cold agent needs them to follow the methodology in practice. [`specs/AGENTS.md`](/specs/AGENTS.md) states methodology rules too, and sequences the work through the Design, Refactor, Refine process. The methodology's files and [`specs/AGENTS.md`](/specs/AGENTS.md), with the specifications' main file and their overview, make up the core canon ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md)). The skills, with the code they share, are the rest of the canon. Where a skill and a methodology rule disagree, the methodology rule governs, and the skill is what needs correcting.
+The methodology's files state Spec of Record's methodology rules. They do not sequence the work, record what goes wrong while following it, or check whether a result conforms. The skills that [`specs/methodology/skills/registered-skills.md § Registered Skills`](/specs/methodology/skills/registered-skills.md#registered-skills) registers do those things, and a cold agent needs them to follow the methodology in practice. [`specs/AGENTS.md`](/specs/AGENTS.md) states methodology rules too, and sequences the work through the Design, Refactor, Refine process. The methodology's files and [`specs/AGENTS.md`](/specs/AGENTS.md), with the specifications' main file and their overview, make up the core canon ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md)). The skills, with the code they share and the files of their scripts' kept tests, the fixture files those tests read among them, are the rest of the canon. Where a skill and a methodology rule disagree, the methodology rule governs, and the skill is what needs correcting.
 
 **Where a rule lives.** What a rule governs decides where it lives, never where it stands today. The questions mean these:
 - **A specification rule?** Whether the rule governs what the specifications or the code hold, rather than how the work is done, which an operating rule governs.
@@ -717,7 +717,7 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
     **Leaves:** Assessed Areas missing a passage stating part of a rule the change states or a use of a term it defines or redefines \
     **Caught By:**
       - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`](/specs/AGENTS.md#check-roles)
-      - [`specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: goals-searched-over-every-durable-file]`](/specs/methodology/working-files/main.md#script-checks-1)
+      - [`specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: goals-searched-over-every-operative-file]`](/specs/methodology/working-files/main.md#script-checks-1)
 
   - **Failure:** a working file changed by a design's step \
     **Sections:**

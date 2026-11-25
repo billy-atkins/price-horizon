@@ -41,11 +41,114 @@ A flag setting how an action runs, rather than choosing one, is named for what i
 
 **A unit carrying out a check cites its record.** A unit of a skill's script, or of the code the skills share, that carries out a check carries a canon-spec annotation citing the check's record, as narrow as the unit. The annotation sits as an app-spec annotation sits on the code carrying out its spec ([`specs/methodology/code.md § Citing the Specs From Code`](/specs/methodology/code.md#citing-the-specs-from-code)), so a cold agent finds which check the unit carries out. Until a check's entry in a skill's table moves into a record, the code carrying it out takes no annotation for it, and an annotation it does carry cites the section the entry enforces.
 
-**A script's kept tests stand outside Spec of Record's scope.** A script's kept tests are the tests of it kept in the repository and run again at each change to it. They stand under `tests/spec-of-record/scripts/`, outside Spec of Record's scope, so no rule of the methodology governs how a test is written. A set of kept tests is one file there, named for its script and ending `-tests.py`, as `search-tests.py` is the search's. A set says which files are its script's by the names `SCRIPT_FILES` and `FORM_FILES`, each written out at its top level as a tuple of paths. `SCRIPT_FILES` holds the files holding the script's code, and `FORM_FILES` each file of the canon the script reads a form from as it runs. A path ending in a slash names each file beneath it. A script is its code together with those files of the canon, so a change to a form alone changes the script. A test drives the script as an agent does, through a skill's entry script. A test may drive the code the skills share instead, importing it from `.ai/skills/lib/`, where no entry script reaches what it tests. A set is run alone, by Python, from the checkout's root, and passes where it exits 0. A kept comparison stands beside a script's kept tests, named for the same script and ending `-comparison.py`, and names the same files by the same names. The design script holds one, which shows the designs a change reads differently, as [`specs/methodology/working-files/main.md § A Check's Report § Kinds of Builder Check [Check Kind: differential test]`](/specs/methodology/working-files/main.md#kinds-of-builder-check) has it judged.
-
-**A script's kept tests are run whenever a change holds one of its files.** The design script's `--check-kept-tests` runs them. Given a set of changed files, it runs the kept tests of each script whose files they hold, and each kept comparison whose script's files they hold, and reports what each gave. It fails where a test fails or a kept file cannot be run, and never for what a comparison lists. The design script runs the tests itself, so no builder records a run in place of one. In a design, `--log-entry` runs the action over the design's changes as it appends the entry of a self-review over applied work, as [`§ Authoring a Skill § Script Checks [Name: kept-tests-pass-at-the-self-review]`](#script-checks) has it. Outside a design, a direct edit of one of a script's files runs it before the user approves the edit, as [`specs/AGENTS.md § Design, Refactor, Refine § Direct Edits`](/specs/AGENTS.md#direct-edits) has a direct edit made. A changed script that no set of kept tests names holds none, and the action says so.
-
 **Record what actually went wrong.** A skill earns its length by naming the failures that motivated it: the trap that only shows up at the wrong moment, and the fix that is not obvious from the symptom. Anything a reader can derive from the underlying tool's own documentation does not need to be in the skill.
+
+### Kept Tests
+
+A script's kept tests ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md)) hold what the script does, so a change that breaks it is found by a run and not by the next design to use it. A script is its code together with each file of the canon it reads a form from as it runs, so a change to a form alone changes the script.
+
+**The kept tests stand under `tests/spec-of-record/`.** The registered runner's settings, `pytest.ini`, and what every test is handed, `conftest.py`, stand in the folder itself and nowhere else. The tests' code stands under `scripts/`. The fixture files stand under `fixtures/`. A fixture file is of its own kind, and each other file of the folder is a file of the skills, as [`specs/methodology/scope/what-spec-of-record-governs.md § What Spec of Record Governs`](/specs/methodology/scope/what-spec-of-record-governs.md#what-spec-of-record-governs) has them. No file kept under the folder carries the name of an agent instructions file, `AGENTS.md` ([`specs/methodology/external-references.md § External References [Name: AGENTS.md]`](/specs/methodology/external-references.md#external-references)), so nothing looking for such a file by its name finds one there.
+
+**The kept tests are run by pytest.** pytest ([`specs/methodology/external-references.md § External References [Name: pytest]`](/specs/methodology/external-references.md#external-references)) finds, selects and runs each test, and writes the run's report. A test is written for pytest and uses pytest's own means for each thing pytest gives: finding and naming a test, handing a test what it needs, marking it, and running code before and after it. No set of tests holds a runner of its own.
+
+**A set of kept tests is a folder named for its script.** It stands at `tests/spec-of-record/scripts/<script>/`, as `search/` is the search's. A test is a function named `test_` and what it holds, in a file of the set named `test_` and what its tests are of. The set's `conftest.py` says which files are its script's, by names written out at its top level:
+
+**Reference Key:** Name \
+**Required:** Holds
+
+| Name | Holds |
+|---|---|
+| `SCRIPT_FILES` | a tuple of paths, the files holding the script's code |
+| `FORM_FILES` | a tuple of paths, each file of the canon the script reads a form from as it runs |
+| `ACTIONS_IN` | a path, the file of the script's code stating its actions |
+
+A path ending in a slash names each file beneath it. A kept comparison stands in a script's set as `comparison.py`, which the runner takes for no test. The design script holds one, which shows the designs a change reads differently, as [`specs/methodology/working-files/main.md § A Check's Report § Kinds of Builder Check [Check Kind: differential test]`](/specs/methodology/working-files/main.md#kinds-of-builder-check) has it judged.
+
+**A script holding kept tests states its actions in one form.** The file its set names in `ACTIONS_IN` holds a tuple named `FLAGS` at its top level, with a row to each action, each row opening with the action's flag. So a check reads a script's actions from its file alone, running nothing.
+
+**A test drives the script as an agent does.** It runs a skill's entry script as a process of its own. A test may drive the code the skills share instead, importing it from `.ai/skills/lib/`, where no entry script reaches what it tests.
+
+**A test says what it holds.** It says so by pytest's markers, which `pytest.ini` declares, and by a canon-spec annotation:
+
+**Reference Key:** Marker \
+**Required:** Says
+
+| Marker | Says |
+|---|---|
+| `action` | each action of its script the test drives, by the flag the script states the action under |
+| `passes` | that the test holds what it names where that passes; given names, that it holds those alone so |
+| `reports` | that the test holds what it names where that reports; given names, that it holds those alone so |
+| `reads` | the fixtures the test takes: a fixture file's name, then the key of each fixture taken from it |
+| `slow` | that a run leaves the test out unless the run asks for the slow tests |
+
+A test holding a Script Check carries a canon-spec annotation ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md)) citing the check's record, in the comment lines directly above the test, written as [`specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § Citing From Code`](/specs/methodology/sourcing-and-citation/writing-a-citation.md#citing-from-code) writes one. What a test names is its actions and the Script Checks it cites. A test's annotation says the test holds the check. It never counts as a unit carrying the check out.
+
+**A test takes what it needs from what the runner hands it.** `conftest.py` hands a test each of these, by pytest's way of handing a test what it asks for by name:
+
+**Reference Key:** Handed \
+**Required:** Holds
+
+| Handed | Holds |
+|---|---|
+| `work` | the test's own folder within the run's folder, empty as the test starts and removed as it ends |
+| `fixtures` | the snippet of each fixture the test's `reads` marker names, by its key, and of no other fixture |
+| `check` | a function recording one check the test makes: what is checked, whether it holds, and what to show where it does not. The test fails where a check it made did not hold, each one named, so one run shows every check that failed |
+| `checkout` | the root of the checkout the tests are run in |
+| `run_folder` | the run's folder |
+
+A test builds everything it needs within `work`, a project it drives the script in among it, and writes nowhere else. What several tests of one file share, a file's own pytest fixture builds once within the run's folder.
+
+**A test reads the canon as it stands, and keeps no copy of it.** A test reads each form its script takes from the canon from the canon's file as it stands, so a change to a form reaches the tests. A project a test builds takes those files as the test runs, and no more of the canon than the files its script reads a form from. No file kept under the tests is a copy of a file of the canon. A test needing a body of text to search or to rank within takes it as fixtures written for it, on a subject that is not the canon's.
+
+#### Fixture
+
+A fixture ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md)) stands in a fixture file as an entry of this type, a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Fixtures \
+**Reference Key:** Fixture
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Fixture | yes | yes | | text | its key, by which a kept test takes it |
+| Holds | no | yes | | text | what the snippet holds, as plain fact, calling it neither right nor wrong and naming no test |
+| Snippet | no | yes | | text | what the tests read, Markdown or code or data of another language, in a fenced block naming its language, and only what the tests reading it need |
+
+**The fixture files stand in one folder.** They stand under `tests/spec-of-record/fixtures/` and nowhere else. Each file there is a Markdown file of fixtures or the folder's index. A file of fixtures holds a `**Records:**` list of fixtures and no other text. A fixture's key is lower-case words joined by hyphens, and no two fixtures of one file share a key. Its Snippet's fenced block stands in from the fixture's fields as a record's block does, and a test is handed the block's text with that indent taken off.
+
+**A fixture is governed by the tests it serves.** A scenario governs the test that carries it out the same way ([`specs/methodology/acceptance-scenarios.md`](/specs/methodology/acceptance-scenarios.md)). Its Holds says what the snippet holds and calls it neither right nor wrong. The test says how it uses the fixture and what it expects of it, so one fixture may serve one test as text a check passes and another as text a check reports. A snippet states nothing: no reader holds it to be true, and it may break a rule of the canon for a spec on purpose. A fixture holds only what the tests reading it need. No fixture is written into a test's code. A test changes what a fixture holds, where it needs a variant, in its own code, which then says what the variant is for.
+
+**A test reads an existing fixture where one already fits.** An agent writing a test looks for a fixture that fits before it writes one: it reads the folder's index, then the Holds of the fixtures in the file the index points it to, or it searches the fixture files (`.ai/skills/search-spec-of-record-scope/`). No fixture is changed to fit a second test. Where none fits as it stands, the test takes a new one.
+
+**The folder's index lists each fixture file.** `tests/spec-of-record/fixtures/index.md` takes the form [`specs/methodology/spec-placement/index-architecture-detail.md § Index, Architecture, Detail`](/specs/methodology/spec-placement/index-architecture-detail.md#index-architecture-detail) gives an index: a title, and a table naming each file of the folder with its description. The form is stated here since that section's rule on a directory's index reaches the specs alone. A file's description says what its fixtures hold, fully enough for an agent to tell whether the file may hold a fixture it needs. It names no test, since which tests read a fixture is the tests' to say.
+
+#### A Run
+
+**A run is made by the design script or by hand.** The design script's `--check-kept-tests` runs the kept tests, as [`§ Authoring a Skill § Kept Tests § When the Kept Tests Are Run`](#when-the-kept-tests-are-run) has it. By hand, from the checkout's root:
+
+```
+python -B -m pytest tests/spec-of-record
+```
+
+A run by hand takes pytest's own ways of choosing tests, a file, a test or a word of a test's name. It also takes `--action` with a flag, for the tests naming that action, `--script-check` with a check's Name, for the tests citing that check, and `--slow`, for the tests marked slow too.
+
+**A run writes only within its one folder among the working files.** [`specs/methodology/working-files/main.md § The Working Files`](/specs/methodology/working-files/main.md#the-working-files) names the folder. What a test builds, the runner's temporary folders and the run's report all stand there. A run compiles no module to a file, the tests' or the scripts', and keeps no cache of the runner's. No test and no setting of the runner names a place to write outside the folder.
+
+**One clean-up runs before and after.** It runs by the runner's own hooks: over a test's folder before the test starts and after it ends, and over the run's folder before the run starts and after it ends. Both are needed, since a test may fail and a run may be cut off. What either left is cleared as the next starts. After a run the folder holds the run's report alone.
+
+**A run a test starts keeps to a folder of its own.** It writes within a folder inside the folder of the run that started it, and its clean-up clears that folder alone. So a test may make a run that passes, one that fails and one cut off, and read what each left.
+
+**A run's report is `report.xml` in the run's folder.** It holds to the schema of the JUnit XML report ([`specs/methodology/external-references.md § External References [Name: JUnit XML]`](/specs/methodology/external-references.md#external-references)). Each result the design script gives of a run is read from the report, never from the words a run prints: the tests run, each test that failed with what it reported, and each test's time. A run leaving no report, or one out of the schema, is a run of tests that could not be run.
+
+#### When the Kept Tests Are Run
+
+**A script's kept tests are run whenever a change holds one of its files.** The design script's `--check-kept-tests` runs them. For this, a script's files are its code, each file of the canon it reads a form from, its set of kept tests with the runner's settings and `conftest.py`, and each fixture file its tests read a fixture from. Given a set of changed files, the action runs the kept tests of each script whose files they hold and no others, each file of tests as a process of its own, and each kept comparison whose script's files they hold. It gives what the report holds of the run and says where the report stands. It fails where a test fails or cannot be run, and never for what a comparison lists. The design script runs the tests itself, so no builder records a run in place of one.
+
+**Checks are made with each run.** With a script's kept tests the action checks what those tests hold: each action the script states and each Script Check it carries out is held by a test where it passes and by one where it reports, and no test names an action or a Script Check its script does not hold ([`§ Authoring a Skill § Script Checks [Name: each-script-check-and-action-held-by-a-test]`](#script-checks)). An action that checks reports where it finds what it checks for. An action that shows reports where it refuses what it is given, or shows the other of the states it tells apart, as a search shows that it gives no place. So what is held does not come to be unheld. Of a script holding no kept tests a run reports nothing, and such a script joins as it gains its first kept test. A changed script that no set of kept tests names holds none, and the action says so. The design script's `--show-test-coverage` shows the same for every script of the skills when asked, a script holding no kept tests among them, and fails nothing.
+
+**The tests' folder is checked as a whole.** A change holding any file under `tests/spec-of-record/` runs the checks of the folder, whether or not it runs a test, and so does each run of the kept tests the design script makes. Each is a Script Check: that no file there carries the name of an agent instructions file ([`§ Authoring a Skill § Script Checks [Name: no-instructions-name-kept-under-the-tests]`](#script-checks)), that the fixtures' index lists its folder ([`§ Authoring a Skill § Script Checks [Name: fixtures-index-lists-its-folder]`](#script-checks)), that each fixture file holds fixtures in their form ([`§ Authoring a Skill § Script Checks [Name: fixture-file-holds-fixtures-in-their-form]`](#script-checks)), and that each fixture is read by a kept test ([`§ Authoring a Skill § Script Checks [Name: each-fixture-read-by-a-kept-test]`](#script-checks)).
+
+**In a design and outside one.** In a design, `--log-entry` runs the action over the design's changes as it appends the entry of a self-review over applied work, and refuses the entry where a test fails or cannot be run or a check made with the run reports, as [`§ Authoring a Skill § Script Checks [Name: kept-tests-pass-at-the-self-review]`](#script-checks) has it. Outside a design, a direct edit of one of a script's files runs it before the user approves the edit, as [`specs/AGENTS.md § Design, Refactor, Refine § Direct Edits`](/specs/AGENTS.md#direct-edits) has a direct edit made. A change to a script changes its kept tests with it: a new action or a new Script Check takes a test where it passes and one where it reports in the same change.
 
 ### Script Checks
 
@@ -59,12 +162,70 @@ A flag setting how an action runs, rather than choosing one, is named for what i
       - `.ai/skills/audit-specs/` `--check-scope`
 
   - **Name:** kept-tests-pass-at-the-self-review \
-    **Tests:** as the entry of a self-review over applied work is appended, a pass's among them, the kept tests of each script any of whose files the design's changes hold pass, a script's files being its code and each file of the canon it reads a form from, as its kept tests name them, and the comparison has run where those changes hold a file of the design script, each run by the design script itself and its result written into the report's Script Output, as [`§ Authoring a Skill`](#authoring-a-skill) has a script's kept tests run whenever a design's changes hold one of its files: `--log-entry` refuses the entry where a test fails or cannot be run, and no check of the settled report made apart from the entry runs one \
+    **Tests:** as the entry of a self-review over applied work is appended, a pass's among them, the kept tests of each script any of whose files the design's changes hold pass, a script's files being those [`§ Authoring a Skill § Kept Tests § When the Kept Tests Are Run`](#when-the-kept-tests-are-run) names, each check made with a run of the kept tests reports nothing, the checks of the tests' folder among them where those changes hold a file under the tests, and the comparison has run where those changes hold a file of the design script, each run by the design script itself and its result written into the report's Script Output, as [`§ Authoring a Skill`](#authoring-a-skill) has a script's kept tests run whenever a design's changes hold one of its files: `--log-entry` refuses the entry where a test fails or cannot be run or such a check reports, and no check of the settled report made apart from the entry runs one \
     **Reads:**
       - `canon-specs`
+      - `fixture-files`
       - `other`
       - `working-files`
 
     **Carried Out By:**
       - `.ai/skills/design-specs/` `--log-entry`
       - `.ai/skills/implement-specs/` `--log-entry`
+
+  - **Name:** each-script-check-and-action-held-by-a-test \
+    **Tests:** each Script Check record naming a script that holds a set of kept tests is named by a kept test of that script in which it passes and by one in which it reports, each action such a script states is named the same two ways, a script holding kept tests states its actions in the form [`§ Authoring a Skill`](#authoring-a-skill) gives, and no kept test names a Script Check or an action its script does not hold, a test's naming never counting as a unit's that carries the check out \
+    **Reads:**
+      - `canon-specs`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--check-kept-tests`
+      - `.ai/skills/implement-specs/` `--check-kept-tests`
+
+  - **Name:** no-instructions-name-kept-under-the-tests \
+    **Tests:** no file kept under the kept tests' folder carries the name of an agent instructions file, `AGENTS.md`, as [`specs/methodology/external-references.md § External References [Name: AGENTS.md]`](/specs/methodology/external-references.md#external-references) gives it \
+    **Reads:**
+      - `canon-specs`
+      - `fixture-files`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--check-kept-tests`
+      - `.ai/skills/implement-specs/` `--check-kept-tests`
+
+  - **Name:** fixtures-index-lists-its-folder \
+    **Tests:** the index of the kept tests' fixture files lists each file standing in the fixtures' folder, and each file it lists stands there \
+    **Reads:**
+      - `fixture-files`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--check-kept-tests`
+      - `.ai/skills/implement-specs/` `--check-kept-tests`
+
+  - **Name:** fixture-file-holds-fixtures-in-their-form \
+    **Tests:** each file standing in the kept tests' fixtures folder is the folder's index or a Markdown file holding fixtures and no other text, and each fixture holds its key, what it holds and its snippet in a fenced block naming its language, as the Fixture record type has a fixture \
+    **Reads:**
+      - `fixture-files`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--check-kept-tests`
+      - `.ai/skills/implement-specs/` `--check-kept-tests`
+
+  - **Name:** each-fixture-read-by-a-kept-test \
+    **Tests:** each fixture of a script's kept tests is read by a kept test of that script, as the registered runner gives which test takes which fixture \
+    **Reads:**
+      - `canon-specs`
+      - `fixture-files`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--check-kept-tests`
+      - `.ai/skills/implement-specs/` `--check-kept-tests`
+
+  - **Name:** kept-test-results-read-from-the-report \
+    **Tests:** each result the design script gives of a run of the kept tests is read from the run's report, which holds to the registered schema of the report, and a run leaving no report, or one out of that schema, is reported as a kept file that cannot be run \
+    **Reads:**
+      - `canon-specs`
+      - `working-files`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--check-kept-tests`
+      - `.ai/skills/implement-specs/` `--check-kept-tests`

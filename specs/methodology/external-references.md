@@ -73,6 +73,14 @@
     **Relation:** maps onto \
     **Covers:** its dot notation naming a member, as a dotted key names a table and then its key
 
+  - **Name:** JUnit XML \
+    **Title:** the schema of the JUnit XML test report, `junit-10.xsd`, the Jenkins xUnit plugin \
+    **Version:** xunit-2.3.2, the release of the plugin whose schema pytest's documentation names for its report \
+    **URL:** `https://github.com/jenkinsci/xunit-plugin/blob/xunit-2.3.2/src/main/resources/org/jenkinsci/plugins/xunit/types/model/xsd/junit-10.xsd` \
+    **Access:** free \
+    **Relation:** adopts \
+    **Covers:** the report of a run of the kept tests: its test suites, its test cases and each case's failure, error or skip
+
   - **Name:** Mermaid \
     **Title:** Mermaid, the Mermaid project \
     **Version:** 12.1.0 \
@@ -88,6 +96,14 @@
     **Access:** paid \
     **Relation:** adopts \
     **Covers:** American spelling, a word's first spelling where an entry gives two
+
+  - **Name:** pytest \
+    **Title:** pytest, the pytest-dev team \
+    **Version:** 9.0 \
+    **URL:** `https://docs.pytest.org/en/9.0.x/` \
+    **Access:** free \
+    **Relation:** adopts \
+    **Covers:** how a test is found, named, marked, selected, given what it needs and run, what runs before and after a test and a run, where a run writes, and the writing of a run's report
 
   - **Name:** Python \
     **Title:** the Python language and its standard library, the Python Software Foundation \

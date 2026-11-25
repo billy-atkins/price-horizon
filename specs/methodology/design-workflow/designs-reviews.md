@@ -25,13 +25,15 @@ A run of `.ai/skills/audit-specs/` is given one or more sub-scopes ([`specs/meth
 
 | Sub-scope | Files |
 |---|---|
-| `core-canon` | every file of `canon-specs` but each registered skill's directory and `.ai/skills/lib/` |
-| `skills` | each registered skill's directory and `.ai/skills/lib/`, as `canon-specs` bounds them |
+| `core-canon` | every file of `canon-specs` but each registered skill's directory, `.ai/skills/lib/` and `tests/spec-of-record/` |
+| `skills` | each registered skill's directory, `.ai/skills/lib/` and `tests/spec-of-record/`, as `canon-specs` bounds them |
 | `application-specs` | every file of `application-specs` |
 | `documentation` | every file of `documentation` |
 | `other` | every file of `other` |
 
-A run given sub-scopes covers their files alone. A run the user starts with no sub-scope is the full run. It covers every sub-scope and the working files, and not `code`, which is `.ai/skills/verify-spec-implementation/`'s. No audit reads a design document: the working files a run covers are those an audit's unit names. Of the semantic checks whose Carried Out By names `.ai/skills/audit-specs/`, a run reads each whose Reads holds a kind of file it covers, a check another skill carries out being that skill's to run. It reads each reading audit whose Kind names a kind it covers, over each of the audit's units that holds a file it covers, reading beyond those files only as the unit needs to judge them. Its script's checks run over the whole of the skill's scope, and the run reports only the findings lying in the files it covers.
+A run given sub-scopes covers their files alone. A run the user starts with no sub-scope is the full run. It covers every sub-scope and the working files, and not `code`, which is `.ai/skills/verify-spec-implementation/`'s. No audit reads a design document: the working files a run covers are those an audit's unit names.
+
+A run covers kinds of file, as [`specs/methodology/checks.md § Check`](/specs/methodology/checks.md#check) names them: the kinds of change its sub-scopes are drawn from, each for its operative files, `fixture-files` where it covers the `skills` sub-scope, whose files hold the fixture files, and `working-files` where it is the full run. Of the semantic checks whose Carried Out By names `.ai/skills/audit-specs/`, a run reads each whose Reads holds a kind of file it covers, a check another skill carries out being that skill's to run. It reads each reading audit whose Kind names a kind it covers, over each of the audit's units that holds a file it covers, reading beyond those files only as the unit needs to judge them. So a run covering the `skills` sub-scope reads the fixture files, and only by the checks and the audits that name `fixture-files`. Its script's checks run over the whole of the skill's scope, and the run reports only the findings lying in the files it covers.
 
 ### The Sub-scopes a Design Settles
 

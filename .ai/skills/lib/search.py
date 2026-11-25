@@ -14,9 +14,16 @@ holding its lines, and says what those lines stand in (`Place`). The search leav
 table it stands in: a caller leaves out by their citations the places it does not want. A search by meaning ranks a
 section's prose alone, and sets places apart when asked by a citation (`meaning`).
 
-A search answers over one target, the durable files as they stand unless it names another: the durable files as a
-commit held them, or the working files it is given the paths of. A search of the committed target is the one search
-that asks version control anything, and it stops where it cannot be answered (`version_control`, `asked`).
+A search answers over one target, the operative files as they stand unless it names another: the operative files as
+a commit held them, the fixture files as they stand or as a commit held them, or the working files it is given the
+paths of (TARGETS). A search of a commit's files is the one search that asks version control anything, and it stops
+where it cannot be answered (`version_control`, `asked`).
+
+The search keeps an index to each kind of durable file, the operative files' and the fixture files', and no index
+holds a file of the other kind (`listed`, INDEX). So a search of the operative files reads, counts and ranks within
+the operative files alone, whatever kind of search it is, and a search of the fixture files within the fixture files
+alone. A search of the working files reads the operative files' index, which holds the working files it was given
+beside the operative files their citations name.
 
 A search by meaning ranks what it was asked against every passage and every sentence of a passage holding several,
 and gives the part of that ranking its caller asks for, the first RANKED places where it asks for none. Parts asked
@@ -52,7 +59,7 @@ SKILL = "search-spec-of-record-scope"
 SCRATCH = ".ai/tmp/" + SKILL
 MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 DIMENSIONS = 384
-SCHEMA = "11"
+SCHEMA = "12"
 RANKED = 20       # the places a search by meaning gives where its caller asks for no part of its ranking
 CANDIDATES = 50   # the places each ranking gives the fusion of a ranking's first places
 FUSION = 60       # the constant of reciprocal rank fusion
@@ -74,11 +81,19 @@ FEW = 20          # the places printed with a result's name
 KINDS = ("citers", "cited sections", "lines", "terms", "code structure", "meaning", "pattern")
 STRUCTURES = ("defines", "calls", "constructs", "extends", "implements", "references", "annotated-with")
 
-# the files a search answers over, one target to a search and to its result
-CURRENT = "current-durable-files"
-COMMITTED = "committed-durable-files"
+# the files a search answers over, one target to a search and to its result, each named for the files it reads
+CURRENT_OPERATIVE = "current-operative-files"
+COMMITTED_OPERATIVE = "committed-operative-files"
+CURRENT_FIXTURE = "current-fixture-files"
+COMMITTED_FIXTURE = "committed-fixture-files"
 WORKING = "working-files"
-TARGETS = (CURRENT, COMMITTED, WORKING)
+TARGETS = (CURRENT_OPERATIVE, COMMITTED_OPERATIVE, CURRENT_FIXTURE, COMMITTED_FIXTURE, WORKING)
+# the kind of durable file each target of the durable files reads, and the targets reading them as a commit held them
+DURABLE_KIND = {CURRENT_OPERATIVE: spec_text.OPERATIVE, COMMITTED_OPERATIVE: spec_text.OPERATIVE,
+                CURRENT_FIXTURE: spec_text.FIXTURE, COMMITTED_FIXTURE: spec_text.FIXTURE}
+OF_A_COMMIT = (COMMITTED_OPERATIVE, COMMITTED_FIXTURE)
+# the index of each kind of durable file, a file of its own in the scratch space, so neither holds the other's text
+INDEX = {spec_text.OPERATIVE: "index.sqlite", spec_text.FIXTURE: "fixture-files-index.sqlite"}
 HELD = "working-files-held"   # a working file the index holds and the search in hand was not given, its content kept
 # @canon-spec specs/methodology/working-files/main.md § The Working Files
 WORKING_FILES = (".ai/plans", ".ai/follow-ups.md", ".ai/tmp")
@@ -92,7 +107,7 @@ NO_WORD = "a term or a passage reducing to no word"
 NO_FILE = "a path under which no file of the target stands"
 NAMES_NOTHING = (NO_PLACE, NO_WORD, NO_FILE)
 # the kinds of search whose answer rests on the files of its target alone, so the search keeps it: a search by meaning
-# ranks over every content the index holds, and a search of the structure `constructs` reads the classes all of it defines
+# ranks over every content its index holds, and a search of the structure `constructs` reads the classes all of it defines
 KEPT_KINDS = ("citers", "cited sections", "lines", "terms", "code structure", "pattern")
 NOT_KEPT_STRUCTURES = ("constructs",)
 
@@ -129,10 +144,10 @@ def own_reading():
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-# The project's version control, which a search of the committed target alone asks
+# The project's version control, which a search of a commit's files alone asks
 
 class CannotSearch(Exception):
-    """Raised where a search of the committed target cannot be answered: the project is under no version control the
+    """Raised where a search of a commit's files cannot be answered: the project is under no version control the
     search reads, git is not installed, or git answered with a failure. The search stops and says which."""
 
 
@@ -140,14 +155,16 @@ NONE_READ, NO_GIT, GIT = "none read", "git not installed", "git"
 
 
 def version_control(root):
-    """-> which of the committed target's cases the project is in, told from the files and asked of git only where
-    git can answer: NONE_READ, NO_GIT or GIT. A project is under git where its root or a folder above it holds a
-    repository, `.git` a folder or, in a worktree or a submodule, a file. A search of another target never calls
-    this."""
+    """-> which of the cases of a search of a commit's files the project is in, told from the files and asked of git
+    only where git can answer: NONE_READ, NO_GIT or GIT. A project is under git where its root or a folder above it
+    holds a repository, `.git` a folder or, in a worktree or a submodule, a file. No folder is looked in that git
+    itself is kept from by GIT_CEILING_DIRECTORIES, so the search and git read one project the same way. A search of
+    the files as they stand never calls this."""
     folder = os.path.abspath(root)
+    ceilings = {os.path.normcase(os.path.abspath(c)) for c in os.environ.get("GIT_CEILING_DIRECTORIES", "").split(os.pathsep) if c}
     while not os.path.exists(os.path.join(folder, ".git")):
         parent = os.path.dirname(folder)
-        if parent == folder:
+        if parent == folder or os.path.normcase(parent) in ceilings:
             return NONE_READ
         folder = parent
     return GIT if shutil.which("git") else NO_GIT
@@ -173,10 +190,10 @@ def committed_tree(root, commit=None):
     case = version_control(root)
     if case == NONE_READ:
         raise CannotSearch(f"{SKILL}: the committed files cannot be searched, since the project is under no version control the search reads: neither `{Path(root).as_posix()}` nor a folder above it holds a repository. "
-                           f"A search of `{CURRENT}` or of `{WORKING}` needs none.")
+                           f"A search of `{CURRENT_OPERATIVE}`, of `{CURRENT_FIXTURE}` or of `{WORKING}` needs none.")
     if case == NO_GIT:
         raise CannotSearch(f"{SKILL}: the committed files cannot be searched, since the project is under git and git is not installed, or is not on the path. "
-                           f"Install git, or search `{CURRENT}` or `{WORKING}`, which need none.")
+                           f"Install git, or search `{CURRENT_OPERATIVE}`, `{CURRENT_FIXTURE}` or `{WORKING}`, which need none.")
     name = asked(["git", "rev-parse", "--verify", (commit or "HEAD") + "^{commit}"], root).decode("utf-8", "replace").strip()
     def held():
         # the one reader of a commit the shared code holds lists the commit's files as it is made, and reads them all,
@@ -822,7 +839,7 @@ class Result:
     """What a search gave, written as one file in the form `.ai/skills/search-spec-of-record-scope/SKILL.md § Search
     Result` states, the same whoever asked."""
 
-    def __init__(self, kind, query, narrowed, run_as, completeness, places, notes=(), target=CURRENT, commit=None, part=None, names_nothing=()):
+    def __init__(self, kind, query, narrowed, run_as, completeness, places, notes=(), target=CURRENT_OPERATIVE, commit=None, part=None, names_nothing=()):
         self.kind, self.query, self.narrowed, self.run_as = kind, squeeze(query), list(narrowed), run_as
         self.completeness, self.places, self.notes = completeness, list(places), list(notes)
         # the commit its asker named to the search, and the last commit where a search of the committed files named
@@ -920,9 +937,9 @@ class Result:
             # a Commit is the one its asker named, and a Last Commit the one a search naming none read: a result of
             # the committed files holds exactly one of the two, and a result of another target neither
             commits = [name for name in ("Commit", "Last Commit") if name in held]
-            if held["Target"] == COMMITTED and len(commits) != 1:
+            if held["Target"] in OF_A_COMMIT and len(commits) != 1:
                 problems.append(f"{path.name}: it answered over the committed files and " + ("holds neither the Commit its asker named nor the Last Commit it read" if not commits else "holds both a Commit and a Last Commit"))
-            elif held["Target"] != COMMITTED and commits:
+            elif held["Target"] not in OF_A_COMMIT and commits:
                 problems.append(f"{path.name}: it names a {commits[0]}, and its Target is not the committed files")
         if "Snapshot" in held and not SNAPSHOT.fullmatch(held["Snapshot"]):
             problems.append(f"{path.name}: its Snapshot is `{held['Snapshot']}`, not a snapshot code, sixteen hexadecimal digits")
@@ -975,47 +992,62 @@ def under(base, root):
                 yield (Path(folder) / name).relative_to(root).as_posix()
 
 
-def listed(tree, root):
-    """-> [path from the root] of every durable file a tree holds, the files as they stand or a commit's: the files of
-    each kind the canon names for the scope, read from the scope's own listing, and the stack's code roots less the
-    paths it excludes."""
+def listed(tree, root, kind=spec_text.OPERATIVE):
+    """-> [path from the root] of every durable file of a kind a tree holds, the files as they stand or a commit's.
+    The operative files are the files of each kind the canon names for the scope, read from the scope's own listing,
+    and the stack's code roots less the paths it excludes, no fixture file among them. The fixture files are the
+    files of the kept tests' fixtures folder alone. Each file is told for its kind by where it stands
+    (`spec_text.durable_kind`), so neither listing holds a file of the other."""
     out = set()
     # @canon-spec specs/methodology/scope/what-spec-of-record-governs.md § What Spec of Record Governs
-    for place in spec_text.scope_paths(tree):
+    for place in spec_text.scope_paths(tree, kind):
         base = tree / place
         if base.is_file():
             out.add(place)
         elif base.is_dir():
             out.update(under(base, root))
     # @canon-spec specs/methodology/spec-placement/technical-stack.md § The Technical Stack
-    stack = code_checks.code_roots(tree)
+    stack = code_checks.code_roots(tree) if kind == spec_text.OPERATIVE else None
     if stack:
         out.update(rel for _, rel in code_checks.code_files(tree, *stack) if "__pycache__" not in rel.split("/"))
-    return sorted(out)
+    return sorted(rel for rel in out if spec_text.durable_kind(rel) == kind)
 
 
-def durable_files(root, committed=False):
-    """-> [path from the root] of every durable file, as the files stand or, committed, as the last commit holds them,
-    listed with no search run and no index opened: nothing the search requires is asked for, but git for the committed
-    files, the search stopping as `committed_tree` has it where they cannot be read."""
+def operative_files(root, committed=False):
+    """-> [path from the root] of every operative file, as the files stand or, committed, as the last commit holds
+    them, listed with no search run and no index opened: nothing the search requires is asked for, but git for the
+    committed files, the search stopping as `committed_tree` has it where they cannot be read."""
     root = Path(root).resolve()
-    return listed(committed_tree(root)[1] if committed else root, root)
+    return listed(committed_tree(root)[1] if committed else root, root, spec_text.OPERATIVE)
+
+
+def fixture_files(root, committed=False):
+    """-> [path from the root] of every fixture file, as the files stand or, committed, as the last commit holds them,
+    listed as `operative_files` lists the operative files."""
+    root = Path(root).resolve()
+    return listed(committed_tree(root)[1] if committed else root, root, spec_text.FIXTURE)
 
 
 class Search:
     """The search over one project and one target. `Search(root)` checks everything the search requires, then brings
-    the index up to date for the durable files as they stand. `target` names another: COMMITTED, the durable files as
-    `commit` held them, the last commit unless one is named, or WORKING, the working files under `paths`, which that
-    target requires. `cover`, given by a test, names the files to cover in place of the canon's listing."""
+    the index up to date for the operative files as they stand. `target` names another: COMMITTED_OPERATIVE, the
+    operative files as `commit` held them, the last commit unless one is named; CURRENT_FIXTURE and COMMITTED_FIXTURE,
+    the fixture files the same two ways; or WORKING, the working files under `paths`, which that target requires. It
+    opens the index of the kind of durable file its target reads, which holds no file of the other kind, so nothing it
+    answers rests on one. `cover`, given by a test, names the files to cover in place of the canon's listing, each
+    still told for its kind by where it stands."""
 
-    def __init__(self, root, cover=None, scratch=None, quiet=False, target=CURRENT, commit=None, paths=None):
+    def __init__(self, root, cover=None, scratch=None, quiet=False, target=CURRENT_OPERATIVE, commit=None, paths=None):
         self.root = Path(root).resolve()
         check_requirements(self.root)
         if target not in TARGETS:
             raise ValueError(f"no target `{target}`: a target is one of {', '.join(TARGETS)}")
-        if commit and target != COMMITTED:
-            raise ValueError(f"a commit is named for a search of `{COMMITTED}` alone, and this one is of `{target}`")
+        if commit and target not in OF_A_COMMIT:
+            raise ValueError(f"a commit is named for a search of `{COMMITTED_OPERATIVE}` or of `{COMMITTED_FIXTURE}` alone, and this one is of `{target}`")
         self.target, self.commit, self.tree, self.paths = target, None, None, self._narrow(paths)
+        # the kind of durable file whose index the search reads: its target's, and the operative files' for a search
+        # of the working files, which reads what its places cite against them
+        self.kind = DURABLE_KIND.get(target, spec_text.OPERATIVE)
         # whether its asker named the commit: a search naming none reads the last commit, and its result says so
         self.named = bool(commit)
         self.computed, self._codes = 0, {}
@@ -1025,7 +1057,7 @@ class Search:
             for p in self.paths:
                 if not any(p == w or p.startswith(w + "/") for w in WORKING_FILES):
                     raise ValueError(f"`{p}` is no working file: a search of `{WORKING}` covers paths under " + ", ".join(f"`{w}`" for w in WORKING_FILES) + " alone")
-        if target == COMMITTED:
+        if target in OF_A_COMMIT:
             # asked before anything is read or written, so a search that cannot be answered leaves nothing behind
             self.commit, self.tree = committed_tree(self.root, commit)
         self.scratch = Path(scratch) if scratch else self.root / SCRATCH
@@ -1038,12 +1070,11 @@ class Search:
     # -- the files a search covers
 
     def covered(self, target=None):
-        """-> [path from the root] of every file a target holds, the search's own unless another is named. The durable
-        files are the files of each kind the canon names for the scope, the working files aside, read from the scope's
-        own listing, and the stack's code roots less the paths it excludes: as they stand, read from the folders with
-        no version control asked, or as the commit held them, the scope's listing and the stack read from the commit
-        too. The working files are those under the paths the search was given. A cache a tool leaves among them is
-        not listed."""
+        """-> [path from the root] of every file a target holds, the search's own unless another is named. A target of
+        the durable files holds the files of its kind alone, the operative files or the fixture files, as `listed`
+        gives them: as they stand, read from the folders with no version control asked, or as the commit held them,
+        the scope's listing and the stack read from the commit too. The working files are those under the paths the
+        search was given. A cache a tool leaves among them is not listed."""
         target = target or self.target
         if target == WORKING:
             found = set()
@@ -1052,10 +1083,10 @@ class Search:
                 found.update([p] if base.is_file() else self._under(base) if base.is_dir() else [])
             own = SCRATCH + "/"   # the search's own index and results are no place a search reads
             return sorted(f for f in found if not f.startswith(own) and (self.cover is None or f in self.cover))
-        tree = self.tree if target == COMMITTED else self.root
+        tree, kind = self.tree if target in OF_A_COMMIT else self.root, DURABLE_KIND[target]
         if self.cover is not None:
-            return sorted(f for f in self.cover if target != COMMITTED or (tree / f).is_file())
-        return listed(tree, self.root)
+            return sorted(f for f in self.cover if spec_text.durable_kind(f) == kind and (target not in OF_A_COMMIT or (tree / f).is_file()))
+        return listed(tree, self.root, kind)
 
     def _under(self, base):
         return under(base, self.root)
@@ -1063,8 +1094,11 @@ class Search:
     # -- the index
 
     def _open(self):
+        """-> the index of the kind of durable file the search reads, opened, and made where it is new or its form or
+        its model is another's. Every table a search reads, a ranking's words and vectors among them, holds the
+        content of that index's files alone."""
         import sqlite_vec
-        db = sqlite3.connect(self.scratch / "index.sqlite")
+        db = sqlite3.connect(self.scratch / INDEX[self.kind])
         db.enable_load_extension(True)
         sqlite_vec.load(db)
         db.enable_load_extension(False)
@@ -1113,22 +1147,22 @@ class Search:
             db.commit()
             self.built = True
         # the answers the search kept, one to a question: what was asked, the snapshot code of the files it answered
-        # over, the code of the search's own reading, and for a search of the working files the code of the durable
+        # over, the code of the search's own reading, and for a search of the working files the code of the operative
         # files as they stand (`kept_answer`)
-        db.execute("create table if not exists answers(asked text primary key, snapshot text, reading text, durable text, held text)")
+        db.execute("create table if not exists answers(asked text primary key, snapshot text, reading text, operative text, held text)")
         # the index holds each target's files apart, which content stands at which path in each, and a search reads
-        # its own target's alone: `files` is those, and `known` adds the durable files as they stand for a search of
+        # its own target's alone: `files` is those, and `known` adds the operative files as they stand for a search of
         # the working files, which reads a place a working file cites against them and gives no place among them
-        known = (self.target, CURRENT) if self.target == WORKING else (self.target,)
+        known = (self.target, CURRENT_OPERATIVE) if self.target == WORKING else (self.target,)
         db.execute(f"create temp view files as select path, sha, size, mtime_ns from placed where target = '{self.target}'")
         db.execute("create temp view known as select path, sha from placed where target in (" + ", ".join(f"'{t}'" for t in known) + ")")
         return db
 
     def update(self):
-        """Bring the index up to date for the search's target, and for the durable files as they stand where a search
+        """Bring the index up to date for the search's target, and for the operative files as they stand where a search
         of the working files reads what its places cite against them. Any file changed clears every result."""
         started = time.perf_counter()
-        changed = self._bring(CURRENT) if self.target == WORKING else False
+        changed = self._bring(CURRENT_OPERATIVE) if self.target == WORKING else False
         listed, mine = self._bring(self.target, own=True)
         if changed or mine:
             for stale in (self.scratch / "results").glob("*.md"):
@@ -1147,7 +1181,7 @@ class Search:
         commit's only where git's own name for its content does. A content is parsed only where it is new to the
         index. A working file the search in hand was not given keeps its content in the index, held apart, so a search
         given it again reads it only where it changed."""
-        db, tree = self.db, self.tree if target == COMMITTED else None
+        db, tree = self.db, self.tree if target in OF_A_COMMIT else None
         sources = (WORKING, HELD) if target == WORKING else (target,)
         held = {}
         for source in sources:
@@ -1402,8 +1436,8 @@ class Search:
         Each other answer the search computes is kept so, with the index."""
         if not self._keeps(kind, query):
             return None
-        row = self.db.execute("select snapshot, reading, durable, held from answers where asked=?", (self._asked(kind, query, narrowed),)).fetchone()
-        if not row or (row[0], row[1], row[2]) != (self.snapshot_code(), own_reading(), self._durable()):
+        row = self.db.execute("select snapshot, reading, operative, held from answers where asked=?", (self._asked(kind, query, narrowed),)).fetchone()
+        if not row or (row[0], row[1], row[2]) != (self.snapshot_code(), own_reading(), self._operative()):
             return None
         held = json.loads(row[3])
         places = [Place(*p) if isinstance(p, list) else p for p in held["places"]]
@@ -1414,10 +1448,10 @@ class Search:
     def _keeps(self, kind, query):
         return kind in KEPT_KINDS and not (kind == "code structure" and squeeze(query).split(" ")[0] in NOT_KEPT_STRUCTURES)
 
-    def _durable(self):
-        """-> the snapshot code of the durable files as they stand, which a search of the working files reads what its
+    def _operative(self):
+        """-> the snapshot code of the operative files as they stand, which a search of the working files reads what its
         places cite against and so keeps its answer under too, or '' for a search of another target."""
-        return self.snapshot_code(CURRENT) if self.target == WORKING else ""
+        return self.snapshot_code(CURRENT_OPERATIVE) if self.target == WORKING else ""
 
     def _keep(self, result, query, narrowed):
         """Keep an answer the search computed, in place of any it kept for the same question."""
@@ -1426,7 +1460,7 @@ class Search:
         places = [[p.path, p.lineage, p.key, p.first, p.last, p.stands] if isinstance(p, Place) else str(p) for p in result.places]
         held = json.dumps({"query": result.query, "narrowed": result.narrowed, "run_as": result.run_as, "completeness": result.completeness,
                            "places": places, "notes": [str(n) for n in result.notes], "names_nothing": result.names_nothing})
-        self.db.execute("insert or replace into answers values(?,?,?,?,?)", (self._asked(result.kind, query, narrowed), self.snapshot_code(), own_reading(), self._durable(), held))
+        self.db.execute("insert or replace into answers values(?,?,?,?,?)", (self._asked(result.kind, query, narrowed), self.snapshot_code(), own_reading(), self._operative(), held))
         self.db.commit()
 
     def _answer(self, kind, query, narrowed, compute):
@@ -1464,8 +1498,8 @@ class Search:
 
     def _resolve(self, citation, among="files"):
         """-> (path, lineage, key, why): the place a citation names among the target's files, or why it names none.
-        With `among` "known", a search of the working files reads it against the durable files as they stand too, for
-        the place a working file cites."""
+        With `among` "known", a search of the working files reads it against the operative files as they stand too,
+        for the place a working file cites."""
         parsed = parse_citation(citation.strip().strip("`"))
         if not parsed:
             return None, None, None, "it is not in a citation's form"
@@ -1833,8 +1867,9 @@ class Search:
 
         def candidates(fetch, depth):
             """-> the first `depth` passages of a ranking that stand in the target's files, within what the search is
-            narrowed to, and whether the ranking held more. The index holds every target's passages, so more of the
-            ranking is read until that many of the target's own are found or the ranking ends."""
+            narrowed to, and whether the ranking held more. The index holds the passages of each target reading its
+            kind of durable file, and of no file of the other kind, so more of the ranking is read until that many of
+            the target's own are found or the ranking ends."""
             pool = min(depth * 4, DEEPEST)
             while True:
                 read, ranking = fetch(pool)
@@ -1919,7 +1954,7 @@ class Search:
         return self._finish(result)
 
 
-def snapshot(root, target=CURRENT, paths=None, commit=None, cover=None, scratch=None):
+def snapshot(root, target=CURRENT_OPERATIVE, paths=None, commit=None, cover=None, scratch=None):
     """-> the snapshot code of the files of a target as they stand, fresh: the files are walked, a file whose size or
     time of change moved is read again, as the index is brought up to date today, and the code is built from the path
     and the content of each file, in the order of their paths. One code for the whole target, whatever paths a search
@@ -1936,34 +1971,6 @@ def snapshot(root, target=CURRENT, paths=None, commit=None, cover=None, scratch=
 # ---------------------------------------------------------------------------------------------------------------------
 # The entry script's actions
 
-USAGE = f"""usage: {SKILL}.py ACTION [--target TARGET] [--commit COMMIT] [--limit N] [--start N] [--paths PATH ...]
-
-Each action answers one question over the files of Spec of Record's scope and the code, and writes its result as a
-file under {SCRATCH}/results/. Every search first checks everything the search requires.
-
-  --show-citers CITATION                 every place citing a section, a keyed part or a file
-  --show-cited-sections                  each section, keyed part and file cited, with every place citing it
-  --show-lines CITATION                  the lines a citation names
-  --show-term-uses TERM                  every place using a word, a phrase or an identifier, in every form it takes
-  --show-code-structure STRUCTURE NAME   every unit of code holding a structure: {', '.join(STRUCTURES)}
-  --show-similar-passages PASSAGE        the places stating the same as a passage, or as a cited section, in other words
-  --show-pattern-matches EXPRESSION      every place a regular expression matches, for a flaw in formatting or structure
-  --show-snapshot-code                   the present snapshot code of a target's files, read fresh
-  --check-requirements                   what the search requires, and whether each is present
-  --check-result FILE                    whether a result's file is in its form and its content is as the search wrote it
-  --install-model                        download the model's files, the one action that reaches the network
-
-  --target TARGET                        the files to answer over, one of:
-                                           {CURRENT}    the durable files as they stand, where none is named
-                                           {COMMITTED}  the durable files as a commit held them
-                                           {WORKING}            the working files under the paths given
-  --commit COMMIT                        the commit a search of {COMMITTED} answers for, the last where none is named
-  --limit N                              how many places of its ranking --show-similar-passages gives, {RANKED} where none is named
-  --start N                              the place of its ranking it gives them from, the first where none is named
-  --paths PATH ...                       answer over these files and folders alone, which a search of {WORKING} requires
-"""
-
-
 def checkout_run_in():
     """-> the checkout a search naming no project is run in: the nearest folder at or above the working directory that
     holds the search's own skill, as every checkout of the project does, whichever checkout holds the script being
@@ -1971,6 +1978,167 @@ def checkout_run_in():
     its own script stands in."""
     here = Path.cwd().resolve()
     return next((p for p in (here, *here.parents) if (p / ".ai" / "skills" / SKILL).is_dir()), Path(__file__).resolve().parents[3])
+
+
+class Asked:
+    """What one run of the entry script asked: the project, the values its action takes, the paths it is narrowed to,
+    the target and the commit it names, and the part of a ranking it asks for."""
+
+    def __init__(self, root, values, narrowed, target, commit, part):
+        self.root, self.values, self.narrowed, self.target, self.commit, self.part = root, values, narrowed, target, commit, part
+
+    def search(self):
+        """-> the search over the project and the target asked for, the operative files as they stand where none is
+        named, its index brought up to date."""
+        return Search(self.root, target=self.target or CURRENT_OPERATIVE, commit=self.commit, paths=self.narrowed if self.target == WORKING else None)
+
+
+def stopping(action):
+    """-> an action that stops with its reason in place of an answer: with the exit code 1 where something the search
+    requires is missing or a commit's files cannot be searched, and 2 where it was asked what the search refuses."""
+    def run(asked):
+        try:
+            return action(asked)
+        except (MissingRequirements, CannotSearch) as e:
+            print(e)
+            return 1
+        except (ValueError, re.error) as e:
+            print(f"{SKILL}: {e}")
+            return 2
+    return run
+
+
+def _places(asked, ask):
+    """-> 0, one search run: its result's file, its count and its places where they are few printed, with each thing
+    the question named nothing by and each note of a short result."""
+    search = asked.search()
+    result = ask(search)
+    search.db.close()
+    print(result.summary(asked.root))
+    for nothing in result.names_nothing:
+        print("  the question names nothing to ask of: " + nothing)
+    for note in result.notes[:FEW] if len(result.places) <= FEW else []:
+        print("  note: " + note)
+    return 0
+
+
+@stopping
+def run_show_citers(asked):
+    return _places(asked, lambda search: search.citers(asked.values[0], asked.narrowed))
+
+
+@stopping
+def run_show_cited_sections(asked):
+    return _places(asked, lambda search: search.cited_sections(asked.narrowed))
+
+
+@stopping
+def run_show_lines(asked):
+    return _places(asked, lambda search: search.lines(asked.values[0], asked.narrowed))
+
+
+@stopping
+def run_show_term_uses(asked):
+    return _places(asked, lambda search: search.terms(asked.values[0], asked.narrowed))
+
+
+@stopping
+def run_show_code_structure(asked):
+    return _places(asked, lambda search: search.code_structure(asked.values[0], asked.values[1], asked.narrowed))
+
+
+@stopping
+def run_show_similar_passages(asked):
+    return _places(asked, lambda search: search.meaning(asked.values[0], asked.narrowed, **asked.part))
+
+
+@stopping
+def run_show_pattern_matches(asked):
+    return _places(asked, lambda search: search.pattern(asked.values[0], asked.narrowed))
+
+
+@stopping
+def run_show_snapshot_code(asked):
+    search = asked.search()
+    code = search.snapshot_code()
+    search.db.close()
+    print(code)
+    print(f"the snapshot code of `{search.target}`" + (f" under {', '.join('`' + p + '`' for p in search.paths)}" if search.target == WORKING else "")
+          + (f" at the commit {search.commit}" if search.target in OF_A_COMMIT else "") + ", as its files now stand")
+    return 0
+
+
+def run_check_requirements(asked):
+    text, count = requirements_report(asked.root)
+    print(text)
+    return 1 if count else 0
+
+
+def run_check_result(asked):
+    if not Path(asked.values[0]).is_file():
+        print(f"{SKILL}: no file {asked.values[0]}")
+        return 2
+    problems = Result.check(asked.values[0])
+    print("\n".join(problems) if problems else f"{Path(asked.values[0]).name}: a search's result in its form, its content as the search wrote it")
+    return 1 if problems else 0
+
+
+@stopping
+def run_install_model(asked):
+    print(f"{SKILL}: the model's files are in {install_model(asked.root).as_posix()}, where every checkout of the project finds them")
+    return 0
+
+
+# The script's actions, stated once: each action's flag, the values it takes, the unit that runs it and what it gives.
+# `main` runs an action from this tuple and the usage is written from it, so the actions are read from here alone.
+FLAGS = (
+    ("--show-citers", "CITATION", run_show_citers, "every place citing a section, a keyed part or a file"),
+    ("--show-cited-sections", "", run_show_cited_sections, "each section, keyed part and file cited, with every place citing it"),
+    ("--show-lines", "CITATION", run_show_lines, "the lines a citation names"),
+    ("--show-term-uses", "TERM", run_show_term_uses, "every place using a word, a phrase or an identifier, in every form it takes"),
+    ("--show-code-structure", "STRUCTURE NAME", run_show_code_structure, "every unit of code holding a structure: " + ", ".join(STRUCTURES)),
+    ("--show-similar-passages", "PASSAGE", run_show_similar_passages, "the places stating the same as a passage, or as a cited section, in other words"),
+    ("--show-pattern-matches", "EXPRESSION", run_show_pattern_matches, "every place a regular expression matches, for a flaw in formatting or structure"),
+    ("--show-snapshot-code", "", run_show_snapshot_code, "the present snapshot code of a target's files, read fresh"),
+    ("--check-requirements", "", run_check_requirements, "what the search requires, and whether each is present"),
+    ("--check-result", "FILE", run_check_result, "whether a result's file is in its form and its content is as the search wrote it"),
+    ("--install-model", "", run_install_model, "download the model's files, the one action that reaches the network"),
+)
+# what an action may be given beside its values: each option's flag, the value it takes and what it sets
+OPTIONS = (
+    ("--target", "TARGET", "the files to answer over, one of:"),
+    ("--commit", "COMMIT", f"the commit a search of {COMMITTED_OPERATIVE} or of {COMMITTED_FIXTURE} answers for, the last where none is named"),
+    ("--limit", "N", f"how many places of its ranking --show-similar-passages gives, {RANKED} where none is named"),
+    ("--start", "N", "the place of its ranking it gives them from, the first where none is named"),
+    ("--paths", "PATH ...", f"answer over these files and folders alone, which a search of {WORKING} requires"),
+)
+COVERS = (
+    (CURRENT_OPERATIVE, "the operative files as they stand, where none is named"),
+    (COMMITTED_OPERATIVE, "the operative files as a commit held them"),
+    (CURRENT_FIXTURE, "the fixture files as they stand"),
+    (COMMITTED_FIXTURE, "the fixture files as a commit held them"),
+    (WORKING, "the working files under the paths given"),
+)
+
+
+def usage():
+    """-> the script's usage, written from its actions, its options and its targets as they are stated."""
+    def row(flag, metavar, text):
+        return f"  {(flag + ' ' + metavar).strip():<39}{text}"
+
+    widest = max(len(target) for target, _ in COVERS)
+    out = [f"usage: {SKILL}.py ACTION " + " ".join(f"[{flag} {metavar}]" for flag, metavar, _ in OPTIONS), "",
+           "Each action answers one question over the files of Spec of Record's scope and the code, and writes its result as a",
+           f"file under {SCRATCH}/results/. Every search first checks everything the search requires.", ""]
+    out += [row(flag, metavar, text) for flag, metavar, _, text in FLAGS] + [""]
+    for flag, metavar, text in OPTIONS:
+        out.append(row(flag, metavar, text))
+        if flag == "--target":
+            out += [" " * 43 + f"{target:<{widest + 2}}{covers}" for target, covers in COVERS]
+    return "\n".join(out) + "\n"
+
+
+USAGE = usage()
 
 
 def main(argv, root=None):
@@ -1988,7 +2156,7 @@ def main(argv, root=None):
             print(USAGE)
             return 2
     given = {}
-    for flag in ("--target", "--commit", "--limit", "--start"):
+    for flag in [flag for flag, _, _ in OPTIONS if flag != "--paths"]:
         if flag in args:
             at = args.index(flag)
             if at + 1 >= len(args) or args[at + 1].startswith("--"):
@@ -2004,59 +2172,9 @@ def main(argv, root=None):
             return 2
         if flag in given:
             part[flag[2:]] = int(given[flag])
-    arity = {"--show-citers": 1, "--show-cited-sections": 0, "--show-lines": 1, "--show-term-uses": 1, "--show-code-structure": 2, "--show-similar-passages": 1,
-             "--show-pattern-matches": 1, "--show-snapshot-code": 0, "--check-requirements": 0, "--install-model": 0, "--check-result": 1}
-    if not args or args[0] not in arity or len(args) != 1 + arity[args[0]]:
+    # an action takes as many values as its statement names, and nothing else
+    actions = {flag: (len(metavar.split()), run) for flag, metavar, run, _ in FLAGS}
+    if not args or args[0] not in actions or len(args) != 1 + actions[args[0]][0]:
         print(USAGE)
         return 2
-    action, values = args[0], args[1:]
-    if action == "--check-result":
-        if not Path(values[0]).is_file():
-            print(f"{SKILL}: no file {values[0]}")
-            return 2
-        problems = Result.check(values[0])
-        print("\n".join(problems) if problems else f"{Path(values[0]).name}: a search's result in its form, its content as the search wrote it")
-        return 1 if problems else 0
-    if action == "--check-requirements":
-        text, count = requirements_report(root)
-        print(text)
-        return 1 if count else 0
-    try:
-        if action == "--install-model":
-            print(f"{SKILL}: the model's files are in {install_model(root).as_posix()}, where every checkout of the project finds them")
-            return 0
-        search = Search(root, target=given.get("--target", CURRENT), commit=given.get("--commit"), paths=narrowed if given.get("--target") == WORKING else None)
-        if action == "--show-snapshot-code":
-            code = search.snapshot_code()
-            search.db.close()
-            print(code)
-            print(f"the snapshot code of `{search.target}`" + (f" under {', '.join('`' + p + '`' for p in search.paths)}" if search.target == WORKING else "")
-                  + (f" at the commit {search.commit}" if search.target == COMMITTED else "") + ", as its files now stand")
-            return 0
-        if action == "--show-citers":
-            result = search.citers(values[0], narrowed)
-        elif action == "--show-cited-sections":
-            result = search.cited_sections(narrowed)
-        elif action == "--show-lines":
-            result = search.lines(values[0], narrowed)
-        elif action == "--show-term-uses":
-            result = search.terms(values[0], narrowed)
-        elif action == "--show-code-structure":
-            result = search.code_structure(values[0], values[1], narrowed)
-        elif action == "--show-similar-passages":
-            result = search.meaning(values[0], narrowed, **part)
-        else:
-            result = search.pattern(values[0], narrowed)
-        search.db.close()
-    except (MissingRequirements, CannotSearch) as e:
-        print(e)
-        return 1
-    except (ValueError, re.error) as e:
-        print(f"{SKILL}: {e}")
-        return 2
-    print(result.summary(root))
-    for nothing in result.names_nothing:
-        print("  the question names nothing to ask of: " + nothing)
-    for note in result.notes[:FEW] if len(result.places) <= FEW else []:
-        print("  note: " + note)
-    return 0
+    return actions[args[0]][1](Asked(root, args[1:], narrowed, given.get("--target"), given.get("--commit"), part))
