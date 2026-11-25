@@ -6,17 +6,12 @@ anchor, runs the fault's tests against that tree, by the runner, and requires ea
 breaks. A fault whose anchor does not stand fails the test loudly. It puts back the faults of the search too,
 .ai/skills/lib/search.py, into a tree holding the search's kept tests, and requires the test of them holding each to
 fail in the check it breaks.
-
-The test is slow: a run asks for it with --slow.
 """
 import concurrent.futures
 import shutil
 
-import pytest
-
 from design_script_set import (CHECKOUT, FORMS_ALONE, KEPT, LIB, SET, a_run, copy_files)
 
-pytestmark = [pytest.mark.slow]
 OWN = SET + "/"
 SEARCHING = OWN + "test_searched.py::test_taken_up_report_stands_through_a_later_fix"
 # Each fault: what it was; the edits putting it back into a copy of the script, each (the text standing at its anchor,
@@ -58,7 +53,7 @@ FAULTS = (
        '    hits = sorted(p for p in md_files(root) if ".ai/tmp" not in p.as_posix() and ("/" + p.relative_to(root).as_posix()).endswith(tail))\n')],
      [(OWN + "test_checkout.py::test_shorthand_resolves_beneath_working_files", "resolves a file named in shorthand in a checkout standing under")]),
     ("a form read from the checkout holding the script's file",
-     [('    base = Path(root) if root else next((p for p in (Path.cwd(), *Path.cwd().parents) if (p / path).exists()), Path.cwd())\n',
+     [('    base = Path(root) if root else next((p for p in run_in_folders() if (p / path).exists()), Path.cwd())\n',
        '    base = Path(root) if root else Path(__file__).resolve().parents[3]\n')],
      [(OWN + "test_checkout.py::test_form_is_read_from_the_checkout_run_in", "appends an entry of a kind the canon of the checkout it is run in declares")]),
     ("the entry of a check cut short by a freeing refused, held to the goals of the major version the freeing started",

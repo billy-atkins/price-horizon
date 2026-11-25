@@ -79,7 +79,6 @@ A path ending in a slash names each file beneath it. A kept comparison stands in
 | `passes` | that the test holds what it names where that passes; given names, that it holds those alone so |
 | `reports` | that the test holds what it names where that reports; given names, that it holds those alone so |
 | `reads` | the fixtures the test takes: a fixture file's name, then the key of each fixture taken from it |
-| `slow` | that a run leaves the test out unless the run asks for the slow tests |
 
 A test holding a Script Check carries a canon-spec annotation ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md)) citing the check's record, in the comment lines directly above the test, written as [`specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § Citing From Code`](/specs/methodology/sourcing-and-citation/writing-a-citation.md#citing-from-code) writes one. What a test names is its actions and the Script Checks it cites. A test's annotation says the test holds the check. It never counts as a unit carrying the check out.
 
@@ -130,7 +129,11 @@ A fixture ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossar
 python -B -m pytest tests/spec-of-record
 ```
 
-A run by hand takes pytest's own ways of choosing tests, a file, a test or a word of a test's name. It also takes `--action` with a flag, for the tests naming that action, `--script-check` with a check's Name, for the tests citing that check, and `--slow`, for the tests marked slow too.
+A run by hand takes pytest's own ways of choosing tests, a file, a test or a word of a test's name. It also takes `--action` with a flag, for the tests naming that action, `--script-check` with a check's Name, for the tests citing that check.
+
+**A run leaves the machine to the person using it.** A run puts itself below the priority of a person's own work as it starts, and each process a test starts takes that priority from it, so the system serves what the person is using first. The search's model works on half the machine's processors and no more. So a run made while a person works slows itself and not the person.
+
+**A run runs every test.** No test is marked to be left out of a run, and no run of the design script leaves one out for the time it takes. A person choosing fewer names them, by pytest's own ways. So a test a change breaks is found by the run that follows the change, whichever test it is.
 
 **A run writes only within its one folder among the working files.** [`specs/methodology/working-files/main.md § The Working Files`](/specs/methodology/working-files/main.md#the-working-files) names the folder. What a test builds, the runner's temporary folders and the run's report all stand there. A run compiles no module to a file, the tests' or the scripts', and keeps no cache of the runner's. No test and no setting of the runner names a place to write outside the folder.
 
