@@ -4935,19 +4935,21 @@ def kept_tests_run(root, changed):
     A script's files are its code and each file of the canon it reads a form from, as its set names them, the set's
     own files, the files every set is run with, and each fixture file its tests read a fixture from, as the runner
     gives which test takes which fixture. The run writes only within the run's folder among the working files, cleared
-    as it starts. Each file of tests the changed files call for is run as a process of its own, all at once and all
-    waited for, each within a folder of its own inside the run's, a file every one of whose tests is marked slow
-    aside, which a run asking for no slow test has nothing to run of; each result is read from the report its process
-    wrote, never from what it printed; and the reports are joined into the run's one report, which is all the folder
-    holds as the run ends. A comparison's listing is no failure: the builder judges each design it lists. With each
+    as it starts. Every test of each file of tests the changed files call for is run, none left out, each file as a
+    process of its own, all waited for, each within a folder of its own inside the run's; each result is read from the
+    report its process wrote, never from what it printed; and the reports are joined into the run's one report, which
+    is all the folder holds as the run ends. A comparison's listing is no failure: the builder judges each design it lists. With each
     set run, what its tests hold is checked. The checks of the tests' folder as a whole are made where a set is run or
     the changed files hold a file under the tests. A changed script no set names is said to hold no kept tests, and
     refuses nothing."""
     import code_checks
     import concurrent.futures
     import xml.etree.ElementTree as ET
-    from spec_text import KEPT_REPORT, KEPT_RUN, clear_run
+    from spec_text import KEPT_REPORT, KEPT_RUN, clear_run, yield_the_machine
     root = Path(root)
+    # a run leaves the machine to the person using it: this process goes below the priority of a person's own work, and
+    # each process it starts, the runner's and the comparison's, takes that priority from it
+    yield_the_machine()
     sets, changed, run = kept_scripts(root), sorted(changed), kept_run_folder(root)
     lines, listed = [], None
     problems = [(KEPT_TESTS_RULE, "%s cannot be run: %s" % (one["folder"], one["why"])) for one in sets if one["why"]]
@@ -4976,12 +4978,10 @@ def kept_tests_run(root, changed):
     def run_comparison(rel):
         return subprocess.run([sys.executable, "-B", str(root / rel)], cwd=root, capture_output=True,
                               env=dict(os.environ, PYTHONIOENCODING="utf-8", PYTHONDONTWRITEBYTECODE="1"))
-    # what the runner found in each file of tests: a file it found no test in is run by nothing and reported, and so is
-    # run by nothing a file every one of whose tests a run asking for no slow test leaves out, which is no problem
+    # what the runner found in each file of tests: a file it found no test in is run by nothing and reported
     found_in = {rel: [r for r in rows if r["file"] == rel] for one, _ in called for rel in one["tests"]} if rows is not None else {}
     none_found = {rel for rel, found in found_in.items() if not found}
-    all_slow = {rel for rel, found in found_in.items() if found and all(r.get("slow") for r in found)}
-    test_files = [rel for one, _ in called for rel in one["tests"] if rel not in none_found | all_slow]
+    test_files = [rel for one, _ in called for rel in one["tests"] if rel not in none_found]
     comparisons = [one["comparison"] for one, _ in called if one["comparison"]]
     # four at once and no more: a file of the search's tests loads the search's model, and eight such processes
     # together have exhausted a machine's memory
@@ -4996,9 +4996,6 @@ def kept_tests_run(root, changed):
         for rel in one["tests"]:
             if rel in none_found:
                 problems.append((KEPT_TESTS_RULE, "%s holds no test the runner finds" % rel))
-                continue
-            if rel in all_slow:
-                lines.append("%s is not run: each of its %d tests is marked slow" % (rel, len(found_in[rel])))
                 continue
             ran, report_at = gave[rel]
             cases, suite = read_kept_report(report_at)

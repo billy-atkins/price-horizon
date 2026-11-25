@@ -47,7 +47,6 @@ print(f"{time.perf_counter() - started:.1f} {most_memory():.3f}")
 '''
 
 
-@pytest.mark.slow
 @pytest.mark.action("--show-citers")
 @pytest.mark.passes
 @pytest.mark.reads("search-library-lending.md", "library-membership", "library-loans", "library-overdue", "library-holds", "library-catalogue")

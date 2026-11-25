@@ -6,17 +6,12 @@ anchor, runs the fault's tests against that tree, by the runner, and requires ea
 breaks. A fault whose anchor does not stand fails the test loudly. It puts back the faults of the search too,
 .ai/skills/lib/search.py, into a tree holding the search's kept tests, and requires the test of them holding each to
 fail in the check it breaks.
-
-The test is slow: a run asks for it with --slow.
 """
 import concurrent.futures
 import shutil
 
-import pytest
-
 from design_script_set import (CHECKOUT, FORMS_ALONE, KEPT, LIB, SET, a_run, copy_files)
 
-pytestmark = [pytest.mark.slow]
 OWN = SET + "/"
 SEARCHING = OWN + "test_searched.py::test_taken_up_report_stands_through_a_later_fix"
 # Each fault: what it was; the edits putting it back into a copy of the script, each (the text standing at its anchor,

@@ -430,6 +430,31 @@ def fixtures_of(text):
 # where a run of the kept tests writes, among the working files, the report it leaves there, and the name a run
 # started by another is told its own folder under
 KEPT_RUN, KEPT_REPORT, KEPT_RUN_NAMED = ".ai/tmp/kept-tests", "report.xml", "SPEC_OF_RECORD_KEPT_RUN"
+# the priority a run of the kept tests takes, below that of a person's own work, by each system's own name for it
+BELOW_NORMAL_PRIORITY, NICER_BY = 0x00004000, 10
+
+
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Kept Tests § A Run
+def yield_the_machine():
+    """Puts the process it is called in below the priority of a person's own work, so the system gives the machine to
+    what the person is using first. Each process this one starts takes the same priority from it. -> whether the
+    process now stands below ordinary priority."""
+    import os
+    if os.name == "nt":
+        import ctypes
+        kernel = ctypes.windll.kernel32
+        kernel.GetCurrentProcess.restype = ctypes.c_void_p
+        kernel.SetPriorityClass.argtypes = (ctypes.c_void_p, ctypes.c_uint32)
+        kernel.GetPriorityClass.argtypes = (ctypes.c_void_p,)
+        kernel.GetPriorityClass.restype = ctypes.c_uint32
+        here = kernel.GetCurrentProcess()
+        # an idle or a below-normal process is left as it stands, and a child of one starts as its parent stands
+        if kernel.GetPriorityClass(here) not in (BELOW_NORMAL_PRIORITY, 0x00000040):
+            kernel.SetPriorityClass(here, BELOW_NORMAL_PRIORITY)
+        return kernel.GetPriorityClass(here) in (BELOW_NORMAL_PRIORITY, 0x00000040)
+    if os.getpriority(os.PRIO_PROCESS, 0) < NICER_BY:
+        os.nice(NICER_BY - os.getpriority(os.PRIO_PROCESS, 0))
+    return os.getpriority(os.PRIO_PROCESS, 0) >= NICER_BY
 
 
 def clear_run(folder, keep=()):

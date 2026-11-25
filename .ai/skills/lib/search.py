@@ -1356,7 +1356,10 @@ class Search:
         if self.embedder is None:
             from fastembed import TextEmbedding
             os.environ.setdefault("HF_HUB_OFFLINE", "1")
-            self.embedder = TextEmbedding(model_name=MODEL, cache_dir=str(model_folder()), local_files_only=True)
+            # the model works on half the machine's processors and no more, so a search leaves the rest to whoever is
+            # using the machine, and several searches at once do not each take every one
+            self.embedder = TextEmbedding(model_name=MODEL, cache_dir=str(model_folder()), local_files_only=True,
+                                          threads=max(1, (os.cpu_count() or 2) // 2))
         return [sqlite_vec.serialize_float32([float(x) for x in v]) for v in self.embedder.embed(texts, batch_size=EMBED_BATCH)]
 
     # -- helpers the searches share

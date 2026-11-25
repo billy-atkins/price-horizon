@@ -205,22 +205,6 @@ def test_set_that_cannot_be_run_is_reported(check, fixtures):
 
 
 @pytest.mark.action("--check-kept-tests")
-@pytest.mark.passes
-def test_file_of_slow_tests_alone_is_left_out_of_a_run(check, fixtures):
-    p = Project("kept-slow")
-    kept_tests(p)
-    # a second file of the set, each of whose tests is marked slow and would fail if it were run
-    slow = failing(fixtures["guide-set-tests"]).replace("@pytest.mark.reads(\"guide.md\", \"quay-line\")\n", "").replace("fixtures, check", "check").replace("fixtures[\"quay-line\"]", "\"quay\"")
-    p.put(GUIDE_SET + "/test_slow.py", slow.replace("@pytest.mark.action", "@pytest.mark.slow\n@pytest.mark.action"))
-    got = p.run("--check-kept-tests", "docs/guide.md")
-    check("--check-kept-tests runs no file every one of whose tests is marked slow, says so, and passes: the file is no file holding no test",
-          passes(got, "== check-kept-tests, over 1 changed file", "0 problems") and "%s/test_slow.py is not run: each of its 2 tests is marked slow\n" % GUIDE_SET in got[1]
-          and RAN % GUIDE_TESTS in got[1] and "FAILED" not in got[1] and "holds no test the runner finds" not in got[1], shown(got))
-    times = p.run("--show-kept-test-times")
-    check("and the run's report holds no test of that file", passes(times, "== show-kept-test-times, 2 tests") and "test_slow" not in times[1], shown(times))
-
-
-@pytest.mark.action("--check-kept-tests")
 @pytest.mark.reads("design-script-kept-sets.md", "test-waiting-in-its-folder")
 def test_run_writes_within_its_folder_and_leaves_its_report_alone(check, fixtures):
     p = Project("kept-run-folder")
@@ -256,3 +240,24 @@ def test_run_writes_within_its_folder_and_leaves_its_report_alone(check, fixture
     again = subprocess.run(by_hand, cwd=p.root, capture_output=True, text=True)
     check("the next run, made by hand, cleared what the cut-off run left: the folder holds that run's report alone, and nothing outside it is changed",
           again.returncode == 0 and run_holds(p) == ["report.xml"] and outside_the_run(p) == before, (again.stdout[-600:], run_holds(p)))
+
+# what a process prints of its own priority: on Windows its priority class, elsewhere how far it is niced
+OWN_PRIORITY = ("import os\n"
+                "if os.name == 'nt':\n"
+                "    import ctypes\n"
+                "    k = ctypes.windll.kernel32\n"
+                "    k.GetCurrentProcess.restype = ctypes.c_void_p\n"
+                "    k.GetPriorityClass.argtypes = (ctypes.c_void_p,)\n"
+                "    k.GetPriorityClass.restype = ctypes.c_uint32\n"
+                "    print('below' if k.GetPriorityClass(k.GetCurrentProcess()) in (0x4000, 0x40) else 'ordinary')\n"
+                "else:\n"
+                "    print('below' if os.getpriority(os.PRIO_PROCESS, 0) >= 10 else 'ordinary')\n")
+
+
+def test_run_stands_below_the_priority_of_a_persons_own_work(check):
+    own = subprocess.run([sys.executable, "-c", OWN_PRIORITY], capture_output=True, text=True)
+    check("a process a kept test starts runs below the priority of a person's own work, as the run it belongs to does, so "
+          "the machine stays the person's while the tests run", own.stdout.strip() == "below", own.stdout + own.stderr)
+    nested = subprocess.run([sys.executable, "-c", "import subprocess, sys; print(subprocess.run([sys.executable, '-c', %r], "
+                             "capture_output=True, text=True).stdout.strip())" % OWN_PRIORITY], capture_output=True, text=True)
+    check("and so does a process that process starts in turn", nested.stdout.strip() == "below", nested.stdout + nested.stderr)

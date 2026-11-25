@@ -12,8 +12,8 @@ A test is handed:
   checkout   the root of the checkout the tests are run in
   run_folder the run's folder
 
-A run takes --action FLAG and --script-check NAME, each choosing the tests naming it, --slow, running the tests marked
-slow too, and --kept-links FILE, writing what each test names, for the design script's checks of coverage.
+A run runs every test it finds. It takes --action FLAG and --script-check NAME, each choosing the tests naming it, and
+--kept-links FILE, writing what each test names, for the design script's checks of coverage.
 """
 import json
 import os
@@ -43,7 +43,6 @@ def pytest_addoption(parser):
     group = parser.getgroup("the kept tests of Spec of Record")
     group.addoption("--action", action="append", default=[], help="run the tests naming this action of their script alone")
     group.addoption("--script-check", action="append", default=[], help="run the tests naming this Script Check alone")
-    group.addoption("--slow", action="store_true", default=False, help="run the tests marked slow too")
     group.addoption("--kept-links", default=None, help="write what each test names to this file: its actions, the way it holds them, its Script Checks and its fixtures")
 
 
@@ -56,6 +55,9 @@ def pytest_configure(config):
     if not sys.dont_write_bytecode:
         raise pytest.UsageError("the kept tests are run with python -B, so a run compiles no module beside a file it reads: "
                                 "python -B -m pytest tests/spec-of-record")
+    # a run leaves the machine to the person using it: this process, and each one a test starts, runs below the
+    # priority of a person's own work
+    spec_text.yield_the_machine()
     spec_text.clear_run(RUN)
     if not config.option.xmlpath:
         config.option.xmlpath = str(RUN / spec_text.KEPT_REPORT)
@@ -108,15 +110,14 @@ def pytest_collection_modifyitems(config, items):
     kept, left = [], []
     for item in items:
         chosen = (not actions or actions & set(names(item, "action"))) and (not checks or checks & set(script_checks(item)))
-        slow = item.get_closest_marker("slow") is not None and not config.getoption("--slow")
-        (kept if chosen and not slow else left).append(item)
+        (kept if chosen else left).append(item)
     links = config.getoption("--kept-links")
     if links:
-        # every test found, the ones a run leaves out among them: what the tests hold is read of them all
+        # every test found, the ones a choice by action or by Script Check leaves out among them: what the tests hold
+        # is read of them all
         rows = [{"test": item.nodeid, "file": Path(str(item.path)).resolve().relative_to(CHECKOUT).as_posix(),
                  "actions": names(item, "action"), "script_checks": script_checks(item),
                  "ways": {way: names(item, way) for way in WAYS if item.get_closest_marker(way) is not None},
-                 "slow": item.get_closest_marker("slow") is not None,
                  "reads": read_fixtures(item)} for item in items]
         Path(links).parent.mkdir(parents=True, exist_ok=True)
         Path(links).write_text(json.dumps(rows, indent=1), encoding="utf-8")
