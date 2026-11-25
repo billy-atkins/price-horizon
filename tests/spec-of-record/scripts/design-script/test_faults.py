@@ -58,7 +58,7 @@ FAULTS = (
        '    hits = sorted(p for p in md_files(root) if ".ai/tmp" not in p.as_posix() and ("/" + p.relative_to(root).as_posix()).endswith(tail))\n')],
      [(OWN + "test_checkout.py::test_shorthand_resolves_beneath_working_files", "resolves a file named in shorthand in a checkout standing under")]),
     ("a form read from the checkout holding the script's file",
-     [('    base = Path(root) if root else next((p for p in (Path.cwd(), *Path.cwd().parents) if (p / path).exists()), Path.cwd())\n',
+     [('    base = Path(root) if root else next((p for p in run_in_folders() if (p / path).exists()), Path.cwd())\n',
        '    base = Path(root) if root else Path(__file__).resolve().parents[3]\n')],
      [(OWN + "test_checkout.py::test_form_is_read_from_the_checkout_run_in", "appends an entry of a kind the canon of the checkout it is run in declares")]),
     ("the entry of a check cut short by a freeing refused, held to the goals of the major version the freeing started",
