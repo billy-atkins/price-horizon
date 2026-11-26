@@ -106,27 +106,37 @@ These calls run in parallel across candidates, for the same reason as parallel e
 
 The Rationale Record ([`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Rationale Record`](/specs/application/technical/data-model.md#rationale-record)) described in [`specs/application/technical/predict-computation.md § Predict Computation § Confidence and rationale package`](/specs/application/technical/predict-computation.md#confidence-and-rationale-package) for the Predict output attaches to every Position option. Each option carries that same record, copied individually rather than recomputed. Positioning applies a fixed archetype rule to the forecast, so it introduces no new source of uncertainty the Predict-stage packaging could have missed. A positioning option is only as trustworthy as the forecast and elasticity model it is built on. If the underlying Predict confidence is low, every option downstream carries that same flag rather than presenting false certainty at a later stage.
 
-Every Simulated Outcome for a given query instead carries its own Rationale Record. The share-response, volume, and margin models a Simulated Outcome calls are a different source of uncertainty. The Model registry ([`specs/application/technical/model-registry.md § Model registry`](/specs/application/technical/model-registry.md#model-registry)) already documents that uncertainty, with a confidence interval and a last-validated date for each model. The Simulated Outcome's Rationale Record is computed once per query, not once per candidate. The same model versions are called for every seeded candidate, so nothing in this section's Algorithm varies across the candidates in one answer. The record varies only across queries, or over time as models are revalidated. A Query user opens these reasons from the outcome itself ([`specs/application/product/answer-engine/simulate.md § Simulate: what follows for the business`](/specs/application/product/answer-engine/simulate.md#simulate-what-follows-for-the-business)). The record is computed by an Algorithm.
+Each Simulated Outcome carries the rationale computed for its question. The share-response, volume and margin models run for each candidate. Their versions, confidence intervals and validation dates are shared across the question, so the live simulation stage computes the rationale once and attaches it to every outcome. The model registry supplies the inputs ([`specs/application/technical/model-registry.md § Model registry`](/specs/application/technical/model-registry.md#model-registry)). A Query user can open the rationale from any outcome ([`specs/application/product/answer-engine/simulate.md § Simulate: what follows for the business`](/specs/application/product/answer-engine/simulate.md#simulate-what-follows-for-the-business)).
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm` \
+**Inputs:**
+  - model registry entries
+  - retrieval trace
+  - simulate confidence weighting rubric
+  - parent confidence score
 
-**Inputs:** the share-response, volume and margin models' registry entries, the simulate confidence weighting rubric, and the parent Positioning Candidate's rationale.confidence_score
+**Output:**
+  - rationale on every Simulated Outcome
 
-**Output:** the rationale on every Simulated Outcome in this query's answer
+**Runs When:**
+  - [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run`](/specs/application/technical/engineering-and-production-considerations.md#question-run)
 
 | Step | Action |
 |---|---|
-| 1 | Retrieve the share-response, volume and margin models' declared confidence intervals and last-validated dates |
-| 2 | Compute each model's confidence interval width, upper bound minus lower bound, and score each width against the simulate confidence weighting rubric's declared confidence-interval-width bands |
-| 3 | Score the model confidence component as the lowest of the scores from step 2, not an average, so one under-validated model is never diluted by the strong ones, the same weakest-link principle already applied to source credibility in [`specs/application/technical/predict-computation.md § Predict Computation § Confidence and rationale package`](/specs/application/technical/predict-computation.md#confidence-and-rationale-package) |
-| 4 | Score each model's freshness against the simulate confidence weighting rubric's own declared staleness bands, using its last-validated date; distinct bands from the ones data freshness uses elsewhere, a model's revalidation cadence is a materially different order of magnitude from the data pipeline's daily-or-weekly cadence |
-| 5 | Score the model freshness component as the lowest of the scores from step 4, the same weakest-link principle as step 3 |
-| 6 | Look up the model confidence and model freshness components' weights in the simulate confidence weighting rubric |
-| 7 | Multiply each component by its weight and sum them to get this query's confidence_score for Simulate |
-| 8 | Cap confidence_score at the parent Positioning Candidate's own rationale.confidence_score, regardless of what step 7 produced, and record in confidence_components whether the cap lowered it |
-| 9 | Attach this same confidence_score, its confidence_components, and a retrieval_trace naming the models and the inputs each was called with, as the rationale on every Simulated Outcome in this query's answer, computed once here and copied, not recomputed per candidate. End |
+| 1 | Set model confidence scores to for entry in model registry entries return model confidence score(entry.confidence_interval_upper - entry.confidence_interval_lower) |
+| 2 | Set model freshness scores to for entry in model registry entries return model freshness score(entry.last_validated) |
+| 3 | Set model confidence component to min(model confidence scores) |
+| 4 | Set model freshness component to min(model freshness scores) |
+| 5 | Set simulate confidence weights to {model confidence: simulate confidence weighting rubric.model confidence, model freshness: simulate confidence weighting rubric.model freshness} |
+| 6 | Set Simulate confidence score to model confidence component * simulate confidence weights.model confidence + model freshness component * simulate confidence weights.model freshness |
+| 7 | Set cap lowered? to Simulate confidence score > parent confidence score |
+| 8 | Set Simulate confidence score to min(Simulate confidence score, parent confidence score) |
+| 9 | Set limiting confidence models to model registry entries[model confidence score(item.confidence_interval_upper - item.confidence_interval_lower) = model confidence component] |
+| 10 | Set limiting freshness models to model registry entries[model freshness score(item.last_validated) = model freshness component] |
+| 11 | Set rationale on every Simulated Outcome to {confidence_score: Simulate confidence score, confidence_components: {model confidence: model confidence component, model freshness: model freshness component, confidence evidence: limiting confidence models, freshness evidence: limiting freshness models, cap lowered: cap lowered?}, retrieval_trace: retrieval trace} |
+| 12 | End |
 
-This Rationale Record carries none of the Predict computation's own fields ([`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Rationale Record`](/specs/application/technical/data-model.md#rationale-record)). category_growth and revenue inherit this same confidence_score by construction, because both derive from the same models' outputs rather than from a model call of their own ([`§ Layered Output Synthesis (producing the answer) § Simulation engine`](#simulation-engine)).
+This Rationale Record carries none of the Predict computation's own fields ([`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Rationale Record`](/specs/application/technical/data-model.md#rationale-record)). category_growth and revenue inherit this same confidence_score by construction, because both derive from the same models' outputs rather than from a model call of their own ([`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Simulation engine`](/specs/application/technical/query-service/layered-output-synthesis.md#simulation-engine)). Predict's confidence does not read a model's last-validated date; that treatment remains provisional in [`specs/application/technical/model-registry.md § Open Questions [Name: Model Freshness in Predict]`](/specs/application/technical/model-registry.md#open-questions). Simulate reads it through this package, as the provisional answer's other side.
 
 [`specs/application/technical/architecture.md § Architecture Overview § Diagrams § The Answer`](/specs/application/technical/architecture.md#the-answer) renders this.
 
@@ -138,7 +148,7 @@ A Constraint on the Algorithm's output:
 
 | Constraint | Applies To | Enforced By |
 |---|---|---|
-| A Simulated Outcome's confidence_score is never higher than its parent Positioning Candidate's | confidence_score | [`§ Layered Output Synthesis (producing the answer) § Confidence and rationale package, extended [Step: 8]`](#confidence-and-rationale-package-extended) |
+| Simulate confidence score <= parent confidence score | after [`§ Layered Output Synthesis (producing the answer) § Confidence and rationale package, extended`](#confidence-and-rationale-package-extended) | [`§ Layered Output Synthesis (producing the answer) § Confidence and rationale package, extended [Step: 8]`](#confidence-and-rationale-package-extended) |
 
 A downstream figure can never look more certain than the forecast it is built on. [`specs/application/technical/predict-computation.md § Predict Computation § Confidence and rationale package`](/specs/application/technical/predict-computation.md#confidence-and-rationale-package)'s flagged-conflict ceiling applies the same discipline one stage earlier.
 
@@ -158,6 +168,79 @@ Drill-down runs along independent axes, the ones [`specs/application/product/ans
 - **Metric pivot.** It re-projects the existing output onto a different metric field (price to volume to margin to share). If that metric was already computed as part of the Simulated Outcome, the pivot is a display-only operation with no new model call. If it was not, the pivot triggers a new call against the cached question intent rather than a fresh retrieval.
 
 [`specs/application/technical/architecture.md § Architecture Overview § Diagrams § Layer Composition`](/specs/application/technical/architecture.md#layer-composition) renders this.
+
+## Facts
+
+**Records:**
+  - **Name:** model registry entries \
+    **Type:** list<context<name: string, version: string, confidence_interval_lower: number, confidence_interval_upper: number, last_validated: date>> \
+    **Means:** the distinct name/version pairs actually used for this question, joined from the per-candidate call trace to the pinned registry entries
+
+  - **Name:** simulate confidence weighting rubric \
+    **Type:** context<model confidence: number, model freshness: number> \
+    **Means:** the versioned rubric's weights for Simulate's model-confidence and model-freshness components
+
+  - **Name:** parent confidence score \
+    **Type:** number \
+    **Means:** the parent Positioning Candidate's confidence score, inherited from its forecast, which caps every Simulated Outcome
+
+  - **Name:** model confidence score \
+    **Type:** function<number> -> number \
+    **Means:** the rubric's score for one model's confidence-interval width
+
+  - **Name:** model confidence scores \
+    **Type:** list<number> \
+    **Initial Value:** [] \
+    **Means:** the confidence-interval-width score for each simulation model
+
+  - **Name:** model freshness score \
+    **Type:** function<date> -> number \
+    **Means:** the rubric's staleness score for one model's last-validated date
+
+  - **Name:** model freshness scores \
+    **Type:** list<number> \
+    **Initial Value:** [] \
+    **Means:** the freshness score for each simulation model
+
+  - **Name:** model confidence component \
+    **Type:** number \
+    **Means:** the lowest confidence-interval-width score among the simulation models
+
+  - **Name:** model freshness component \
+    **Type:** number \
+    **Means:** the lowest freshness score among the simulation models
+
+  - **Name:** simulate confidence weights \
+    **Type:** context<model confidence: number, model freshness: number> \
+    **Means:** the two component weights read from the simulate confidence weighting rubric
+
+  - **Name:** Simulate confidence score \
+    **Type:** number \
+    **Means:** the completed confidence score for Simulate
+
+  - **Name:** limiting confidence models \
+    **Type:** list<context<name: string, version: string, confidence_interval_lower: number, confidence_interval_upper: number, last_validated: date>> \
+    **Means:** all pinned registry entries tied for the minimum confidence score for this question
+
+  - **Name:** limiting freshness models \
+    **Type:** list<context<name: string, version: string, confidence_interval_lower: number, confidence_interval_upper: number, last_validated: date>> \
+    **Means:** all pinned registry entries tied for the minimum freshness score for this question
+
+  - **Name:** cap lowered? \
+    **Type:** boolean \
+    **Means:** whether the parent forecast's confidence score lowered Simulate's score
+
+  - **Name:** confidence components \
+    **Type:** context<model confidence: number, model freshness: number, confidence evidence: list<context<name: string, version: string, confidence_interval_lower: number, confidence_interval_upper: number, last_validated: date>>, freshness evidence: list<context<name: string, version: string, confidence_interval_lower: number, confidence_interval_upper: number, last_validated: date>>, cap lowered: boolean> \
+    **Means:** each minimum, every versioned model tied for it and whether the candidate confidence capped the result
+
+  - **Name:** retrieval trace \
+    **Type:** list<context<candidate: string, name: string, version: string, inputs: context>> \
+    **Means:** each actual candidate call, identified by candidate, model, version and supplied input values
+
+  - **Name:** rationale on every Simulated Outcome \
+    **Type:** context<confidence_score: number, confidence_components: context<model confidence: number, model freshness: number, confidence evidence: list<context<name: string, version: string, confidence_interval_lower: number, confidence_interval_upper: number, last_validated: date>>, freshness evidence: list<context<name: string, version: string, confidence_interval_lower: number, confidence_interval_upper: number, last_validated: date>>, cap lowered: boolean>, retrieval_trace: list<context<candidate: string, name: string, version: string, inputs: context>>> \
+    **Means:** the shared rationale with the limiting registry entries and all actual candidate calls
 
 ## Open Questions
 
