@@ -52,9 +52,9 @@ A question request carries the session's business unit and kind of decision, whe
 
 ### Parallel evidence retrieval
 
-Resolve the business unit, competitor, brand, geography and horizon. For a scheduled cell read its most recently published successful bundle and pin the vintage and computation versions recorded on that bundle. A settings edit leaves that bundle available until the next successful refresh publishes its replacement. A failed read or an absent scheduled cell takes the retrieval retry and failure path.
+Capture the resolved unit’s current publication after authorization and intent resolution. Classify a requested geography below the grid’s resolution for allocation from its grounded parent. Other unsupported geographies are unavailable. Only a tracked brand at a grounded market and supported horizon can take the live route. A scheduled key must read its own published bundle. A missing scheduled row or failed read follows the existing retrieval retry and failure path. A unit awaiting its first publication returns the specific unavailability reason. No forecast or delivery is created.
 
-For an outside-grid request, select the business unit's latest successfully published grid in one read and pin its data vintage and its complete forecast_model_versions map together. Pin the application version and applicable business-unit settings for this question. A refresh in progress or a failed refresh leaves the previous publication in effect. If there is no published grid to supply those pins, use the retrieval retry and failure path. Match the business unit, competitor, brand, geography, horizon, data vintage, application version, complete forecast_model_versions map and business-unit configuration version. Reuse a live bundle only when every field matches. The model_versions trace lists the subset actually called and plays no part in lookup. Persist on the same unique key so concurrent misses converge on one forecast and rationale before positioning. On either path retrieve Brand A's current price and margin targets for the question. Positioning uses the selected forecast and the question's current positioning settings. The answer keeps its question-time settings and the selected forecast's original versions separately.
+For a live lookup, match unit, competitor, brand, geography, horizon, metric, resolved period and basis, publication ID, data vintage, complete forecast model map, application and business-unit configuration versions. Pin the question’s applicable settings and application version on entry. Persist on this unique key so concurrent misses return the same forecast and rationale. The model call trace records only invoked versions. On either path retrieve Brand A’s current price and margin targets. Positioning uses the selected forecast and the current positioning settings. Show the forecast’s origin and target window from its immutable record on each delivery.
 
 When the lookup returns no matching record for an outside-grid request, retrieve the forecast inputs in parallel:
 - retrieve the competitor’s observed list prices, trade-promotion depths, rebates and surcharges per unit from the pinned snapshot
@@ -64,6 +64,24 @@ When the lookup returns no matching record for an outside-grid request, retrieve
 The forecast algorithms call their models when they consume these inputs. Confidence packaging persists the resulting bundle under the same pinned key before positioning begins. Brand A's current price is retrieved as a reference point, not modeled or converted into a price gap or relative price index at this stage.
 
 [`specs/application/technical/architecture.md § Architecture Overview § Diagrams § Layer Composition`](/specs/application/technical/architecture.md#layer-composition) renders this.
+
+#### Select a forecast
+
+Resolve the source for an authorized forecast request against the captured publication. A finer geographic estimate selects the grounded parent and applies the existing allocation rule.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Publication available?, Tracked brand?, Forecast route, Exact live match? \
+**Computed:** Lookup result
+
+| Publication available? | Tracked brand? | Forecast route | Exact live match? | Lookup result |
+|---|---|---|---|---|
+| false | - | - | - | "awaiting publication" |
+| true | false | - | - | "untracked" |
+| true | true | "cell" | - | "published cell" |
+| true | true | "allocation" | - | "use grounded parent" |
+| true | true | "unsupported" | - | "unavailable" |
+| true | true | "live" | true | "stored live" |
+| true | true | "live" | false | "compute live" |
 
 ## Facts
 
@@ -139,3 +157,24 @@ The forecast algorithms call their models when they consume these inputs. Confid
     **Type:** string \
     **Values:** "Strategic", "Tactical", "unsettled" \
     **Means:** the kind of decision the question is given for, or `unsettled` when clarification is needed
+
+  - **Name:** publication available? \
+    **Type:** boolean \
+    **Means:** whether the unit has published a complete grid
+
+  - **Name:** tracked brand? \
+    **Type:** boolean \
+    **Means:** whether the selected competitor and brand belong to the captured published membership
+
+  - **Name:** forecast route \
+    **Type:** string \
+    **Values:** "cell", "live", "allocation", "unsupported" \
+    **Means:** requested scope classified using the captured publication and geographic grounding rules
+
+  - **Name:** exact live match? \
+    **Type:** boolean \
+    **Means:** whether a stored forecast and rationale match the complete pinned key
+
+  - **Name:** lookup result \
+    **Type:** string \
+    **Means:** the selected route and availability decision for this resolved request
