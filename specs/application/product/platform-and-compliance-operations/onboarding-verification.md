@@ -7,14 +7,20 @@ technical-specs:
 
 ## Onboarding Verification
 
-A Platform admin tunes the platform over time from a bulk view ([`specs/application/product/accuracy-governance.md § Tracking Forecast Accuracy`](/specs/application/product/accuracy-governance.md#tracking-forecast-accuracy)). The same view also does the first real check right after onboarding. In those first days, even the shortest horizon, one month, has not yet elapsed, so there is no accuracy to check. A Platform admin can still confirm that the integrations are producing driver signals and forecasts for the real questions being asked, with real evidence and confidence behind them, before treating onboarding as done. Connected integrations alone do not show that it is.
+A Platform admin checks onboarding in the bulk view ([`specs/application/product/accuracy-governance.md § Tracking Forecast Accuracy`](/specs/application/product/accuracy-governance.md#tracking-forecast-accuracy)). A published forecast with its evidence and confidence verifies forecast production. A retained question linked to the delivered forecast verifies that someone received an answer. The admin can confirm both before comparable actual prices exist.
 
 ### Test Scenarios
 
 ```gherkin
-Scenario: A Platform admin checks a newly onboarded installation before any forecast's horizon has passed.
-  Given an installation was recently onboarded and its integrations have started producing driver signals and forecasts for real questions
-  When a Platform admin reviews the installation
-  Then the Platform admin sees the driver signals being ingested and the forecasts being produced, with their evidence and confidence
-  And this check does not require any forecast's horizon to have passed yet
+Scenario: A scheduled forecast verifies production and its first delivery verifies use.
+  Given a recently onboarded business unit has published a forecast with signal evidence and confidence
+  When the Platform admin inspects it before any question has been answered
+  Then the forecast verifies production and the report shows no deliveries in the fully retained interval
+  When a Query user receives that forecast in an answer
+  Then its retained delivery verifies use while the forecast is still pending
+
+Scenario: A gap in retention limits the onboarding evidence.
+  Given a published forecast has no linked deliveries remaining for a partly purged interval
+  When the Platform admin reviews that interval
+  Then the report labels the delivery count as retained only and identifies the gap
 ```

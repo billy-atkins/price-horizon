@@ -1,13 +1,15 @@
 ---
 technical-specs:
   - specs/application/technical/data-model.md
+  - specs/application/technical/engineering-and-production-considerations.md
   - specs/application/technical/materialization-service/forecast-materialization.md
+  - specs/application/technical/predict-computation.md
   - specs/application/technical/query-service/evidence-and-accuracy-reporting.md
 ---
 
 ## Tracking Forecast Accuracy
 
-Once a forecast's horizon passes and the competitor's real price is observed, the forecast is checked against what actually happened. The check tracks whether the models are drifting as markets shift. It does not grade an answer an executive has already acted on.
+Each forecast shows the dates it predicts and where its evidence came from. A forecast is pending until its observation period ends and complete comparable prices arrive. If its original comparison terms cannot be recovered, the report explains why it cannot be evaluated. Each scored forecast contributes once to the pattern of model accuracy, however many people received it.
 
 Each checked forecast gets a verdict, always shown with how far off the forecast was:
 
@@ -17,11 +19,11 @@ Each checked forecast gets a verdict, always shown with how far off the forecast
 
 A verdict is judged against what the forecast committed to when it was made: its band, its direction, and the stable-price threshold then in effect. So a later settings change never rewrites a verdict.
 
-Accuracy tracking is one mechanism seen at different scopes, not a set of separate reviews. A Platform admin ([`specs/application/product/roles.md § Roles`](/specs/application/product/roles.md#roles)) sees it across every business unit an installation hosts, all together rather than one at a time. The Platform admin sees every driver signal that was used and every forecast it fed. Once each forecast's horizon has passed, the Platform admin also sees whether that forecast turned out to be right.
+A Platform admin sees the forecasts across the installation, the driver signals each used, and any recorded verdict and signed error. Retained delivery counts show usage over the selected dates. The report identifies gaps when audit retention covers only part of that period.
 
 The pattern across every business unit, not just one, is the feedback Acme AI tunes the platform's archetype rules, model versions, and weighting rubrics against. Acme AI delivers that tuning through the next application or model release. The pattern is diagnostic input to that engineering work. It is not a conversation with any Query user. [`specs/application/product/identity-and-access/using-and-administering-kept-apart.md § Using and Administering Kept Apart`](/specs/application/product/identity-and-access/using-and-administering-kept-apart.md#using-and-administering-kept-apart) keeps the same separation between using the product and administering it.
 
-A Control plane admin sees the same underlying join, scoped to their own business unit's forecasts and taken together rather than one at a time. The Control plane admin sees every forecast that has been checked against what actually happened, and every qualitative signal that fed it. The pattern across many forecasts, not just one, lets a Control plane admin raise a specific prediction with the Query user who asked it. It also lets the Control plane admin flag a pattern for Acme AI to weigh before an application or model release next changes the archetype rules, model versions, or weighting rubrics behind every forecast.
+A Control plane admin sees the same forecasts, signals and accuracy within their own business unit. To raise a particular prediction with a Query user, the admin selects that user’s retained delivery and opens its question and forecast. A scheduled forecast can appear here even when nobody has received it.
 
 Sometimes a Control plane admin's review points to something that looks like the platform itself rather than their own business unit. That review lands in the same accuracy view: a Platform admin looks at that business unit's own records inside the view the Platform admin already has. These are the same underlying facts the Control plane admin was looking at, rather than a secondhand description of them.
 
@@ -30,6 +32,13 @@ Sometimes a Control plane admin's review points to something that looks like the
 ### Test Scenarios
 
 ```gherkin
+Scenario: A Control plane admin distinguishes missing prices from an ambiguous forecast period.
+  Given one forecast for the unit covers September and its price observations stop on September 29
+  And an older forecast has its original comparison terms but no evidence identifying a single target interval
+  When the Control plane admin opens the report after September ends
+  Then the September forecast is pending because comparable observations are incomplete
+  And the older forecast is unevaluable because its original target window cannot be resolved
+  And neither forecast has a verdict
 Scenario: A forecast is checked against what actually happened once its horizon passes.
   Given a forecast for Competitor Brand's effective price in Texas at a 6-month horizon
   When that 6-month horizon passes and Competitor Brand's actual effective price in Texas is observed
@@ -84,4 +93,11 @@ Scenario: A Control plane admin reviews forecast evidence and accuracy in bulk f
   When a Control plane admin reviews North America Snacks in bulk
   Then the Control plane admin sees every driver signal used, every forecast it fed, and whether each completed forecast turned out to be right
   And this view is not limited to a single forecast
+Scenario: A Control plane admin follows up on one delivery of a reused forecast.
+  Given Maya and Luis each received the same scheduled forecast for North America Snacks
+  And another forecast has no deliveries during the fully retained interval
+  When their Control plane admin opens Luis’s delivery in the report
+  Then the report shows two forecasts with delivery counts of two and zero
+  And the admin can identify Luis’s question and raise that prediction with Luis
+  And the detail contains only activity for North America Snacks
 ```

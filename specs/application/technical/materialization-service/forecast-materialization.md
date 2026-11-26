@@ -4,7 +4,7 @@ The Predict computation in [`specs/application/technical/predict-computation.md 
 
 The geography axis of that grid is not independently curated. [`specs/application/technical/materialization-service/reconciliation.md § Product and Geography Reconciliation`](/specs/application/technical/materialization-service/reconciliation.md#product-and-geography-reconciliation) sets it, typically to country, state or province, and major metro. That reconciled boundary is the coarsest input in the whole chain, and it determines what can be forecast rather than estimated. Brand A's internal POS data is available far finer, down to individual stores, but that never buys back resolution on the competitor side. Position and Simulate both depend on the competitor forecast as an input, so the entire answer inherits this same geographic ceiling, not only Predict.
 
-A query against anything inside the grid is a lookup against the stored bundle. A query for a horizon or geography outside the grid falls back to the live path in [`specs/application/technical/predict-computation.md § Predict Computation`](/specs/application/technical/predict-computation.md#predict-computation). The live path runs against the identical model version and data-as-of snapshot as the materialized grid. For each business unit, publish the grid, its data vintage and its complete forecast_model_versions map together when all scheduled cells have succeeded. Queries continue to read the preceding publication during a refresh and after a failed refresh. An outside-grid request pins the published vintage and models with its own applicable settings and application version. It reuses a stored live forecast and rationale on an exact key match.
+For each run, read one effective revision of [`specs/application/technical/data-model.md § Core Data Model § Reference and Master Data § Tracked brand membership`](/specs/application/technical/data-model.md#tracked-brand-membership) and pin the reconciled markets, standard horizons, data vintage, full forecast model map, business-unit configuration and application version in an immutable publication manifest. Stage the forecast and rationale for each required key under the run ID. If any key lacks a single supported measurement window or a completed bundle, the run fails and the unit keeps its preceding publication, or remains unavailable on its first run. Switch the unit’s current publication in one transaction only when every required key has a complete bundle and the run still owns the expected predecessor. A failed or superseded run cannot expose staged rows. Readers capture one published manifest per request. For forecast selection in a business unit, retirement takes effect when the first complete publication excluding the competitor replaces the previous one. A requested retirement stays pending for that unit through a failed refresh. From the switch onward new requests can neither select a retired brand nor compute an outside-grid forecast for it. Earlier published forecasts and deliveries stay addressable by ID.
 
 Materializing the full grid eagerly, rather than computing narrower slices on demand, trades infrastructure cost for response time by design. The primary user is a time-constrained executive, who reacts to a slow or clunky tool by switching to a competing one, not by tolerating it. For that user, a search-box-fast answer across the whole grid a business unit tracks matters more than the compute spent on combinations a given query never touches. Storage and compute are the cheaper side of that trade.
 
@@ -16,30 +16,111 @@ At most one materialization run is in flight per business unit at a time, and at
 
 A Control plane admin's on-demand run is the one [`specs/application/product/tenant-administration/business-unit-settings.md § Business Unit Settings`](/specs/application/product/tenant-administration/business-unit-settings.md#business-unit-settings) describes.
 
+### Forecast period
+
+Persist the origin date, horizon, target date, measurement basis, inclusive window start and exclusive end with both scheduled and live forecasts. Resolve a relative month horizon by adding calendar months to the UTC date of the data vintage, clipping to the destination month’s last day. Preserve the requested unit for other supported horizons. The target measurement interval is the single declared observation period for that forecast’s effective-price series that contains the target date. Use the pinned source calendar and price basis for that series; an ambiguous or unsupported basis makes that forecast unavailable. Do not average prices over the whole lead time. A daily series with a March 1 origin and a six-month horizon has window [September 1, September 2); a monthly series has [September 1, October 1). Both computation and comparison take those exact boundaries.
+
 ## Realized outcome check
 
-A forecast is worth trusting only if something eventually checks it against what happened. The data to check it is not missing. It is the same syndicated competitor data that keeps arriving on the cadence in [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations`](/specs/application/technical/engineering-and-production-considerations.md#engineering-and-production-considerations). That data has not been looked back at yet. The realized outcome check runs on the same cadence as forecast materialization. It checks every Effective Price Forecast, whatever its computed_via, and checks a live-triggered row the same way as a materialized one. This is the mechanism behind the promise in [`specs/application/product/accuracy-governance.md § Tracking Forecast Accuracy`](/specs/application/product/accuracy-governance.md#tracking-forecast-accuracy) that a Control plane admin sees whether a live-triggered forecast turned out to be right, not only a materialized one. The realized outcome check is an Algorithm.
+On every materialization cadence, consider each successfully published batch forecast and each committed live forecast, including those with no deliveries. Recover legacy periods only from the original pinned grid key or question, vintage and measurement calendar when they yield exactly one interval. Irrecoverable original comparison terms or an ambiguous interval give an unevaluable reason. A valid interval whose exclusive end is later than the check cutoff is pending period. Once elapsed, use the first complete comparable actuals vintage available at the check cutoff, in ingestion order with the immutable vintage ID breaking ties. Insufficient coverage is pending actuals and is retried. Compare the same unit, competitor brand, geography, currency, physical unit, price basis and interval. Reconstruct the effective observation with the same period aggregation and net components as Predict. A zero starting price leaves percentage direction undefined for a nonzero move; if that direction is required to decide an out-of-band verdict, mark the comparison unevaluable and retain the reason. Zero move is stable; an in-band move can still be judged without dividing by the starting price.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
+Only a scored result creates a Realized Outcome. In one transaction insert against a unique forecast ID, recording the compared window, observed effective price, actuals vintage and source references, move, error and verdict. A concurrent or retried check returns the winning stored result. Later observations cannot rewrite it. For each unscored forecast retain the latest check’s cutoff, state and reason together, separately from the immutable forecast. An older check cannot replace a newer disposition. A scored outcome takes precedence over every unscored check. Report the recorded reason verbatim with the state.
 
-**Inputs:** each Effective Price Forecast whose horizon has elapsed and that has no Realized Outcome, and the harmonized foundation's actual competitor data
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm` \
+**Inputs:**
+  - forecast comparison
+  - observation eligibility
+  - observed price
+  - existing comparison
 
-**Output:** a Realized Outcome for each such forecast whose actual data has arrived
+**Output:**
+  - comparison result
+
+**Runs When:**
+  - the scheduled outcome-check job considers one persisted forecast
 
 | Step | Action |
 |---|---|
-| 1 | If no Effective Price Forecast remains whose horizon has elapsed relative to the current date, that has no Realized Outcome yet, and that this run has not yet taken, End; otherwise, continue |
-| 2 | Take the next such forecast |
-| 3 | If the harmonized foundation has actual competitor data covering that same combination and time window, continue; otherwise, the forecast being checked again on a later run, Go to step 10 |
-| 4 | Decompose the actual data into an effective price the same way the original forecast was |
-| 5 | Compute the realized move as that actual effective price less the forecast's starting_effective_price, and forecast_error as the forecast's move less the realized move |
-| 6 | Set the realized move's direction by the dead-zone test of [`specs/application/technical/predict-computation.md § Predict Computation § Baseline forecast [Step: 6]`](/specs/application/technical/predict-computation.md#baseline-forecast), its size taken as a share of the forecast's starting_effective_price, under the forecast's own dead_zone_threshold |
-| 7 | If the realized move lies within the forecast's confidence_interval_lower and confidence_interval_upper, bounds included, set the verdict to Right, Go to step 9; otherwise, continue |
-| 8 | If the realized move's direction matches the forecast's, set the verdict to Right direction; otherwise, set the verdict to Wrong |
-| 9 | Store the comparison as a Realized Outcome ([`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Realized Outcome`](/specs/application/technical/data-model.md#realized-outcome)), referencing the original Effective Price Forecast and the Data Vintage the actual figure came from |
-| 10 | If a forecast remains that step 1 would take, Go to step 2; otherwise, End |
+| 1 | If existing comparison != null, Set comparison result to existing comparison, End; otherwise, continue |
+| 2 | If observation eligibility.state != "ready", Set comparison result to {state: observation eligibility.state, reason: observation eligibility.reason, move: null, error: null, verdict: null}, End; otherwise, continue |
+| 3 | Set actual move to observed price - forecast comparison.start |
+| 4 | If forecast comparison.start = 0 and actual move != 0 and (actual move < forecast comparison.lower or actual move > forecast comparison.upper), Set comparison result to {state: "unevaluable", reason: "zero starting price prevents direction comparison", move: actual move, error: forecast comparison.move - actual move, verdict: null}, End; otherwise, continue |
+| 5 | Set signed error to forecast comparison.move - actual move |
+| 6 | Set actual direction to if actual move = 0 then "stable" else if forecast comparison.start > 0 and abs(actual move) < forecast comparison.threshold * forecast comparison.start then "stable" else if actual move > 0 then "increase" else "decrease" |
+| 7 | Set comparison result to {state: "scored", reason: null, move: actual move, error: signed error, verdict: if forecast comparison.lower <= actual move and actual move <= forecast comparison.upper then "Right" else if forecast comparison.direction = actual direction then "Right direction" else "Wrong"} |
+| 8 | End |
 
-The original Effective Price Forecast is never edited to reflect what happened. It stays what was forecast at the time. The Realized Outcome is a separate record that arrives later. Steps 5 to 8 set a verdict once, from what the forecast recorded when it was produced: its starting price, interval, direction and dead-zone threshold. Steps 1, 2 and 10 never take a forecast that already has a Realized Outcome, so no later settings change rewrites the verdict. The driver attribution weighting rubric and the confidence scoring weighting rubric were declared and versioned rather than learned ([`specs/application/technical/predict-computation.md § Predict Computation § Confidence and rationale package`](/specs/application/technical/predict-computation.md#confidence-and-rationale-package)). Accumulated Realized Outcomes are the labeled data those rubrics are to be calibrated against eventually. They are also the data the competitor price-response model's historical-reaction estimate needs to be trained and validated against, not asserted. [`§ Open Questions [Name: Recalibration]`](#open-questions) holds how that recalibration works.
+The driver attribution weighting rubric and the confidence scoring weighting rubric were declared and versioned rather than learned ([`specs/application/technical/predict-computation.md § Predict Computation § Confidence and rationale package`](/specs/application/technical/predict-computation.md#confidence-and-rationale-package)). Accumulated Realized Outcomes are the labeled data those rubrics are to be calibrated against eventually. They are also the data the competitor price-response model's historical-reaction estimate needs to be trained and validated against, not asserted. [`§ Open Questions [Name: Recalibration]`](#open-questions) holds how that recalibration works.
+
+### Comparison eligibility
+
+Resolve the observation state for each forecast without an existing outcome, using the check’s captured cutoff.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Original terms recoverable?, Single target window?, Window closed?, Comparable actuals available? \
+**Computed:** Observation eligibility
+
+| Original terms recoverable? | Single target window? | Window closed? | Comparable actuals available? | Observation eligibility |
+|---|---|---|---|---|
+| false | - | - | - | {state: "unevaluable", reason: "original comparison terms unavailable"} |
+| true | false | - | - | {state: "unevaluable", reason: "original target window unresolved"} |
+| true | true | false | - | {state: "pending period", reason: "target window still open"} |
+| true | true | true | false | {state: "pending actuals", reason: "comparable observations incomplete"} |
+| true | true | true | true | {state: "ready", reason: null} |
+
+## Facts
+
+**Records:**
+  - **Name:** original terms recoverable? \
+    **Type:** boolean \
+    **Means:** whether the forecast’s original price, move, band, direction, threshold and price basis can be established from pinned evidence
+
+  - **Name:** single target window? \
+    **Type:** boolean \
+    **Means:** whether the stored interval or the original vintage, horizon and measurement calendar identify exactly one target window
+
+  - **Name:** window closed? \
+    **Type:** boolean \
+    **Means:** whether the exclusive end is at or before the captured check cutoff
+
+  - **Name:** comparable actuals available? \
+    **Type:** boolean \
+    **Means:** whether an eligible vintage at the cutoff provides complete matching observations for the entire window
+
+  - **Name:** forecast comparison \
+    **Type:** context<start: number, move: number, lower: number, upper: number, direction: string, threshold: number> \
+    **Means:** the original forecast’s starting effective price, predicted move, inclusive move bounds, predicted direction and original fractional stable-price threshold
+
+  - **Name:** observation eligibility \
+    **Type:** context<state: string, reason: string> \
+    **Means:** the comparison disposition and its reason from the eligibility decision at the pinned cutoff
+
+  - **Name:** observed price \
+    **Type:** number \
+    **May Be Absent:** Yes \
+    **Means:** the comparable effective price for the whole target window from the selected actuals vintage; present whenever ready
+
+  - **Name:** actual move \
+    **Type:** number \
+    **Means:** observed effective price minus the forecast’s starting price
+
+  - **Name:** signed error \
+    **Type:** number \
+    **Means:** forecast move minus actual move
+
+  - **Name:** actual direction \
+    **Type:** string \
+    **Values:** "stable", "increase", "decrease" \
+    **Means:** realized direction under the original threshold
+
+  - **Name:** existing comparison \
+    **Type:** context<state: string, reason: string, move: number, error: number, verdict: string> \
+    **May Be Absent:** Yes \
+    **Means:** the immutable scored result already stored for this forecast ID, or null
+
+  - **Name:** comparison result \
+    **Type:** context<state: string, reason: string, move: number, error: number, verdict: string> \
+    **Means:** the comparison disposition and numerical values where scored
 
 ## Open Questions
 
