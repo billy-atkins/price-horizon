@@ -1,11 +1,11 @@
 """The record types, facts, closed sets, Basic Tables and construct keys the specs declare, and the parts a
-citation names: what the construct checks read before they run, read here once for every skill's script that runs them
-(specs/methodology/skills/authoring-a-skill.md § Authoring a Skill). declared_types fills TYPES; the checks then read it.
+citation names: what the construct checks read before they run, read here once for every skill's script that runs them.
+declared_types fills TYPES; the checks then read it.
 
 The one reader of a block of fields is here too: every script reads where a block of fields, a field's value, a field's
-list and a record begin and end through read_block and read_item, as modeling-constructs.md § Fields states them. Where
-a list item ends is spec-style/markdown.md § Markdown's rule, read here for a record's item and, by the same rule, by the element reader
-of layout.py for the check of spec-style/markdown.md § Blank Lines."""
+list and a record begin and end through read_block and read_item, as the canon's rule on fields states them. Where a
+list item ends is the canon's Markdown rule, read here for a record's item and, by the same rule, by the blank-line
+check's element reader."""
 import re
 from pathlib import PurePosixPath
 
@@ -14,11 +14,12 @@ import layout
 import reading
 from spec_text import RECORD_SELECTOR, resolve, sections, strip_fences
 
-CITATION = constructs.CITATION  # the form written once, in constructs.py
+CITATION = constructs.CITATION  # the form written once, in the construct module
 
 
-# modeling-constructs.md § Constructs § Record Form: every record type is read from its declaration, by declared_types,
-# the canon's own among them; the checks hold no copy of one. A type's own placement is audit-specs' to carry out.
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
+# every record type is read from its declaration, by declared_types, the canon's own among them; the checks hold no
+# copy of one. A type's own placement is audit-specs' to carry out.
 RECORD_FORM = "modeling-constructs.md § Constructs § Record Form"
 
 
@@ -38,7 +39,7 @@ FACT_HOME = "specs/methodology/modeling-constructs.md § Defining Constructs § 
 LAST_TOP_LEVEL = ("specs/methodology/spec-placement/open-question.md § Open Question",)
 
 
-FIELD_LINE = constructs.FIELD  # the form written once, in constructs.py
+FIELD_LINE = constructs.FIELD  # the form written once, in the construct module
 
 
 
@@ -94,8 +95,8 @@ def _own_line(lines, i, end, problems, consumed):
 def read_item(lines, i, end=None, problems=None, consumed=None):
     """-> an item of a field's list opening at line i: {"line", "indent", "text_indent", "lines", "text", "fields"},
     its fields read as a block where it opens a field's key, a record, and None where it is a plain item, whose text
-    is its first line's content. The item ends where spec-style/markdown.md § Markdown has a list item end, before the first line that is
-    not blank and is indented less than its text."""
+    is its first line's content. The item ends where the canon's Markdown rule has a list item end, before the first
+    line that is not blank and is indented less than its text."""
     end = len(lines) if end is None else end
     problems = [] if problems is None else problems
     raw = lines[i]
@@ -132,16 +133,16 @@ def read_item(lines, i, end=None, problems=None, consumed=None):
 
 
 def read_block(lines, i, indent, end=None, problems=None, consumed=None, first=False):
-    """modeling-constructs.md § Fields: the one reader of a block of fields. Reads the fields standing at `indent` from
+    """The one reader of a block of fields. Reads the fields standing at `indent` from
     line i, a line opening a field's key, or a record's first line where `first` is given: each field's key, its value
     running to the next line opening a field's key or to the block's end, each line between continuing it, without the
     space and the backslash ending a line, and the list beneath a key, its items at the key's indentation or beyond,
-    each item ending as spec-style/markdown.md § Markdown has a list item end, or the fenced blocks beneath a key holding no
+    each item ending as the canon's Markdown rule has a list item end, or the fenced blocks beneath a key holding no
     text, each fence two spaces beyond the key, each block one code block toward the block of fields, so none of its
     lines is read as a field, a record or a list item of it. A list, a table or a fenced block ends the block's
     paragraph, and a field opening the next paragraph is the block's. A block standing two spaces beyond a field's key
-    after its text and one blank line is the field's nested block, as modeling-constructs.md § Fields § A Nested
-    Construct has one stand. -> ([field], the line after the block), each field {"key", "value", "line", "lines",
+    after its text and one blank line is the field's nested block, as the canon has a nested construct stand.
+    -> ([field], the line after the block), each field {"key", "value", "line", "lines",
     "items", "inline", "nested", "blocks"}, "nested" as _read_nested gives it, or None, and "blocks" as _read_fenced
     gives each, or None; the reader's checks are appended to `problems` as (rule, 0-based line, message), and the
     lines read to `consumed`."""
@@ -206,17 +207,17 @@ def read_block(lines, i, indent, end=None, problems=None, consumed=None, first=F
 
 
 def _fence(line):
-    """-> the match where the line, past its indentation, opens a fenced block, as the one reading reads a fence
-    (reading.py), else None."""
+    """-> the match where the line, past its indentation, opens a fenced block, as the one reading reads a fence, else
+    None."""
     return reading.opens_fence(line.expandtabs(4).lstrip(" "))
 
 
 def _read_fenced(lines, k, end, consumed):
-    """modeling-constructs.md § Fields: a fenced block of a field's value, opening with its fence at line k and closing
+    """A fenced block of a field's value, opening with its fence at line k and closing
     at the first line after it that is a fence of the same character at least as long, or at `end` ->
     ({"line", "lines", "info", "text"}, the line after it): its 0-based lines, its fences among them, the info string's
     first word, and the lines between its fences dedented by the opening fence's indentation, the block read as the
-    one reading reads one (reading.py)."""
+    one reading reads one."""
     at = _indent(lines[k])
     block = reading.blocks("\n".join(reading.dedented(l.expandtabs(4), at) for l in lines[k:end]))[0]
     close = min(k + block.closes - 1, end - 1)
@@ -230,7 +231,7 @@ NESTED_HOME = ("specs/methodology/modeling-constructs.md", "Fields § A Nested C
 
 
 def _read_nested(lines, k, at, end, problems, consumed):
-    """modeling-constructs.md § Fields § A Nested Construct: the block nested beneath a field's text, opening at line k
+    """The block nested beneath a field's text, opening at line k
     with a key at indentation `at` and running to its last line before one that is not blank and is indented less ->
     ({"line", "lines", "fields", "tables", "construct"}, the line after it): its fields read as blocks of fields at
     `at`, the 0-based first lines of its tables, and whether it opens with a Construct field."""
@@ -257,7 +258,7 @@ def _read_nested(lines, k, at, end, problems, consumed):
 
 class Record(list):
     """A record as the checks read one, [(key, value, 0-based line)], and `constructs`, {key: its nested block}, for
-    each of its fields holding a construct nested beneath it (modeling-constructs.md § Fields § A Nested Construct)."""
+    each of its fields holding a construct nested beneath it."""
     constructs = {}
 
 
@@ -305,8 +306,9 @@ def value_of(field):
     return (field["value"] + "\n" + items) if field["value"] else items
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Fields
 def block_findings(text, offset=0, consumed=None):
-    """modeling-constructs.md § Fields: the reader's checks over every block of fields a file holds, a record's among
+    """The reader's checks over every block of fields a file holds, a record's among
     them, a fenced `markdown` block's Markdown read as a file of its own -> [(rule, 1-based line, message)]."""
     lines = strip_fences(text.replace("\r\n", "\n")).split("\n")
     problems, consumed = [], set() if consumed is None else consumed
@@ -341,7 +343,7 @@ def derive(spec, holds=None):
     spec["unique"] = [f for f, unique, _, _, _ in spec["table"] if unique == "yes"]
     spec["required"] = [f for f, _, req, _, _ in spec["table"] if req == "yes"]
     spec["defaults"] = {f: d for f, _, _, d, _ in spec["table"] if d}
-    # modeling-constructs.md § Constructs § Record Form: a field's values, where its Values cell lists them
+    # a field's values, where its Values cell lists them
     spec["values"] = {f: constructs.quoted_values(v) for f, _, _, _, v in spec["table"]
                       if constructs.quoted_values(v) is not None}
     # a field whose Values cite a record type's definition holds its records, one or a list; a field whose Values cite
@@ -365,11 +367,15 @@ TYPES = {}
 
 
 # the record types a fenced `markdown` block declares, by the block's own path and the type's Plural Name, each
-# reaching that block alone (modeling-constructs.md § Constructs § Record Form)
+# reaching that block alone
 BLOCK_TYPES = {}
 
 
 _TEXT_OF = {}
+
+# the texts the types in place were declared from, so a reader of the checkout's forms alone can tell a setup another
+# run left of a project's own texts from the canon's
+SET_UP_FROM = [None]
 
 
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
@@ -377,10 +383,12 @@ _TEXT_OF = {}
 # @canon-spec specs/methodology/spec-placement/environments.md § Environments
 FIELD_KEYS = {"Kind": "environment",
               **{f: {"Diagrams": "diagram", "Record Form #2": "record section"}.get(c, "construct") for f, c, _, _ in constructs.FIELD_TABLE}}
+# the keys the forms give before any record type is read, which each reading of the declared types starts again from
+FORM_FIELD_KEYS = dict(FIELD_KEYS)
 
 
-# a citation's `Key: value`, its key a field label, constructs.py's one copy of the form, or a table's name and its key's,
-# joined by a dot, where its construct has more than one keyed table (modeling-constructs.md § Constructs § Keyed Construct)
+# a citation's `Key: value`, its key a field label, the construct module's one copy of the form, or a table's name and
+# its key's, joined by a dot, where its construct has more than one keyed table
 KEY_VALUE = re.compile(rf'^({constructs.LABEL}(?: {constructs.LABEL})*(?:\.{constructs.LABEL}(?: {constructs.LABEL})*)*): (.+)$')
 
 
@@ -391,20 +399,20 @@ def block_path(r, start):
 
 # @canon-spec specs/methodology/scope/form-templates.md § Form Templates
 def is_form_template(r):
-    """scope/form-templates.md § Form Templates: whether file `r` is a form template, a skill's or the core canon's, told by its name
-    ending `-form-template` wherever it sits."""
+    """Whether file `r` is a form template, a skill's or the core canon's, told by its name ending `-form-template`
+    wherever it sits."""
     return PurePosixPath(r.split("#L")[0]).stem.endswith("-form-template")
 
 
 def read_for_records(r):
-    """modeling-constructs.md § Constructs § Record Form: whether file `r` is one whose record types and records are read,
+    """Whether file `r` is one whose record types and records are read,
     a file of the canon or an application spec, but a form template, a skill's or the core canon's, whose fields are
     placeholders a copy fills."""
     return (r.startswith("specs/") or r.startswith(".ai/skills/")) and not is_form_template(r)
 
 
 def type_of(title, r):
-    """modeling-constructs.md § Constructs § Record Form: the record type a section titled `title` holds in file `r`,
+    """The record type a section titled `title` holds in file `r`,
     one whose Plural Name it is and whose records may sit there, a canon type's in any file read_for_records reads, an
     application spec's type's in the application specs, and a fenced `markdown` block's in that block alone; or None."""
     if r in BLOCK_TYPES and title in BLOCK_TYPES[r]:
@@ -420,14 +428,14 @@ def _raw_type(r, line, fields, tables, lineage, reach):
     home = f"{r} § {lineage}"
     rows = [row for _, row in rec[0]["rows"] if len(row) == 6] if rec else []
     return {"table": tuple(tuple(row[:5]) for row in rows),
-            # modeling-constructs.md § Fields § A Nested Construct: the fields whose Holds cites it, each holding a
-            # construct nested beneath its text
+            # the fields whose Holds cites the canon's nested construct, each holding a construct nested beneath its
+            # text
             "own_nested": tuple(row[0] for row in rows if any(resolve(c, r) == NESTED_HOME for c in CITATION.findall(row[5]))),
             "key": [k.strip() for k in values.get("Reference Key", "").split(",") if k.strip()],
             "section_table": tuple(tuple(row[:4]) for _, row in sec[0]["rows"] if len(row) == 5) if sec else (),
             "home": home, "last_top_level": home in LAST_TOP_LEVEL, "declared": (r, line),
             "reach": reach, "extends": values.get("Extends", "none"),
-            # modeling-constructs.md § Constructs § Record Form: an abstract type, a base holding no records of its own
+            # an abstract type, a base holding no records of its own
             "abstract": values.get("Modifier", "none").strip() == "Abstract"}
 
 
@@ -468,7 +476,7 @@ def _resolve_types(raw, out, report=True):
 
         def holds(field, cell, spec=spec):
             # a citation of a record type's definition, alone or after `a list of`, names the section declaring a type
-            m = constructs.LIST_OF_CITATION.match(cell.strip())  # the one pattern, in constructs.py
+            m = constructs.LIST_OF_CITATION.match(cell.strip())  # the one pattern, in the construct module
             cite = m.group(1) if m else cell.strip()
             if not CITATION.fullmatch(cite) or "[" in cite:
                 return None
@@ -488,14 +496,18 @@ def _resolve_types(raw, out, report=True):
     return done
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
 def declared_types(text_of):
-    """modeling-constructs.md § Constructs § Record Form: each record type a Record Form declares in a file
+    """Each record type a Record Form declares in a file
     read_for_records reads, by its Plural Name, read from its declaration, a type extending another holding its base's fields first; each added to TYPES
     and its fields' keys to FIELD_KEYS, and the closed-set resolver set. The types a fenced `markdown` block declares
     are read too, each reaching that block alone and none of their declarations' findings reported. -> the
     declarations' own findings: a defining section titled other than with the type's name, bare; a Plural Name two
     types share; a field a type and its base both name; a Reference Key naming a field the type does not give or
     does not require; and a type holding itself through fields whose Required is yes."""
+    SET_UP_FROM[0] = text_of
+    FIELD_KEYS.clear()
+    FIELD_KEYS.update(FORM_FIELD_KEYS)
     out, raw = [], {}
     # the canon's declarations first, so a type sharing a canon type's Plural Name is the one reported
     for r, body in sorted(text_of.items(), key=lambda kv: (not kv[0].startswith("specs/methodology/"), kv[0])):
@@ -551,8 +563,9 @@ def declared_types(text_of):
     return out
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
 def _self_holding_findings(types):
-    """modeling-constructs.md § Constructs § Record Form: a type holding itself through fields whose Required is yes,
+    """A type holding itself through fields whose Required is yes,
     its own or through other types' in turn, each citing a record type's definition, since no record could end its
     nesting -> findings at each such type's declaration."""
     out = []
@@ -570,7 +583,7 @@ def _self_holding_findings(types):
 
 
 def closed_set(body, cell, host=None):
-    """modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact: the identifying values of the members of the
+    """The identifying values of the members of the
     closed set a Facts record's Values cites, the records of its record section, of a type identifying them by one field,
     or the rows of its Basic Table keyed by one column, or None where it cites no such section; `host` the path the
     citing text is read by, a fenced block's own among them."""
@@ -596,7 +609,7 @@ def closed_set(body, cell, host=None):
 
 
 def read_fact(host, cite, name):
-    """modeling-constructs.md § Constructs § Decision Table: the fact a Reads item cites, in its file or another, as a
+    """The fact a Reads item cites, in its file or another, as a
     Decision Table takes it, untyped where its record breaks the Fact's Checks -> (Type, Values, May Be Absent), or
     None where it cites none."""
     path, target = resolve(cite, host)
@@ -611,8 +624,9 @@ def read_fact(host, cite, name):
     return None
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
 def closed_set_findings(text_of):
-    """modeling-constructs.md § Constructs § Record Form: a closed set's records sit in the one record section a Values
+    """A closed set's records sit in the one record section a Values
     cites, a fact's or a field's; another section of its type holding records where they may sit is reported, and so is
     a field whose Values cite the definition of the set's type, since a field naming a member cites the set's section."""
     out, homes = [], {}
@@ -647,8 +661,9 @@ def closed_set_findings(text_of):
     return out
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
 def parse_records(body, lineage, section_keys=()):
-    """modeling-constructs.md § Constructs § Record Form: a record section's records, read through the one reader.
+    """A record section's records, read through the one reader.
 
     -> (records, problems): each record a list of (key, value, line) in the order written, a field holding records
     giving them as a list of records and a field holding plain items their texts one to a line; each problem (rule,
@@ -706,8 +721,9 @@ CONSTRUCT_KEYS = {}
 NAME_CITED = set()
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Keyed Construct
 def construct_keys(text_of):
-    """modeling-constructs.md § Constructs § Keyed Construct: each construct's Reference Key, read from its definition's section, one
+    """Each construct's Reference Key, read from its definition's section, one
     column or a list's items, one to a keyed table in the order its tables come, each the table and its column joined by a
     dot, the place's name the path's own and the column one of that place's table ->
     CONSTRUCT_KEYS {construct: {key: its table's index, or None for every table}}."""
@@ -739,8 +755,9 @@ def construct_keys(text_of):
     return out
 
 
+# @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation
 def part_citation(sel, path, target, text_of, r, line, found):
-    """sourcing-and-citation/writing-a-citation.md § Writing a Citation: a part's citation names one identifier
+    """A part's citation names one identifier
     of the construct its section declares, and a part of that construct holds it."""
     rule = "sourcing-and-citation/writing-a-citation.md § Writing a Citation"
     body = text_of[path]
@@ -766,7 +783,7 @@ def part_citation(sel, path, target, text_of, r, line, found):
     keys = CONSTRUCT_KEYS.get(construct, {})
     key = m.group(1) if m else None
     # a key its construct names by its table, written alone, is read so in the application specs alone until they are
-    # migrated (modeling-constructs.md § Constructs § Keyed Construct)
+    # migrated
     if m and key not in keys and r.startswith("specs/application/"):
         key = next((k for k in keys if k.endswith("." + key)), key)
     if not m or key not in keys or ";" in sel:
@@ -784,7 +801,7 @@ def part_citation(sel, path, target, text_of, r, line, found):
 
 
 def basic_tables(body):
-    """modeling-constructs.md § Constructs § Basic Table: each section's Basic Tables that a Reference Key field, a Required
+    """Each section's Basic Tables that a Reference Key field, a Required
     field or both before it open, in live text -> {lineage: [{"key": [column], "required": [column], "header": [cell],
     "rows": [(line, [cell])], "line": n, "field": n}]}, a table declaring no Reference Key keyed by no column; a table's
     opening fields read through the one reader, so a backslash ending a field's line is no part of its value."""
@@ -798,7 +815,7 @@ def basic_tables(body):
         if not l.startswith("|") or (i and lines[i - 1].startswith("|")) or i + 1 in in_construct:
             continue
         # the table's opening fields, the trailing run of them in the block of fields directly before it, read through
-        # the one reader (modeling-constructs.md § Fields)
+        # the one reader of a block of fields
         k = i - 1
         while k >= 0 and not lines[k].strip():
             k -= 1
@@ -832,8 +849,9 @@ def basic_tables(body):
     return out
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Keyed Construct
 def cited_value_findings(sel, r, line, found):
-    """modeling-constructs.md § Constructs § Keyed Construct: a key value a citation names holds no section sign, semicolon or
+    """A key value a citation names holds no section sign, semicolon or
     bracket, whatever it names, a row, a record or a construct's part."""
     for p in sel.split("; "):
         m = KEY_VALUE.match(p.strip())
@@ -842,8 +860,9 @@ def cited_value_findings(sel, r, line, found):
                           f"a cited key value holding a section sign, a semicolon or a bracket: [{sel}]"))
 
 
+# @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation
 def row_citation(sel, target, table, r, line, found):
-    """sourcing-and-citation/writing-a-citation.md § Writing a Citation: a Basic Table's row is named by the columns its Reference Key
+    """A Basic Table's row is named by the columns its Reference Key
     names, in their order, and matches exactly one row."""
     rule = "sourcing-and-citation/writing-a-citation.md § Writing a Citation"
     pairs = [KEY_VALUE.match(p.strip()) for p in sel.split("; ")]
@@ -860,8 +879,9 @@ def row_citation(sel, target, table, r, line, found):
         found.append((rule, r, line, f"a row citation matches {len(hits)} rows: § {target} [{sel}]"))
 
 
+# @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation
 def record_citation(sel, path, target, text_of, r, line, found):
-    """sourcing-and-citation/writing-a-citation.md § Writing a Citation: a record citation names every
+    """A record citation names every
     identifying field of its type, in order, and matches exactly one record, a record section's own item."""
     rule = "sourcing-and-citation/writing-a-citation.md § Writing a Citation"
     cited_value_findings(sel, r, line, found)

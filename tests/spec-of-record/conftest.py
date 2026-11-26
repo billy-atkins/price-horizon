@@ -7,8 +7,6 @@ test's own folder, and before and after the run, after which the folder holds th
 A test is handed:
   work       its own folder within the run's folder, empty as the test starts and removed as it ends
   fixtures   the snippets of the fixtures its `reads` marker names, by key
-  check      a function recording one check the test makes: check(what, holds, detail). The test fails as it ends
-             where any check it made did not hold, each named, so one run shows every check that failed
   checkout   the root of the checkout the tests are run in
   run_folder the run's folder
 
@@ -67,20 +65,6 @@ def pytest_configure(config):
 
 def pytest_unconfigure(config):
     spec_text.clear_run(RUN, keep=(spec_text.KEPT_REPORT,))
-
-
-CHECKS = pytest.StashKey()
-
-
-@pytest.hookimpl(wrapper=True)
-def pytest_runtest_call(item):
-    """A test whose own code ran whole fails where a check it recorded did not hold, each such check named."""
-    result = yield
-    made = item.stash.get(CHECKS, [])
-    failed = ["%s%s" % (what, "\n    " + str(detail).replace("\n", "\n    ") if detail not in ("", None) else "") for what, holds, detail in made if not holds]
-    if failed:
-        pytest.fail("%d of %d checks did not hold:\n  %s" % (len(failed), len(made), "\n  ".join(failed)), pytrace=False)
-    return result
 
 
 def names(item, marker):
@@ -169,14 +153,3 @@ def fixtures(request):
             raise pytest.UsageError("%s takes two fixtures under the key %s" % (request.node.nodeid, key))
         out[key] = HELD[name][key]
     return out
-
-
-@pytest.fixture
-def check(request):
-    """-> check(what, holds, detail=""): records one check the test makes. The test fails as its own code ends where a
-    check it made did not hold, naming each, so one run shows every check that failed."""
-    made = request.node.stash.setdefault(CHECKS, [])
-
-    def record(what, holds, detail=""):
-        made.append((str(what), bool(holds), detail))
-    return record

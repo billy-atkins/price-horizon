@@ -1,127 +1,208 @@
-"""The builder's self-review: its entry and the script output written into its report, the Builder Checks required of
-it, the Traces its phase gives it, and its reading after a round's change."""
+"""The builder's self-review: the Builder Checks required of it, the script output its stamp writes into it, the
+Traces its phase gives it and its reading after a round's change, each action called over a project of fixtures."""
 import pytest
 
-from design_script_set import (CAUSE, CHECK_FIELDS, DRAFTED, FERRY, FINDING, LIGHTHOUSE, LINKED, NAME, Project, REVIEW, RE_EVALUATION, ROUND_FIELDS,
-    SELF, SKILLS, a_check, a_design, a_report, a_round, passes, report_at, reports, shown, swap, with_checks)
+from design_script_set import DESIGN, NAME, REPORTS, acted, design_documents as dd, held, project
 
-pytestmark = [pytest.mark.reads("design-script-ferry.md", "island-guide", "ferry-design"),
-              pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")]
+pytestmark = [pytest.mark.reads("design-script-ferry.md", "island-guide"),
+              pytest.mark.reads("audit-whole-project.md", "project-registry-of-one-skill")]
+SELF, SECOND = REPORTS + "/self-review/1.md", REPORTS + "/self-review/2.md"
+ROUND = REPORTS + "/adversarial-review/1.md"
+REGISTRY = "specs/methodology/skills/registered-skills.md"
+ENTRY = [DESIGN, "self-review", "Model=a model", "Effort=medium"]
+FERRY, LIGHTHOUSE = "`docs/guide.md § The Ferry`", "`docs/guide.md § The Lighthouse`"
+MET = [(dd.check_settled_report, "== check-settled-report " + SELF), (dd.stamp_settled_report, "== stamp-settled-report, not stamped " + SELF)]
+
+
+def reviewed(work, fixtures, report, design="ferry-design-drafted", at=SELF, guide="island-guide", **more):
+    """-> the root of a project holding the guide, the design given and a self-review's report at its place."""
+    return project(work, fixtures, {guide: "docs/guide.md", design: DESIGN, report: at, "project-registry-of-one-skill": REGISTRY, **more})
+
+
+def refused(root, monkeypatch, capsys, action, heading, at=SELF):
+    """-> what an action printed of a self-review's report it reports, having held that it exits 1 and changes no
+    file but the report, into which a stamp writes the script output and no stamp."""
+    before = held(root)
+    assert acted(monkeypatch, root, action, at) == 1
+    out = capsys.readouterr().out
+    after = held(root)
+    assert heading.replace(SELF, at) in out and dd.report_stamp((root / at).read_text(encoding="utf-8")) is None
+    assert {p: b for p, b in after.items() if p != at} == {p: b for p, b in before.items() if p != at}
+    assert action is dd.stamp_settled_report or after == before
+    return out
+
+
+def appended(root, monkeypatch, capsys, at=SELF):
+    """-> what appending a self-review's entry printed, its report stamped first."""
+    assert acted(monkeypatch, root, dd.stamp_settled_report, at) == 0
+    assert acted(monkeypatch, root, dd.log_entry, ENTRY) == 0
+    return capsys.readouterr().out
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: builder-checks-required]
+@pytest.mark.action("--check-settled-report")
 @pytest.mark.passes
-def test_entry_appended_with_its_script_output(check):
-    for skill in SKILLS:
-        p = Project("self-review")
-        design = p.design(skill=skill, log=DRAFTED)
-        path = p.put(report_at(SELF, skill=skill), a_report("self-review", skill=skill))
-        before = p.held(".ai")
-        got = p.run("--check-settled-report", path, skill=skill)
-        check("--check-settled-report of %s passes a self-review's report holding each Builder Check required of it, and writes nothing" % skill,
-              passes(got, "== check-settled-report " + path, "0 problems") and p.held(".ai") == before, shown(got))
-        got = p.run("--log-entry", design, SELF, *CHECK_FIELDS, skill=skill)
-        now = p.read(path)
-        check("--log-entry of %s appends its entry, and writes the output of the checks a self-review before the apply runs into its report, where the form orders the part" % skill,
-              passes(got, "== log-entry", "- **Entry:** self-review-1") and "## Script Output\n\n```text\n$ --check-cited-headings %s\n" % design in now
-              and "$ --check-target-kind %s\n== check-target-kind %s\n0 problems\n\nexit 0\n" % (design, NAME) in now
-              and now.index("## Builder Checks") < now.index("## Script Output") < now.index("## Settlement") and "check-kept-tests" not in now, shown(got) + now[-900:])
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+def test_self_review_holding_each_required_check_passes(fixtures, work, monkeypatch, capsys):
+    root = reviewed(work, fixtures, "ferry-self-review-report")
+    before = held(root)
+    assert acted(monkeypatch, root, dd.check_settled_report, SELF) == 0
+    assert "== check-settled-report %s\n0 problems" % SELF in capsys.readouterr().out and held(root) == before
+
+
+@pytest.mark.action("--stamp-settled-report")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+def test_stamp_writes_the_script_output_where_the_form_orders_it(fixtures, work, monkeypatch, capsys):
+    root = reviewed(work, fixtures, "ferry-self-review-report")
+    assert acted(monkeypatch, root, dd.stamp_settled_report, SELF) == 0
+    now = (root / SELF).read_text(encoding="utf-8")
+    assert "## Script Output\n\n```text\n$ --check-cited-headings %s\n" % DESIGN in now
+    assert "$ --check-target-kind %s\n== check-target-kind %s\n0 problems\n\nexit 0\n" % (DESIGN, NAME) in now
+    # a self-review before the apply runs no kept tests
+    assert now.index("## Builder Checks") < now.index("## Script Output") < now.index("## Settlement") and "check-kept-tests" not in now
+
+
+@pytest.mark.action("--log-entry")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+def test_self_reviews_entry_is_appended_once_stamped(fixtures, work, monkeypatch, capsys):
+    root = reviewed(work, fixtures, "ferry-self-review-report")
+    assert "- **Entry:** self-review-1" in appended(root, monkeypatch, capsys)
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: builder-checks-required]
+@pytest.mark.action("--check-settled-report", "--stamp-settled-report")
 @pytest.mark.reports
-def test_each_required_builder_check_is_held(check):
-    whole = a_report("self-review")
-    for label, text, said in (("no check of the work it hands on", swap(whole, LINKED, ""), "no Builder Check of linked work, which is required of it"),
-                              ("no check of its steers", whole.split("  - **Check:** steers-read")[0] + "  - **Check:** work-handed-on" + whole.split("  - **Check:** work-handed-on")[1],
-                               "no Builder Check of steers against the user's messages, which is required of it")):
-        p = Project("builder-checks")
-        design = p.design(log=DRAFTED)
-        path = p.put(report_at(SELF), text)
-        before = p.read(design)
-        got = p.run("--check-settled-report", path)
-        check("--check-settled-report reports a self-review holding " + label, reports(got, "== check-settled-report", said), shown(got))
-        got = p.run("--log-entry", design, SELF, *CHECK_FIELDS)
-        check("--log-entry refuses the entry of a self-review holding " + label, reports(got, "== log-entry, not logged", said) and p.read(design) == before, shown(got))
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.reads("design-script-self-reviewed.md", "self-review-holding-no-check-of-linked-work", "self-review-holding-no-check-of-steers",
+                   "self-review-holding-no-re-evaluation")
+@pytest.mark.parametrize("action, heading", MET)
+@pytest.mark.parametrize("report, said", [
+    ("self-review-holding-no-check-of-linked-work", "no Builder Check of linked work, which is required of it"),
+    ("self-review-holding-no-check-of-steers", "no Builder Check of steers against the user's messages, which is required of it"),
+    # the first self-review of a major version
+    ("self-review-holding-no-re-evaluation", "no Builder Check of problem re-evaluation, which is required of it"),
+])
+def test_required_builder_check_missing_is_reported(fixtures, work, monkeypatch, capsys, action, heading, report, said):
+    assert said in refused(reviewed(work, fixtures, report), monkeypatch, capsys, action, heading)
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: builder-checks-required]
+@pytest.mark.action("--check-settled-report", "--stamp-settled-report")
 @pytest.mark.reports
-def test_first_self_review_re_evaluates_the_problem(check):
-    for skill in SKILLS:
-        whole = a_report("self-review", skill=skill)
-        p = Project("re-evaluation")
-        design = p.design(skill=skill, log=DRAFTED)
-        path = p.put(report_at(SELF, skill=skill), swap(whole, RE_EVALUATION, ""))
-        before = p.read(design)
-        got = p.run("--log-entry", design, SELF, *CHECK_FIELDS, skill=skill)
-        check("--log-entry of %s refuses the first self-review of a major version recording no re-evaluation of the Problem" % skill,
-              reports(got, "== log-entry, not logged", "no Builder Check of problem re-evaluation, which is required of it") and p.read(design) == before, shown(got))
-        text = swap(a_design(skill=skill, log=DRAFTED), "without saying when it runs.", "without saying when it runs, though %s gives the keeper's hours." % LIGHTHOUSE)
-        design = p.design(skill=skill, text=text)
-        p.put(path, whole)
-        got = p.run("--log-entry", design, SELF, *CHECK_FIELDS, skill=skill)
-        check("--log-entry of %s refuses one whose re-evaluation leaves out a place the Problem cites" % skill,
-              reports(got, "== log-entry, not logged", "its Builder Checks of problem re-evaluation leave out " + LIGHTHOUSE) and p.read(design) == text, shown(got))
-        p.put(path, swap(whole, "      - `docs/guide.md § The Ferry`\n\n    **Result:** The section still", "      - `docs/guide.md § The Ferry`\n      - %s\n\n    **Result:** The section still" % LIGHTHOUSE))
-        got = p.run("--log-entry", design, SELF, *CHECK_FIELDS, skill=skill)
-        check("--log-entry of %s appends one whose re-evaluation covers each place the Problem cites" % skill, passes(got, "== log-entry", "- **Entry:** self-review-1"), shown(got))
-        p.put(report_at(SELF, 2, skill=skill), swap(a_report("self-review", skill=skill, entry="self-review-2"), RE_EVALUATION, ""))
-        got = p.run("--log-entry", design, SELF, *CHECK_FIELDS, skill=skill)
-        check("--log-entry of %s asks no re-evaluation of a later self-review of the same major version" % skill, passes(got, "== log-entry", "- **Entry:** self-review-2"), shown(got))
-    p = Project("re-evaluation-again")
-    log = DRAFTED + ((SELF, {}), ("design-reassessment", {"Cause": "changed foundation: quay-rebuilt finished"}), ("goals-agreed", {}), ("plan-change", {}))
-    design = p.design(log=log)
-    p.put(report_at(SELF, 2), swap(a_report("self-review", entry="self-review-2", version="2.0.1"), RE_EVALUATION, ""))
-    got = p.run("--log-entry", design, SELF, *CHECK_FIELDS)
-    check("--log-entry asks the re-evaluation again of the first self-review of the major version a design reassessment starts",
-          reports(got, "== log-entry, not logged", "no Builder Check of problem re-evaluation, which is required of it"), shown(got))
+@pytest.mark.reads("design-script-self-reviewed.md", "ferry-design-drafted-its-problem-citing-the-lighthouse")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.parametrize("action, heading", MET)
+def test_re_evaluation_leaving_out_a_place_the_problem_cites_is_reported(fixtures, work, monkeypatch, capsys, action, heading):
+    root = reviewed(work, fixtures, "ferry-self-review-report", "ferry-design-drafted-its-problem-citing-the-lighthouse")
+    assert "its Builder Checks of problem re-evaluation leave out " + LIGHTHOUSE in refused(root, monkeypatch, capsys, action, heading)
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: builder-checks-required]
+@pytest.mark.action("--log-entry")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-self-reviewed.md", "ferry-design-drafted-its-problem-citing-the-lighthouse", "self-review-re-evaluating-the-ferry-and-the-lighthouse")
+def test_re_evaluation_covering_each_place_the_problem_cites_passes(fixtures, work, monkeypatch, capsys):
+    root = reviewed(work, fixtures, "self-review-re-evaluating-the-ferry-and-the-lighthouse", "ferry-design-drafted-its-problem-citing-the-lighthouse")
+    assert "- **Entry:** self-review-1" in appended(root, monkeypatch, capsys)
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: builder-checks-required]
+@pytest.mark.action("--log-entry")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-self-reviewed.md", "ferry-design-drafted-self-reviewed", "second-self-review-holding-no-re-evaluation")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+def test_later_self_review_of_a_major_version_asks_no_re_evaluation(fixtures, work, monkeypatch, capsys):
+    root = reviewed(work, fixtures, "ferry-self-review-report", "ferry-design-drafted-self-reviewed", **{"second-self-review-holding-no-re-evaluation": SECOND})
+    assert "- **Entry:** self-review-2" in appended(root, monkeypatch, capsys, SECOND)
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: builder-checks-required]
+@pytest.mark.action("--check-settled-report", "--stamp-settled-report")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-self-reviewed.md", "ferry-design-reassessed-after-a-self-review",
+                   "second-self-review-at-the-next-major-version-holding-no-re-evaluation")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.parametrize("action, heading", MET)
+def test_first_self_review_of_a_new_major_version_asks_the_re_evaluation_again(fixtures, work, monkeypatch, capsys, action, heading):
+    root = reviewed(work, fixtures, "ferry-self-review-report", "ferry-design-reassessed-after-a-self-review",
+                    **{"second-self-review-at-the-next-major-version-holding-no-re-evaluation": SECOND})
+    out = refused(root, monkeypatch, capsys, action, heading, SECOND)
+    assert "no Builder Check of problem re-evaluation, which is required of it" in out
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: traces-name-their-paths]
+@pytest.mark.action("--check-settled-report")
 @pytest.mark.passes
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.reads("design-script-pages-changed.md", "guide-holding-the-hours-table")
+@pytest.mark.reads("design-script-self-reviewed.md", "self-review-tracing-the-hours")
+def test_self_review_tracing_the_mechanism_a_step_names_passes(fixtures, work, monkeypatch, capsys):
+    root = reviewed(work, fixtures, "self-review-tracing-the-hours", guide="guide-holding-the-hours-table")
+    assert acted(monkeypatch, root, dd.check_settled_report, SELF) == 0
+    assert "== check-settled-report %s\n0 problems" % SELF in capsys.readouterr().out
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: traces-name-their-paths]
+@pytest.mark.action("--check-settled-report", "--stamp-settled-report")
 @pytest.mark.reports
-@pytest.mark.reads("design-script-record-parts.md", "hours-decision-table", "traces-of-one-mechanism")
-def test_each_mechanism_is_traced(check, fixtures):
-    whole = a_report("self-review")
-    # the guide's section The Ferry given a Decision Table, a mechanism, and the Traces part of a report tracing it
-    TABLE, TRACE = "\n" + fixtures["hours-decision-table"], fixtures["traces-of-one-mechanism"] + "\n## Builder Checks"
-    p = Project("traces")
-    p.put("docs/guide.md", swap(fixtures["island-guide"], "The ferry leaves from the north quay.\n", "The ferry leaves from the north quay.\n" + TABLE))
-    design = p.design(log=DRAFTED)
-    path = p.put(report_at(SELF), whole)
-    before = p.read(design)
-    got = p.run("--check-settled-report", path)
-    check("--check-settled-report reports a self-review holding no Trace of a Decision Table a step's What names", reports(got, "== check-settled-report", "no Trace of the Decision Table at " + FERRY), shown(got))
-    got = p.run("--log-entry", design, SELF, *CHECK_FIELDS)
-    check("--log-entry refuses its entry", reports(got, "== log-entry, not logged", "no Trace of the Decision Table at " + FERRY) and p.read(design) == before, shown(got))
-    p.put(path, swap(whole, "## Builder Checks", TRACE))
-    got = p.run("--check-settled-report", path)
-    check("--check-settled-report passes a self-review before the apply whose Trace of the mechanism holds the outcome of the mechanism's test", passes(got, "== check-settled-report", "0 problems"), shown(got))
-    p.put(path, swap(whole, "## Builder Checks", swap(TRACE, " \\\n    **Outcome:** name the mechanism", "")))
-    got = p.run("--check-settled-report", path)
-    check("--check-settled-report reports a Trace before the apply holding no Outcome", reports(got, "== check-settled-report", "Trace hours-by-season holds no Outcome, which its form requires where the report is a self-review's before the apply"), shown(got))
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.reads("design-script-pages-changed.md", "guide-holding-the-hours-table")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.reads("design-script-self-reviewed.md", "self-review-tracing-the-hours-with-no-outcome")
+@pytest.mark.parametrize("action, heading", MET)
+@pytest.mark.parametrize("report, said", [
+    ("ferry-self-review-report", "no Trace of the Decision Table at " + FERRY),
+    ("self-review-tracing-the-hours-with-no-outcome", "Trace hours-by-season holds no Outcome, which its form requires where the report is a self-review's before the apply"),
+])
+def test_mechanism_untraced_or_traced_out_of_form_is_reported(fixtures, work, monkeypatch, capsys, action, heading, report, said):
+    root = reviewed(work, fixtures, report, guide="guide-holding-the-hours-table")
+    assert said in refused(root, monkeypatch, capsys, action, heading)
+
+
+def after_a_round(work, fixtures, report):
+    """-> the root of a project holding the design once its first round's entry stands, that round's report, and the
+    self-review given."""
+    return reviewed(work, fixtures, report, "ferry-design-drafted-after-its-first-round", **{"review-taken-up-and-stamped": ROUND})
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: builder-checks-required]
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: reads-cover-the-misses]
+@pytest.mark.action("--check-settled-report")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-settled.md", "ferry-design-drafted-after-its-first-round", "review-taken-up-and-stamped")
+@pytest.mark.reads("design-script-self-reviewed.md", "self-review-working-the-rounds-case")
+def test_self_review_after_a_round_working_its_case_and_reading_each_miss_passes(fixtures, work, monkeypatch, capsys):
+    root = after_a_round(work, fixtures, "self-review-working-the-rounds-case")
+    assert acted(monkeypatch, root, dd.check_settled_report, SELF) == 0
+    assert "== check-settled-report %s\n0 problems" % SELF in capsys.readouterr().out
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: reads-cover-the-misses]
-@pytest.mark.passes
+@pytest.mark.action("--check-settled-report", "--stamp-settled-report")
 @pytest.mark.reports
-@pytest.mark.reads("design-script-reports.md", "ferry-review-report")
-def test_after_a_round_reads_cover_each_miss(check):
-    p, design, path = a_round("after-a-round")
-    logged = p.run("--log-entry", design, REVIEW, *ROUND_FIELDS)
-    worked = a_check("round-worked", "worked case", "%s § Causes [Cause: %s]" % (path, CAUSE), "%s § Findings [Finding: %s]" % (path, FINDING))
-    own = p.put(report_at(SELF), with_checks(a_report("self-review"), worked))
-    got = p.run("--check-settled-report", own)
-    check("--check-settled-report passes a self-review after a round whose Reads cover each place a Miss names and whose worked case covers the round's Cause and its flaw",
-          logged[0] == 0 and passes(got, "== check-settled-report", "0 problems"), shown(logged) + shown(got))
-    p.put(own, swap(with_checks(a_report("self-review"), worked), "\n  - `docs/guide.md`\n", "\n"))
-    got = p.run("--check-settled-report", own)
-    check("--check-settled-report reports one whose Reads leave out a place a Miss of the phase names", reports(got, "== check-settled-report", "its Reads leave out %s, a place a Miss of the phase names" % FERRY), shown(got))
-    p.put(own, a_report("self-review"))
-    got = p.run("--log-entry", design, SELF, *CHECK_FIELDS)
-    check("--log-entry refuses one working no case of the round's change", reports(got, "== log-entry, not logged", "no Builder Check of worked case, which is required of it"), shown(got))
-    p.put(own, with_checks(a_report("self-review"), a_check("round-worked", "worked case", "%s § Causes [Cause: %s]" % (path, CAUSE))))
-    got = p.run("--log-entry", design, SELF, *CHECK_FIELDS)
-    check("--log-entry refuses one whose worked case leaves out the round's flaw",
-          reports(got, "== log-entry, not logged", "its Builder Checks of worked case leave out `%s § Findings [Finding: %s]`" % (path, FINDING)), shown(got))
+@pytest.mark.reads("design-script-settled.md", "ferry-design-drafted-after-its-first-round", "review-taken-up-and-stamped")
+@pytest.mark.reads("design-script-self-reviewed.md", "self-review-working-the-rounds-case-reading-no-guide")
+@pytest.mark.parametrize("action, heading", MET)
+def test_reads_leaving_out_a_place_a_miss_names_are_reported(fixtures, work, monkeypatch, capsys, action, heading):
+    root = after_a_round(work, fixtures, "self-review-working-the-rounds-case-reading-no-guide")
+    assert "its Reads leave out %s, a place a Miss of the phase names" % FERRY in refused(root, monkeypatch, capsys, action, heading)
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: builder-checks-required]
+@pytest.mark.action("--check-settled-report", "--stamp-settled-report")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-settled.md", "ferry-design-drafted-after-its-first-round", "review-taken-up-and-stamped")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.reads("design-script-self-reviewed.md", "self-review-working-the-rounds-cause-alone")
+@pytest.mark.parametrize("action, heading", MET)
+@pytest.mark.parametrize("report, said", [
+    ("ferry-self-review-report", "no Builder Check of worked case, which is required of it"),
+    ("self-review-working-the-rounds-cause-alone", "its Builder Checks of worked case leave out `%s § Findings [Finding: reviewer-1-last-crossing-in-winter]`" % ROUND),
+])
+def test_self_review_after_a_round_working_no_case_of_its_change_is_reported(fixtures, work, monkeypatch, capsys, action, heading, report, said):
+    assert said in refused(after_a_round(work, fixtures, report), monkeypatch, capsys, action, heading)

@@ -1,171 +1,271 @@
-"""--log-entry: an entry held to the type the canon declares, a design-reassessment entry to its Cause, and a
-diagnosis to its form as its entry is appended."""
+"""--log-entry: an entry written into a design's log, held to the type the canon declares, a design-reassessment entry
+to its Cause, and its diagnosis to its form as the entry is appended."""
 import pytest
 
-from design_script_set import (AGREED, CHECK_FIELDS, DRAFTED, NAME, Project, ROUND_FIELDS, SKILLS, a_diagnosis, a_report, passes, report_at, reports,
-    shown, swap, taken_up)
+from design_script_set import DESIGN, NAME, REPORTS, acted, design_documents as dd, held, project
 
-pytestmark = [pytest.mark.reads("design-script-ferry.md", "island-guide", "ferry-design")]
+pytestmark = [pytest.mark.reads("design-script-ferry.md", "island-guide")]
+DIAGNOSIS = ".ai/tmp/design-specs/%s/diagnosis/1.md" % NAME
+STEP_BACK = [("Cause", "step back: a run of flaws"), ("Decision", "a different approach"), ("Diagnosis", DIAGNOSIS)]
+NOT_LOGGED = "== log-entry, not logged"
+RULE = "[Name: diagnosis-whole-and-in-form]"
+
+
+def a_project(work, fixtures, design="ferry-design-drafted", **more):
+    return project(work, fixtures, {"island-guide": "docs/guide.md", design: DESIGN, **more})
+
+
+def log_type():
+    values, counts, kinds, _ = dd.log_type()
+    return values, counts, kinds
+
+
+@pytest.mark.action("--log-entry")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-designs.md", "ferry-design-agreed-undrafted")
+def test_entry_takes_its_count_and_the_version_the_log_then_gives(fixtures):
+    text, block = dd.with_entry(fixtures["ferry-design-agreed-undrafted"], "plan-change", [])
+    assert block.startswith("  - **Entry:** plan-change-1 \\") and "**Design Version:** 1.0.1" in block
+    assert "**Version:** 1.0.1 \\" in text and text.count("**Entry:**") == 3
 
 
 @pytest.mark.action("--log-entry")
 @pytest.mark.passes
-def test_entry_in_its_type_is_appended(check):
-    p = Project("log-appended")
-    design = p.design(log=AGREED)
-    got = p.run("--log-entry", design, "plan-change")
-    now = p.read(design)
-    check("--log-entry appends an entry, its count among its kind, and writes the version the log then gives to the header",
-          passes(got, "== log-entry", "- **Entry:** plan-change-1") and "**Design Version:** 1.0.1" in got[1] and "**Version:** 1.0.1 \\" in now and now.count("**Entry:**") == 3, shown(got))
-    form = p.run("--check-design-form", design)
-    check("and the design it wrote holds its form", passes(form, "== check-design-form", "0 problems"), shown(form))
-    for skill in SKILLS:
-        p = Project("log-first")
-        design = p.design(skill=skill, status="not-started")
-        got = p.run("--log-entry", design, "entered", "Reason=taken up", skill=skill)
-        check("--log-entry of %s gives a design holding no log its log's section, where the form puts it" % skill,
-              passes(got, "== log-entry", "- **Entry:** entered-1") and "## Design Log Entries\n\n**Records:**\n  - **Entry:** entered-1" in p.read(design)
-              and p.read(design).index("## Design Log Entries") < p.read(design).index("## Out of Scope"), shown(got))
+@pytest.mark.reads("design-script-designs.md", "ferry-design-not-started")
+def test_first_entry_gives_the_design_its_log_where_the_form_puts_it(fixtures):
+    text, _ = dd.with_entry(fixtures["ferry-design-not-started"], "entered", [("Reason", "taken up")])
+    assert "## Design Log Entries\n\n**Records:**\n  - **Entry:** entered-1" in text
+    assert text.index("## Design Log Entries") < text.index("## Out of Scope")
+
+
+@pytest.mark.action("--log-entry")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-designs.md", "ferry-design-agreed-undrafted")
+def test_design_an_entry_is_appended_to_holds_its_form(fixtures, work, monkeypatch, capsys):
+    root = a_project(work, fixtures, "ferry-design-agreed-undrafted")
+    assert acted(monkeypatch, root, dd.log_entry, [DESIGN, "plan-change"]) == 0
+    assert acted(monkeypatch, root, dd.check_design_form, DESIGN) == 0
+    assert "- **Entry:** plan-change-1" in capsys.readouterr().out
+
+
+@pytest.mark.action("--log-entry")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-designs.md", "ferry-design-applying-its-goals-frame-and-steps-out-of-their-form")
+def test_entry_is_appended_to_a_design_whose_other_parts_do_not_parse(fixtures, work, monkeypatch, capsys):
+    root = a_project(work, fixtures, "ferry-design-applying-its-goals-frame-and-steps-out-of-their-form")
+    before = (root / DESIGN).read_bytes().decode("utf-8")
+    assert acted(monkeypatch, root, dd.log_entry, [DESIGN, "user-edit", "Places=docs/guide.md"]) == 0
+    block = capsys.readouterr().out.split("== log-entry\n", 1)[1].rstrip("\n")
+    assert block.startswith("  - **Entry:** user-edit-1 \\") and block.endswith("**Places:** docs/guide.md")
+    now = (root / DESIGN).read_bytes().decode("utf-8")
+    assert "**Design Version:** 1.0.1\n\n%s\n\n## Out of Scope" % block in now and now.replace("\n\n" + block, "", 1) == before
+
+
+@pytest.mark.action("--log-entry")
+@pytest.mark.passes
+@pytest.mark.parametrize("kind, fields", [
+    ("plan-change", []), ("plan-approval", [("Approval", "approved and apply")]), ("design-reassessment", STEP_BACK),
+    ("design-reassessment", [("Cause", "changed foundation: quay-rebuilt finished; pier-closed gone")]),
+])
+def test_entry_in_its_type_has_no_problem(kind, fields):
+    assert dd.entry_problems(kind, fields, *log_type()) == []
 
 
 @pytest.mark.action("--log-entry")
 @pytest.mark.reports
-def test_entry_out_of_its_type_is_refused(check):
-    p = Project("log-refused")
-    design = p.design(log=AGREED)
-    before = p.held()
-    for label, args, said in (
-            ("a kind its type does not give", ("no-such-kind",), "a log entry's kind is not one of"),
-            ("a field its kind does not give", ("plan-change", "Reason=because"), "a plan-change entry"),
-            ("a value outside its field's Values", ("plan-approval", "Approval=perhaps"), "a plan-approval entry's Approval is not one of approved, approved and apply: perhaps"),
-            ("a Reason the entry reason does not take", ("entered", "Reason=sent back for a rest"), "an entered entry's Reason is not one of"),
-            ("an old log's reassessment entry", ("reassessment", "Decision=go on"), "a `reassessment` entry, written in no entry now"),
-            ("a Cuts Short", ("step-back", "Cuts Short=adversarial-review-1"), "a Cuts Short, written in no entry now"),
-            ("a check's entry whose report does not stand", ("self-review",) + CHECK_FIELDS, "a check's entry whose report does not stand in the design's folder: " + report_at("self-review"))):
-        got = p.run("--log-entry", design, *args)
-        check("--log-entry refuses %s, and writes nothing" % label, reports(got, "== log-entry, not logged", said) and p.held() == before, shown(got))
-    got = p.run("--log-entry", design)
-    check("--log-entry given no kind says what it takes, exit 2", got[0] == 2 and "--log-entry takes a design document, a kind and the kind's fields as FIELD=VALUE" in got[1], shown(got))
-    got = p.run("--log-entry", p.design(folder=".ai/plans/design-specs/archive", log=AGREED), "plan-change")
-    check("--log-entry appends no entry to a design standing in no plans folder", reports(got, "== log-entry, not logged", "it stands in no plans folder"), shown(got))
+@pytest.mark.parametrize("kind, fields, said", [
+    ("no-such-kind", [], ["a log entry's kind is not one of"]),
+    ("plan-change", [("Reason", "because")], ["a plan-change entry"]),
+    ("plan-approval", [("Approval", "perhaps")], ["a plan-approval entry's Approval is not one of approved, approved and apply: perhaps"]),
+    ("design-reassessment", [("Cause", "the plan went stale")] + STEP_BACK[1:], ["a design-reassessment entry's Cause is neither `changed foundation:`"]),
+    ("design-reassessment", [("Cause", "step back: a hunch")] + STEP_BACK[1:], ["a design-reassessment entry's Cause is neither `changed foundation:`"]),
+    ("design-reassessment", [STEP_BACK[0], STEP_BACK[2]], ["a design-reassessment entry", "Decision"]),
+    ("design-reassessment", STEP_BACK[:2], ["a design-reassessment entry", "Diagnosis"]),
+    ("design-reassessment", STEP_BACK[:1], ["a design-reassessment entry", "Decision", "Diagnosis"]),
+])
+def test_entry_out_of_its_type_is_reported(kind, fields, said):
+    problems = dd.entry_problems(kind, fields, *log_type())
+    assert len(problems) == 1 and all(s in problems[0] for s in said)
 
 
-# @canon-spec specs/methodology/working-files/main.md § A Diagnosis § Script Checks [Name: diagnosis-whole-and-in-form]
-@pytest.mark.passes
-@pytest.mark.reads("design-script-ferry.md", "ferry-diagnosis")
-def test_reassessment_at_the_step_back_holds_its_fields(check):
-    for skill in SKILLS:
-        p = Project("reassessed")
-        design = p.design(skill=skill, log=DRAFTED)
-        p.put(".ai/tmp/%s/%s/diagnosis/1.md" % (skill, NAME), a_diagnosis())
-        for cause in ("a run of flaws", "a run of send-backs", "passes that did not converge", "the user's word")[:4 if skill == "design-specs" else 1]:
-            p.design(skill=skill, log=DRAFTED)
-            got = p.run("--log-entry", design, "design-reassessment", "Cause=step back: " + cause, "Decision=rescope",
-                        "Diagnosis=.ai/tmp/%s/%s/diagnosis/1.md" % (skill, NAME), skill=skill)
-            now = p.read(design)
-            check("--log-entry of %s appends a design-reassessment entry whose Cause is the step back %s brought the design to, with what the user decided and its diagnosis" % (skill, cause),
-                  passes(got, "== log-entry", "- **Entry:** design-reassessment-1") and "**Cause:** step back: %s \\\n    **Decision:** rescope \\\n    **Diagnosis:** " % cause in now
-                  and "**Version:** 2.0.0" in now, shown(got))
-        form = p.run("--check-design-form", design, skill=skill)
-        check("and the design of %s it wrote holds its form" % skill, passes(form, "== check-design-form", "0 problems"), shown(form))
-
-
-@pytest.mark.reads("design-script-ferry.md", "ferry-diagnosis")
-def test_reassessment_without_its_cause_is_refused(check):
-    p = Project("reassessed-refused")
-    design = p.design(log=DRAFTED)
-    p.put(".ai/tmp/design-specs/%s/diagnosis/1.md" % NAME, a_diagnosis())
-    diagnosis = "Diagnosis=.ai/tmp/design-specs/%s/diagnosis/1.md" % NAME
-    before = p.held()
-    for label, args, said in (
-            ("holding no Cause", ("Decision=rescope", diagnosis), "a design-reassessment entry holding no Cause: it states what caused the design reassessment"),
-            ("holding no field at all", (), "a design-reassessment entry holding no Cause"),
-            ("whose Cause is in neither form", ("Cause=the plan went stale", "Decision=rescope", diagnosis), "a design-reassessment entry's Cause is neither `changed foundation:`"),
-            ("whose Cause is a step back naming nothing that brings a design to one", ("Cause=step back: a hunch", "Decision=rescope", diagnosis), "a design-reassessment entry's Cause is neither `changed foundation:`"),
-            ("whose Cause is a step back and which holds no Decision", ("Cause=step back: the user's word", diagnosis), ["a design-reassessment entry", "Decision"]),
-            ("whose Cause is a step back and which holds no Diagnosis", ("Cause=step back: the user's word", "Decision=rescope"), ["a design-reassessment entry", "Diagnosis"]),
-            ("whose Cause is a step back and which holds neither", ("Cause=step back: the user's word",), ["a design-reassessment entry", "Decision", "Diagnosis"]),
-            ("whose Decision is no design reassessment the user chooses", ("Cause=step back: the user's word", "Decision=carry on", diagnosis), "a design-reassessment entry's Decision is not one of rescope, split, a different approach: carry on"),
-            ("whose Cause is a changed foundation, holding a Decision and a Diagnosis", ("Cause=changed foundation: quay-rebuilt finished", "Decision=rescope", diagnosis), "which --free-design alone appends")):
-        got = p.run("--log-entry", design, "design-reassessment", *args)
-        check("--log-entry refuses a design-reassessment entry %s, and writes nothing" % label, reports(got, "== log-entry, not logged", said) and p.held() == before, shown(got))
-
-
-def test_form_reads_a_reassessment_by_its_cause(check):
-    p = Project("reassessed-form")
-    step_back = {"Cause": "step back: a run of flaws", "Decision": "split", "Diagnosis": "`.ai/tmp/design-specs/%s/diagnosis/1.md`" % NAME}
-    foundation = {"Cause": "changed foundation: quay-rebuilt finished; pier-closed gone"}
-    old = {"Decision": "rescope", "Diagnosis": "`.ai/tmp/design-specs/%s/diagnosis/1.md`" % NAME}
-    for label, fields in (("chosen at the step back, holding its Decision and its Diagnosis", step_back), ("made for a changed foundation, holding neither", foundation),
-                          ("appended before the entry held a Cause, read as one chosen at the step back", old)):
-        got = p.run("--check-design-form", p.design(log=DRAFTED + (("design-reassessment", fields), ("goals-agreed", {}))))
-        check("--check-design-form passes a log holding a design-reassessment entry " + label, passes(got, "== check-design-form", "0 problems"), shown(got))
-    for label, fields, said in (
-            ("made for a changed foundation and holding a Decision", dict(foundation, Decision="rescope"), ["log entry design-reassessment-1: a design-reassessment entry", "Decision"]),
-            ("chosen at the step back and holding no Diagnosis", {"Cause": "step back: a run of flaws", "Decision": "split"}, ["log entry design-reassessment-1: a design-reassessment entry", "Diagnosis"]),
-            ("whose Cause is in neither form", dict(step_back, Cause="it seemed time"), "log entry design-reassessment-1: a design-reassessment entry's Cause is neither `changed foundation:`")):
-        got = p.run("--check-design-form", p.design(log=DRAFTED + (("design-reassessment", fields),)))
-        check("--check-design-form reports a log holding a design-reassessment entry " + label, reports(got, "== check-design-form", said), shown(got))
-    got = p.run("--check-design-form", p.design(log=DRAFTED + (("reassessment", {"Decision": "rescope", "Running Work": "none"}), ("goals-agreed", {}),
-                                                         ("entered", {"Reason": "sent back for a dependency"}))))
-    check("--check-design-form reads an old log's reassessment entry, and an entered entry holding a value of the earlier rules, as they were written, and reports neither",
-          passes(got, "== check-design-form", "0 problems"), shown(got))
-
-
-# @canon-spec specs/methodology/working-files/main.md § A Diagnosis § Script Checks [Name: diagnosis-whole-and-in-form]
+@pytest.mark.action("--log-entry")
 @pytest.mark.reports
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
 @pytest.mark.reads("design-script-ferry.md", "ferry-diagnosis")
-def test_diagnosis_is_held_to_its_form(check):
-    path = ".ai/tmp/design-specs/%s/diagnosis/1.md" % NAME
-    args = ("design-reassessment", "Cause=step back: a run of flaws", "Decision=a different approach", "Diagnosis=" + path)
-    whole = a_diagnosis()
-    for label, text, said in (
-            ("that does not stand in the design's folder", None, "the design-reassessment entry's Diagnosis names no diagnosis standing in the design's folder"),
-            ("holding no Scope", whole.split("## Scope")[0], "the diagnosis"),
-            ("whose Scope holds no Answer", whole.split("**Answer:**")[0].rstrip(" \\\n") + "\n", "its Scope holds Question, not its Question and its Answer"),
-            ("naming an entry other than the one naming it", swap(whole, "design-reassessment-1", "design-reassessment-4"), "its Design Reassessment is design-reassessment-4, not design-reassessment-1, the entry naming it"),
-            ("whose Flaw names a Root Cause it does not hold", swap(whole, "**Root Cause:** one-season-assumed\n\n## Root", "**Root Cause:** another-cause\n\n## Root"), "names the Root Cause another-cause, which the diagnosis does not hold"),
-            ("whose Flaw says neither that it still applies nor that it does not", swap(whole, "**Still Applies:** yes", "**Still Applies:** perhaps"), "Still Applies is neither yes nor no: perhaps"),
-            ("whose Flaw no longer applies and says not why", swap(whole, "**Still Applies:** yes", "**Still Applies:** no"), "no longer applies, and holds no Why Not"),
-            ("whose Root Cause holds no Account", swap(whole, " \\\n    **Account:** The rebuilt goals name each season.", ""), "Root Cause one-season-assumed holds no Account")):
-        p = Project("diagnosis")
-        design = p.design(log=DRAFTED)
-        if text is not None:
-            p.put(path, text)
-        before = p.held()
-        got = p.run("--log-entry", design, *args)
-        check("--log-entry refuses the design-reassessment entry of a diagnosis " + label,
-              reports(got, "== log-entry, not logged", [said, "[Name: diagnosis-whole-and-in-form]"]) and p.held() == before, shown(got))
-    p = Project("diagnosis-second")
-    design = p.design(log=DRAFTED)
-    p.put(".ai/tmp/design-specs/%s/diagnosis/2.md" % NAME, whole)
-    got = p.run("--log-entry", design, *args[:3], "Diagnosis=.ai/tmp/design-specs/%s/diagnosis/2.md" % NAME)
-    check("--log-entry refuses a diagnosis numbered other than its count among the diagnoses the design's entries name",
-          reports(got, "== log-entry, not logged", "not .ai/tmp/design-specs/%s/diagnosis/1.md, diagnosis 1 of the diagnoses" % NAME), shown(got))
-    p = Project("diagnosis-after-a-freeing")
-    design = p.design(log=DRAFTED + (("design-reassessment", {"Cause": "changed foundation: quay-rebuilt finished"}), ("goals-agreed", {}), ("plan-change", {})))
-    p.put(path, swap(whole, "design-reassessment-1", "design-reassessment-2"))
-    got = p.run("--log-entry", design, *args)
-    check("--log-entry numbers a diagnosis among the diagnoses, so the first diagnosis of a design freed once before is diagnosis 1 of entry design-reassessment-2",
-          passes(got, "== log-entry", "- **Entry:** design-reassessment-2") and "**Version:** 3.0.0" in p.read(design), shown(got))
+@pytest.mark.parametrize("entry, said", [
+    (["entered", "Reason=sent back for a rest"], "an entered entry's Reason is not one of"),
+    (["reassessment", "Decision=go on"], "a `reassessment` entry, written in no entry now"),
+    (["step-back", "Cuts Short=adversarial-review-1"], "a Cuts Short, written in no entry now"),
+    (["self-review", "Model=a model", "Effort=medium"], "a check's entry whose report does not stand in the design's folder: " + REPORTS + "/self-review/1.md"),
+    (["design-reassessment"], "a design-reassessment entry holding no Cause: it states what caused the design reassessment"),
+    (["design-reassessment", "Decision=rescope", "Diagnosis=" + DIAGNOSIS], "a design-reassessment entry holding no Cause"),
+    (["design-reassessment", "Cause=step back: the user's word", "Decision=carry on", "Diagnosis=" + DIAGNOSIS],
+     "a design-reassessment entry's Decision is not one of rescope, split, a different approach: carry on"),
+    (["design-reassessment", "Cause=changed foundation: quay-rebuilt finished", "Decision=rescope", "Diagnosis=" + DIAGNOSIS], "which --free-design alone appends"),
+])
+def test_entry_the_appending_refuses_writes_nothing(fixtures, work, monkeypatch, capsys, entry, said):
+    root = a_project(work, fixtures, **{"ferry-diagnosis": DIAGNOSIS})
+    before = held(root)
+    assert acted(monkeypatch, root, dd.log_entry, [DESIGN] + entry) == 1
+    out = capsys.readouterr().out
+    assert NOT_LOGGED in out and said in out and held(root) == before
+
+
+@pytest.mark.action("--log-entry")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+def test_entry_given_no_kind_is_refused(fixtures, work, monkeypatch, capsys):
+    assert acted(monkeypatch, a_project(work, fixtures), dd.log_entry, [DESIGN]) == 2
+    assert "--log-entry takes a design document, a kind and the kind's fields as FIELD=VALUE" in capsys.readouterr().err
+
+
+@pytest.mark.action("--log-entry")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+def test_entry_to_a_design_in_no_plans_folder_is_refused(fixtures, work, monkeypatch, capsys):
+    at = ".ai/plans/design-specs/archive/%s.md" % NAME
+    root = project(work, fixtures, {"island-guide": "docs/guide.md", "ferry-design-drafted": at})
+    assert acted(monkeypatch, root, dd.log_entry, [at, "plan-change"]) == 1
+    out = capsys.readouterr().out
+    assert NOT_LOGGED in out and "it stands in no plans folder" in out
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Diagnosis § Script Checks [Name: diagnosis-whole-and-in-form]
+@pytest.mark.action("--log-entry")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.reads("design-script-ferry.md", "ferry-diagnosis")
+@pytest.mark.parametrize("cause", ["a run of flaws", "a run of send-backs", "passes that did not converge", "the user's word"])
+def test_reassessment_at_the_step_back_is_appended_with_its_decision_and_diagnosis(fixtures, work, monkeypatch, capsys, cause):
+    root = a_project(work, fixtures, **{"ferry-diagnosis": DIAGNOSIS})
+    entry = [DESIGN, "design-reassessment", "Cause=step back: " + cause, "Decision=rescope", "Diagnosis=" + DIAGNOSIS]
+    assert acted(monkeypatch, root, dd.log_entry, entry) == 0
+    now = (root / DESIGN).read_text(encoding="utf-8")
+    assert "- **Entry:** design-reassessment-1" in capsys.readouterr().out and "**Version:** 2.0.0" in now
+    assert "**Cause:** step back: %s \\\n    **Decision:** rescope \\\n    **Diagnosis:** %s" % (cause, DIAGNOSIS) in now
+    assert acted(monkeypatch, root, dd.check_design_form, DESIGN) == 0
+
+
+@pytest.mark.action("--check-design-form")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-log.md", "log-of-a-reassessment-at-the-step-back", "log-of-a-reassessment-for-a-changed-foundation",
+                   "log-of-a-reassessment-holding-no-cause", "log-of-a-reassessment-entry-of-an-old-log")
+@pytest.mark.parametrize("key", ["log-of-a-reassessment-at-the-step-back", "log-of-a-reassessment-for-a-changed-foundation",
+                                 "log-of-a-reassessment-holding-no-cause", "log-of-a-reassessment-entry-of-an-old-log"])
+def test_log_holding_a_reassessment_in_the_form_its_cause_gives_has_no_problem(fixtures, key):
+    assert dd.check_log(fixtures[key]) == []
+
+
+@pytest.mark.action("--check-design-form")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-log.md", "log-of-a-changed-foundation-holding-a-decision", "log-of-a-step-back-holding-no-diagnosis",
+                   "log-of-a-reassessment-of-a-cause-in-neither-form")
+@pytest.mark.parametrize("key, said", [
+    ("log-of-a-changed-foundation-holding-a-decision", ["log entry design-reassessment-1: a design-reassessment entry", "Decision"]),
+    ("log-of-a-step-back-holding-no-diagnosis", ["log entry design-reassessment-1: a design-reassessment entry", "Diagnosis"]),
+    ("log-of-a-reassessment-of-a-cause-in-neither-form", ["log entry design-reassessment-1: a design-reassessment entry's Cause is neither `changed foundation:`"]),
+])
+def test_log_holding_a_reassessment_out_of_the_form_its_cause_gives_is_reported(fixtures, key, said):
+    problems = dd.check_log(fixtures[key])
+    assert len(problems) == 1 and all(s in problems[0] for s in said)
+
+
+def diagnosed(work, fixtures, monkeypatch, design, placed, count=1, named=DIAGNOSIS):
+    """-> the problems of the diagnosis a step back's design-reassessment entry names at the path given, appended to
+    the design given as its count among its kind, in a project holding the design and each fixture placed."""
+    root = project(work, fixtures, {"island-guide": "docs/guide.md", design: DESIGN, **placed})
+    monkeypatch.chdir(root)
+    return dd.diagnosis_problems(root, root / DESIGN, fixtures[design], count, dict(STEP_BACK, Diagnosis=named))
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Diagnosis § Script Checks [Name: diagnosis-whole-and-in-form]
+@pytest.mark.action("--log-entry")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.reads("design-script-ferry.md", "ferry-diagnosis")
+@pytest.mark.reads("design-script-taken-up.md", "ferry-design-freed-of-a-complete-design")
+@pytest.mark.reads("design-script-log.md", "ferry-diagnosis-of-the-second-reassessment")
+@pytest.mark.parametrize("design, diagnosis, count", [
+    ("ferry-design-drafted", "ferry-diagnosis", 1),
+    ("ferry-design-freed-of-a-complete-design", "ferry-diagnosis-of-the-second-reassessment", 2),
+])
+def test_diagnosis_whole_and_in_form_has_no_problem(fixtures, work, monkeypatch, design, diagnosis, count):
+    assert diagnosed(work, fixtures, monkeypatch, design, {diagnosis: DIAGNOSIS}, count) == []
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Diagnosis § Script Checks [Name: diagnosis-whole-and-in-form]
+@pytest.mark.action("--log-entry")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-taken-up.md", "ferry-design-freed-of-a-complete-design")
+@pytest.mark.reads("design-script-log.md", "ferry-diagnosis-of-the-second-reassessment")
+def test_first_diagnosis_of_a_design_freed_before_is_appended_with_its_second_reassessment(fixtures, work, monkeypatch, capsys):
+    root = a_project(work, fixtures, "ferry-design-freed-of-a-complete-design", **{"ferry-diagnosis-of-the-second-reassessment": DIAGNOSIS})
+    entry = [DESIGN, "design-reassessment"] + ["%s=%s" % f for f in STEP_BACK]
+    assert acted(monkeypatch, root, dd.log_entry, entry) == 0
+    assert "- **Entry:** design-reassessment-2" in capsys.readouterr().out
+    assert "**Version:** 3.0.0" in (root / DESIGN).read_text(encoding="utf-8")
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Diagnosis § Script Checks [Name: diagnosis-whole-and-in-form]
+@pytest.mark.action("--log-entry")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.reads("design-script-ferry.md", "ferry-diagnosis")
+@pytest.mark.reads("design-script-log.md", "ferry-diagnosis-holding-no-scope", "ferry-diagnosis-its-scope-holding-no-answer",
+                   "ferry-diagnosis-naming-the-fourth-reassessment", "ferry-diagnosis-its-flaw-naming-another-root-cause",
+                   "ferry-diagnosis-its-flaw-perhaps-still-applying", "ferry-diagnosis-its-flaw-no-longer-applying",
+                   "ferry-diagnosis-its-root-cause-holding-no-account")
+@pytest.mark.parametrize("placed, said", [
+    ({}, "the design-reassessment entry's Diagnosis names no diagnosis standing in the design's folder"),
+    ({"ferry-diagnosis-holding-no-scope": DIAGNOSIS}, "the diagnosis"),
+    ({"ferry-diagnosis-its-scope-holding-no-answer": DIAGNOSIS}, "its Scope holds Question, not its Question and its Answer"),
+    ({"ferry-diagnosis-naming-the-fourth-reassessment": DIAGNOSIS}, "its Design Reassessment is design-reassessment-4, not design-reassessment-1, the entry naming it"),
+    ({"ferry-diagnosis-its-flaw-naming-another-root-cause": DIAGNOSIS}, "names the Root Cause another-cause, which the diagnosis does not hold"),
+    ({"ferry-diagnosis-its-flaw-perhaps-still-applying": DIAGNOSIS}, "Still Applies is neither yes nor no: perhaps"),
+    ({"ferry-diagnosis-its-flaw-no-longer-applying": DIAGNOSIS}, "no longer applies, and holds no Why Not"),
+    ({"ferry-diagnosis-its-root-cause-holding-no-account": DIAGNOSIS}, "Root Cause one-season-assumed holds no Account"),
+])
+def test_diagnosis_missing_or_out_of_its_form_is_reported(fixtures, work, monkeypatch, placed, said):
+    problems = diagnosed(work, fixtures, monkeypatch, "ferry-design-drafted", placed)
+    assert any(said in p for p in problems) and all(RULE in p for p in problems)
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Diagnosis § Script Checks [Name: diagnosis-whole-and-in-form]
+@pytest.mark.action("--log-entry")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.reads("design-script-ferry.md", "ferry-diagnosis")
+def test_diagnosis_numbered_other_than_its_count_among_the_diagnoses_is_reported(fixtures, work, monkeypatch):
+    second = DIAGNOSIS.replace("1.md", "2.md")
+    problems = diagnosed(work, fixtures, monkeypatch, "ferry-design-drafted", {"ferry-diagnosis": second}, named=second)
+    assert len(problems) == 1 and "is %s, not %s, diagnosis 1 of the diagnoses" % (second, DIAGNOSIS) in problems[0] and RULE in problems[0]
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Diagnosis § Script Checks [Name: diagnosis-whole-and-in-form]
+@pytest.mark.action("--log-entry")
 @pytest.mark.passes
 @pytest.mark.reports
+@pytest.mark.reads("design-script-log.md", "ferry-design-drafted-its-review-logged", "ferry-diagnosis-its-flaw-citing-another-finding")
 @pytest.mark.reads("design-script-ferry.md", "ferry-diagnosis")
 @pytest.mark.reads("design-script-reports.md", "ferry-review-report")
-def test_diagnosis_leaving_out_a_flaw_is_refused(check):
-    p = Project("diagnosis-flaws")
-    design = p.design(log=DRAFTED)
-    taken_up(p, "adversarial-review", a_report("review"))
-    got = p.run("--log-entry", design, "adversarial-review", *ROUND_FIELDS)
-    path = ".ai/tmp/design-specs/%s/diagnosis/1.md" % NAME
-    args = ("design-reassessment", "Cause=step back: a run of flaws", "Decision=rescope", "Diagnosis=" + path)
-    p.put(path, swap(a_diagnosis(), "reviewer-1-last-crossing-in-winter", "reviewer-1-another-finding"))
-    refused = p.run("--log-entry", design, *args)
-    check("--log-entry refuses a diagnosis leaving out a finding a Settlement of the design's checks kept as a flaw",
-          got[0] == 0 and reports(refused, "== log-entry, not logged", "it leaves out adversarial-review/1.md [Finding: reviewer-1-last-crossing-in-winter], a finding of its flaw set"), shown(got) + shown(refused))
-    p.put(path, a_diagnosis())
-    got = p.run("--log-entry", design, *args)
-    check("--log-entry appends the entry of a diagnosis holding a Flaw for each finding of its flaw set", passes(got, "== log-entry", "- **Entry:** design-reassessment-1"), shown(got))
+@pytest.mark.parametrize("diagnosis, problems", [
+    ("ferry-diagnosis", []),
+    ("ferry-diagnosis-its-flaw-citing-another-finding",
+     ["%s: it leaves out adversarial-review/1.md [Finding: reviewer-1-last-crossing-in-winter], a finding of its flaw set (%s)" % (DIAGNOSIS, dd.DIAGNOSIS_RULE)]),
+])
+def test_diagnosis_holds_a_flaw_for_each_finding_its_designs_checks_kept_as_one(fixtures, work, monkeypatch, diagnosis, problems):
+    placed = {diagnosis: DIAGNOSIS, "ferry-review-report": REPORTS + "/adversarial-review/1.md"}
+    assert diagnosed(work, fixtures, monkeypatch, "ferry-design-drafted-its-review-logged", placed) == problems
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Diagnosis § Script Checks [Name: diagnosis-whole-and-in-form]
+@pytest.mark.action("--log-entry")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.reads("design-script-log.md", "ferry-diagnosis-its-flaw-no-longer-applying")
+def test_entry_of_a_diagnosis_out_of_its_form_is_refused_and_writes_nothing(fixtures, work, monkeypatch, capsys):
+    root = a_project(work, fixtures, **{"ferry-diagnosis-its-flaw-no-longer-applying": DIAGNOSIS})
+    before = held(root)
+    assert acted(monkeypatch, root, dd.log_entry, [DESIGN, "design-reassessment"] + ["%s=%s" % f for f in STEP_BACK]) == 1
+    out = capsys.readouterr().out
+    assert NOT_LOGGED in out and "no longer applies, and holds no Why Not" in out and RULE in out and held(root) == before

@@ -1,13 +1,12 @@
-"""The script checks and candidate functions of the specs, one copy of each, that .ai/skills/audit-specs/ runs over
-the complete scope and .ai/skills/design-specs/ runs over a design's work (specs/methodology/skills/authoring-a-skill.md §
-Authoring a Skill). Every check enforces one stated rule and names it, so a failure points at the rule rather than only at a line.
-Nothing here needs judgment, per specs/methodology/scope/rules-and-skills.md § Rules and Skills.
+"""The script checks and candidate functions of the specs, one copy of each, that the audit skill runs over the
+complete scope and the design skill runs over a design's work. Every check enforces one stated rule and names it, so a
+failure points at the rule rather than only at a line. Nothing here needs judgment.
 
 A check reads the tree it is given as its root: the working tree, a pathlib.Path, or the last commit read through git
 in memory, spec_text.CommitTree, the one reader both serve, so the checks run over either tree and write no file.
-Standard library and the code the skills share in .ai/skills/lib/ only: constructs.py, the construct checks, with
-expressions.py; spec_text.py, the reading of a spec's text and of a tree; record_types.py, the record types and facts
-the specs declare; layout.py; and citation_links.py.
+Standard library and the code the skills share only: constructs, the construct checks, with expressions; spec_text,
+the reading of a spec's text and of a tree; record_types, the record types and facts the specs declare; layout; and
+citation_links.
 """
 import posixpath
 import re
@@ -18,6 +17,7 @@ import citation_links
 import constructs
 import layout
 import reading
+import spec_text
 from record_types import (
     CONSTRUCT_KEYS, FACT_HOME, FIELD_KEYS, FIELD_LINE, KEY_VALUE, LAST_TOP_LEVEL, NAME_CITED, RECORD_FORM,
     TYPES, _TEXT_OF, basic_tables, block_findings, block_path, cited_value_findings, closed_set, closed_set_findings,
@@ -29,6 +29,12 @@ from spec_text import (
 
 
 LINK_RULE = "sourcing-and-citation/writing-a-citation.md § Writing a Citation § A Citation's Link"
+WRITING_A_CITATION = "sourcing-and-citation/writing-a-citation.md § Writing a Citation"
+ALLOWED = "sourcing-and-citation/which-citations-are-allowed.md § Which Citations Are Allowed"
+TITLING = "sourcing-and-citation/titling-a-heading.md § Titling a Heading"
+SCENARIOS = "acceptance-scenarios.md § Acceptance Scenarios"
+TECHNICAL_FILES = "spec-placement/naming-the-technical-files-behind-a-capability.md § Naming the Technical Files Behind a Capability"
+WHERE_A_FILE_GOES = "spec-placement/where-a-file-goes.md § Where a File Goes"
 
 # @canon-spec specs/methodology/scope/what-spec-of-record-governs.md § What Spec of Record Governs
 SCOPE_KINDS = {"Agent instructions", "Specs", "Skills", "Fixture files", "Documentation", "Working files", "Code"}
@@ -36,8 +42,9 @@ AUTHORING = "specs/methodology/skills/authoring-a-skill.md § Authoring a Skill"
 SCOPE_TREE = "specs/methodology/scope/what-spec-of-record-governs.md"
 SPECS_AGENTS = "specs/AGENTS.md"
 # @canon-spec specs/methodology/sourcing-and-citation/which-citations-are-allowed.md § Which Citations Are Allowed
-SPECS_ARCHITECTURE = "specs/architecture.md"  # in specs/AGENTS.md's layer
-SPECS_MAIN = "specs/main.md"  # where specs/ holds one: in specs/AGENTS.md's layer, a spec of the core canon
+SPECS_ARCHITECTURE = "specs/architecture.md"  # in the agents layer, with the specs' entry point
+# @canon-spec specs/methodology/sourcing-and-citation/which-citations-are-allowed.md § Which Citations Are Allowed
+SPECS_MAIN = "specs/main.md"  # where specs/ holds one: in the agents layer too, a spec of the core canon
 GLOSSARY = "specs/methodology/glossary/glossary.md"
 GLOSSARY_RULE = "glossary/writing-an-entry.md § Writing an Entry"
 ABBREVIATION_RULE = "glossary/using-an-abbreviation.md § Using an Abbreviation"
@@ -45,18 +52,19 @@ RECORDED_ABBREVIATION = re.compile(r"\(abbreviated ([^)]*)\)")
 # the text a diagram shows its reader: a node's label, an edge's label, a quoted string
 DIAGRAM_LABEL = re.compile(r'\[[^\]]*\]|\([^)]*\)|\{[^}]*\}|"[^"]*"|\|[^|]*\|')
 AUDIT_SKILL = ".ai/skills/audit-specs/SKILL.md"
-CODE_CHECKS = ".ai/skills/verify-spec-implementation/SKILL.md"  # names the check enforcing each section of code.md
+CODE_CHECKS = ".ai/skills/verify-spec-implementation/SKILL.md"  # names the check enforcing each section of the canon's rules for code
 COVERAGE_RULE = "scope/rules-and-skills.md § Rules and Skills"
 # The table in the audit skill naming the audit reading each section stating rules:
 # (section heading, the column naming the sections)
 COVERAGE_TABLES = (("The audits", "Enforces"),)
-# scope/rules-and-skills.md § Rules and Skills § Skipped Step: the records naming each section stating operating rules, and where they stand
+# the records naming each section stating operating rules, and where they stand
 LEDGER = "specs/methodology/scope/rules-and-skills.md"
 SKIPPED_STEP_HOME = LEDGER + " § Rules and Skills § Skipped Step"
 SKIPPED_STEPS_AT = "Rules and Skills § Skipped Steps"
 DIAGRAMS_RULE = "modeling-constructs.md § Diagrams"
 IMAGE = re.compile(r"!\[[^\]]*\][(\[]|<img\b", re.I)
 WORKING_FILES = "specs/methodology/working-files/main.md"
+REGISTER = "specs/methodology/external-references.md"
 WORKING_FILES_RULE = "working-files.md § The Working Files"
 SCRIPT_SUFFIXES = {".py", ".ps1", ".sh"}
 # the name the kept tests' code is listed under where code is listed by the skill holding it: it is a file of the
@@ -77,17 +85,17 @@ def kept_test_scripts(root):
 LAYER = {"methodology": "specs/methodology/", "product": "specs/application/product/",
          "technical": "specs/application/technical/"}
 
-CITATION = constructs.CITATION  # the form written once, in constructs.py, which its construct checks read too
+CITATION = constructs.CITATION  # the form written once, in constructs, which its construct checks read too
 # A whole file is a valid citation form and carries no section token, so CITATION
 # never sees one. Only the direction check applies to it: naming a file in another
 # layer is the same dependency whether or not a section is named. The span must
 # resolve to a known file, so a passing mention of a directory is not read as one.
 WHOLE_FILE = re.compile(r'`([\w./-]+\.md)`')
 LOOSE_SECTION = re.compile(r'(?<!`)§')
-# what a check of prose leaves aside by where a line stands, as the one reading gives it (reading.py)
+# what a check of prose leaves aside by where a line stands, as the one reading gives it
 NOT_PROSE = (reading.HEADING, reading.TABLE, reading.THEMATIC_BREAK)
 
-# specs/methodology/spec-style/ordinals-and-counts.md § Ordinals and Counts. The findings are the forms a pattern decides alone.
+# The rule of ordinals and counts. The findings are the forms a pattern decides alone.
 ORDINALS_RULE = "spec-style/ordinals-and-counts.md § Ordinals and Counts"
 NUMBERED_LEAD_IN = re.compile(r'^\*\*\d+[.)]\s')
 NUMBERED_ITEM = re.compile(r'^\s*\d+[.)]\s')
@@ -98,21 +106,18 @@ WORKING_FILES_HOME = "specs/methodology/working-files/"
 IMPACTS_CITED = ("specs/methodology/spec-placement/open-question.md § Open Question",)
 
 
-# modeling-constructs.md § Fields: every key a form declares, and where that form places it.
+# The rule of fields: every key a form declares, and where that form places it.
 FIELDS = "modeling-constructs.md § Fields"
 # @canon-spec specs/methodology/modeling-constructs.md § Fields § A Nested Construct
 NESTED = "modeling-constructs.md § Fields § A Nested Construct"
-# modeling-constructs.md § Constructs § Basic Table: its headers, its Reference Key and its rows
+# the rule of a Basic Table: its headers, its Reference Key and its rows
 TABLES = "modeling-constructs.md § Constructs § Basic Table"
 MAPPING = "sourcing-and-citation/external-reference.md § External Reference § A Mapping onto a Standard"
 # @canon-spec specs/methodology/sourcing-and-citation/external-reference.md § External Reference § A Mapping onto a Standard
 # the kinds of a departure's reason, in their order: the one copy, held to the mapping's Departs For row by
 # mapping_rule_findings
 DEPARTS_FOR = ("the standard's gap", "the canon's form", "no need yet")
-# the registered standards' Names, read from their records as a check begins; a mapping's first header names one
-STANDARDS = set()
-# spec-placement/environments.md § Environments: the environments document, one file or a folder named for it, and the closed set
-# of kinds
+# the environments document, one file or a folder named for it, and the closed set of kinds
 ENVIRONMENTS = "specs/application/technical/environments.md"
 ENVIRONMENTS_FOLDER = "specs/application/technical/environments/"
 
@@ -122,8 +127,8 @@ def in_environments(r):
     return r == ENVIRONMENTS or r.startswith(ENVIRONMENTS_FOLDER)
 # @canon-spec specs/methodology/spec-placement/environments.md § Environments
 KINDS = ("local", "integration", "shared", "production")
-# spec-style/markdown.md § Bold Lead-ins and § Emphasis: bold marks only a field or a lead-in
-# label, both opening a line, and italic, the one emphasis, never opens one.
+# bold marks only a field or a lead-in label, both opening a line, and italic, the one emphasis,
+# never opens one.
 BOLD_SPAN = re.compile(r'\*\*(.+?)\*\*')
 # a line's opening skips indentation, a quote marker, and a list marker: -, *, + or a number
 LIST_OR_QUOTE = r'\s*(?:>\s*)*(?:(?:[-*+]|\d+[.)])\s+)?'
@@ -148,7 +153,7 @@ CANDIDATE = [
         rf"\s+(?!two\b){_NUM}\b(?!\s*{_UNIT})", re.I)),
     # "Two traps worth checking", "Three shapes": a count opening a sentence or lead-in.
     ("count opening a sentence", re.compile(rf"(?:^|[.!?:]\s+|\*\*|\|\s*){_NUM}\b", re.I)),
-    # "eighty broken citations", "three architecture.md files": a count of things.
+    # "eighty broken citations", "three config.yaml files": a count of things.
     ("count of things", re.compile(
         rf"\b(?!two\b){_NUM}\s+(?!{_UNIT}\b)(?:[\w.`-]+\s+){{0,2}}?[\w.`-]*[a-z]s\b", re.I)),
     ("digit count", re.compile(
@@ -167,8 +172,8 @@ NUMBERED_COMMENT = re.compile(r'^\s*(?:#\s*)?\d+[.)]\s')
 
 
 def unnamed_record_sections(r, body):
-    """modeling-constructs.md § Constructs § Record Form: the lineage of each section of file `r` holding a Records
-    field whose title is the Plural Name of no type whose records may sit there."""
+    """The lineage of each section of file `r` holding a Records field whose title is the Plural Name of no type
+    whose records may sit there."""
     live = strip_fences(body).split("\n")
     return {lineage for lineage, (h, end) in sections(body).items()
             if not type_of(lineage.split(" § ")[-1], r) and any(_records_key(l) for l in live[h + 1:end])}
@@ -205,11 +210,11 @@ def _record_findings(host, body, found, r, offset):
             continue  # no type's, or its type's own definition, titled with its Plural Name and reported at the declaration
         h, end = sections(body)[lineage]
         if spec.get("abstract"):
-            # modeling-constructs.md § Constructs § Record Form: an abstract type holds no records of its own
+            # an abstract type holds no records of its own
             found.append((RECORD_FORM, r, at(h), f"a record section titled with an abstract type's Plural Name: {title}"))
             continue
         # the section fields its type declares, before its Records, read from the section's block through the one
-        # reader (modeling-constructs.md § Fields)
+        # reader of a block of fields
         first = next((i for i in range(h + 1, end) if opens_key(live[i]) and not opens_key(live[i])["indent"]), None)
         block = read_block(live, first, 0, end)[0] if first is not None else []
         given = [(f["key"], (value_of(f) if isinstance(value_of(f), str) else "").strip(), f["line"])
@@ -231,8 +236,8 @@ def _record_findings(host, body, found, r, offset):
                 found.append((spec["home"], r, at(i), f"the {k} field written at its default value, {v}"))
             if k in spec["section_values"] and v not in spec["section_values"][k]:
                 found.append((spec["home"], r, at(i), f"the {k} field holds a value its type does not allow: {v}"))
-        # spec-placement/open-question.md § Open Question: the last top-level section binds a document kept as one file, never
-        # the main.md a folder's shared records sit in
+        # the last top-level section binds a document kept as one file, never the main file a folder's shared records
+        # sit in
         if spec["last_top_level"] and not r.endswith("/main.md") and (" § " in lineage or end != len(lines)):
             found.append((spec["home"], r, at(h), f"the {title} section is not its file's last top-level section"))
         records, problems = parse_records(body, lineage, spec["section_fields"])
@@ -242,11 +247,10 @@ def _record_findings(host, body, found, r, offset):
 
 
 def _check_records(records, spec, host, r, at, found, scope):
-    """modeling-constructs.md § Constructs § Record Form: each record of one collection, a record section's own items
-    or the records one field holds, against its type: its fields, their order, its required fields, its values, its
-    identifying values and its unique fields, a construct nested beneath a field only where the field's Holds cites
-    modeling-constructs.md § Fields § A Nested Construct, and each field holding records checked against the type it
-    cites in turn."""
+    """Each record of one collection, a record section's own items or the records one field holds, against its type:
+    its fields, their order, its required fields, its values, its identifying values and its unique fields, a construct
+    nested beneath a field only where the field's Holds cites the rule of a nested construct, and each field holding
+    records checked against the type it cites in turn."""
     home, names, given = spec["home"], set(), set()
     for rec in records:
         line = at(rec[0][2])
@@ -264,8 +268,7 @@ def _check_records(records, spec, host, r, at, found, scope):
         if missing:
             found.append((home, r, line, f"a record without the field its type requires: {', '.join(missing)}"))
             continue
-        # modeling-constructs.md § Fields § A Nested Construct: a construct nested beneath a field whose Holds cites
-        # that section alone
+        # a construct nested beneath a field whose Holds cites the rule of a nested construct alone
         for key, block in getattr(rec, "constructs", {}).items():
             if key not in spec.get("nested", ()):
                 found.append((NESTED, r, at(block["line"]), f"a construct nested beneath a field whose Holds does not cite {NESTED}: {key}"))
@@ -311,11 +314,10 @@ def _check_records(records, spec, host, r, at, found, scope):
 
 
 def environment_findings(r, body, found, text_of=None):
-    """spec-placement/environments.md § Environments: each environment's section opens with one Kind
-    field from the closed set, on a line of its own, and holds no other; exactly one
-    environment is local; and its tool and task tables carry the headers the rule sets.
-    A document laid out as a folder is judged whole once, at its index.md, which every folder holds, across each of its
-    other files read in `text_of`, its main.md among them where it holds one."""
+    """Each environment's section opens with one Kind field from the closed set, on a line of its own, and holds no
+    other; exactly one environment is local; and its tool and task tables carry the headers the rule sets.
+    A document laid out as a folder is judged whole once, at its index file, which every folder holds, across each of
+    its other files read in `text_of`, its main file among them where it holds one."""
     if r == ENVIRONMENTS:
         files = {r: body}
     elif r == ENVIRONMENTS_FOLDER + "index.md":
@@ -331,7 +333,7 @@ def environment_findings(r, body, found, text_of=None):
 
 def _environments_in(r, body, found, rule):
     """One file's environments, checked -> how many are local: a file's top-level sections, or, in the document's one
-    file or its main.md where it has one top-level section, that section's children."""
+    file or its main file where it has one top-level section, that section's children."""
     lines, local, opening = body.split("\n"), 0, set()
     secs = sorted(sections(body).items(), key=lambda x: x[1][0])
     whole = r == ENVIRONMENTS or r.endswith("/main.md")
@@ -363,9 +365,8 @@ def _environments_in(r, body, found, rule):
 OWN_CASING = re.compile(r"^[A-Za-z0-9]*[a-z][A-Z][A-Za-z0-9]*$")
 
 
-def header_findings(r, body, found):
-    """modeling-constructs.md § Constructs § Basic Table: each Basic Table's header is a field label, but a
-    header in backticks and a word in a proper noun's own casing; a construct's table, in its block, follows its
+def header_findings(r, body, found, standards):
+    """Each Basic Table's header is a field label, but a header in backticks and a word in a proper noun's own casing; a construct's table, in its block, follows its
     construct's definition and is no Basic Table."""
     live = strip_fences(body)
     lines = live.split("\n")
@@ -384,13 +385,13 @@ def header_findings(r, body, found):
         cells, k = constructs._cells(l), i - 1
         while k >= 0 and not lines[k].strip():
             k -= 1
-        if cells and cells[0] in STANDARDS and "Treatment" in cells \
+        if cells and cells[0] in standards and "Treatment" in cells \
                 and not (k >= 0 and lines[k].startswith(tuple(f"**{f}:**" for f in constructs.TABLE_OPENERS))):
             found.append((MAPPING, r, i + 1, f"a mapping onto a standard opened by none of its fields: {cells[0]}"))
 
 
 def field_findings(r, body, found):
-    """modeling-constructs.md § Fields: each field's key is one a form declares, and it sits where that form places it,
+    """Each field's key is one a form declares, and it sits where that form places it,
     a record's fields, a nested record's among them, placed by the one reader through the type its field cites, and the
     fields of a construct nested beneath a record's field placed as that construct's."""
     raw = body.split("\n")
@@ -403,7 +404,7 @@ def field_findings(r, body, found):
         spec = type_of(lineage.split(" § ")[-1], r)
         if spec and spec["home"] != f"{r} § {lineage}":
             records, _ = parse_records(body, lineage, spec["section_fields"])
-            # a construct's fields nested beneath a record's field are that construct's (§ Fields § A Nested Construct)
+            # a construct's fields nested beneath a record's field are that construct's
             placed |= {i for rec in records for i in nested_lines(rec)}
             todo = list(records)
             while todo:
@@ -426,7 +427,7 @@ def field_findings(r, body, found):
         if spec and spec["home"] == f"{r} § {lineage}":
             spec = None  # its type's own definition, no record section of it
         if spec and (indent or dash) and key in spec["fields"]:
-            continue  # a record's own field, whatever another form declares by the same key (§ Fields)
+            continue  # a record's own field, whatever another form declares by the same key
         # a type's own section field, whatever another form declares by the same key
         place = "record section" if spec and not indent and not dash and key in spec["section_fields"] else FIELD_KEYS.get(key)
         if place is None:
@@ -439,7 +440,7 @@ def field_findings(r, body, found):
         elif place == "environment":
             ok = in_environments(r) and not indent and not dash
         elif place == "construct":
-            # modeling-constructs.md § Defining Constructs § Declaring a Construct: a field of the construct's block
+            # a field of the construct's block
             ok = not indent and not dash
         else:
             ok = spec is not None and key in spec["fields"] and bool(indent or dash)
@@ -448,8 +449,8 @@ def field_findings(r, body, found):
 
 
 
-def basic_findings(r, body, found):
-    """modeling-constructs.md § Constructs § Basic Table: a Basic Table's Reference Key names columns its header holds, each row's
+def basic_findings(r, body, found, standards):
+    """A Basic Table's Reference Key names columns its header holds, each row's
     values under them are identifying values, unique alone or together; its Required names columns its header holds beside
     its key; and a row leaves no cell blank under either."""
     for lineage, t in ((lin, t) for lin, ts in basic_tables(body).items() for t in ts):
@@ -463,10 +464,9 @@ def basic_findings(r, body, found):
             for c in t["required"]:
                 if c in t["header"] and not (row[t["header"].index(c)] if t["header"].index(c) < len(row) else ""):
                     found.append((TABLES, r, ln, f"a blank cell in a column its Required names: {c}"))
-        # sourcing-and-citation/external-reference.md § External Reference § A Mapping onto a Standard: a table headed first by a registered
-        # standard's Name and holding a Treatment column is a mapping, written in its one form, a Departs For and a Why
+        # a table headed first by a registered standard's Name and holding a Treatment column is a mapping, written in its one form, a Departs For and a Why
         # on each row that departs and on no other
-        if t["header"] and t["header"][0] in STANDARDS and "Treatment" in t["header"]:
+        if t["header"] and t["header"][0] in standards and "Treatment" in t["header"]:
             std = t["header"][0]
             if (t["header"] != [std, "Section", "Treatment", "Departs For", "Why"] or t["key"] != [std]
                     or t["required"] != ["Section", "Treatment"] or t["name"] != f"{std} Elements"):
@@ -504,8 +504,7 @@ def basic_findings(r, body, found):
             if values in seen:
                 found.append((TABLES, r, ln, f"two rows sharing their key: {values}"))
             seen.add(values)
-    # modeling-constructs.md § Constructs § Keyed Construct: of tables in one section keyed by the same declared columns, all but
-    # one declare a distinct Table Name, a construct's keyed tables among them
+    # of tables in one section keyed by the same declared columns, all but one declare a distinct Table Name, a construct's keyed tables among them
     live = strip_fences(body)
     keyed = {}
     for lineage, ts in basic_tables(body).items():
@@ -534,7 +533,7 @@ def basic_findings(r, body, found):
 
 
 def diagram_findings(r, body, text_of, known, lineage, found):
-    """modeling-constructs.md § Diagrams: each diagram's form, its Caption and Sources a block of fields read through the
+    """Each diagram's form, its Caption and Sources a block of fields read through the
     one reader, and its sources citing it back."""
     rule = "modeling-constructs.md § Diagrams"
     lines, secs = body.split("\n"), sections(body)
@@ -603,7 +602,7 @@ def diagram_findings(r, body, text_of, known, lineage, found):
                 k = next((k for k, l in enumerate(own) if opens_key(l) and opens_key(l)["key"] == "Diagrams"), None)
                 field = []
                 if k is not None:
-                    # the Diagrams field's list, read through the one reader (modeling-constructs.md § Fields)
+                    # the Diagrams field's list, read through the one reader of a block of fields
                     fields, _ = read_block(own, k, _indent(own[k]), len(own))
                     field = (value_of(fields[0]) or "").split("\n") if fields else []
                 own = field
@@ -626,11 +625,11 @@ def layer_of(rel):
 
 
 def direction(src_layer, path, rel, line, found, section=True):
-    """A citation never points down a layer except from specs/AGENTS.md, the main file of specs/ or specs/architecture.md; application and
-    methodology never cite each other in either direction, but for a Construct field citing its construct's definition,
-    which the caller leaves out; an application spec never cites specs/AGENTS.md, the main file of specs/ or specs/architecture.md; and no spec
-    cites a section of the project's root AGENTS.md, though a plain mention of it is no citation of its content. Shared
-    by both forms."""
+    """A citation never points down a layer except from the agents layer: the specs' entry point, their main file and
+    their architecture file; application and methodology never cite each other in either direction, but for a Construct
+    field citing its construct's definition, which the caller leaves out; an application spec never cites the agents
+    layer; and no spec cites a section of the project's root instructions, though a plain mention of them is no
+    citation of their content. Shared by both forms."""
     dst_layer = layer_of(path)
     if not (src_layer and dst_layer and src_layer != dst_layer):
         return
@@ -646,16 +645,20 @@ def direction(src_layer, path, rel, line, found, section=True):
                       rel, line, f"{src_layer} cites {dst_layer}: {path}"))
 
 
-def mapping_rule_findings(root):
-    """sourcing-and-citation/external-reference.md § External Reference § A Mapping onto a Standard: the script's copy of the kinds of a
-    departure's reason against the mapping's Departs For row; and each sentence of a methodology file, its overview and
+# @canon-spec specs/methodology/sourcing-and-citation/external-reference.md § External Reference § A Mapping onto a Standard
+def mapping_rule_findings(scope):
+    """The script's copy of the kinds of a departure's reason against the mapping's Departs For row; and each sentence of a methodology file, its overview and
     its index aside, naming a departure from a registered standard, citing its mapping's row."""
+    root = scope.root
     out = []
+    # the copy is held to the file it copies where the scope holds that file, as the construct checks' copies are
     sc = "specs/methodology/sourcing-and-citation/external-reference.md"
-    row = next((l for l in read(root / sc).split("\n") if l.startswith("| Departs For |")), "")
-    if tuple(re.findall(r"`([^`]+)`", row)[:3]) != DEPARTS_FOR:
+    row = next((l for l in scope.text_of.get(sc, "").split("\n") if l.startswith("| Departs For |")), "")
+    if sc in scope.known and tuple(re.findall(r"`([^`]+)`", row)[:3]) != DEPARTS_FOR:
         out.append((MAPPING, sc, 0, f"the script's kinds of a departure's reason are not the Departs For row's: {list(DEPARTS_FOR)}"))
-    names = sorted(STANDARDS | {"FEEL"}, key=len, reverse=True)
+    if not (root / REGISTER).exists():
+        out.append((MAPPING, REGISTER, 0, "no register of external standards, so no departure from one is checked"))
+    names = sorted(scope.standards | {"FEEL"}, key=len, reverse=True)
     if not names:
         return out
     alt = "|".join(re.escape(n) for n in names)
@@ -682,9 +685,11 @@ def mapping_rule_findings(root):
     return out
 
 
-def example_pointer_findings(root):
-    """scope/progressive-disclosure.md § Progressive Disclosure: each directory of the worked examples a section names exists, and each topic's
-    directory, a subject's subdirectory, is named by a section of the canon outside the examples."""
+# @canon-spec specs/methodology/scope/progressive-disclosure.md § Progressive Disclosure
+def example_pointer_findings(scope):
+    """Each directory of the worked examples a section names exists, and each topic's directory, a subject's
+    subdirectory, is named by a section of the canon outside the examples."""
+    root = scope.root
     out, rule = [], "scope/progressive-disclosure.md § Progressive Disclosure"
     tree = root / "specs/methodology/examples"
     named = set()
@@ -705,275 +710,413 @@ def example_pointer_findings(root):
     return out
 
 
-def check(root, warned=None):
-    """-> list of (rule, path, line, message); a warning, what the specs record as a gap of the system, is appended
-    to `warned` where a list is given, and is never a finding."""
-    found, files = [], md_files(root)
-    warned = [] if warned is None else warned
-    text = {f: read(f) for f in files}
-    rel = {f: f.relative_to(root).as_posix() for f in files}
-    lineage = {rel[f]: lineages(text[f]) for f in files}
-    known = set(rel.values())
-    text_of = {rel[f]: text[f] for f in files}
-    # the registered standards' Names, a mapping's first header naming one
-    register = root / "specs/methodology/external-references.md"
-    STANDARDS.clear()
-    STANDARDS.update(m["value"].strip() for l in (read(register).split("\n") if register.exists() else [])
-                     for m in [FIELD_LINE.match(l)] if m and m["marker"] and m["key"] == "Name" and m["value"])
-    # spec-style/markdown.md § Blank Lines and modeling-constructs.md § Fields: the layout check and the reader's checks of a
-    # block, over every file in scope, the rule's table read from the canon once
-    blank_lines, table_problems = layout.rules(root)
-    found += table_problems
-    # modeling-constructs.md § Constructs: the construct checks whole, the record types, facts and Reference Keys they
-    # read set up first and left in place, the citation checks reading them
-    construct_found, construct_warned, _ = constructs.run_checks(text_of)
-    found += construct_found
-    warned += construct_warned
+class Scope:
+    """The scope a run of the audit reads once, and what a test hands a check in place of a checkout: `root`, the
+    files as a tree held in memory; `text_of`, each Markdown file in scope by its path, its citations' links stripped;
+    `known`, those paths; `lineage`, each one's headings by their lineage; `standards`, the registered standards'
+    Names; and `blank_lines`, the Decision Table the blank-line check reads. Reading it runs the construct checks,
+    whose setup the checks of a record, a field and a table read, the record types, facts and Reference Keys the specs
+    declare, and keeps what they found in `construct_found` and what they warn of in `warned`. `files` maps each path
+    to its text or its bytes, or is a commit's tree; `tracked`, the files version control tracks, is all of them where
+    none is given."""
 
-    for f in files:
-        r, body = rel[f], text[f]
-        live = strip_fences(body)
-        src_layer = layer_of(r)
-        found += [(rule, r, line, msg) for rule, line, msg in layout.findings(body, blank_lines)]
-        found += [(rule, r, line, msg) for rule, line, msg in block_findings(body)]
-        code = layout.code_lines(live)
+    def __init__(self, files, tracked=None):
+        self.root = files if isinstance(files, spec_text.CommitTree) else spec_text.FileTree(files, tracked)
+        self.text_of = spec_text.spec_texts(self.root)
+        self.known = set(self.text_of)
+        self.lineage = {p: lineages(t) for p, t in self.text_of.items()}
+        # the standards the scope's own register names, a table of the project's data read from the scope alone
+        register = in_place(self.root, REGISTER)
+        self.standards = {m["value"].strip() for l in (read(register).split("\n") if register.exists() else [])
+                          for m in [FIELD_LINE.match(l)] if m and m["marker"] and m["key"] == "Name" and m["value"]}
+        self.blank_lines = layout.rules()[0]
+        self.construct_found, self.warned, _ = constructs.run_checks(self.text_of)
 
-        # Fenced blocks are stripped: a citation shown inside an example is an
-        # illustration, not a dependency, and linting one produces a finding
-        # nobody can act on.
-        for i, line in enumerate(live.split("\n"), 1):
-            # spec-style/markdown.md § Literal Text: a code span opens and closes with one backtick; a line the layout
-            # reading gives an indented code block is literal as a fenced one is
-            if "``" in constructs.CITATION.sub(lambda m: "" if _span_fits(m) else m.group(0), line) and (i - 1) not in code:
-                found.append((LITERAL_TEXT, r, i, "a run of backticks, where literal text opens and closes with one"))
-            # a code span is literal text, so markup inside one is never bold or italic
-            prose = constructs.CODE_SPAN.sub(lambda m: "x" * len(m.group(0)), line)
-            for m in BOLD_SPAN.finditer(prose):
-                if not LINE_OPENING.match(prose[:m.start()]):
-                    found.append((EMPHASIS, r, i, f"bold outside a line's opening: {line[m.start():m.end()][:60]}"))
-                elif m.group(1).endswith(":") and not FIELD_LINE.match(line):
-                    found.append((FIELDS, r, i, f"a field not in its form, its key in bold, then a space, any list marker a hyphen: {line[m.start():m.end() + 10][:60]}"))
-                elif not m.group(1).endswith((":", ".", "?")):
-                    found.append((BOLD_LEAD_INS, r, i, f"bold opening a line closes on neither a colon nor a period: {line[m.start():m.end()][:60]}"))
-            # spec-style/clear-prose.md § Clear Prose: no dash serves as punctuation, outside code
-            if "\u2014" in prose or "\u2013" in prose:
-                found.append((CLEAR_PROSE, r, i, "an em dash or an en dash, where a sentence takes a period, a comma, a colon or parentheses"))
-            if ITALIC_OPENING.match(prose):
-                found.append((EMPHASIS, r, i, "a line opens with italic"))
-            if ODD_EMPHASIS.search(prose):
-                found.append((EMPHASIS, r, i, "bold italic or underscore bold"))
-            if NUMBERED_LEAD_IN.match(line):
-                found.append((ORDINALS_RULE, r, i, "bold lead-in carries a number"))
-            elif NUMBERED_ITEM.match(line):
-                found.append((ORDINALS_RULE, r, i, "list item carries a number"))
-            if r.startswith("specs/") and not r.startswith(WORKING_FILES_HOME) and r != SPECS_AGENTS:
-                for m in WORKING_FILE.finditer(line):
-                    found.append(("sourcing-and-citation/which-citations-are-allowed.md § Which Citations Are Allowed", r, i,
-                                  f"names a working file: {m.group(0)}"))
-            for m in WHOLE_FILE.finditer(line):
-                if m.group(1) in known:
-                    direction(src_layer, m.group(1), r, i, found, section=False)
+    @classmethod
+    def read_from(cls, root):
+        """-> the scope of a checkout read into memory once, or of a commit's tree as it is given."""
+        root = spec_text.as_root(root)
+        return cls(root if isinstance(root, spec_text.CommitTree) else spec_text.FileTree.of_checkout(root))
 
-            for m in CITATION.finditer(line):
-                cite = m.group(1).strip()
-                if " § " not in cite and not cite.startswith("§"):
-                    continue
-                path, target, sel = parse_citation(cite, r)
 
-                # lineage resolves
-                if path not in known:
-                    relative = posixpath.normpath(posixpath.join(posixpath.dirname(r), path))
-                    problem = (f"not a project-root path: {path}" if relative in known
-                               else f"cites a file that does not exist: {path}")
-                    found.append(("sourcing-and-citation/writing-a-citation.md § Writing a Citation", r, i, problem))
-                    continue
-                if target not in lineage[path]:
-                    found.append(("sourcing-and-citation/writing-a-citation.md § Writing a Citation", r, i,
-                                  f"no such heading path in {path}: § {target}"))
-                elif sel is not None:
-                    record_citation(sel, path, target, text_of, r, i, found)
+# The checks of one file: each takes a file's path and its text, its citations' links stripped, and gives
+# [(rule, line, message)].
 
-                # direction, but a Construct field citing its construct's definition from any layer
-                if not (line.startswith("**Construct:** ") and path == constructs.HOME and target.startswith("Constructs § ")):
-                    direction(src_layer, path, r, i, found)
+# @canon-spec specs/methodology/modeling-constructs.md § Fields
+# @canon-spec specs/methodology/modeling-constructs.md § Fields § A Nested Construct
+# @canon-spec specs/methodology/spec-style/markdown.md § Markdown
+def block_field_findings(path, text):
+    """Each block of fields ends each line a field's key directly follows with one space and a backslash, and no
+    other, a fenced block of Markdown and a construct nested beneath a field among them."""
+    return block_findings(text)
 
-                # index.md is never a target
-                if path.endswith("index.md"):
-                    found.append(("sourcing-and-citation/writing-a-citation.md § Writing a Citation", r, i,
-                                  "cites an index.md, which is never a citation target"))
 
-                # a skill's files cite into .ai/skills/ only that skill's own
-                if path.startswith(".ai/skills/") and path.split("/")[2] != (
-                        r.split("/")[2] if r.startswith(".ai/skills/") else None):
-                    found.append((AUTHORING, r, i, f"cites another skill's file: {path}"))
+# @canon-spec specs/methodology/spec-style/markdown.md § Literal Text
+def literal_text_findings(path, text):
+    """No run of two or more backticks opens or closes a code span but a citation's, outside a fenced code block and
+    outside an indented one."""
+    live = strip_fences(text)
+    code = layout.code_lines(live)
+    return [(LITERAL_TEXT, i, "a run of backticks, where literal text opens and closes with one")
+            for i, line in enumerate(live.split("\n"), 1)
+            if "``" in constructs.CITATION.sub(lambda m: "" if _span_fits(m) else m.group(0), line) and (i - 1) not in code]
 
-        # bare § outside a backtick span. Every inline span is stripped, not only the
-        # ones that parse as citations, since the rule is about the span and not the form.
-        for i, line in enumerate(live.split("\n"), 1):
-            stripped = constructs.CODE_SPAN.sub("", constructs.CITATION.sub("", line))
-            if LOOSE_SECTION.search(stripped):
-                found.append(("sourcing-and-citation/writing-a-citation.md § Writing a Citation", r, i,
-                              "a § outside a backtick span"))
 
-        # heading hygiene
-        seen = {}
-        stack = []
-        for lvl, title in headings(body):
-            stack = stack[: lvl - 1] + [title]
-            parent = " § ".join(stack[:-1]) or "(file)"
-            if re.match(r'^\d+[.)]\s', title):
-                found.append(("sourcing-and-citation/titling-a-heading.md § Titling a Heading", r, 0,
-                              f"heading carries an ordinal: {title}"))
-            if "§" in title:
-                found.append(("sourcing-and-citation/titling-a-heading.md § Titling a Heading", r, 0,
-                              f"heading contains §: {title}"))
-            if "[" in title:
-                found.append(("sourcing-and-citation/titling-a-heading.md § Titling a Heading", r, 0,
-                              f"heading contains [: {title}"))
-            key = (parent, title)
-            if key in seen:
-                found.append(("sourcing-and-citation/titling-a-heading.md § Titling a Heading", r, 0,
-                              f"duplicate heading under {parent}: {title}"))
-            seen[key] = True
+def _prose(line):
+    """-> a line with each code span blanked, since a code span is literal text and markup inside one is never bold
+    or italic."""
+    return constructs.CODE_SPAN.sub(lambda m: "x" * len(m.group(0)), line)
 
-        # Test Scenarios shape
-        hs = headings(body)
-        for idx, (lvl, title) in enumerate(hs):
-            if title != "Test Scenarios":
-                continue
-            prev = [h for h in hs[:idx] if h[0] < lvl]
-            if not prev or prev[-1][0] != lvl - 1:
-                found.append(("acceptance-scenarios.md § Acceptance Scenarios", r, 0,
-                              "Test Scenarios is not exactly one level below its capability"))
-            after = body.split("## " if lvl == 2 else "#" * lvl + " Test Scenarios", 1)
-            if not any(b.word == "gherkin" for b in reading.blocks(body)):
-                found.append(("acceptance-scenarios.md § Acceptance Scenarios", r, 0,
-                              "Test Scenarios section has no ```gherkin fence"))
 
-        # A scenario-actor check was tried here and removed. "A Given names its actor by
-        # role" is real, but absence of a role name does not decide a violation: a scenario
-        # about system state has no actor, and one may name its role in the Then instead.
-        # Flagging every Given without a role produced mostly noise, which is worse than
-        # no check because a reader stops reading the output.
+# @canon-spec specs/methodology/modeling-constructs.md § Fields
+# @canon-spec specs/methodology/spec-style/clear-prose.md § Clear Prose
+# @canon-spec specs/methodology/spec-style/markdown.md § Bold Lead-ins
+# @canon-spec specs/methodology/spec-style/markdown.md § Emphasis
+def bold_span_findings(path, text):
+    """Every bold span opens a line and closes on a colon, a field in its form, or on a period or a question mark, a
+    bold lead-in; bold italic and underscore bold are reported wherever they stand, and so is a dash serving as
+    punctuation outside code."""
+    found = []
+    for i, line in enumerate(strip_fences(text).split("\n"), 1):
+        prose = _prose(line)
+        for m in BOLD_SPAN.finditer(prose):
+            if not LINE_OPENING.match(prose[:m.start()]):
+                found.append((EMPHASIS, i, f"bold outside a line's opening: {line[m.start():m.end()][:60]}"))
+            elif m.group(1).endswith(":") and not FIELD_LINE.match(line):
+                found.append((FIELDS, i, f"a field not in its form, its key in bold, then a space, any list marker a hyphen: {line[m.start():m.end() + 10][:60]}"))
+            elif not m.group(1).endswith((":", ".", "?")):
+                found.append((BOLD_LEAD_INS, i, f"bold opening a line closes on neither a colon nor a period: {line[m.start():m.end()][:60]}"))
+        if "—" in prose or "–" in prose:
+            found.append((CLEAR_PROSE, i, "an em dash or an en dash, where a sentence takes a period, a comma, a colon or parentheses"))
+        if ODD_EMPHASIS.search(prose):
+            found.append((EMPHASIS, i, "bold italic or underscore bold"))
+    return found
 
-        # every gherkin block parses: each Scenario: carries a Given, When and Then
-        for fenced in reading.blocks(body):
-            if fenced.word != "gherkin" or not fenced.closed:
-                continue
-            block = fenced.content + "\n"
-            for chunk in re.split(r'^\s*Scenario:', block, flags=re.M)[1:]:
-                title = chunk.split("\n", 1)[0].strip()[:48]
-                for kw in ("Given", "When", "Then"):
-                    if not re.search(rf'^\s*(?:{kw}|And)\b', chunk, re.M) or \
-                       not re.search(rf'^\s*{kw}\b', chunk, re.M):
-                        found.append(("acceptance-scenarios.md § Acceptance Scenarios", r, 0,
-                                      f"scenario has no {kw}: {title}"))
 
-        # modeling-constructs.md § Constructs § Basic Table: its headers, its Reference Key and its rows
-        header_findings(r, body, found)
-        basic_findings(r, body, found)
+# @canon-spec specs/methodology/spec-style/markdown.md § Emphasis
+def italic_opening_findings(path, text):
+    """No line opens with italic, after any list marker, quote marker and indentation."""
+    return [(EMPHASIS, i, "a line opens with italic")
+            for i, line in enumerate(strip_fences(text).split("\n"), 1) if ITALIC_OPENING.match(_prose(line))]
 
-        # modeling-constructs.md § Constructs § Record Form, § Fields: a record and a field are read in each file
-        # under specs/ and each skill's file but a form template, as read_for_records tells them
-        if read_for_records(r):
-            record_findings(r, body, found)
-            field_findings(r, body, found)
-        # mermaid blocks: declared as flowcharts, in the form a diagram takes, and cited
-        # back by their sources. Scoped to specs/ because a skill may legitimately carry a
-        # worked example. The fence is found in the raw text: strip_fences() blanks it.
-        if r.startswith("specs/"):
-            diagram_findings(r, body, text_of, known, lineage, found)
-            environment_findings(r, body, found, text_of)
-            for fenced in (b for b in reading.blocks(body) if b.word == "mermaid" and b.closed):
-                # a diagram opens with a config front matter block, so scan the whole
-                # fence rather than its first line
-                if not re.search(r'^\s*flowchart\b', fenced.content, re.M):
-                    found.append(("modeling-constructs.md § Diagrams", r, 0,
-                                  "a mermaid block that does not declare flowchart"))
 
-        # technical-specs front matter: product files only, paths under technical/
-        if body.startswith("---"):
-            fm = body.split("---", 2)[1]
-            paths = re.findall(r'^\s*-\s+(\S+\.md)\s*$', fm, re.M) if "technical-specs:" in fm else []
-            if paths and not r.startswith("specs/application/product/"):
-                found.append(("spec-placement/naming-the-technical-files-behind-a-capability.md § Naming the Technical Files Behind a Capability",
-                              r, 0, "technical-specs appears outside a product spec"))
-            for p in paths:
-                if not p.startswith("specs/application/technical/"):
-                    found.append(("spec-placement/naming-the-technical-files-behind-a-capability.md § Naming the Technical Files Behind a Capability",
-                                  r, 0, f"technical-specs names a non-technical file: {p}"))
-            if paths:
-                if paths != sorted(paths):
-                    found.append(("spec-placement/naming-the-technical-files-behind-a-capability.md § Naming the Technical Files Behind a Capability",
-                                  r, 0, "technical-specs is not sorted in plain character order"))
-                for p in paths:
-                    if p not in known:
-                        found.append(("spec-placement/naming-the-technical-files-behind-a-capability.md § Naming the Technical Files Behind a Capability",
-                                      r, 0, f"technical-specs names a missing file: {p}"))
+# @canon-spec specs/methodology/spec-style/ordinals-and-counts.md § Ordinals and Counts
+def numbered_findings(path, text):
+    """No bold lead-in and no list item carries a number."""
+    found = []
+    for i, line in enumerate(strip_fences(text).split("\n"), 1):
+        if NUMBERED_LEAD_IN.match(line):
+            found.append((ORDINALS_RULE, i, "bold lead-in carries a number"))
+        elif NUMBERED_ITEM.match(line):
+            found.append((ORDINALS_RULE, i, "list item carries a number"))
+    return found
 
-    # every directory has an index.md, naming each file and subdirectory beside it
+
+# @canon-spec specs/methodology/sourcing-and-citation/which-citations-are-allowed.md § Which Citations Are Allowed
+def working_file_named_findings(path, text):
+    """No file of the specifications but a file of the working files' own document, and the specifications' agent
+    instructions, names a working file."""
+    if not path.startswith("specs/") or path.startswith(WORKING_FILES_HOME) or path == SPECS_AGENTS:
+        return []
+    return [(ALLOWED, i, f"names a working file: {m.group(0)}")
+            for i, line in enumerate(strip_fences(text).split("\n"), 1) for m in WORKING_FILE.finditer(line)]
+
+
+# @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation
+def loose_section_findings(path, text):
+    """Every section sign sits inside a backtick span: each inline span is set aside, not only one that reads as a
+    citation, since the rule is about the span and not the form."""
+    return [(WRITING_A_CITATION, i, "a § outside a backtick span")
+            for i, line in enumerate(strip_fences(text).split("\n"), 1)
+            if LOOSE_SECTION.search(constructs.CODE_SPAN.sub("", constructs.CITATION.sub("", line)))]
+
+
+# @canon-spec specs/methodology/sourcing-and-citation/titling-a-heading.md § Titling a Heading
+def heading_findings(path, text):
+    """A heading carries no ordinal, no section sign and no bracket, and is unique among its siblings."""
+    found, seen, stack = [], set(), []
+    for lvl, title in headings(text):
+        stack = stack[: lvl - 1] + [title]
+        parent = " § ".join(stack[:-1]) or "(file)"
+        if re.match(r'^\d+[.)]\s', title):
+            found.append((TITLING, 0, f"heading carries an ordinal: {title}"))
+        if "§" in title:
+            found.append((TITLING, 0, f"heading contains §: {title}"))
+        if "[" in title:
+            found.append((TITLING, 0, f"heading contains [: {title}"))
+        if (parent, title) in seen:
+            found.append((TITLING, 0, f"duplicate heading under {parent}: {title}"))
+        seen.add((parent, title))
+    return found
+
+
+# @canon-spec specs/methodology/acceptance-scenarios.md § Acceptance Scenarios
+def scenario_findings(path, text):
+    """A Test Scenarios section sits one level below its capability, and a file holding one holds a gherkin block;
+    and every gherkin block's scenarios each carry a Given, a When and a Then."""
+    found, hs = [], headings(text)
+    for idx, (lvl, title) in enumerate(hs):
+        if title != "Test Scenarios":
+            continue
+        prev = [h for h in hs[:idx] if h[0] < lvl]
+        if not prev or prev[-1][0] != lvl - 1:
+            found.append((SCENARIOS, 0, "Test Scenarios is not exactly one level below its capability"))
+        if not any(b.word == "gherkin" for b in reading.blocks(text)):
+            found.append((SCENARIOS, 0, "Test Scenarios section has no ```gherkin fence"))
+    # A scenario-actor check was tried here and removed. "A Given names its actor by role" is real, but absence of a
+    # role name does not decide a violation: a scenario about system state has no actor, and one may name its role in
+    # the Then instead. Flagging every Given without a role produced mostly noise, which is worse than no check
+    # because a reader stops reading the output.
+    for fenced in reading.blocks(text):
+        if fenced.word != "gherkin" or not fenced.closed:
+            continue
+        for chunk in re.split(r'^\s*Scenario:', fenced.content + "\n", flags=re.M)[1:]:
+            title = chunk.split("\n", 1)[0].strip()[:48]
+            for kw in ("Given", "When", "Then"):
+                if not re.search(rf'^\s*(?:{kw}|And)\b', chunk, re.M) or not re.search(rf'^\s*{kw}\b', chunk, re.M):
+                    found.append((SCENARIOS, 0, f"scenario has no {kw}: {title}"))
+    return found
+
+
+# @canon-spec specs/methodology/modeling-constructs.md § Diagrams
+def mermaid_flowchart_findings(path, text):
+    """Every fenced mermaid block of the specifications declares a flowchart, read across the whole fence, since a
+    diagram opens with a block of its configuration."""
+    if not path.startswith("specs/"):
+        return []
+    return [(DIAGRAMS_RULE, 0, "a mermaid block that does not declare flowchart")
+            for b in reading.blocks(text) if b.word == "mermaid" and b.closed and not re.search(r'^\s*flowchart\b', b.content, re.M)]
+
+
+# The checks reading across files: each takes a file's path and its text with the scope it resolves against, and
+# gives [(rule, line, message)].
+
+# @canon-spec specs/methodology/spec-style/markdown.md § Blank Lines
+def blank_line_findings(path, text, scope):
+    """Every blank line stands where the canon's Decision Table of blank lines gives one, and nowhere else."""
+    return layout.findings(text, scope.blank_lines)
+
+
+def _citations(text, path):
+    """-> (line number, the citation written, its path, its section, its keyed part, the line) for each citation of a
+    section a file's text holds outside its fenced blocks."""
+    for i, line in enumerate(strip_fences(text).split("\n"), 1):
+        for m in CITATION.finditer(line):
+            cite = m.group(1).strip()
+            if " § " in cite or cite.startswith("§"):
+                yield (i, cite) + tuple(parse_citation(cite, path)) + (line,)
+
+
+def _found(path, found):
+    """-> the findings a check gathered as (rule, path, line, message), the file's own, without their path."""
+    return [(rule, line, message) for rule, at, line, message in found if at == path]
+
+
+# @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation
+def citation_findings(path, text, scope):
+    """Every citation of a section resolves to that heading path in a file that exists, by a path from the project's
+    root, and targets no index; and every record citation resolves to the record it names."""
+    found = []
+    for i, cite, cited, target, sel, _ in _citations(text, path):
+        if cited not in scope.known:
+            relative = posixpath.normpath(posixpath.join(posixpath.dirname(path), cited))
+            found.append((WRITING_A_CITATION, path, i, f"not a project-root path: {cited}" if relative in scope.known
+                          else f"cites a file that does not exist: {cited}"))
+            continue
+        if target not in scope.lineage[cited]:
+            found.append((WRITING_A_CITATION, path, i, f"no such heading path in {cited}: § {target}"))
+        elif sel is not None:
+            record_citation(sel, cited, target, scope.text_of, path, i, found)
+        if cited.endswith("index.md"):
+            found.append((WRITING_A_CITATION, path, i, "cites an index.md, which is never a citation target"))
+    return _found(path, found)
+
+
+# @canon-spec specs/methodology/sourcing-and-citation/which-citations-are-allowed.md § Which Citations Are Allowed
+def direction_findings(path, text, scope):
+    """A citation, of a section or of a whole file, never points down a layer or crosses between the application and
+    the methodology but where the layers allow it, a Construct field citing its construct's definition from any
+    layer."""
+    found, layer = [], layer_of(path)
+    for i, line in enumerate(strip_fences(text).split("\n"), 1):
+        for m in WHOLE_FILE.finditer(line):
+            if m.group(1) in scope.known:
+                direction(layer, m.group(1), path, i, found, section=False)
+    for i, _, cited, target, _, line in _citations(text, path):
+        if cited in scope.known and not (line.startswith("**Construct:** ") and cited == constructs.HOME and target.startswith("Constructs § ")):
+            direction(layer, cited, path, i, found)
+    return _found(path, found)
+
+
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill
+# @canon-spec specs/methodology/sourcing-and-citation/which-citations-are-allowed.md § Which Citations Are Allowed
+def skill_citation_findings(path, text, scope):
+    """A citation of a section of a skill's file comes only from a file of the same skill."""
+    own = path.split("/")[2] if path.startswith(".ai/skills/") else None
+    return [(AUTHORING, i, f"cites another skill's file: {cited}") for i, _, cited, _, _, _ in _citations(text, path)
+            if cited in scope.known and cited.startswith(".ai/skills/") and cited.split("/")[2] != own]
+
+
+# @canon-spec specs/methodology/spec-placement/naming-the-technical-files-behind-a-capability.md § Naming the Technical Files Behind a Capability
+def technical_specs_findings(path, text, scope):
+    """A technical-specs list in a file's front matter stands only in a product spec, names only technical files that
+    exist, and is sorted in plain character order."""
+    if not text.startswith("---"):
+        return []
+    fm = text.split("---", 2)[1]
+    paths = re.findall(r'^\s*-\s+(\S+\.md)\s*$', fm, re.M) if "technical-specs:" in fm else []
+    found = []
+    if paths and not path.startswith("specs/application/product/"):
+        found.append((TECHNICAL_FILES, 0, "technical-specs appears outside a product spec"))
+    found += [(TECHNICAL_FILES, 0, f"technical-specs names a non-technical file: {p}") for p in paths if not p.startswith("specs/application/technical/")]
+    if paths and paths != sorted(paths):
+        found.append((TECHNICAL_FILES, 0, "technical-specs is not sorted in plain character order"))
+    found += [(TECHNICAL_FILES, 0, f"technical-specs names a missing file: {p}") for p in paths if p not in scope.known]
+    return found
+
+
+# @canon-spec specs/methodology/modeling-constructs.md § Diagrams
+def diagram_form_findings(path, text, scope):
+    """Each diagram of the specifications in its form, its sources citing it back."""
+    found = []
+    if path.startswith("specs/"):
+        diagram_findings(path, text, scope.text_of, scope.known, scope.lineage, found)
+    return _found(path, found)
+
+
+# @canon-spec specs/methodology/spec-placement/environments.md § Environments
+def environments_findings(path, text, scope):
+    """The environments document's environments, each opening with its Kind, one of them local, and its tables of
+    tools and of tasks."""
+    found = []
+    if path.startswith("specs/"):
+        environment_findings(path, text, found, scope.text_of)
+    return _found(path, found)
+
+
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
+# @canon-spec specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact
+# @canon-spec specs/methodology/modeling-constructs.md § Fields § A Nested Construct
+# @canon-spec specs/methodology/sourcing-and-citation/external-reference.md § External Reference
+# @canon-spec specs/methodology/spec-placement/open-question.md § Open Question
+# @canon-spec specs/methodology/spec-style/markdown.md § Markdown
+def record_form_findings(path, text, scope):
+    """Each record section of a file read for records, against the type the scope declares for it."""
+    found = []
+    if read_for_records(path):
+        record_findings(path, text, found)
+    return _found(path, found)
+
+
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
+# @canon-spec specs/methodology/modeling-constructs.md § Fields
+# @canon-spec specs/methodology/modeling-constructs.md § Fields § A Nested Construct
+def field_place_findings(path, text, scope):
+    """Each field of a file read for records carries a key a form declares, where that form places it, by the types
+    the scope declares."""
+    found = []
+    if read_for_records(path):
+        field_findings(path, text, found)
+    return _found(path, found)
+
+
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Basic Table
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Keyed Construct
+def table_findings(path, text, scope):
+    """Each Basic Table's headers, its fields, its Reference Key and its rows, and the Table Names of a section's
+    tables, by the constructs' keys the scope declares; a mapping onto a standard is held to its own form instead."""
+    found = []
+    header_findings(path, text, found, scope.standards)
+    basic_findings(path, text, found, scope.standards)
+    return [f for f in _found(path, found) if f[0] != MAPPING]
+
+
+# @canon-spec specs/methodology/sourcing-and-citation/external-reference.md § External Reference § A Mapping onto a Standard
+def mapping_table_findings(path, text, scope):
+    """Each table whose first header is a registered standard's Name and which holds a Treatment column is a mapping
+    onto that standard in its one form, opened by its fields."""
+    found = []
+    header_findings(path, text, found, scope.standards)
+    basic_findings(path, text, found, scope.standards)
+    return [f for f in _found(path, found) if f[0] == MAPPING]
+
+
+# The checks of the whole scope: each takes the scope and gives [(rule, path, line, message)].
+
+# @canon-spec specs/methodology/spec-style/markdown.md § Blank Lines
+def blank_line_table_findings(scope):
+    """The canon's Decision Table of blank lines, read as the blank-line check reads it, where the scope holds its
+    file: the module's copy of the table's names held against that file."""
+    return layout.rules(scope.text_of[layout.HOME])[1] if layout.HOME in scope.known else []
+
+
+def construct_findings(scope):
+    """The construct checks' findings, handed on whole: the checks run as the scope is read, each construct's structure,
+    file by file, and the checks reading across files, each a unit of the construct checks' code carrying its own
+    annotation, so this unit carries out no check and cites nothing."""
+    return list(scope.construct_found)
+
+
+# @canon-spec specs/methodology/spec-placement/where-a-file-goes.md § Where a File Goes
+def index_findings(scope):
+    """Every directory of the specifications has an index, naming each file and directory beside it and nothing
+    that is not there."""
+    root, found = scope.root, []
     for d in sorted({root / "specs"} | {p for p in (root / "specs").rglob("*") if p.is_dir()}):
         rel_d = d.relative_to(root).as_posix()
         idx = d / "index.md"
         if not idx.exists():
-            found.append(("spec-placement/where-a-file-goes.md § Where a File Goes", rel_d, 0, "directory has no index.md"))
+            found.append((WHERE_A_FILE_GOES, rel_d, 0, "directory has no index.md"))
             continue
         named = set(re.findall(r'^\|\s*`([^`]+)`', read(idx), re.M))
         present = {c.name + ("/" if c.is_dir() else "") for c in d.iterdir()
                    if c.name != "index.md" and (c.is_dir() or c.suffix == ".md")}
-        for missing in sorted(present - named):
-            found.append(("spec-placement/where-a-file-goes.md § Where a File Goes", rel_d + "/index.md", 0, f"no row names {missing}"))
-        for extra in sorted(named - present):
-            found.append(("spec-placement/where-a-file-goes.md § Where a File Goes", rel_d + "/index.md", 0, f"a row names {extra}, which is not here"))
-
-    found += canon_spec_findings(root)
-    found += script_check_carried_out_findings(root)
-    found += form_template_findings(root)
-    found += mapping_rule_findings(root)
-    found += example_pointer_findings(root)
-    found += scope_findings(root)
-    found += sub_scope_findings(root)
-    found += voice_table_findings(root)
-    found += [(LINK_RULE, path, line, problem) for path, line, problem in citation_links.problems(root)]
-    found += glossary_findings(root)
-    found += abbreviation_findings(root)
-    found += coverage_findings(root)
-    found += ignored_findings(root)
-    found += reviewer_findings(root)
-    found += image_findings(root)
+        found += [(WHERE_A_FILE_GOES, rel_d + "/index.md", 0, f"no row names {n}") for n in sorted(present - named)]
+        found += [(WHERE_A_FILE_GOES, rel_d + "/index.md", 0, f"a row names {n}, which is not here") for n in sorted(named - present)]
     return found
 
 
+# @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § A Citation's Link
+def citation_link_findings(scope):
+    """Every citation where the canon has one written as a link is a link reaching what it resolves to, and none
+    is one where the canon has none."""
+    return [(LINK_RULE, path, line, problem) for path, line, problem in citation_links.problems(scope)]
+
+
 # @canon-spec specs/methodology/skills/setting-up-an-agent.md § Setting Up an Agent
-# specs/methodology/skills/setting-up-an-agent.md § Setting Up an Agent names the reviewers an agent writes to set
-# itself up, and specs/methodology/scope/agent-agnostic.md § Agent Agnostic keeps what it writes out of git.
+# the reviewers an agent writes to set itself up, which the project keeps out of git
 REVIEWERS = ("review-light", "review-medium", "review-high")
 AGNOSTIC_RULE = "scope/agent-agnostic.md § Agent Agnostic"
 
 
-def reviewer_findings(root):
+# @canon-spec specs/methodology/scope/agent-agnostic.md § Agent Agnostic
+# @canon-spec specs/methodology/skills/setting-up-an-agent.md § Setting Up an Agent
+def reviewer_findings(scope):
     """No reviewer an agent wrote to set itself up is tracked, read from the tracked set. A project
     that is not a git repository, or a machine without git, tracks nothing to check."""
+    root = scope.root
     return [(AGNOSTIC_RULE, p, 0, "a reviewer definition an agent wrote to set itself up is tracked")
             for p in sorted(tracked(root) or ()) if any(c.split(".")[0] in REVIEWERS for c in PurePosixPath(p).parts)]
 
 
-def image_findings(root):
+# @canon-spec specs/methodology/modeling-constructs.md § Diagrams
+def image_findings(path, text):
     """No spec embeds an image: a diagram is checked in as source."""
-    found = []
-    for f in md_files(root):
-        rel = f.relative_to(root).as_posix()
-        if not rel.startswith("specs/"):
-            continue
-        for n, line in enumerate(strip_fences(read(f)).split("\n"), 1):
-            if IMAGE.search(constructs.CODE_SPAN.sub("", line)):
-                found.append((DIAGRAMS_RULE, rel, n, "embeds an image rather than a diagram's source"))
-    return found
+    if not path.startswith("specs/"):
+        return []
+    return [(DIAGRAMS_RULE, n, "embeds an image rather than a diagram's source")
+            for n, line in enumerate(strip_fences(text).split("\n"), 1) if IMAGE.search(constructs.CODE_SPAN.sub("", line))]
+
+
+def in_place(root, path):
+    """-> where a table of the project's data a check reads stands: in the scope it checks, and nowhere else, so a
+    scope holding no such table has its check report the table missing, never read the checkout's in its place."""
+    return root / path
 
 
 def level2_section(text, title):
     """-> the body of the level-2 section titled `title`, from the end of its heading's line to the next level-2
-    heading, the headings as the one reading gives them (reading.py), or None."""
+    heading, the headings as the one reading gives them, or None."""
     lines = text.split("\n")
     twos = [h for h in reading.headings(text) if h.level == 2]
     for n, h in enumerate(twos):
@@ -1004,7 +1147,7 @@ def first_table(text, title, column=None):
 
 
 def workflow_citations(root):
-    """-> {(path, section)} each registered skill's steps cite, under ## Workflow in its SKILL.md
+    """-> {(path, section)} each registered skill's steps cite, under ## Workflow in the skill's own file
     and in each of its references, from the first step on: a Workflow's opening paragraph is
     not a step."""
     cited = set()
@@ -1020,16 +1163,18 @@ def workflow_citations(root):
     return cited
 
 
-def coverage_findings(root):
-    """Every section of specs/AGENTS.md and of the methodology's files, its overview aside, is
+# @canon-spec specs/methodology/scope/rules-and-skills.md § Rules and Skills
+def coverage_findings(scope):
+    """Every section of the specs' entry point and of the methodology's files, its overview aside, is
     named, itself or through a section it sits under, in the column naming the sections in the audit
     skill's coverage table, or in the Sections of a Skipped Step record beside the
-    record type's declaration, or, for a section of code.md, in the verify skill's table of checks;
+    record type's declaration, or, for a section of the canon's rules for code, in the verify skill's table of checks;
     or is named by a record section of checks standing directly under it, which names no section under
     that one; and each section stating operating rules is cited, itself or through a section it
     sits under, by a step of a registered skill's Workflow, which is where its step is found. A record
     section of checks holds records and no rule, so none is reported."""
-    sk = root / AUDIT_SKILL
+    root = scope.root
+    sk = in_place(root, AUDIT_SKILL)
     if not sk.exists():
         return [(COVERAGE_RULE, AUDIT_SKILL, 0, "the audit skill is missing, so no rule's check is named")]
     text, named, operating, found = read(sk), set(), set(), []
@@ -1044,8 +1189,8 @@ def coverage_findings(root):
                 path, _, target = m.group(1).partition(" § ")
                 if target:
                     named.add((path.strip(), target.strip()))
-    # scope/rules-and-skills.md § Rules and Skills § Skipped Step: each section a Skipped Step's Sections names states operating rules
-    ledger = read(root / LEDGER) if (root / LEDGER).exists() else ""
+    # each section a Skipped Step's Sections names states operating rules
+    ledger = read(in_place(root, LEDGER)) if in_place(root, LEDGER).exists() else ""
     held = [lin for lin in sections(ledger) if lin == SKIPPED_STEPS_AT
             and (type_of(lin.split(" § ")[-1], LEDGER) or {}).get("home") == SKIPPED_STEP_HOME]
     if not held:
@@ -1058,9 +1203,11 @@ def coverage_findings(root):
                     if target:
                         named.add((path.strip(), target.strip()))
                         operating.add((path.strip(), target.strip()))
-    # specs/methodology/scope/rules-and-skills.md § Rules and Skills: a section of code.md is named by the check on code
-    checks = root / CODE_CHECKS
+    # a section of the canon's rules for code is named by the check on code
+    checks = in_place(root, CODE_CHECKS)
     table = first_table(read(checks), "The checks", "Enforces") if checks.exists() else None
+    if table is None:
+        found.append((COVERAGE_RULE, CODE_CHECKS, 0, "no table of the code's checks, so no rule for code is named"))
     for row in table[1] if table else []:
         k = table[0].index("Enforces")
         for m in CITATION.finditer(row[k] if k < len(row) else ""):
@@ -1069,16 +1216,16 @@ def coverage_findings(root):
                 named.add((path.strip(), target.strip()))
     cited = workflow_citations(root)
     for path, target in sorted(operating):
-        if not any(p == path and (s == target or target.startswith(s + " § ")) for p, s in cited):
+        if path in scope.known and not any(p == path and (s == target or target.startswith(s + " § ")) for p, s in cited):
             found.append((COVERAGE_RULE, AUDIT_SKILL, 0,
                           f"no registered skill's Workflow step cites the section stating operating rules {path} § {target}"))
     for f in [root / SPECS_AGENTS, root / SPECS_MAIN] + methodology_files(root):
         rel = f.relative_to(root).as_posix()
-        # scope/rules-and-skills.md § Rules and Skills: no form template takes a check, told by its name
+        # no form template takes a check, told by its name
         if not f.exists() or f.relative_to(root).as_posix() == "specs/methodology/architecture.md" or is_form_template(f.name):
             continue
         lins = sections(read(f))
-        # checks.md § Check: a check's records stand under the section stating the rule it enforces
+        # a check's records stand under the section stating the rule it enforces
         records = {lin for lin in lins if (type_of(lin.split(" § ")[-1], rel) or {}).get("home") in CHECK_HOMES}
         for lin in lins:
             parts = lin.split(" § ")
@@ -1089,11 +1236,13 @@ def coverage_findings(root):
     return found
 
 
-def ignored_findings(root):
+# @canon-spec specs/methodology/working-files/main.md § The Working Files
+def ignored_findings(scope):
     """Each working file the working-files table names is ignored by a line of .gitignore
     naming it or a directory holding it, and un-ignored by none. A line ending in a slash
     names a directory only, as git reads it."""
-    wf = root / WORKING_FILES
+    root = scope.root
+    wf = in_place(root, WORKING_FILES)
     table = first_table(read(wf), "The Working Files") if wf.exists() else None
     if table is None:
         return [(WORKING_FILES_RULE, WORKING_FILES, 0, "no table of working files to check")]
@@ -1127,10 +1276,9 @@ CLEAR_PROSE_FILE = STYLE_RULE_DIR + "clear-prose.md"
 
 
 def style_phrases(root):
-    """-> a pattern of the phrases the Example column of
-    spec-style/what-a-finished-spec-reads-like.md § What a Finished Spec Reads Like's table quotes, the one list of
-    them, or None where it cannot be read."""
-    f = root / FINISHED_STYLE_FILE
+    """-> a pattern of the phrases the Example column of the finished style's table quotes, the one list of them, or
+    None where it cannot be read."""
+    f = in_place(root, FINISHED_STYLE_FILE)
     table = first_table(read(f), "What a Finished Spec Reads Like", "Example") if f.exists() else None
     if table is None:
         return None
@@ -1141,14 +1289,13 @@ def style_phrases(root):
 
 
 # A sentence long enough, and chained enough, that it may need a second read: a candidate for
-# the reading of specs/methodology/spec-style/clear-prose.md § Clear Prose, never a finding.
+# the reading of Clear Prose, never a finding.
 LONG_SENTENCE_WORDS, LONG_SENTENCE_MARKS = 40, 6
 SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+(?=[A-Z*`(\"])")
 
 
 # A path into the application specs, which in the canon may be an example drawn from inside the
-# house: a candidate for the reading of specs/methodology/spec-style/clear-prose.md § Clear Prose, never a
-# finding. The files every project's application specs hold, by the methodology's own rules,
+# house: a candidate for the reading of Clear Prose, never a finding. The files every project's application specs hold, by the methodology's own rules,
 # and paths written as examples, are no candidates.
 APPLICATION_PATH = re.compile(r"specs/application/[\w./-]+\.md")
 # @canon-spec specs/methodology/spec-placement/environments.md § Environments
@@ -1203,16 +1350,16 @@ def long_sentences(text):
             yield n, s
 
 
-# The words and the constructions specs/methodology/spec-style/clear-prose.md § Clear Prose has a reader test:
-# candidates for its reading, never findings, since a word or a construction stays wherever it is
-# natural and adds real value to its sentence. The words are an editorial list, read from the
-# section's tables at run time, as specs/methodology/skills/authoring-a-skill.md § Authoring a Skill has such a list read.
+# The words and the constructions Clear Prose has a reader test: candidates for its reading, never
+# findings, since a word or a construction stays wherever it is natural and adds real value to its
+# sentence. The words are an editorial list, read from the section's tables at run time, as the canon
+# has such a list read.
 QUOTED = re.compile(r'"[^"\n]*"')
 # The tables' names are a copy, since a table renamed would leave its words unread; --check-scope
 # reports a name the section no longer holds.
 # @canon-spec specs/methodology/spec-style/clear-prose.md § Clear Prose
 VOICE_TABLES = ("Emphasis Words", "Generic Terms")
-# The script's own search terms for the constructions § Clear Prose names, no copy of a list the canon
+# The script's own search terms for the constructions Clear Prose names, no copy of a list the canon
 # holds: a construction they miss is the reading audit's to find.
 SENTENCE_PATTERNS = (
     ("a comma that may splice two statements", re.compile(r",\s+(?:it is|there is|this is)\b", re.I)),
@@ -1234,21 +1381,25 @@ RHYTHM_SENTENCES, RHYTHM_MEAN, RHYTHM_SHORT = 3, 30, 15
 
 
 def clear_prose(root):
-    """-> the text of spec-style/clear-prose.md § Clear Prose, or "" where it is missing."""
-    f = root / CLEAR_PROSE_FILE
+    """-> the text of the Clear Prose section, or "" where it is missing."""
+    f = in_place(root, CLEAR_PROSE_FILE)
     return (level2_section(read(f), "Clear Prose") or "") if f.exists() else ""
 
 
-def voice_table_findings(root):
-    """-> a finding for each table VOICE_TABLES names that spec-style/clear-prose.md § Clear Prose does not hold."""
+# @canon-spec specs/methodology/spec-style/clear-prose.md § Clear Prose
+def voice_table_findings(scope):
+    """-> a finding for each table VOICE_TABLES names that the Clear Prose section does not hold."""
+    root = scope.root
+    if CLEAR_PROSE_FILE not in scope.known:
+        return []
     held = {m["value"].strip() for l in clear_prose(root).split("\n") for m in [opens_key(l)] if m and m["key"] == "Table Name" and m["value"]}
     return [("spec-style/clear-prose.md § Clear Prose", CLEAR_PROSE_FILE, 0,
              f"no table named {t}, which the script reads its words from") for t in VOICE_TABLES if t not in held]
 
 
 def voice_terms(root):
-    """-> a pattern of the terms the tables VOICE_TABLES name in spec-style/clear-prose.md § Clear Prose, a term
-    matched with a plain ending, or None."""
+    """-> a pattern of the terms the tables VOICE_TABLES name in the Clear Prose section, a term matched with a plain
+    ending, or None."""
     body = clear_prose(root)
     terms, table = [], None
     for line in body.split("\n"):
@@ -1280,14 +1431,14 @@ def term_forms(term):
 
 def voice_files(root):
     """-> the files the Finished style audit reads for Clear Prose: the specs, the documentation and
-    both AGENTS.md files; the skills are Skill form's to read for it."""
+    both files of agent instructions; the skills are Skill form's to read for it."""
     return [f for f in md_files(root) if not f.relative_to(root).as_posix().startswith(".ai/")]
 
 
 def citation_candidates(root):
     """-> (path, line, kind, context) for each sentence carrying more than one citation, and each
     citation inside its clause, in every Markdown file in scope, the skills among them, where
-    `§ Writing a Citation` reaches."""
+    the rule of writing a citation reaches."""
     out = []
     for f in md_files(root):
         rel = f.relative_to(root).as_posix()
@@ -1322,6 +1473,8 @@ def voice_candidates(root):
     semicolons a reader tests, each sentence carrying more than one citation, and each citation inside
     its clause. Places to read, never findings."""
     out, terms = [], voice_terms(root)
+    if terms is None:
+        out.append((CLEAR_PROSE_FILE, 0, "missing table", "no Clear Prose tables of words to read the prose against"))
     for f in voice_files(root):
         rel, text = f.relative_to(root).as_posix(), read(f)
         for n, s, masked in prose_sentences(text):
@@ -1373,6 +1526,8 @@ def style_and_agent_candidates(root):
     """-> list of (path, line, kind, context), for the Finished style and Agent agnostic audits.
     Places to read, never findings."""
     out, style = [], style_phrases(root)
+    if style is None:
+        out.append((FINISHED_STYLE_FILE, 0, "missing table", "no table of a finished spec's phrases to read the specs against"))
     for f in md_files(root) if style else []:
         rel = f.relative_to(root).as_posix()
         if not rel.startswith("specs/") or rel == SPECS_AGENTS or rel.startswith(STYLE_RULE_DIR):
@@ -1438,10 +1593,12 @@ def glossary_terms(root):
     return header, rows
 
 
-def glossary_findings(root):
+# @canon-spec specs/methodology/glossary/writing-an-entry.md § Writing an Entry
+def glossary_findings(scope):
     """The glossary cites nothing and holds one table of bare terms, unique and sorted, each with
     its abbreviation in its own column and its definition ending with its other full names in the
     fixed form, none shared or equal to a term."""
+    root = scope.root
     got = glossary_terms(root)
     if got is None:
         return [(GLOSSARY_RULE, GLOSSARY, 0, "the glossary is missing")]
@@ -1480,11 +1637,12 @@ def glossary_findings(root):
     return found
 
 
-def abbreviation_findings(root):
-    """glossary/using-an-abbreviation.md § Using an Abbreviation: an abbreviation inside the house, in the glossary's
-    Abbreviation column or recorded in the application specs as "(abbreviated X)", is used in no
-    specification, AGENTS.md file or skill, its scripts among it, but where it is recorded, and is
+# @canon-spec specs/methodology/glossary/using-an-abbreviation.md § Using an Abbreviation
+def abbreviation_findings(scope):
+    """An abbreviation inside the house, in the glossary's Abbreviation column or recorded in the application specs
+    as "(abbreviated X)", is used in no specification, file of agent instructions or skill, its scripts among it, but where it is recorded, and is
     recorded once; the term is spelled out everywhere else, and the short form is for people."""
+    root = scope.root
     got = glossary_terms(root)
     names = [abbreviation for _, _, abbreviation, _, _, _, _ in got[1] if abbreviation] if got else []
     found = []
@@ -1568,8 +1726,8 @@ def glossary_candidates(root):
     return out
 
 
-# sourcing-and-citation/writing-a-citation.md § Writing a Citation § Citing From Code: a comment line naming the tag, and the
-# form it takes in a script, a comment of its own holding the tag, a space and a citation
+# the rule of citing from code: a comment line naming the tag, and the form it takes in a script, a comment of its
+# own holding the tag, a space and a citation
 CITING_FROM_CODE = "sourcing-and-citation/writing-a-citation.md § Writing a Citation § Citing From Code"
 # @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § Citing From Code
 CANON_SPEC_TAG = "@canon-spec"
@@ -1595,10 +1753,34 @@ def canon_spec_annotations(root):
     return out
 
 
-def canon_spec_findings(root):
+# @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § Citing From Code § Script Checks [Name: canon-named-only-in-an-annotation]
+def canon_named_findings(scope):
+    """Each line of a registered skill's Python scripts, or of the code the skills share, naming the canon in a comment
+    or a docstring outside a spec annotation, by the one unit making the check."""
+    root = scope.root
+    import code_checks
+    import spec_text
+    canon, out = spec_text.canon_files(root), []
+    for name in skill_dirs(root):
+        for f in sorted((root / ".ai/skills" / name).rglob("*.py")):
+            if "__pycache__" in f.parts:
+                continue
+            rel = f.relative_to(root).as_posix()
+            out += [(CANON_NAMED, rel, n, "names the canon outside a spec annotation: " + line.strip())
+                    for n, line in code_checks.canon_named_outside_an_annotation(rel, read(f), canon)]
+    return out
+
+
+CANON_NAMED = CITING_FROM_CODE + " § Script Checks [Name: canon-named-only-in-an-annotation]"
+
+
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill
+# @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § Citing From Code
+def canon_spec_findings(scope):
     """Each canon-spec annotation in a registered skill's scripts or the code the skills share: in its
-    form, citing `specs/AGENTS.md` or a methodology file, or a section of one, that exists, a part it cites
+    form, citing the specs' entry point or a methodology file, or a section of one, that exists, a part it cites
     being a check's record, matching one record, and each run of them on consecutive lines sorted in plain character order."""
+    root = scope.root
     out, run = [], []
     annotations = canon_spec_annotations(root)
     for k, (_, rel, i, line) in enumerate(annotations):
@@ -1619,11 +1801,11 @@ def canon_spec_findings(root):
             elif lineage and lineage not in sections(read(target)):
                 out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation naming no heading: " + cite))
             elif sel is not None:
-                # sourcing-and-citation/which-citations-are-allowed.md § Which Citations Are Allowed: of the records, a check's alone
+                # of the records, a check's alone
                 if (type_of(lineage.split(" § ")[-1], path) or {}).get("home") not in CHECK_HOMES:
                     out.append((CITING_FROM_CODE, rel, i, "a canon-spec annotation citing a part of a section that is no check's record: " + cite))
                 else:
-                    # skills/authoring-a-skill.md § Authoring a Skill: a unit carrying out a check cites the check's record
+                    # a unit carrying out a check cites the check's record
                     record_citation(sel, path, lineage, {path: read(target)}, rel, i, out)
         # a run ends where the next annotation is not on the next line of the same script
         following = annotations[k + 1] if k + 1 < len(annotations) else None
@@ -1634,16 +1816,16 @@ def canon_spec_findings(root):
     return out
 
 
-# checks.md § Script Check: the home of the type whose records are a skill's script checks
+# the home of the type whose records are a skill's script checks
 SCRIPT_CHECK_HOME = "specs/methodology/checks.md § Script Check"
-# checks.md § Check: the homes of the two types a check's record takes
+# @canon-spec specs/methodology/checks.md § Check
+# the homes of the two types a check's record takes
 CHECK_HOMES = (SCRIPT_CHECK_HOME, "specs/methodology/checks.md § Semantic Check")
-# skills/authoring-a-skill.md § Authoring a Skill: the record of the check this script carries out over the Script Check records
+# the record of the check this script carries out over the Script Check records
 SCRIPT_CHECK_CARRIED_OUT = "skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: script-check-carried-out]"
 
 
-# scope/form-templates.md § Form Templates: the record of the check holding a form template in the core canon to its form; a
-# placeholder, a token in braces; a field a template lays out, its key and its placeholder; a citation a placeholder
+# the record of the check holding a form template in the core canon to its form; a placeholder, a token in braces; a field a template lays out, its key and its placeholder; a citation a placeholder
 # holds, its file and its section; and a heading
 FORM_TEMPLATE_RULE = "scope/form-templates.md § Form Templates § Script Checks [Name: form-template-in-its-form]"
 PLACEHOLDER = re.compile(r"\{[^{}]*\}")
@@ -1677,12 +1859,13 @@ def _form_parts(root, path, lineage):
 
 
 # @canon-spec specs/methodology/scope/form-templates.md § Form Templates § Script Checks [Name: form-template-in-its-form]
-def form_template_findings(root):
-    """scope/form-templates.md § Form Templates: each form template in the core canon, a file under specs/ whose name ends
+def form_template_findings(scope):
+    """Each form template in the core canon, a file under specs/ whose name ends
     `-form-template`, cites a section in its first placeholder; each heading it lays out, outside a fence, is a part's
     heading that section's table of parts gives, in the table's order; and each field it lays out with a placeholder
     citing a record type's section is a field that type declares, in the type's order, a record's first field opening
     the next record."""
+    root = scope.root
     homes = {spec["home"]: spec for spec in TYPES.values()}
     out = []
     for f in md_files(root):
@@ -1730,10 +1913,11 @@ def form_template_findings(root):
 
 
 # @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: script-check-carried-out]
-def script_check_carried_out_findings(root):
+def script_check_carried_out_findings(scope):
     """Each Script Check record standing in the specs, a record in a fenced block aside, cited by a canon-spec
     annotation in the scripts of a skill its Carried Out By names, or in the code the skills share. A kept test's
     annotation says the test holds the check, and never counts as a unit's that carries it out."""
+    root = scope.root
     cited = {}
     for name, _, _, line in canon_spec_annotations(root):
         m = CANON_SPEC_FORM.match(line)
@@ -1763,9 +1947,13 @@ def script_check_carried_out_findings(root):
 SUB_SCOPES_HOME = "specs/methodology/design-workflow/designs-reviews.md"
 
 
-def sub_scope_findings(root):
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill
+def sub_scope_findings(scope):
     """The sub-scope names the skills' shared code copies, against the Sub-scopes table they are copied from."""
+    root = scope.root
     from design_documents import SUB_SCOPES
+    if SUB_SCOPES_HOME not in scope.known:
+        return []
     text = read(root / SUB_SCOPES_HOME)
     table = re.search(r'^\*\*Table Name:\*\* Sub-scopes \\\n(?:[^\n]+\n)*\n\|[^\n]*\n\|[-| ]+\|\n((?:\|[^\n]*\n)+)', text, re.M)
     if not table:
@@ -1776,14 +1964,23 @@ def sub_scope_findings(root):
     return []
 
 
-def scope_findings(root):
-    """The scope, the skills registry, and each registered skill's form."""
+# @canon-spec specs/methodology/skills/registered-skills.md § Registered Skills
+def registry_findings(scope):
+    """The skills registry: it names each skill it registers, and each registered skill has its skill file; a missing
+    or empty registry is a finding, never an empty scope."""
+    names, found = registry(scope.root)
+    return found + [(REGISTRY_RULE, REGISTRY, 0, f"the registered skill {n} has no SKILL.md")
+                    for n in names if not (scope.root / ".ai/skills" / n / "SKILL.md").exists()]
+
+
+# @canon-spec specs/methodology/scope/what-spec-of-record-governs.md § What Spec of Record Governs
+def scope_findings(scope):
+    """The scope's kinds are the ones the script reads, and each home its table names exists."""
+    root = scope.root
     found = []
-    names, problems = registry(root)
-    found += problems
     scope = root / SCOPE_TREE
     if not scope.exists():
-        return found + [(SCOPE_HOME, SCOPE_TREE, 0, "the scope file is missing")]
+        return found
     text = read(scope)
     rows = re.findall(r'^\|\s*([A-Z][^|]*?)\s*\|[^|]*\|([^|]*)\|', level2_section(text, "What Spec of Record Governs") or "", re.M)
     rows = [(k, named) for k, named in rows if k != "Kind"]
@@ -1795,13 +1992,23 @@ def scope_findings(root):
             path = home.split(" § ")[0].strip()
             if path.endswith((".md", "/")) and not (root / path.rstrip("/")).exists():
                 found.append((SCOPE_HOME, SCOPE_TREE, 0, f"the {kind} row names {path}, which does not exist"))
-    # the tree names exactly the methodology's files and folders, each folder alone, and every path it names exists
+    return found
+
+
+# @canon-spec specs/methodology/scope/what-spec-of-record-governs.md § The Shape of the Scope
+def scope_tree_findings(scope):
+    """The scope's tree names exactly the methodology's files and folders, each folder alone, and every path it names
+    exists."""
+    root = scope.root
+    if not (root / SCOPE_TREE).exists():
+        return []
+    text = read(root / SCOPE_TREE)
+    found = []
     shape = reading.sections(text).get(("The Shape of the Scope",))
     tree = next((b.content + "\n" for b in reading.blocks(text) if shape and shape.line < b.opens and b.closed and not b.info), None)
     rule = "scope/what-spec-of-record-governs.md § The Shape of the Scope"
     if tree is None:
-        found.append((rule, SCOPE_TREE, 0, "the scope's tree is missing"))
-        return found + skill_findings(root, names)
+        return [(rule, SCOPE_TREE, 0, "the scope's tree is missing")]
     stack, listed = [], set()
     for line in tree.split("\n"):
         m = re.match(r'^([│ ├└─]*)(\S+)', line)
@@ -1821,25 +2028,25 @@ def scope_findings(root):
         elif inner:
             found.append((rule, SCOPE_TREE, 0, f"the tree draws {full}, inside a methodology folder its own index.md lists"))
     # the methodology's top level as its index names it, a folder by its name ending `/`, and the index itself, its
-    # main.md among them where it holds one, the tree drawing a main file only where one stands
+    # main file among them where it holds one, the tree drawing a main file only where one stands
     idx = root / "specs/methodology/index.md"
     actual = set(re.findall(r'^\|\s*`([^`]+)`', read(idx), re.M)) | {"index.md"} if idx.is_file() else set()
     for n in sorted(actual - listed):
         found.append((rule, SCOPE_TREE, 0, f"the tree does not name specs/methodology/{n}"))
     for n in sorted(listed - actual):
         found.append((rule, SCOPE_TREE, 0, f"the tree names specs/methodology/{n}, which is not there"))
-    return found + skill_findings(root, names)
+    return found
 
 
-def skill_findings(root, names):
-    """specs/methodology/skills/authoring-a-skill.md § Authoring a Skill, for each registered skill."""
-    found = []
-    for n in names:
+# @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill
+def skill_findings(scope):
+    """Each registered skill's form: its skill file's front matter, its Workflow section, and its entry-point script."""
+    root, found = scope.root, []
+    for n in registry(root)[0]:
         d = root / ".ai/skills" / n
         rel = f".ai/skills/{n}/SKILL.md"
         if not (d / "SKILL.md").exists():
-            found.append((REGISTRY_RULE, REGISTRY, 0, f"the registered skill {n} has no SKILL.md"))
-            continue
+            continue  # registry_findings reports it
         fm = re.match(r'^---\n(.*?)\n---', read((d / "SKILL.md")).replace("\r\n", "\n"), re.S)
         meta = dict(re.findall(r'^(\w+):\s*(.*)$', fm.group(1), re.M)) if fm else {}
         if not fm:
@@ -1901,14 +2108,13 @@ def candidates(root):
         rel = f.relative_to(root).as_posix()
         lines = script_lines(f)
         for k, (n, line) in enumerate(lines):
-            # a count wrapped onto the next line, "three" then "architecture.md files"
+            # a count wrapped onto the next line, "three" then "config.yaml files"
             nxt = " " + lines[k + 1][1].strip() if k + 1 < len(lines) else ""
             scan(rel, n, line + nxt, CANDIDATE + [("numbered comment", NUMBERED_COMMENT)])
     return out
 
 
-# specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § Referring to Other Text: other text pointed at by
-# direction rather than cited. A word placing something in a hierarchy or a layout, one
+# other text pointed at by direction rather than cited. A word placing something in a hierarchy or a layout, one
 # level below a heading, is none of this, so these are places to read, never findings.
 DIRECTION = re.compile(
     r"\b(?:the|each|every|this|these|those|its|in|as|per|by|defined|described|stated|shown|given|listed)\s+"
@@ -1948,19 +2154,18 @@ def direction_candidates(root):
 
 
 def _span_fits(m):
-    """spec-style/markdown.md § Literal Text: a citation's span of one backtick, or of one more than the longest run its text holds."""
+    """Whether a citation's span is of one backtick, or of one more than the longest run its text holds."""
     delim, text = len(m.group(0)) - len(m.group(0).lstrip("`")), m.group(1)
     runs = [len(r) for r in re.findall(r"`+", text)]
     return delim == 1 if not runs else delim == max(runs) + 1
 
 
 def skill_candidates(root):
-    """An unregistered skill whose SKILL.md cites the methodology's rules, which may belong to the
+    """An unregistered skill whose own file cites the methodology's rules, which may belong to the
     methodology or may simply follow Authoring a Skill; and a registered skill's script importing
     from outside the standard library, which the rule allows where the standard library
     cannot serve; and a skill's long sentence of chained clauses, and a path into the application
-    specs in a skill, for the Skill form audit's reading of
-    specs/methodology/spec-style/clear-prose.md § Clear Prose. Places to read, never findings."""
+    specs in a skill, for the Skill form audit's reading of Clear Prose. Places to read, never findings."""
     out, names = [], set(registry(root)[0])
     base = root / ".ai/skills"
     if base.is_dir():
@@ -1971,7 +2176,7 @@ def skill_candidates(root):
     stdlib = set(getattr(sys, "stdlib_module_names", ()))
     if not stdlib:
         out.append(("(this Python)", 0, "imports not checked", "sys.stdlib_module_names needs Python 3.10 or later"))
-    # specs/methodology/skills/authoring-a-skill.md § Authoring a Skill: a skill's script may import its own helpers beside it and the code the skills share
+    # a skill's script may import its own helpers beside it and the code the skills share
     lib = {p.stem for p in (base / "lib").glob("*.py")} if (base / "lib").is_dir() else set()
     for n in sorted(names) + (["lib"] if lib else []):
         for py in sorted((base / n).rglob("*.py")):
@@ -2043,3 +2248,35 @@ def candidate_groups(root):
         ("Candidates for the Construct choice and form audit: places to read, not findings",
          constructs.run_checks(text_of)[2], False),
     ]
+
+
+ONE_FILE_CHECKS = (block_field_findings, literal_text_findings, bold_span_findings, italic_opening_findings,
+                   numbered_findings, working_file_named_findings, loose_section_findings, heading_findings,
+                   scenario_findings, mermaid_flowchart_findings, image_findings)
+ACROSS_FILES_CHECKS = (blank_line_findings, citation_findings, direction_findings, skill_citation_findings,
+                       technical_specs_findings, diagram_form_findings, environments_findings, record_form_findings,
+                       field_place_findings, table_findings, mapping_table_findings)
+SCOPE_CHECKS = (blank_line_table_findings, construct_findings, index_findings, canon_spec_findings,
+                canon_named_findings, script_check_carried_out_findings, form_template_findings, mapping_rule_findings,
+                example_pointer_findings, registry_findings, scope_findings, scope_tree_findings, skill_findings,
+                sub_scope_findings, voice_table_findings, citation_link_findings, glossary_findings,
+                abbreviation_findings, coverage_findings, ignored_findings, reviewer_findings)
+
+
+def check(root, warned=None):
+    """The audit's run over the scope -> [(rule, path, line, message)]: the scope read once from the root, or the
+    scope given, each file handed to each check of one file and each check reading across files, and the scope
+    handed to each check of the whole scope. A warning, what the specs record as a gap of the system, is appended to
+    `warned` where a list is given, and is never a finding."""
+    scope = root if isinstance(root, Scope) else Scope.read_from(root)
+    if warned is not None:
+        warned += scope.warned
+    found = []
+    for path, text in scope.text_of.items():
+        for unit in ONE_FILE_CHECKS:
+            found += [(rule, path, line, message) for rule, line, message in unit(path, text)]
+        for unit in ACROSS_FILES_CHECKS:
+            found += [(rule, path, line, message) for rule, line, message in unit(path, text, scope)]
+    for unit in SCOPE_CHECKS:
+        found += unit(scope)
+    return found

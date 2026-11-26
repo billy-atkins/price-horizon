@@ -3,4 +3,5 @@
 .ai/follow-ups.md
 .ai/skills/lib/__pycache__
 .ai/skills/*/scripts/__pycache__/
+.claude/settings.local.json
 .claude/skills

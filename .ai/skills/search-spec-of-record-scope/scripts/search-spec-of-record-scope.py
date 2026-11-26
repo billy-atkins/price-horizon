@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""search-spec-of-record-scope's entry script: the search in .ai/skills/lib/search.py, over the files of Spec of Record's scope
+"""search-spec-of-record-scope's entry script: the search the skills share, over the files of Spec of Record's scope
 and the code. Its actions are in its usage, printed by a run naming none."""
 
 import sys

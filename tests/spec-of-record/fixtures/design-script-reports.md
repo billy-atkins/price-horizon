@@ -202,40 +202,6 @@
         - none
       ```
 
-  - **Fixture:** review-report-finding-nothing \
-    **Holds:** an adversarial review's report on the design ferry-times-in-the-guide, read at version 1.0.1, holding no finding: one reviewer's Reading of the guide, and a Settlement ended by its own settling, naming no earlier report and no settling read \
-    **Snippet:**
-
-      ```markdown
-      # Check's Report
-
-      **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
-
-      ## Reading
-
-      **Design Version:** 1.0.1 \
-      **Reviewer Readings:**
-        - **Reviewer:** reviewer-1 \
-          **Collecting Reads:**
-            - `docs/guide.md`
-
-          **Earlier Reports:**
-            - none
-
-          **Weighing Reads:**
-            - none
-
-      ## Settlement
-
-      **Ending:** its own settling \
-      **Earlier Reports:**
-        - none
-
-      **Settling Reads:**
-        - none
-      ```
-
   - **Fixture:** audit-report-finding-nothing \
     **Holds:** the report of a specs audit of the design ferry-times-in-the-guide, read at version 1.0.1, holding no finding: its Reads the guide, and a Settlement ended by its own settling, naming no earlier report \
     **Snippet:**
@@ -255,6 +221,54 @@
       ## Settlement
 
       **Ending:** its own settling \
+      **Earlier Reports:**
+        - none
+      ```
+
+  - **Fixture:** audit-report-holding-a-stale-stamp \
+    **Holds:** the report of a specs audit of the design ferry-times-in-the-guide, read at version 1.0.1, holding no finding: its Reads the guide, and a Settlement whose Validated holds a stamp of a hash taken over no text it holds, ended by its own settling, naming no earlier report \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** audit-specs-1
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reads:**
+        - `docs/guide.md`
+
+      ## Settlement
+
+      **Validated:** 2026-01-01T00:00:00Z sha256:0123456789abcdef \
+      **Ending:** its own settling \
+      **Earlier Reports:**
+        - none
+      ```
+
+  - **Fixture:** audit-report-stamped-ending-otherwise \
+    **Holds:** the report of a specs audit of the design ferry-times-in-the-guide, read at version 1.0.1, holding no finding: its Reads the guide, and a Settlement whose Validated holds a stamp, its Ending a coffee break, naming no earlier report \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** audit-specs-1
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reads:**
+        - `docs/guide.md`
+
+      ## Settlement
+
+      **Validated:** 2026-01-01T00:00:00Z sha256:0123456789abcdef \
+      **Ending:** a coffee break \
       **Earlier Reports:**
         - none
       ```

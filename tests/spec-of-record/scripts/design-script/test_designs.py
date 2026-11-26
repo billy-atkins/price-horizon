@@ -1,172 +1,179 @@
 """One design document checked and shown: its form, the headings it cites, its Target against its Kind, the
-validation review and its stamp, and the parts of a design naming a part."""
+validation review and its stamp, and the parts of a design naming a part, each action called in a project of
+fixtures."""
 import pytest
 
-from design_script_set import (AGREED, APPLYING, APPLYING_RESEARCHED, APPROVED, APPROVED_RESEARCHED, DRAFTED, GOAL, NAME, NOT_DRAFTED, OBJECTIVE,
-    OUTCOME, Project, SKILLS, a_design, part, passes, reports, researched, shown, swap)
+from design_script_set import DESIGN, NAME, REPORTS, acted, design_documents as dd, held, project
 
-pytestmark = [pytest.mark.reads("design-script-ferry.md", "island-guide", "ferry-design")]
+pytestmark = [pytest.mark.reads("design-script-ferry.md", "island-guide"),
+              pytest.mark.reads("design-script-designs.md", "ferry-design-not-started", "ferry-design-drafted", "ferry-design-agreed-undrafted",
+                                "ferry-design-approved", "ferry-design-approved-researched", "ferry-design-applying-edited-since-its-stamp",
+                                "ferry-design-holding-a-field-out-of-its-form", "ferry-design-citing-a-heading-standing-nowhere",
+                                "ferry-design-targeting-a-canon-file", "ferry-design-targeting-a-working-file", "code-design-drafted"),
+              pytest.mark.reads("design-script-reports.md", "ferry-research-report"),
+              pytest.mark.reads("audit-whole-project.md", "project-registry-of-one-skill")]
+GOAL, OUTCOME = "guide-says-when-the-ferry-runs", "crossing-planned-from-the-guide"
+RESEARCH = REPORTS + "/handed-off-judgment/1.md"
+REGISTRY = "specs/methodology/skills/registered-skills.md"
+
+
+def a_design(work, fixtures, key, at=DESIGN, **more):
+    """-> the root of a project holding the guide and the design of the fixture given, at its place in the plans
+    folder or at the place given, with the further fixtures given at their paths."""
+    return project(work, fixtures, {"island-guide": "docs/guide.md", key: at, **more})
 
 
 @pytest.mark.action("--check-design-form")
 @pytest.mark.passes
-def test_form_passes_a_design_in_its_form(check):
-    p = Project("form")
-    for status, log in (("not-started", ()), ("in-progress", AGREED), ("in-progress", DRAFTED), ("approved", APPROVED), ("applying", APPLYING)):
-        got = p.run("--check-design-form", p.design(status=status, log=log))
-        check("--check-design-form passes a design made for the tests, %s with %d log entries" % (status, len(log)),
-              passes(got, "== check-design-form " + NAME, "0 problems"), shown(got))
+@pytest.mark.parametrize("key", ["ferry-design-not-started", "ferry-design-agreed-undrafted", "ferry-design-drafted", "ferry-design-approved",
+                                 "ferry-design-applying-edited-since-its-stamp"])
+def test_form_passes_a_design_in_its_form(fixtures, work, monkeypatch, capsys, key):
+    assert acted(monkeypatch, a_design(work, fixtures, key), dd.check_design_form, DESIGN) == 0
+    assert "== check-design-form %s\n0 problems" % NAME in capsys.readouterr().out
 
 
 @pytest.mark.action("--check-design-form")
 @pytest.mark.reports
-def test_form_reports_a_field_out_of_the_form(check):
-    p = Project("form-field")
-    got = p.run("--check-design-form", p.design(text=a_design().replace("**Spawned By:** none \\\n", "**Spawned By:** none \\\n**Reviewed By:** nobody \\\n")))
-    check("--check-design-form reports a header holding a field its form does not take, naming the field",
-          reports(got, "== check-design-form " + NAME, ["its header", "Reviewed By"]), shown(got))
+def test_form_reports_a_field_out_of_the_form(fixtures, work, monkeypatch, capsys):
+    assert acted(monkeypatch, a_design(work, fixtures, "ferry-design-holding-a-field-out-of-its-form"), dd.check_design_form, DESIGN) == 1
+    out = capsys.readouterr().out
+    assert "its header" in out and "Reviewed By" in out
 
 
 @pytest.mark.action("--check-cited-headings")
 @pytest.mark.passes
-def test_cited_heading_that_stands_passes(check):
-    for skill in SKILLS:
-        p = Project("cited")
-        got = p.run("--check-cited-headings", p.design(skill=skill, log=DRAFTED), skill=skill)
-        check("--check-cited-headings of %s passes a design whose every cited heading stands" % skill,
-              passes(got, "== check-cited-headings", "1 citation, 0 broken"), shown(got))
+def test_cited_heading_that_stands_passes(fixtures, work, monkeypatch, capsys):
+    assert acted(monkeypatch, a_design(work, fixtures, "ferry-design-drafted"), dd.check_cited_headings, DESIGN) == 0
+    assert "1 citation, 0 broken" in capsys.readouterr().out
+
+
+@pytest.mark.action("--check-cited-headings")
+@pytest.mark.reports
+def test_cited_heading_that_does_not_stand_is_reported(fixtures, work, monkeypatch, capsys):
+    assert acted(monkeypatch, a_design(work, fixtures, "ferry-design-citing-a-heading-standing-nowhere"), dd.check_cited_headings, DESIGN) == 1
+    out = capsys.readouterr().out
+    assert "BROKEN" in out and "§ The Harbor" in out and "no such heading" in out and "1 broken" in out
 
 
 @pytest.mark.action("--check-cited-headings")
 @pytest.mark.reports
 @pytest.mark.reads("design-script-pages.md", "notes-citing-nothing")
-def test_cited_heading_that_does_not_stand_is_reported(check, fixtures):
-    for skill in SKILLS:
-        p = Project("cited-broken")
-        text = swap(a_design(skill=skill, log=DRAFTED), "and `docs/guide.md § The Ferry` names", "and `docs/guide.md § The Harbour` names")
-        got = p.run("--check-cited-headings", p.design(skill=skill, text=text), skill=skill)
-        check("--check-cited-headings of %s reports a cited heading its file does not hold, as broken" % skill,
-              reports(got, "== check-cited-headings", ["BROKEN", "§ The Harbour", "no such heading", "1 broken"]), shown(got))
-    p = Project("cited-none")
-    got = p.run("--check-cited-headings", p.put("notes.md", fixtures["notes-citing-nothing"]))
-    check("--check-cited-headings of a proposal citing nothing says so and exits 2", got[0] == 2 and "no cross-file citations found" in got[1], shown(got))
+def test_proposal_citing_nothing_is_refused(fixtures, work, monkeypatch, capsys):
+    root = project(work, fixtures, {"notes-citing-nothing": "notes.md"})
+    assert acted(monkeypatch, root, dd.check_cited_headings, "notes.md") == 2
+    assert "no cross-file citations found" in capsys.readouterr().err
 
 
 @pytest.mark.action("--check-target-kind")
 @pytest.mark.passes
-def test_target_of_the_designs_kind_passes(check):
-    p = Project("kind")
-    got = p.run("--check-target-kind", p.design(log=DRAFTED))
-    check("--check-target-kind passes a documentation design whose Target names the guide", passes(got, "== check-target-kind " + NAME, "0 problems"), shown(got))
-    got = p.run("--check-target-kind", p.design("code-design", skill="implement-specs", log=DRAFTED), skill="implement-specs")
-    check("--check-target-kind of implement-specs passes a code design whose Target names a file of no other kind",
-          passes(got, "== check-target-kind code-design", "0 problems"), shown(got))
+@pytest.mark.parametrize("key, at, plans", [
+    ("ferry-design-drafted", DESIGN, None),
+    ("code-design-drafted", ".ai/plans/implement-specs/code-design.md", ".ai/plans/implement-specs"),
+])
+def test_target_of_the_designs_kind_passes(fixtures, work, monkeypatch, capsys, key, at, plans):
+    root = a_design(work, fixtures, key, at, **{"project-registry-of-one-skill": REGISTRY})
+    assert acted(monkeypatch, root, dd.check_target_kind, at, plans) == 0
+    assert "0 problems" in capsys.readouterr().out
 
 
 @pytest.mark.action("--check-target-kind")
 @pytest.mark.reports
-def test_target_of_another_kind_is_reported(check):
-    p = Project("kind-strays")
-    got = p.run("--check-target-kind", p.design(log=DRAFTED, Target="`docs/guide.md`; `specs/methodology/code.md`"))
-    check("--check-target-kind reports a canon file in a documentation design's Target",
-          reports(got, "== check-target-kind " + NAME, "Target names a canon-specs file in a documentation design: specs/methodology/code.md"), shown(got))
-    got = p.run("--check-target-kind", p.design(log=DRAFTED, Target="`.ai/follow-ups.md`"))
-    check("--check-target-kind reports a working file in a Target",
-          reports(got, "== check-target-kind " + NAME, "Target names a working file, which no design changes: .ai/follow-ups.md"), shown(got))
+@pytest.mark.parametrize("key, message", [
+    ("ferry-design-targeting-a-canon-file", "Target names a canon-specs file in a documentation design: specs/methodology/code.md"),
+    ("ferry-design-targeting-a-working-file", "Target names a working file, which no design changes: .ai/follow-ups.md"),
+])
+def test_target_of_another_kind_is_reported(fixtures, work, monkeypatch, capsys, key, message):
+    root = a_design(work, fixtures, key, **{"project-registry-of-one-skill": REGISTRY})
+    assert acted(monkeypatch, root, dd.check_target_kind, DESIGN) == 1
+    assert message in capsys.readouterr().out
 
 
 @pytest.mark.action("--check-design")
 @pytest.mark.passes
-@pytest.mark.reads("design-script-reports.md", "ferry-research-report")
-def test_approved_design_with_its_research_passes(check):
-    for skill in SKILLS:
-        p = Project("validation")
-        got = p.run("--check-design", researched(p, skill=skill, status="approved", log=APPROVED_RESEARCHED), skill=skill)
-        check("--check-design of %s passes an approved design in its form, each Assessed Area resting on the research its log names" % skill,
-              passes(got, "== check-design " + NAME, "0 problems"), shown(got))
+def test_approved_design_with_its_research_passes(fixtures, work, monkeypatch, capsys):
+    root = a_design(work, fixtures, "ferry-design-approved-researched", **{"ferry-research-report": RESEARCH})
+    assert acted(monkeypatch, root, dd.check_design, DESIGN) == 0
+    assert "== check-design %s\n0 problems" % NAME in capsys.readouterr().out
 
 
 @pytest.mark.action("--check-design")
 @pytest.mark.reports
-def test_design_not_yet_stated_is_reported(check):
-    p = Project("validation-reports")
-    got = p.run("--check-design", p.design(status="not-started"))
-    check("--check-design reports the goals, the frame and the steps a design has yet to state",
-          reports(got, "== check-design " + NAME, ["its design goals are not yet stated", "its design frame's Scope is not yet stated", "its steps are not yet drafted"]), shown(got))
-    got = p.run("--check-design", p.design(status="approved", log=APPROVED_RESEARCHED))
-    check("--check-design reports an Assessed Area resting on a report that does not stand in the design's folder",
-          reports(got, "== check-design " + NAME, "has no Read Assessment of its Area in the reports the validation review reads"), shown(got))
+@pytest.mark.parametrize("key, messages", [
+    ("ferry-design-not-started", ["its design goals are not yet stated", "its design frame's Scope is not yet stated", "its steps are not yet drafted"]),
+    ("ferry-design-approved-researched", ["has no Read Assessment of its Area in the reports the validation review reads"]),
+])
+def test_design_short_of_its_validation_is_reported(fixtures, work, monkeypatch, capsys, key, messages):
+    assert acted(monkeypatch, a_design(work, fixtures, key), dd.check_design, DESIGN) == 1
+    out = capsys.readouterr().out
+    assert all(m in out for m in messages)
 
 
 @pytest.mark.action("--show-dependents")
 @pytest.mark.passes
-def test_dependents_of_a_part_are_listed(check):
-    p = Project("dependents")
-    design = p.design(log=DRAFTED)
-    got = p.run("--show-dependents", design, GOAL)
-    check("--show-dependents lists each part of the design naming a goal: its case, its principle, its Frame Outcome and its step Objective",
-          passes(got, "== show-dependents %s %s (goal %s)" % (NAME, GOAL, GOAL), "4 parts name or cite " + GOAL)
-          and all(w in got[1] for w in ("case visitor-planning-a-crossing", "principle times-stated-where-the-ferry-is-named", "frame outcome " + OUTCOME, OBJECTIVE)), shown(got))
-    got = p.run("--show-dependents", design, OUTCOME)
-    check("--show-dependents lists the one step Objective upholding a Frame Outcome", passes(got, "== show-dependents", "1 part names or cites " + OUTCOME), shown(got))
+@pytest.mark.parametrize("name, parts, said", [
+    (GOAL, ["case visitor-planning-a-crossing", "principle times-stated-where-the-ferry-is-named", "frame outcome " + OUTCOME,
+            "section-gives-the-first-and-last-crossing"], "4 parts name or cite " + GOAL),
+    (OUTCOME, ["section-gives-the-first-and-last-crossing"], "1 part names or cites " + OUTCOME),
+])
+def test_dependents_of_a_part_are_listed(fixtures, work, monkeypatch, capsys, name, parts, said):
+    assert acted(monkeypatch, a_design(work, fixtures, "ferry-design-drafted"), dd.show_dependents, (DESIGN, name)) == 0
+    out = capsys.readouterr().out
+    assert all(p in out for p in parts) and said in out
 
 
 @pytest.mark.action("--show-dependents")
 @pytest.mark.reports
-def test_dependents_of_no_part_are_refused(check):
-    p = Project("dependents-none")
-    got = p.run("--show-dependents", p.design(log=DRAFTED), "no-such-part")
-    check("--show-dependents refuses a Name no part of the design takes, exit 2",
-          got[0] == 2 and "holds no goal, case, principle, Frame Outcome, step or step Objective named no-such-part" in got[1], shown(got))
+def test_dependents_of_no_part_are_refused(fixtures, work, monkeypatch, capsys):
+    assert acted(monkeypatch, a_design(work, fixtures, "ferry-design-drafted"), dd.show_dependents, (DESIGN, "no-such-part")) == 2
+    assert "holds no goal, case, principle, Frame Outcome, step or step Objective named no-such-part" in capsys.readouterr().err
 
 
 @pytest.mark.action("--show-validation")
 @pytest.mark.passes
-def test_validated_design_is_shown_validated(check):
-    p = Project("shown-validated")
-    got = p.run("--show-validation", p.design(status="approved", log=APPROVED))
-    check("--show-validation shows a design whose stamp matches its content as validated", passes(got, "== show-validation", NAME + ": validated; stamped sha256:"), shown(got))
+def test_validated_design_is_shown_validated(fixtures, work, monkeypatch, capsys):
+    assert acted(monkeypatch, a_design(work, fixtures, "ferry-design-approved"), dd.show_validation, DESIGN) == 0
+    assert NAME + ": validated; stamped sha256:" in capsys.readouterr().out
 
 
 @pytest.mark.action("--show-validation")
 @pytest.mark.reports
-def test_stale_or_unstamped_design_is_shown_so(check):
-    p = Project("shown-stale")
-    got = p.run("--show-validation", p.design(log=DRAFTED))
-    check("--show-validation shows a design holding no stamp as never stamped", passes(got, "== show-validation", NAME + ": never stamped; stamped none"), shown(got))
-    text = swap(a_design(status="approved", log=APPROVED), "without saying when it runs.", "without saying when it runs, or from where.")
-    got = p.run("--show-validation", p.design(text=text))
-    check("--show-validation shows a design edited since its stamp as stale", passes(got, "== show-validation", NAME + ": stale; stamped sha256:"), shown(got))
+@pytest.mark.parametrize("key, said", [
+    ("ferry-design-drafted", ": never stamped; stamped none"),
+    ("ferry-design-applying-edited-since-its-stamp", ": stale; stamped sha256:"),
+])
+def test_stale_or_unstamped_design_is_shown_so(fixtures, work, monkeypatch, capsys, key, said):
+    assert acted(monkeypatch, a_design(work, fixtures, key), dd.show_validation, DESIGN) == 0
+    assert NAME + said in capsys.readouterr().out
 
 
 @pytest.mark.action("--stamp-validation")
 @pytest.mark.passes
-@pytest.mark.reads("design-script-reports.md", "ferry-research-report")
-def test_design_passing_validation_is_stamped(check):
-    for skill in SKILLS:
-        p = Project("stamp")
-        text = swap(a_design(skill=skill, status="applying", log=APPLYING_RESEARCHED), "without saying when it runs.", "without saying when it runs, or from where.")
-        design = researched(p, skill=skill, text=text)
-        was = p.run("--show-validation", design, skill=skill)
-        got = p.run("--stamp-validation", design, skill=skill)
-        now = p.run("--show-validation", design, skill=skill)
-        check("--stamp-validation of %s writes the stamp of a design the validation review passes, which then reads validated" % skill,
-              ": stale;" in was[1] and passes(got, "== stamp-validation\n**Validated:** ") and ": validated;" in now[1], shown(got) + shown(now))
-        again = p.run("--stamp-validation", design, skill=skill)
-        check("--stamp-validation of %s leaves a current stamp as it stands" % skill, passes(again, "== stamp-validation", "already validated, the stamp current"), shown(again))
+def test_design_passing_validation_is_stamped(fixtures, work, monkeypatch, capsys):
+    root = a_design(work, fixtures, "ferry-design-applying-edited-since-its-stamp", **{"ferry-research-report": RESEARCH})
+    assert acted(monkeypatch, root, dd.stamp_validation, DESIGN) == 0
+    assert "== stamp-validation\n**Validated:** " in capsys.readouterr().out
+    name, fields, _, text = dd.read_design(root / DESIGN)
+    assert dd.validation(text, fields)[0] == "validated"
+
+
+@pytest.mark.action("--stamp-validation")
+@pytest.mark.passes
+def test_current_stamp_is_left_as_it_stands(fixtures, work, monkeypatch, capsys):
+    root = a_design(work, fixtures, "ferry-design-approved")
+    before = held(root)
+    assert acted(monkeypatch, root, dd.stamp_validation, DESIGN) == 0
+    assert "already validated, the stamp current" in capsys.readouterr().out and held(root) == before
 
 
 @pytest.mark.action("--stamp-validation")
 @pytest.mark.reports
-def test_design_failing_validation_is_not_stamped(check):
-    p = Project("stamp-refused")
-    design = p.design(log=AGREED, text=part(a_design(log=AGREED), "## Design Plan Steps", NOT_DRAFTED))
-    before = p.held()
-    got = p.run("--stamp-validation", design)
-    check("--stamp-validation refuses a design whose steps are not yet drafted, and writes nothing",
-          reports(got, "== stamp-validation, not stamped", "its steps are not yet drafted") and p.held() == before, shown(got))
-    kept = p.design(folder=".ai/plans/design-specs/archive", status="applying", log=APPLYING)
-    before = p.held()
-    got = p.run("--stamp-validation", kept)
-    check("--stamp-validation refuses a design standing in no plans folder, and writes nothing",
-          reports(got, "== stamp-validation, not stamped", "it stands in no plans folder") and p.held() == before, shown(got))
+@pytest.mark.parametrize("key, at, said", [
+    ("ferry-design-agreed-undrafted", DESIGN, "its steps are not yet drafted"),
+    ("ferry-design-approved", ".ai/plans/design-specs/archive/%s.md" % NAME, "it stands in no plans folder"),
+])
+def test_design_failing_validation_is_not_stamped(fixtures, work, monkeypatch, capsys, key, at, said):
+    root = a_design(work, fixtures, key, at)
+    before = held(root)
+    assert acted(monkeypatch, root, dd.stamp_validation, at) == 1
+    out = capsys.readouterr().out
+    assert "== stamp-validation, not stamped" in out and said in out and held(root) == before

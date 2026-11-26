@@ -2,45 +2,82 @@
 takes an entry as it stood, and the entries of a freeing are appended by the freeing alone."""
 import pytest
 
-from design_script_set import (ABANDONED, ABSENT, CHECK_FIELDS, COMPLETE, DRAFTED, FINISHED_STATES, FREEING, NAMING, READ_AS, a_workstack, naming,
-    passes, reports, shown)
+from design_script_set import DESIGN, WORKSTACK_READS, acted, design_documents as dd, held, workstack
 
-pytestmark = [pytest.mark.reads("design-script-ferry.md", "island-guide", "ferry-design")]
-
-
-def test_no_entry_is_appended_before_the_freeing(check):
-    p = a_workstack("unfreed")
-    kinds = {"entered": ("Reason=reopened",), "goals-agreed": (), "plan-change": (), "user-edit": ("Places=docs/guide.md",), "another-round": (),
-             "plan-approval": ("Approval=approved",), "apply": (), "self-review": CHECK_FIELDS, "handed-off-judgment": CHECK_FIELDS}
-    for state in NAMING:
-        if state in FINISHED_STATES:
-            continue
-        for named in (COMPLETE, ABANDONED, ABSENT):
-            for kind, fields in kinds.items():
-                design = p.design(text=naming(state, named))
-                before = p.held()
-                got = p.run("--log-entry", design, kind, *fields)
-                check("--log-entry appends no %s entry to a design %s naming a design %s, until it is freed" % (kind, state, READ_AS[named]) + (" (%s)" % named if named == ABANDONED else ""),
-                      reports(got, "== log-entry, not logged", ["its Depends On Designs names %s, %s: " % (named, READ_AS[named]) + FREEING]) and p.held() == before, shown(got))
+pytestmark = WORKSTACK_READS
+FREEING = "its foundation has changed, and no entry is appended to its log until --free-design frees it"
+NOT_LOGGED = "== log-entry, not logged"
 
 
-def test_finished_design_takes_an_entry_as_it_stood(check):
-    p = a_workstack("finished-naming")
-    for state in FINISHED_STATES:
-        for named in (COMPLETE, ABSENT):
-            design = p.design(text=naming(state, named))
-            got = p.run("--log-entry", design, "entered", "Reason=reopened")
-            check("--log-entry holds nothing back from a design %s for the %s design it names, the name its history" % (state, READ_AS[named]),
-                  passes(got, "== log-entry", "**Entry:** entered-") and "**Depends On Designs:** " + named in p.read(design), shown(got))
+@pytest.mark.action("--log-entry")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-once-mishandled.md", "ferry-design-drafted-naming-a-complete-design")
+@pytest.mark.parametrize("kind", ["entered", "goals-agreed", "plan-change", "user-edit", "another-round", "plan-approval", "apply", "self-review",
+                                  "handed-off-judgment"])
+def test_no_entry_of_any_kind_is_appended_before_the_freeing(fixtures, work, kind):
+    root = workstack(work, fixtures, {"ferry-design-drafted-naming-a-complete-design": DESIGN})
+    problems = dd.held_back(root / DESIGN, kind)
+    assert len(problems) == 1 and "its Depends On Designs names harbor-dredged, finished: " + FREEING in problems[0]
 
 
-def test_entries_of_a_freeing_are_the_freeings_alone(check):
-    p = a_workstack("freeing-alone")
-    design = p.design(log=DRAFTED)
-    before = p.held()
-    got = p.run("--log-entry", design, "design-reassessment", "Cause=changed foundation: %s finished" % COMPLETE)
-    check("--log-entry refuses a design-reassessment entry whose Cause is a changed foundation, which the freeing alone appends",
-          reports(got, "== log-entry, not logged", "an entry of a design freed for a changed foundation, which --free-design alone appends") and p.held() == before, shown(got))
-    got = p.run("--log-entry", design, "entered", "Reason=freed")
-    check("--log-entry refuses an entered entry whose Reason is freed, which the freeing alone appends",
-          reports(got, "== log-entry, not logged", "an entry of a design freed for a changed foundation, which --free-design alone appends") and p.held() == before, shown(got))
+@pytest.mark.action("--log-entry")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-once-mishandled.md", "ferry-design-drafted-naming-a-gone-design")
+@pytest.mark.reads("design-script-workstack.md", "ferry-design-drafted-naming-an-abandoned-design", "ferry-design-waiting-at-its-frame-naming-an-abandoned-design",
+                   "ferry-design-approved-naming-a-complete-design", "ferry-design-applying-naming-a-gone-design",
+                   "ferry-design-not-started-naming-a-complete-design", "ferry-design-entered-naming-a-gone-design")
+@pytest.mark.parametrize("key, named", [
+    ("ferry-design-drafted-naming-an-abandoned-design", "pier-closed, finished"),
+    ("ferry-design-drafted-naming-a-gone-design", "tide-tables-printed, gone"),
+    ("ferry-design-waiting-at-its-frame-naming-an-abandoned-design", "pier-closed, finished"),
+    ("ferry-design-approved-naming-a-complete-design", "harbor-dredged, finished"),
+    ("ferry-design-applying-naming-a-gone-design", "tide-tables-printed, gone"),
+    ("ferry-design-not-started-naming-a-complete-design", "harbor-dredged, finished"),
+    ("ferry-design-entered-naming-a-gone-design", "tide-tables-printed, gone"),
+])
+def test_design_in_any_unfinished_state_takes_no_entry_before_the_freeing(fixtures, work, key, named):
+    root = workstack(work, fixtures, {key: DESIGN})
+    assert ["its Depends On Designs names %s: " % named + FREEING in p for p in dd.held_back(root / DESIGN, "entered")] == [True]
+
+
+@pytest.mark.action("--log-entry")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-once-mishandled.md", "ferry-design-drafted-naming-a-gone-design")
+def test_entry_refused_before_the_freeing_writes_nothing(fixtures, work, monkeypatch, capsys):
+    root = workstack(work, fixtures, {"ferry-design-drafted-naming-a-gone-design": DESIGN})
+    before = held(root)
+    assert acted(monkeypatch, root, dd.log_entry, [DESIGN, "plan-change"]) == 1
+    out = capsys.readouterr().out
+    assert NOT_LOGGED in out and "names tide-tables-printed, gone: " + FREEING in out and held(root) == before
+
+
+@pytest.mark.action("--log-entry")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-workstack.md", "ferry-design-complete-naming-a-gone-design", "ferry-design-abandoned-naming-an-unfinished-design")
+@pytest.mark.parametrize("key", ["ferry-design-complete-naming-a-gone-design", "ferry-design-abandoned-naming-an-unfinished-design"])
+@pytest.mark.parametrize("kind", ["entered", "plan-change"])
+def test_finished_design_has_nothing_held_back_for_the_designs_it_names(fixtures, work, key, kind):
+    assert dd.held_back(workstack(work, fixtures, {key: DESIGN}) / DESIGN, kind) == []
+
+
+@pytest.mark.action("--log-entry")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-workstack.md", "ferry-design-complete-naming-a-gone-design")
+def test_finished_design_takes_an_entry_as_it_stood(fixtures, work, monkeypatch, capsys):
+    root = workstack(work, fixtures, {"ferry-design-complete-naming-a-gone-design": DESIGN})
+    assert acted(monkeypatch, root, dd.log_entry, [DESIGN, "entered", "Reason=reopened"]) == 0
+    assert "- **Entry:** entered-2" in capsys.readouterr().out
+    assert "**Depends On Designs:** tide-tables-printed" in (root / DESIGN).read_text(encoding="utf-8")
+
+
+@pytest.mark.action("--log-entry")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.parametrize("entry", [["design-reassessment", "Cause=changed foundation: harbor-dredged finished"], ["entered", "Reason=freed"]])
+def test_entry_of_a_freeing_is_appended_by_the_freeing_alone(fixtures, work, monkeypatch, capsys, entry):
+    root = workstack(work, fixtures, {"ferry-design-drafted": DESIGN})
+    before = held(root)
+    assert acted(monkeypatch, root, dd.log_entry, [DESIGN] + entry) == 1
+    out = capsys.readouterr().out
+    assert NOT_LOGGED in out and "an entry of a design freed for a changed foundation, which --free-design alone appends" in out
+    assert held(root) == before

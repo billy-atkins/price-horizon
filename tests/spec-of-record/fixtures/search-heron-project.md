@@ -213,16 +213,6 @@
       The spoonbill stands in the reeds at dusk and waits for the tide to turn.
       ```
 
-  - **Fixture:** skill-folder-stand-in \
-    **Holds:** a Markdown file of a title and one sentence calling itself a stand-in for a skill's own file \
-    **Snippet:**
-
-      ```markdown
-      # The Search's Skill
-
-      A stand-in, so each checkout of the project holds the skill's folder.
-      ```
-
   - **Fixture:** head-git-cannot-read \
     **Holds:** one line of words that are no reference git reads as a repository's HEAD \
     **Snippet:**

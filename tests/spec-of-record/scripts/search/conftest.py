@@ -1,52 +1,80 @@
-"""The search's set of kept tests: which files are the search's, and what the set's files share.
+"""The search's set of kept tests: which files are the search's, and what the set's tests share.
 
-A test drives the search's entry script as a process of its own (`script`), or, where no action reaches what it
-tests, the shared code itself (`search`, `reading`, `opened`). Each project a test searches is one it writes from its
-fixtures into its own folder, and what the tests of one file share is built once in that file's own folder within the
-run's folder (`shared`). The search writes in two places: the scratch space a search is given, or, given none, the
-one under the project it searches, and so always within the run's folder; and the model's files, which stand where
-the search installs them once on a machine and are no run's output.
+A test calls a unit of the search, or of the one reading it reads a file by, over a project of fixtures it writes
+within its own folder (`project`), each fixture at the path the test gives it: the project's glossary and its registry
+of skills among them where a test needs them, since the search reads those of the project it searches and no form of
+the canon. A search a test opens is closed as the test ends (`opened`). What the tests of one file share is built once
+by that file's own fixture, in the file's folder within the run's folder (`shared`). A test of an action calls `main`,
+the unit the entry script runs, with the project's root; a few tests run the entry script as a process to hold its
+wiring (`run_entry`). The search writes in the scratch space it is given, or the one under the project it searches,
+and so always within the run's folder, and reads the model's files from where it installs them once on a machine,
+which are no run's output. A test file takes these names by `from search_set import ...`, the name this file is
+registered under as the runner reads it.
 """
 import os
+import re
 import subprocess
 import sys
-import types
 from pathlib import Path
 
 import pytest
 
 # The files of the script these tests are of, the search: its code, and each file of the canon it reads a form from
-# as it runs. A path ending in a slash names each file beneath it.
+# as it runs, which are none. A path ending in a slash names each file beneath it.
 SCRIPT_FILES = (".ai/skills/lib/search.py", ".ai/skills/lib/reading.py", ".ai/skills/lib/spec_text.py", ".ai/skills/lib/citation_links.py",
                 ".ai/skills/lib/code_checks.py", ".ai/skills/lib/constructs.py", ".ai/skills/lib/expressions.py",
                 ".ai/skills/search-spec-of-record-scope/scripts/")
-FORM_FILES = ("specs/methodology/glossary/glossary.md", "specs/methodology/skills/registered-skills.md")
+FORM_FILES = ()
 ACTIONS_IN = ".ai/skills/lib/search.py"
 
 CHECKOUT = Path(__file__).resolve().parents[4]
 LIB = CHECKOUT / ".ai" / "skills" / "lib"
 if str(LIB) not in sys.path:
     sys.path.insert(0, str(LIB))
-import reading as the_reading  # noqa: E402
-import search as the_search  # noqa: E402
+import reading  # noqa: E402
+import search  # noqa: E402
 import spec_text  # noqa: E402
 
-ENTRY = CHECKOUT / ".ai" / "skills" / the_search.SKILL / "scripts" / (the_search.SKILL + ".py")
-SKILL_FOLDER = Path(".ai") / "skills" / the_search.SKILL
+ENTRY = CHECKOUT / ".ai" / "skills" / search.SKILL / "scripts" / (search.SKILL + ".py")
+SKILL_FOLDER = ".ai/skills/" + search.SKILL
 
 # where each fixture of a project stands in it: the corpus of forms, the small project about a heron, and the
 # invented library, whose files cite each other by these paths
 CORPUS = {"forms-spec": "specs/forms.md", "target-spec": "specs/target.md", "promise-product-file": "product/promise.md",
           "ledger-glossary": "specs/methodology/glossary/glossary.md", "ledger-python": "code/sample.py", "ledger-typescript": "code/sample.ts",
           "ledger-csharp": "code/sample.cs", "ledger-table-sql": "code/schema.sql", "ledger-settings-yaml": "code/settings.yaml"}
-HERON = {"heron-spec": "specs/target.md", "stack-naming-one-code-root": the_search.code_checks.STACK, "heron-function": "code/sample.py",
+HERON = {"heron-spec": "specs/target.md", "stack-naming-one-code-root": search.code_checks.STACK, "heron-function": "code/sample.py",
          "egret-function": "src/other.py", "design-citing-the-heron": ".ai/plans/design-specs/a-design.md",
          "plan-citing-the-heron": ".ai/plans/other-plan.md", "follow-ups-naming-a-heron": ".ai/follow-ups.md"}
 LIBRARY = {"library-" + name: "specs/library/%s.md" % name
            for name in ("membership", "loans", "overdue", "holds", "catalogue", "donations", "opening", "volunteers", "rooms", "events")}
+# the `reads` marker of each of those projects
+READS_CORPUS = [pytest.mark.reads("search-corpus-specs.md", "forms-spec", "target-spec", "promise-product-file", "ledger-glossary"),
+                pytest.mark.reads("search-corpus-code.md", "ledger-python", "ledger-typescript", "ledger-csharp", "ledger-table-sql", "ledger-settings-yaml")]
+READS_HERON = [pytest.mark.reads("search-heron-project.md", *HERON)]
+READS_LIBRARY = [pytest.mark.reads("search-library-lending.md", *list(LIBRARY)[:5]), pytest.mark.reads("search-library-premises.md", *list(LIBRARY)[5:])]
 
 
-def files_under(root):
+def project(root, fixtures, placed):
+    """-> the root of a project of fixtures written at `root`, each fixture at its path, `placed` mapping a fixture's
+    key to the path it stands at."""
+    root = Path(root)
+    for key, path in placed.items():
+        (root / path).parent.mkdir(parents=True, exist_ok=True)
+        (root / path).write_text(fixtures[key], encoding="utf-8", newline="\n")
+    return root
+
+
+def result_file(folder, text):
+    """-> the path of a result's text, a fixture, written in a folder under the name its Result field holds."""
+    path = Path(folder) / re.search(r"^  - \*\*Result:\*\* (\S+) \\$", text, re.M).group(1)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8", newline="\n")
+    return path
+
+
+def every_file(root):
+    """-> each file under a project's root, by its path from the root, for a search told to cover them all."""
     return sorted(p.relative_to(root).as_posix() for p in Path(root).rglob("*") if p.is_file())
 
 
@@ -59,112 +87,46 @@ def paths_of(result):
     return sorted({p.path for p in result.places})
 
 
-def line_holding(root, path, words):
-    for n, line in enumerate((Path(root) / path).read_text(encoding="utf-8").split("\n"), 1):
-        if words in line:
-            return n
-    raise AssertionError("%s holds no line with: %s" % (path, words))
+def line_holding(text, words):
+    """-> the number of the first line of a text holding the words."""
+    return next(n for n, line in enumerate(text.split("\n"), 1) if words in line)
 
 
-def put(root, rel, text):
-    f = Path(root) / rel
-    f.parent.mkdir(parents=True, exist_ok=True)
-    f.write_text(text, encoding="utf-8", newline="\n")
+def printed_places(printed):
+    """-> the places a run printed, each on a line of its own beneath the result's name and its count."""
+    return [line.strip() for line in printed.split("\n") if line.startswith("  `")]
 
 
-def written(root, fixtures, places, under=""):
-    """Write each fixture of a project where it stands in it -> the project's root."""
-    for key, rel in places.items():
-        put(root, under + rel, fixtures[key])
-    return Path(root)
+def ask(root, *argv):
+    """-> the exit code of the entry script's `main` asked over a project, what it prints being the test's to read."""
+    return search.main(["search"] + [str(a) for a in argv], root=root)
 
 
-def a_corpus(root, fixtures):
-    """The corpus of forms: two specs, a product file, a glossary and code in five languages."""
-    return written(root, fixtures, CORPUS)
-
-
-def a_project(root, fixtures):
-    """A small project: a spec, a stack naming `code` as its code root, code in two folders, working files, and the
-    folder of the search's skill, by which a run of the entry script within the project takes it for its checkout."""
+def run_entry(root, *argv, env=None):
+    """-> (the exit code, what was printed) of the entry script run as a process in a project. The project is given
+    the skill's folder, empty, by which a run there takes the project for the checkout it answers over and writes in."""
     (Path(root) / SKILL_FOLDER).mkdir(parents=True, exist_ok=True)
-    return written(root, fixtures, HERON)
-
-
-def a_library(root, fixtures, under=""):
-    """The invented library's ten files, each at the path its citations name it by."""
-    return written(root, fixtures, LIBRARY, under)
+    done = subprocess.run([sys.executable, "-B", str(ENTRY)] + [str(a) for a in argv], cwd=root, capture_output=True, env=dict(os.environ, **(env or {})))
+    return done.returncode, (done.stdout + done.stderr).decode("utf-8", "replace").replace("\r\n", "\n")
 
 
 def git(root, *args):
-    done = subprocess.run(["git", "-c", "user.name=search-tests", "-c", "user.email=search-tests@example.invalid", "-c", "core.autocrlf=false", "-c", "commit.gpgsign=false"] + list(args),
-                          cwd=root, capture_output=True, text=True)
+    done = subprocess.run(["git", "-c", "user.name=search-tests", "-c", "user.email=search-tests@example.invalid", "-c", "core.autocrlf=false",
+                           "-c", "commit.gpgsign=false"] + list(args), cwd=root, capture_output=True, text=True)
     if done.returncode:
         raise AssertionError("git %s: %s" % (" ".join(args), done.stderr))
     return done.stdout.strip()
 
 
-def changed(path, was, now):
-    """-> the problems the check of a result's form reports of a copy of a result with one thing changed."""
-    copy = path.with_name("changed-" + path.name)
-    copy.write_text(path.read_text(encoding="utf-8").replace(was, now), encoding="utf-8", newline="\n")
-    try:
-        return the_search.Result.check(copy)
-    finally:
-        copy.unlink()
-
-
-def same_answer(one, other):
-    """-> whether two results hold the same answer: the same record but its name, each place the same place."""
-    def places(r):
-        return [(str(p),) + tuple(getattr(p, name, None) for name in ("path", "first", "last", "lineage", "key", "stands")) for p in r.places]
-    return one.body() == other.body() and places(one) == places(other) and one.notes == other.notes and one.names_nothing == other.names_nothing
-
-
-def moved_in_time(path):
-    """Move a file's time of change and leave what it holds."""
-    held = path.stat()
-    os.utime(path, ns=(held.st_atime_ns + 5_000_000_000, held.st_mtime_ns + 5_000_000_000))
-
-
-def run_script(root, *args, env=None, cwd=None):
-    """-> (the exit code, what was printed) of the search's entry script, run as a process of its own in a project
-    that holds the skill's folder, so the project is the checkout the run answers over and writes in."""
-    root = Path(root)
-    if not (root / SKILL_FOLDER).is_dir():
-        raise AssertionError("%s holds no %s, so a run of the entry script there would answer over another checkout" % (root, SKILL_FOLDER.as_posix()))
-    done = subprocess.run([sys.executable, "-B", str(ENTRY)] + [str(a) for a in args], cwd=cwd or root, capture_output=True, env=dict(os.environ, **(env or {})))
-    return done.returncode, (done.stdout + done.stderr).decode("utf-8", "replace").replace("\r\n", "\n")
-
-
-@pytest.fixture(scope="session")
-def search():
-    """The search's shared code, for what no action of the entry script reaches."""
-    return the_search
-
-
-@pytest.fixture(scope="session")
-def reading():
-    """The one reading the search reads a file by."""
-    return the_reading
-
-
-@pytest.fixture(scope="session")
-def tools():
-    """What the set's files share in writing a project and reading a result."""
-    return types.SimpleNamespace(files_under=files_under, lines_of=lines_of, paths_of=paths_of, line_holding=line_holding, put=put, a_corpus=a_corpus,
-                                 a_project=a_project, a_library=a_library, git=git, changed=changed, same_answer=same_answer, moved_in_time=moved_in_time,
-                                 CORPUS=CORPUS, HERON=HERON, LIBRARY=LIBRARY, SKILL_FOLDER=SKILL_FOLDER, ENTRY=ENTRY)
-
-
-@pytest.fixture(scope="session")
-def script():
-    """-> script(root, *args, env=None, cwd=None): the entry script run as a process over a project."""
-    return run_script
+def vectors_held(s):
+    """-> (the vectors an index holds, the passages and sentences it holds): each a count."""
+    held = sum(s.db.execute("select count(*) from %s" % t).fetchone()[0] for t in ("passage_vectors", "sentence_vectors"))
+    texts = sum(s.db.execute("select count(*) from %s" % t).fetchone()[0] for t in ("passages", "sentences"))
+    return held, texts
 
 
 class Opened:
-    """The searches a test or a file's shared fixture opened, each index closed as the test or the file ends, so the
+    """The searches a test or a file's own fixture opened, each index closed as the test or the file ends, so the
     clean-up that follows finds no file held open."""
 
     def __init__(self):
@@ -172,7 +134,7 @@ class Opened:
 
     def __call__(self, root, **given):
         given.setdefault("quiet", True)
-        found = the_search.Search(root, **given)
+        found = search.Search(root, **given)
         self.held.append(found)
         return found
 
@@ -216,3 +178,6 @@ def shared(request, run_folder):
         folder.rmdir()
     except OSError:
         pass
+
+
+sys.modules["search_set"] = sys.modules[__name__]

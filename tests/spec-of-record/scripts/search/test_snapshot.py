@@ -1,78 +1,170 @@
-"""The snapshot code: the state of a target's files, on every result and on request."""
+"""The snapshot code: the state of a target's files, on every result and on request.
+
+Each test writes its own small project: a spec naming a heron, code under the stack's one code root and code beside
+it, and two plans citing the spec's section. A test committing it commits the specs and the code alone, so the files
+as they stand and the files the last commit held hold the same until the test writes a file over."""
+import os
+
 import pytest
 
-HERON = ("search-heron-project.md", "heron-spec", "stack-naming-one-code-root", "heron-function", "egret-function", "design-citing-the-heron",
-         "plan-citing-the-heron", "follow-ups-naming-a-heron")
+from search_set import HERON, READS_HERON, ask, git, project, search
+
+pytestmark = READS_HERON
+SECTION = "specs/target.md § Target"
+DESIGNS = [".ai/plans/design-specs"]
 
 
-@pytest.mark.action("--show-snapshot-code", "--show-term-uses", "--show-citers")
+def heron(work, fixtures, committed=False):
+    root = project(work / "project", fixtures, HERON)
+    if committed:
+        git(root, "init", "-q")
+        git(root, "add", "specs", "code")
+        git(root, "commit", "-q", "-m", "first")
+    return root
+
+
+def code_of(root, work, **given):
+    """-> the snapshot code the search gives on request, from the test's own index."""
+    return search.snapshot(root, scratch=work / "index", **given)
+
+
+def result_code(opened, root, work):
+    """-> the snapshot code a result of the files as they stand carries, its index closed after."""
+    s = opened(root, scratch=work / "index")
+    code = s.terms("heron").snapshot
+    s.db.close()
+    return code
+
+
+@pytest.mark.action("--show-term-uses")
 @pytest.mark.passes
-@pytest.mark.reads(*HERON)
-def test_one_code_stands_for_the_files_of_a_target_and_changes_only_as_they_do(fixtures, tools, search, opened, script, work, check):
-    # a small project committed whole, so the files as they stand and the files the last commit held hold the same
-    # until the test changes one; each variant the test writes of a fixture is that fixture with a few words changed
-    root, scratch = tools.a_project(work / "project", fixtures), work / "index"
-    tools.git(root, "init", "-q")
-    tools.git(root, "add", "specs", "code")
-    tools.git(root, "commit", "-q", "-m", "first")
-    spec, changed = fixtures["heron-spec"], tools.changed
+def test_every_result_carries_a_snapshot_code_of_sixteen_hexadecimal_digits(fixtures, opened, work):
+    assert search.SNAPSHOT.fullmatch(opened(heron(work, fixtures), scratch=work / "index").terms("heron").snapshot or "")
 
-    def searched(**given):
-        return opened(root, scratch=scratch, **given)
 
-    s = searched()
-    r, narrow, cite = s.terms("heron"), s.terms("heron", ["specs"]), s.citers("specs/target.md § Target")
-    code = r.snapshot
-    check("every result carries a snapshot code, sixteen hexadecimal digits, which its file holds, and passes the check of a result's form",
-          bool(search.SNAPSHOT.fullmatch(code or "")) and f"**Snapshot:** {code} \\" in r.path.read_text(encoding="utf-8") and search.Result.check(r.path) == [], (code, search.Result.check(r.path)))
-    check("one code stands for the whole target, whatever a search was narrowed to and whatever its kind", narrow.snapshot == code == cite.snapshot and narrow.narrowed == ["specs"], (code, narrow.snapshot, cite.snapshot))
-    check("a result whose Snapshot is not in a code's form fails the check of its form",
-          any("not a snapshot code" in p for p in changed(r.path, f"**Snapshot:** {code}", "**Snapshot:** the-files-as-i-found-them")), changed(r.path, f"**Snapshot:** {code}", "**Snapshot:** the-files-as-i-found-them"))
-    check("and one holding none fails it", any("holds no Snapshot" in p for p in changed(r.path, f"    **Snapshot:** {code} \\\n", "")))
-    s.db.close()
-    check("the search gives the present code on request, equal to a result's while no file of the target holds anything new", search.snapshot(root, scratch=scratch) == code, search.snapshot(root, scratch=scratch))
-    ran, printed = script(root, "--show-snapshot-code")
-    check("the script gives it too, from an index of its own, the code built from the files and never from an index", ran == 0 and code in printed.split("\n"), (ran, printed))
-    s = searched(target=search.COMMITTED_OPERATIVE)
-    check("the code is built one way whatever the target: the files the last commit held take the code the files as they stand take, each file holding the same",
-          s.terms("heron").snapshot == code and search.snapshot(root, target=search.COMMITTED_OPERATIVE, scratch=scratch) == code, s.terms("heron").snapshot)
-    s.db.close()
+@pytest.mark.action("--show-term-uses", "--show-citers")
+@pytest.mark.passes
+def test_one_code_stands_for_the_whole_target_whatever_a_search_was_narrowed_to_and_whatever_its_kind(fixtures, opened, work):
+    s = opened(heron(work, fixtures), scratch=work / "index")
+    narrow = s.terms("heron", ["specs"])
+    assert narrow.narrowed == ["specs"] and s.terms("heron").snapshot == narrow.snapshot == s.citers(SECTION).snapshot
 
-    tools.moved_in_time(root / "specs" / "target.md")
-    s = searched()
-    check("a file whose time of change alone moved is read again and leaves the code as it was", s.read_count == 1 and s.terms("heron").snapshot == code, (s.read_count, s.terms("heron").snapshot))
-    s.db.close()
 
-    tools.put(root, "specs/target.md", spec + "\nThe egret is not yet committed.\n")
-    s = searched()
-    after = s.terms("heron").snapshot
-    check("once a file of the target holds something new the code differs, on a result and on request", after != code and search.snapshot(root, scratch=scratch) == after, (code, after))
-    s.db.close()
-    check("and the code of the committed files stands as it did, no commit having changed", search.snapshot(root, target=search.COMMITTED_OPERATIVE, scratch=scratch) == code)
-    tools.put(root, "specs/target.md", spec)
-    check("a file brought back to what it held brings the code back", search.snapshot(root, scratch=scratch) == code)
+@pytest.mark.action("--show-snapshot-code")
+@pytest.mark.passes
+def test_the_code_given_on_request_is_a_result_s_while_no_file_of_the_target_holds_anything_new(fixtures, opened, work):
+    root = heron(work, fixtures)
+    assert code_of(root, work) == result_code(opened, root, work)
 
-    s = searched(target=search.WORKING, paths=[".ai/plans/design-specs"])
+
+@pytest.mark.action("--show-snapshot-code")
+@pytest.mark.passes
+def test_show_snapshot_code_prints_the_code_built_from_the_files_by_an_index_of_its_own(fixtures, work, capsys):
+    root = heron(work, fixtures)
+    code = code_of(root, work)
+    assert ask(root, "--show-snapshot-code") == 0
+    assert code in capsys.readouterr().out.split("\n")
+
+
+@pytest.mark.action("--show-snapshot-code", "--show-term-uses")
+@pytest.mark.passes
+def test_the_files_the_last_commit_held_take_the_code_the_files_as_they_stand_take_each_file_holding_the_same(fixtures, opened, work):
+    root = heron(work, fixtures, committed=True)
+    code = code_of(root, work)
+    committed = opened(root, scratch=work / "index", target=search.COMMITTED_OPERATIVE).terms("heron").snapshot
+    assert committed == code == code_of(root, work, target=search.COMMITTED_OPERATIVE)
+
+
+@pytest.mark.action("--show-term-uses")
+@pytest.mark.passes
+def test_a_file_whose_time_of_change_alone_moved_is_read_again_and_leaves_the_code_as_it_was(fixtures, opened, work):
+    root = heron(work, fixtures)
+    code = result_code(opened, root, work)
+    held = (root / "specs" / "target.md").stat()
+    os.utime(root / "specs" / "target.md", ns=(held.st_atime_ns + 5_000_000_000, held.st_mtime_ns + 5_000_000_000))
+    s = opened(root, scratch=work / "index")
+    assert s.read_count == 1 and s.terms("heron").snapshot == code
+
+
+@pytest.mark.action("--show-snapshot-code", "--show-term-uses")
+@pytest.mark.passes
+@pytest.mark.reads("search-changed-files.md", "heron-spec-with-an-egret-not-yet-committed")
+def test_once_a_file_of_the_target_holds_something_new_the_code_differs_on_a_result_and_on_request(fixtures, opened, work):
+    root = heron(work, fixtures)
+    code = result_code(opened, root, work)
+    project(root, fixtures, {"heron-spec-with-an-egret-not-yet-committed": HERON["heron-spec"]})
+    after = result_code(opened, root, work)
+    assert after != code and code_of(root, work) == after
+
+
+@pytest.mark.action("--show-snapshot-code")
+@pytest.mark.passes
+@pytest.mark.reads("search-changed-files.md", "heron-spec-with-an-egret-not-yet-committed")
+def test_the_code_of_the_committed_files_stands_while_no_commit_changed_them(fixtures, work):
+    root = heron(work, fixtures, committed=True)
+    code = code_of(root, work, target=search.COMMITTED_OPERATIVE)
+    project(root, fixtures, {"heron-spec-with-an-egret-not-yet-committed": HERON["heron-spec"]})
+    assert code_of(root, work, target=search.COMMITTED_OPERATIVE) == code
+
+
+@pytest.mark.action("--show-snapshot-code")
+@pytest.mark.passes
+@pytest.mark.reads("search-changed-files.md", "heron-spec-with-an-egret-not-yet-committed")
+def test_a_file_brought_back_to_what_it_held_brings_the_code_back(fixtures, work):
+    root = heron(work, fixtures)
+    code = code_of(root, work)
+    project(root, fixtures, {"heron-spec-with-an-egret-not-yet-committed": HERON["heron-spec"]})
+    code_of(root, work)
+    project(root, fixtures, {"heron-spec": HERON["heron-spec"]})
+    assert code_of(root, work) == code
+
+
+@pytest.mark.action("--show-snapshot-code", "--show-term-uses")
+@pytest.mark.passes
+def test_a_result_of_the_working_files_holds_the_code_of_the_paths_it_names_which_the_search_gives_on_request_for_them(fixtures, opened, work):
+    root = heron(work, fixtures)
+    s = opened(root, scratch=work / "index", target=search.WORKING, paths=DESIGNS)
     one = s.terms("heron").snapshot
     s.db.close()
-    check("a result of the working files holds the code of the paths it names, which the search gives on request for those paths",
-          bool(search.SNAPSHOT.fullmatch(one)) and one != code and search.snapshot(root, target=search.WORKING, paths=[".ai/plans/design-specs"], scratch=scratch) == one, one)
-    check("and other paths take another code", search.snapshot(root, target=search.WORKING, paths=[".ai/plans"], scratch=scratch) != one)
-    tools.put(root, ".ai/plans/other-plan.md", fixtures["plan-citing-the-heron"].replace(", citing `specs/target.md § Target` too.", ", changed."))
-    tools.put(root, "specs/target.md", spec.replace("in the reeds.", "in the reeds, changed."))
-    check("a working file changed outside the paths named, and an operative file changed, leave that code as it was: it stands for the paths named alone",
-          search.snapshot(root, target=search.WORKING, paths=[".ai/plans/design-specs"], scratch=scratch) == one)
-    tools.put(root, ".ai/plans/design-specs/a-design.md", fixtures["design-citing-the-heron"].replace(" is cited as `specs/target.md § Target` from this design.", ", changed."))
-    check("and a working file changed under them changes it", search.snapshot(root, target=search.WORKING, paths=[".ai/plans/design-specs"], scratch=scratch) != one)
+    assert search.SNAPSHOT.fullmatch(one) and one != code_of(root, work)
+    assert code_of(root, work, target=search.WORKING, paths=DESIGNS) == one
+
+
+@pytest.mark.action("--show-snapshot-code")
+@pytest.mark.passes
+def test_other_paths_of_the_working_files_take_another_code(fixtures, work):
+    root = heron(work, fixtures)
+    assert code_of(root, work, target=search.WORKING, paths=[".ai/plans"]) != code_of(root, work, target=search.WORKING, paths=DESIGNS)
+
+
+@pytest.mark.action("--show-snapshot-code")
+@pytest.mark.passes
+@pytest.mark.reads("search-changed-files.md", "plan-naming-the-heron-changed", "heron-spec-changed-in-the-reeds")
+@pytest.mark.parametrize("key, path", [("plan-naming-the-heron-changed", HERON["plan-citing-the-heron"]), ("heron-spec-changed-in-the-reeds", HERON["heron-spec"])],
+                         ids=["a-working-file-outside-the-paths", "an-operative-file"])
+def test_a_file_changed_outside_the_paths_named_leaves_the_code_of_the_working_files_as_it_was(fixtures, work, key, path):
+    root = heron(work, fixtures)
+    one = code_of(root, work, target=search.WORKING, paths=DESIGNS)
+    project(root, fixtures, {key: path})
+    assert code_of(root, work, target=search.WORKING, paths=DESIGNS) == one
+
+
+@pytest.mark.action("--show-snapshot-code")
+@pytest.mark.passes
+@pytest.mark.reads("search-changed-files.md", "design-naming-the-heron-changed")
+def test_a_working_file_changed_under_the_paths_named_changes_their_code(fixtures, work):
+    root = heron(work, fixtures)
+    one = code_of(root, work, target=search.WORKING, paths=DESIGNS)
+    project(root, fixtures, {"design-naming-the-heron-changed": HERON["design-citing-the-heron"]})
+    assert code_of(root, work, target=search.WORKING, paths=DESIGNS) != one
 
 
 @pytest.mark.action("--show-snapshot-code")
 @pytest.mark.reports
-@pytest.mark.reads(*HERON)
-def test_the_code_of_a_commits_files_is_refused_where_no_version_control_holds_the_project(fixtures, tools, search, script, work, check):
-    # a small project with no repository at or above it below the run's folder
-    root = tools.a_project(work / "project", fixtures)
-    ran, printed = script(root, "--show-snapshot-code", "--target", search.COMMITTED_OPERATIVE)
-    check("asked for the code of the committed files of a project under no version control, the script stops, says so and gives no code",
-          ran == 1 and "under no version control the search reads" in printed and not any(search.SNAPSHOT.fullmatch(line) for line in printed.split("\n")), (ran, printed))
-    check("and it leaves no index behind", not (root / search.SCRATCH).exists(), list((root / ".ai").rglob("*")))
+def test_show_snapshot_code_refuses_the_committed_files_of_a_project_under_no_version_control_leaving_no_index(fixtures, work, capsys):
+    # the project stands below the run's folder, above which git is kept from looking, and holds no repository
+    root = heron(work, fixtures)
+    assert ask(root, "--show-snapshot-code", "--target", search.COMMITTED_OPERATIVE) == 1
+    printed = capsys.readouterr().out
+    assert "under no version control the search reads" in printed and not any(search.SNAPSHOT.fullmatch(line) for line in printed.split("\n"))
+    assert not (root / search.SCRATCH).exists()

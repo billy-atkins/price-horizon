@@ -13,20 +13,20 @@ import reading
 
 # @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § A Citation's Link
 # the files a person reads on GitHub, the only ones carrying links: README.md, the files under docs/, and every spec but
-# specs/AGENTS.md
+# the specs' instructions to agents
 LINKED_ROOTS = ("specs", "docs")
 LINKED_FILES = ("README.md",)
 UNLINKED_NAMES = ("AGENTS.md",)
 # a field whose value declares what a definition or an instance is, rather than sending a reader to text: its key's
 # line, its value ending at the space and the backslash that end a field's line; the list beneath its key is read
-# through the one reader (modeling-constructs.md § Fields)
+# through the one reader of a block of fields
 UNLINKED_FIELDS = re.compile(r"^\s*\*\*(?:Construct|Extends|Implements):\*\*(?: (?P<value>.*?))?(?: \\)?$")
 SPAN = re.compile(reading.SPAN.pattern)  # a code span, the one reading's form, read here within one line
 LINKED = re.compile(r"\[(?P<span>(?P<d>`+)[^\n]+?(?P=d))\]\((?P<target>[/#][^)\s]*)\)")
 
 
 def linked_files(root):
-    """-> the Markdown files a person reads on GitHub: under specs/ and docs/, and README.md, AGENTS.md files aside."""
+    """-> the Markdown files a person reads on GitHub: under specs/ and docs/, and README.md, the files of instructions to agents aside."""
     out = []
     for top in LINKED_ROOTS:
         p = root / top
@@ -50,7 +50,7 @@ def slug(title):
 
 def live_lines(text):
     """-> the file's lines, a fenced block's and the front matter's blanked, so neither is read as text a reader sees,
-    as the one reading finds them (reading.py)."""
+    as the one reading of a text finds them."""
     return reading.live(text, front_matter=True, blank="").split("\n")
 
 
@@ -78,7 +78,7 @@ class Resolver:
         self.tracked = tracked(root, others=True) or None
 
     def served(self, rel):
-        """-> whether GitHub serves the file: one version control tracks, never an index.md, which nothing cites."""
+        """-> whether GitHub serves the file: one version control tracks, never a folder's index, which nothing cites."""
         if Path(rel).name == "index.md" or not (self.root / rel).is_file():
             return False
         return self.tracked is None or rel in self.tracked
@@ -103,7 +103,7 @@ class Resolver:
             if anchor is None:
                 return None
             return f"#{anchor}" if not c.file else f"/{rel}#{anchor}"
-        # a whole file is cited by its path from the repository's root; a bare file name, as a row of an index.md
+        # a whole file is cited by its path from the repository's root; a bare file name, as a row of a folder's index
         # naming a file beside it or words naming a kind of file, is no citation
         return f"/{c.file}" if self.served(c.file) else None
 
@@ -130,9 +130,11 @@ def refresh_tree(root):
     return changed
 
 
-def problems(root):
+def problems(scope):
     """-> (path, line, problem) for each line of a file a person reads whose links refresh would change, and each link in
-    a file no person reads on GitHub, a skill or an AGENTS.md file, or in a Construct, an Extends or an Implements field."""
+    a file no person reads on GitHub, a skill or a file of instructions to agents, or in a Construct, an Extends or an Implements field:
+    read from the scope's tree, the audit's scope read once or a test's fixtures."""
+    root = scope.root
     resolver, out = Resolver(root), []
     linked = set(linked_files(root))
     for f in linked:
@@ -154,7 +156,7 @@ def refresh(text, host, resolver):
     """-> the text with each citation a reader sees carrying the link its citation resolves to, a link that no longer
     resolves removed, a fenced block, the front matter, a heading and a Construct, an Extends or an Implements
     field's value left alone."""
-    from record_types import _indent, read_block  # the one reader of a block of fields (modeling-constructs.md § Fields)
+    from record_types import _indent, read_block  # the one reader of a block of fields
     lines = strip(text).split("\n")
     live = live_lines("\n".join(lines))
     stands = reading.lines("\n".join(lines))  # where each line stands, the one reading's

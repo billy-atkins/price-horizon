@@ -1,8 +1,8 @@
 """FEEL expressions, adopted whole: an expression or a cell's unary tests parsed and given its kind, so a name no fact
 declares, values of two known kinds combined, and a call FEEL's built-in functions do not take are reported.
 
-The construct checks' reading of expressions (specs/methodology/expressions.md § Expressions § FEEL): constructs.py
-reads a construct's cells and hands it what is written in FEEL. It parses FEEL's whole grammar, gives each expression its
+The construct checks' reading of expressions: the construct checks read a construct's cells and hand it what is
+written in FEEL. It parses FEEL's whole grammar, gives each expression its
 kind where it can be told, and reports only what it can decide; it evaluates nothing.
 """
 import difflib
@@ -11,7 +11,7 @@ import re
 # @canon-spec specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact
 # a fact's name: words separated by single spaces, each opening with a letter and holding letters, digits and
 # apostrophes, a hyphen joining two runs of them; and a boolean fact's, a question, any words ending in a question mark;
-# the one copy, which constructs.py reads too
+# the one copy, which the construct checks read too
 WORD = r"[A-Za-z][A-Za-z0-9']*(?:-[A-Za-z0-9']+)*"
 NAME = re.compile(WORD + r"(?: " + WORD + r")*")
 QUESTION = re.compile(r"[^,]*[^,\s]\?")
@@ -21,7 +21,7 @@ QUESTION = re.compile(r"[^,]*[^,\s]\?")
 COMPUTING = re.compile(r'[()+*/<>=\[\]]| - |(?<=[^\W\d])\.(?=[^\W\d])')
 # @canon-spec specs/methodology/expressions.md § Expressions § FEEL § Its Values
 # a value as FEEL writes one, each part a group: a date, a date and time to the second with its offset, a time of day,
-# a duration of either kind; the one copy, which constructs.py reads too
+# a duration of either kind; the one copy, which the construct checks read too
 LITERAL = {
     "date and time": re.compile(r'date and time\("(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d+)?(Z|[+-]\d{2}:\d{2})"\)'),
     "date": re.compile(r'date\("(\d{4})-(\d{2})-(\d{2})"\)'),
@@ -938,6 +938,7 @@ def compared(text, facts):
         return None
 
 
+# @canon-spec specs/methodology/expressions.md § Expressions § FEEL § Its Functions
 def function_table_findings(text):
     """The file's table of FEEL's built-in functions against FUNCTION_TABLE and ITEMS_AS_ARGUMENTS, this script's
     copy: each row's Function, Takes and Gives, in order, and which are also given a list's items -> [(line, message)]."""
@@ -967,6 +968,7 @@ def function_table_findings(text):
     return out
 
 
+# @canon-spec specs/methodology/expressions.md § Expressions § FEEL § The Canon's Functions
 def library_table_findings(text):
     """The file's tables of the canon's functions, each group's in order, against LIBRARY, this script's copy: each row's
     Function, Takes, Gives and Values, in order; and each Body a FEEL expression, its parameters in scope, giving what
@@ -1009,6 +1011,7 @@ def library_table_findings(text):
     return out
 
 
+# @canon-spec specs/methodology/expressions.md § Expressions § FEEL § Names
 def keyword_findings(text):
     """The file's list of the words FEEL keeps for itself against KEYWORDS, this script's copy -> [(line, message)]."""
     for i, l in enumerate(text.split("\n"), 1):

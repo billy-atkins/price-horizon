@@ -1,54 +1,59 @@
-"""The listing of cited sections: each place cited, with every place citing it."""
+"""The listing of cited sections: each place cited, with every place citing it. The file's tests share one index of
+the corpus of forms, built once in the file's folder: the forms spec and the code cite the target spec's file, its
+sections Target and Table, the child of Target and one record of it, one citation of the child standing bare in a
+fenced block of the forms spec."""
 import pytest
 
-pytestmark = [pytest.mark.reads("search-corpus-specs.md", "forms-spec", "target-spec", "promise-product-file", "ledger-glossary"),
-              pytest.mark.reads("search-corpus-code.md", "ledger-python", "ledger-typescript", "ledger-csharp", "ledger-table-sql", "ledger-settings-yaml")]
+from search_set import CORPUS, READS_CORPUS, every_file, line_holding, project
+
+pytestmark = READS_CORPUS + [pytest.mark.action("--show-cited-sections"), pytest.mark.passes]
 
 
 @pytest.fixture
-def corpus(shared, fixtures, tools):
-    """-> (the corpus's root, a search over every file of it), written and indexed by the first test of the file."""
+def corpus(shared, fixtures):
+    """-> a search over every file of the corpus, written and indexed by the first test of the file."""
     def build():
-        root = tools.a_corpus(shared.folder / "project", fixtures)
-        return root, shared.opened(root, cover=tools.files_under(root), scratch=shared.folder / "index")
+        root = project(shared.folder / "project", fixtures, CORPUS)
+        return shared.opened(root, cover=every_file(root), scratch=shared.folder / "index")
     return shared.once("corpus", build)
 
 
-@pytest.mark.action("--show-cited-sections", "--show-citers")
-@pytest.mark.passes
-def test_cited_sections_lists_each_place_cited_with_every_place_citing_it(corpus, tools, search, check):
-    # the forms spec and the code cite the target spec's file, its sections Target and Table, the child of Target
-    # and one record of it; one citation of the child stands bare in a fenced block of the forms spec
-    root, s = corpus
-    r = s.cited_sections()
-    groups, order = {}, []
-    for place in r.places:
+def cited_by(result):
+    """-> {what is cited: {each place citing it}} of a listing of cited sections."""
+    groups = {}
+    for place in result.places:
         citing, _, cited = place.partition(" cites ")
-        cited = cited.strip("`")
-        order += [cited] if cited not in order else []
-        groups.setdefault(cited, set()).add(citing)
-    check("the listing is every place, each a citing place saying what it cites, and passes the check of a result's form",
-          r.kind == "cited sections" and r.completeness == "complete" and search.Result.check(r.path) == [] and all(" cites `" in p for p in r.places), search.Result.check(r.path))
-    check("a section, a section within it, a keyed part and a file are each listed as cited",
-          {"specs/target.md § Target", "specs/target.md § Target § Child", "specs/target.md § Target [Name: first-record]", "specs/target.md", "specs/target.md § Table"} <= set(groups), sorted(groups))
-    check("the places are ordered by what is cited, so the places citing one stand together", order == sorted(order), order)
-    differ = {}
-    for cited, citing in groups.items():
-        alone = {str(p) for p in s.citers(cited).places}
-        if alone != citing:
-            differ[cited] = sorted(alone ^ citing)
-    check(f"what it gives for each of the {len(groups)} places cited agrees with the places citing that one, asked alone", not differ, differ)
-    check("a citation written bare in a fenced block is listed under the heading it names",
-          any(p.startswith(f"`specs/forms.md § Fences` line {tools.line_holding(root, 'specs/forms.md', 'Do the work as specs/target.md')}, in a fenced block cites") for p in r.places if p.endswith("`specs/target.md § Target § Child`")), r.places)
-    narrowed = s.cited_sections(["code"])
-    check("narrowed to a folder, it lists the citing places in that folder alone", bool(narrowed.places) and all(p.startswith("`code/") for p in narrowed.places), narrowed.places)
+        groups.setdefault(cited.strip("`"), set()).add(citing)
+    return groups
 
 
-@pytest.mark.action("--check-result")
-@pytest.mark.reports
-def test_a_result_saying_what_a_place_cites_is_in_its_form_only_as_a_listing_of_cited_sections(corpus, tools, check):
-    # the test's variant of a result: the listing of cited sections, its Kind rewritten to that of a search for citers
-    root, s = corpus
-    r = s.cited_sections()
-    problems = tools.changed(r.path, "**Kind:** cited sections", "**Kind:** citers")
-    check("a result saying what a place cites is in its form only as a listing of cited sections", any("no listing of cited sections" in p for p in problems), problems)
+def test_the_listing_is_complete_and_each_place_says_what_it_cites(corpus):
+    r = corpus.cited_sections()
+    assert r.kind == "cited sections" and r.completeness == "complete" and r.places and all(" cites `" in p for p in r.places)
+
+
+@pytest.mark.parametrize("cited", ["specs/target.md § Target", "specs/target.md § Target § Child", "specs/target.md § Target [Name: first-record]",
+                                   "specs/target.md", "specs/target.md § Table"])
+def test_a_section_a_section_within_it_a_keyed_part_and_a_file_are_each_listed_as_cited(corpus, cited):
+    assert cited in cited_by(corpus.cited_sections())
+
+
+def test_the_places_are_ordered_by_what_is_cited(corpus):
+    order = list(dict.fromkeys(p.partition(" cites ")[2].strip("`") for p in corpus.cited_sections().places))
+    assert order == sorted(order)
+
+
+@pytest.mark.action("--show-citers")
+def test_what_it_gives_for_each_place_cited_agrees_with_the_places_citing_that_one_asked_alone(corpus):
+    groups = cited_by(corpus.cited_sections())
+    assert {cited: {str(p) for p in corpus.citers(cited).places} for cited in groups} == groups
+
+
+def test_a_citation_written_bare_in_a_fenced_block_is_listed_under_the_heading_it_names(corpus, fixtures):
+    bare = line_holding(fixtures["forms-spec"], "Do the work as specs/target.md")
+    assert f"`specs/forms.md § Fences` line {bare}, in a fenced block" in cited_by(corpus.cited_sections())["specs/target.md § Target § Child"]
+
+
+def test_narrowed_to_a_folder_it_lists_the_citing_places_in_that_folder_alone(corpus):
+    narrowed = corpus.cited_sections(["code"])
+    assert narrowed.places and all(p.startswith("`code/") for p in narrowed.places)

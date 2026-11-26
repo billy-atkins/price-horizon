@@ -1,9 +1,9 @@
 """A spec's text as the skills' scripts share it: its sections and their lineages, where a citation resolves, and
 which files are in scope, by the skills registry, and their texts. Where a line stands, in a fenced block or under a
-heading, and the form a citation takes are the one reading's (reading.py), which each function here gives in the
+heading, and the form a citation takes are the one reading's, which each function here gives in the
 shape its callers read.
 audit-specs, design-specs, implement-specs and verify-spec-implementation read a spec through it, each reading this
-one copy (specs/methodology/skills/authoring-a-skill.md § Authoring a Skill)."""
+one copy."""
 import fnmatch
 import re
 import subprocess
@@ -34,7 +34,9 @@ class CommitTree:
         self.store = store
 
     def _at(self, rel):
-        return CommitTree(self.repo, self.commit, rel, self.store)
+        node = object.__new__(type(self))
+        node.repo, node.commit, node.rel, node.store = self.repo, self.commit, rel, self.store
+        return node
 
     def __truediv__(self, other):
         rel = posix_join(self.rel, str(other).replace("\\", "/"))
@@ -143,7 +145,45 @@ class CommitTree:
 
     def tracked(self):
         """-> every file the commit holds, the tracked set a check of the working tree reads from git ls-files."""
-        return set(self.store["files"])
+        return set(self.store.get("tracked", self.store["files"]))
+
+
+class FileTree(CommitTree):
+    """Files held in memory by their paths from the tree's root, a path of the tree as CommitTree gives one: what the
+    audit reads a checkout into once, and what a test hands a check in place of a checkout. `files` maps each path to
+    its text or its bytes; `tracked`, the files version control tracks, is every file where none is given."""
+
+    def __init__(self, files, tracked=None):
+        data = {p: (t.encode("utf-8") if isinstance(t, str) else t) for p, t in files.items()}
+        dirs = {""}
+        for p in data:
+            parts = p.split("/")
+            dirs |= {"/".join(parts[:i]) for i in range(1, len(parts))}
+        self.repo, self.commit, self.rel = None, "files", ""
+        self.store = {"files": {p: p for p in data}, "dirs": dirs, "blobs": data,
+                      "tracked": set(data) if tracked is None else set(tracked)}
+
+    @classmethod
+    def of_checkout(cls, root):
+        """-> a checkout's files read once: every file version control tracks and every untracked file it does not
+        ignore, or, under no version control, every file but the working files' scratch spaces."""
+        root = Path(root)
+        held, listed = tracked(root), tracked(root, others=True)
+        if listed is None:
+            listed = {f.relative_to(root).as_posix() for f in root.rglob("*")
+                      if f.is_file() and not f.relative_to(root).as_posix().startswith(".ai/tmp/")}
+        files = {}
+        for p in sorted(listed):
+            try:
+                files[p] = (root / p).read_bytes()
+            except OSError:
+                continue  # listed by version control and gone from the working tree
+        return cls(files, held if held is not None else set(files))
+
+    def __str__(self):
+        return self.rel
+
+    __repr__ = __str__
 
 
 def posix_join(base, rel):
@@ -164,7 +204,7 @@ def tracked(root, others=False):
     git does not ignore too, or None where root is under no version control: the commit's own files, for a commit's
     tree."""
     if isinstance(root, CommitTree):
-        return root.tracked()
+        return set(root.store["files"]) if others else root.tracked()
     command = ["git", "ls-files"] + (["--cached", "--others", "--exclude-standard"] if others else [])
     try:
         out = subprocess.run(command, cwd=root, capture_output=True, text=True, check=True).stdout
@@ -193,9 +233,9 @@ RECORD_SELECTOR = reading.KEYED  # a citation's keyed part, the one reading's
 
 def strip_fences(text):
     """Blank out fenced blocks so examples inside them are not linted as live content: each line of a fenced block, its
-    fences among them, as the one reading finds it (reading.py), a fence indented within a list item, as a step's Draft
-    stands, among them, and a fence's closing one of its character at least as long (spec-style/markdown.md
-    § Markdown). An indented code block's lines stand."""
+    fences among them, as the one reading finds it, a fence indented within a list item, as a step's Draft stands,
+    among them, and a fence's closing one of its character at least as long, as the canon's Markdown style has it. An
+    indented code block's lines stand."""
     return reading.live(text, blank="")
 
 
@@ -233,20 +273,19 @@ def resolve(cite, host):
 
 
 def lineages(text):
-    """-> set of '§'-joined ancestor paths, one per heading.
+    """-> set of ancestor paths, one per heading, each joined by the section sign.
 
     A level-1 heading is the file's own title, not a section, so a lineage starts at
-    level 2. This is why `§ Overview` resolves in a file whose first line is
-    `# Payments Service`.
+    level 2. This is why a citation of the section Overview resolves in a file whose
+    first line is `# Payments Service`.
     """
     return {" § ".join(lineage) for lineage in reading.sections(text)}
 
 
 # @canon-spec specs/methodology/scope/what-spec-of-record-governs.md § What Spec of Record Governs
-# specs/methodology/scope/what-spec-of-record-governs.md § What Spec of Record Governs names where each kind is named:
-# specs by their place under specs/, the agent instructions by the root AGENTS.md and
-# specs/AGENTS.md, the documentation by README.md and docs/, and skills by the registry, read at
-# run time. The places and names this block defines are the ones the scope's table gives;
+# the scope's table names where each kind is named: specs by their place under specs/, the agent
+# instructions by the two agent instruction files, the root's and the specs folder's, the
+# documentation by README.md and docs/, and skills by the registry, read at run time. The places and names this block defines are the ones the scope's table gives;
 # the working files are outside the script, read by the Working-file form audit instead, and code
 # is outside audit-specs, which audits every kind but code.
 SCOPE_HOME = "scope/what-spec-of-record-governs.md § What Spec of Record Governs"
@@ -259,7 +298,7 @@ REGISTRY_RULE = "skills/registered-skills.md § Registered Skills"
 
 
 def registry(root):
-    """-> (skill names, problems): the skills specs/methodology/skills/registered-skills.md registers.
+    """-> (skill names, problems): the skills the skills registry registers.
 
     A missing registry, a table naming no skill, or a row not naming one in backticks is a
     problem, so a broken registry is reported rather than read as an empty scope.
@@ -304,8 +343,49 @@ def durable_kind(path):
     return FIXTURE if path == FIXTURES or path.startswith(FIXTURES + "/") else OPERATIVE
 
 
+def checkout():
+    """-> the checkout whose canon each form is read from: the one the skills' shared code stands in, the folder holding
+    its lib folder, whatever folder the script is run in and whatever root it is given; for the shared code as a
+    commit held it, read from that commit, the commit's own tree. A second checkout's script, a worktree's among
+    them, reads its own checkout's canon."""
+    commit, sep, _ = __file__.partition(":.ai/skills/lib/")
+    if sep:
+        if commit not in checkout.trees:
+            checkout.trees[commit] = CommitTree(Path.cwd(), commit)
+        return checkout.trees[commit]
+    return Path(__file__).resolve().parents[3]
+
+
+checkout.trees = {}
+
+
+def canon_texts():
+    """-> {path: text, citations' links stripped} of each Markdown file of the canon in the checkout, the kept tests'
+    files aside, read once, for a check taking its setup from the canon apart from the texts it checks."""
+    if not canon_texts.held:
+        base = checkout()
+        canon = {p for p in canon_files(base) if not p.startswith(KEPT_TESTS + "/")}
+        canon_texts.held.update((p, t) for p, t in spec_texts(base).items() if p in canon)
+    return canon_texts.held
+
+
+canon_texts.held = {}
+
+
+def canon_files(root):
+    """-> each file of the canon by its path from the root, in the paths' order: the specifications' entry point, main
+    file and overview, the methodology's files, each registered skill's files with the code their scripts share, and
+    the kept tests' files, their fixture files among them."""
+    out = [p for p in ("specs/AGENTS.md", "specs/index.md", "specs/architecture.md") if (root / p).is_file()]
+    for base in ["specs/methodology"] + [".ai/skills/" + n for n in skill_dirs(root)] + [KEPT_TESTS]:
+        d = root / base
+        out += [f.relative_to(root).as_posix() for f in d.rglob("*") if f.is_file() and "__pycache__" not in f.parts] \
+            if d.is_dir() else []
+    return sorted(set(out))
+
+
 def scope_paths(root, kind=OPERATIVE):
-    """The places in scope holding durable files of a kind. The operative files: the root AGENTS.md, the documentation,
+    """The places in scope holding durable files of a kind. The operative files: the root's agent instructions, the documentation,
     specs/, each registered skill, the code they share, and the kept tests' folder, whose fixtures folder a caller walking
     it leaves out by `durable_kind`. The fixture files: the fixtures folder alone."""
     if kind == FIXTURE:
@@ -316,7 +396,7 @@ def scope_paths(root, kind=OPERATIVE):
 # @canon-spec specs/methodology/scope/progressive-disclosure.md § Progressive Disclosure
 # @canon-spec specs/methodology/spec-placement/where-a-file-goes.md § Where a File Goes
 def indexed(root, folder="specs"):
-    """The files the index tables name, walked from `folder`'s index.md down -> [path]: each index.md, then each file
+    """The files the index tables name, walked from `folder`'s index down -> [path]: each index, then each file
     its rows name in their order, a row naming a subdirectory, its name ending `/`, walked in turn. A row naming what is
     not there is the index check's to report, which alone walks the filesystem."""
     idx = root / folder / "index.md"
@@ -331,13 +411,14 @@ def indexed(root, folder="specs"):
     return out
 
 
-# the worked examples, which keep a tree of their own (scope/progressive-disclosure.md § Progressive Disclosure)
+# @canon-spec specs/methodology/scope/progressive-disclosure.md § Progressive Disclosure
+# the worked examples, which keep a tree of their own
 EXAMPLES = "specs/methodology/examples/"
 
 
 def methodology_files(root):
     """The methodology's own files, as the index walk finds them: each file under specs/methodology/ its index tables
-    name, a document laid out as a folder's files among them, its worked examples and each index.md aside -> [path]."""
+    name, a document laid out as a folder's files among them, its worked examples and each index aside -> [path]."""
     return [p for p in indexed(root, "specs/methodology")
             if p.name != "index.md" and not p.relative_to(root).as_posix().startswith(EXAMPLES)]
 
@@ -430,11 +511,32 @@ def fixtures_of(text):
 # where a run of the kept tests writes, among the working files, the report it leaves there, and the name a run
 # started by another is told its own folder under
 KEPT_RUN, KEPT_REPORT, KEPT_RUN_NAMED = ".ai/tmp/kept-tests", "report.xml", "SPEC_OF_RECORD_KEPT_RUN"
+# the variable a run of the kept tests names to each process it starts the threads the search's model works on
+MODEL_THREADS_NAMED = "SPEC_OF_RECORD_MODEL_THREADS"
 # the priority a run of the kept tests takes, below that of a person's own work, by each system's own name for it
 BELOW_NORMAL_PRIORITY, NICER_BY = 0x00004000, 10
 
 
 # @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Kept Tests § A Run
+def machine():
+    """-> (the machine's memory, in bytes, and its processors), read as a run starts: the physical memory by
+    GlobalMemoryStatusEx on Windows and by os.sysconf elsewhere, and the processors by os.cpu_count."""
+    import os
+    processors = os.cpu_count() or 2
+    if os.name == "nt":
+        import ctypes
+
+        class Status(ctypes.Structure):
+            _fields_ = [("dwLength", ctypes.c_uint32), ("dwMemoryLoad", ctypes.c_uint32)] + [
+                (n, ctypes.c_uint64) for n in ("ullTotalPhys", "ullAvailPhys", "ullTotalPageFile", "ullAvailPageFile",
+                                               "ullTotalVirtual", "ullAvailVirtual", "ullAvailExtendedVirtual")]
+        status = Status()
+        status.dwLength = ctypes.sizeof(Status)
+        ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status))
+        return status.ullTotalPhys, processors
+    return os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES"), processors
+
+
 def yield_the_machine():
     """Puts the process it is called in below the priority of a person's own work, so the system gives the machine to
     what the person is using first. Each process this one starts takes the same priority from it. -> whether the
@@ -513,6 +615,7 @@ def test_annotations(text):
 
 
 def check_named(citation):
-    """-> the Name of the check's record a citation names, or None where it names no record by a Name."""
+    """-> the place a citation names for a check: the Name of the check's record it names, a record kept by its Name
+    alone, or the section it cites, the one a skill's table enforces for a check not yet in a record."""
     named = CHECK_NAMED.search(citation)
-    return named.group(1).strip() if named else None
+    return named.group(1).strip() if named else citation.strip()
