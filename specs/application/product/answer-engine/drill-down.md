@@ -19,7 +19,7 @@ Throughout every stage ([`specs/application/product/answer-engine/predict.md § 
 
 ### What a granularity drill-down shows
 
-What a granularity drill-down shows depends on whether it stays within the range the competitor's data is reported at:
+What a granularity drill-down shows depends on the geographic level supported by the evidence. A reported competitor observation supports that side of the analysis. A matched Position or Simulate value also requires reliable product and geography alignment at the selected level. When alignment is unresolved, show the available sourced facts and the reason the dependent value is unavailable:
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
 
@@ -32,7 +32,7 @@ What a granularity drill-down shows depends on whether it stays within the range
 
 | Granularity | Figure shown | Decomposition graph | Such As |
 |---|---|---|---|
-| Within the reported range | The same analysis re-run at a narrower filter, guaranteed consistent with the broader figure it was drilled from | Available | country, state or province, major metro |
+| Within the reported range | The supported analysis re-run at a narrower filter, consistent with the broader figure it was drilled from | Available | country, state or province, major metro |
 | Below the reported range | An allocation of the major metro number, or the state's where no metro is reported, labeled as an estimate, not shown with the confidence of a directly sourced forecast, and opening to the forecast it was allocated from and the weighting used, population or retail footprint | Not available, an allocated figure has no causal story of its own to tell | county, store |
 
 That boundary reflects which competitor data is currently licensed and ingested. It is not a permanent limit. A more granular data source would move it.

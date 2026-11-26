@@ -13,7 +13,7 @@ A Control plane admin ([`specs/application/product/roles.md § Roles`](/specs/ap
 
 The stable-price threshold is how small a forecast move, as a share of today's price, has to be before the competitor's price is called stable rather than moving. The same threshold decides when evidence disagreeing with the forecast's baseline is big enough to be flagged as a disagreement. Flagged evidence holds the confidence score down as well as entering the forecast through its driver's correction. Disagreeing evidence below the threshold only enters through the correction.
 
-The materiality thresholds are how close two positioning options next to each other in price have to be before they are shown as one, the consolidation [`specs/application/product/answer-engine/position.md § Position: where Brand A should sit`](/specs/application/product/answer-engine/position.md#position-where-brand-a-should-sit) promises. Each measure the answer shows for the options has its own threshold, and the two options have to be that close on each measure.
+The materiality thresholds are how close the members of neighboring groups in absolute price-gap order have to be before they are shown as one, the consolidation [`specs/application/product/answer-engine/position.md § Position: where Brand A should sit`](/specs/application/product/answer-engine/position.md#position-where-brand-a-should-sit) promises. Each measure the answer shows for the options has its own threshold, and every pair in a group must meet every threshold on values available for both.
 
 The admin can also rename how the positioning options are labeled for their own analysts, without changing the rule each option stands for ([`specs/application/product/answer-engine/position.md § Position: where Brand A should sit § The Strategies`](/specs/application/product/answer-engine/position.md#the-strategies)).
 
@@ -52,7 +52,7 @@ Scenario: Disagreeing evidence below the stable-price threshold enters the forec
 
 Scenario: A materiality threshold change reaches the next answer.
   Given a Control plane admin for North America Snacks raises the materiality threshold for simulated share from 0.5 to 1 point
-  And Close the Gap and Match, next to each other in price, would differ by 0.8 points of simulated share and by less than their thresholds on every other measure
+  And Close the Gap and Match, adjacent in absolute price-gap order, would differ by 0.8 points of simulated share and by less than their thresholds on every other measure
   And Hold and Close the Gap would differ by 1.5 points of simulated share
   When a Query user in North America Snacks next asks where Competitor Brand's effective price will be in Texas in 6 months
   Then Close the Gap and Match are shown as one option

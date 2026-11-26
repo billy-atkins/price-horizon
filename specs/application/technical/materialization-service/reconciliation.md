@@ -1,6 +1,6 @@
 ## Product and Geography Reconciliation
 
-The harmonized foundation ([`specs/application/technical/data-model.md § Core Data Model § Harmonized quantitative foundation`](/specs/application/technical/data-model.md#harmonized-quantitative-foundation)) lands two independently sourced views of the market: the competitor's syndicated data and Brand A's own internal data. Neither the forecast, the price gap, nor the simulated outcomes mean anything until the two views are reconciled to a common product and geography reference. Product matching is an Algorithm.
+The harmonized foundation ([`specs/application/technical/data-model.md § Core Data Model § Harmonized quantitative foundation`](/specs/application/technical/data-model.md#harmonized-quantitative-foundation)) lands two independently sourced views of the market: the competitor's syndicated data and Brand A's own internal data. A cross-brand comparison requires a common, resolved product and geography reference. An unresolved match withholds that comparison and its dependent values. Independently grounded competitor forecasts and Brand A prices retain their source and availability. Product matching is an Algorithm.
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
 

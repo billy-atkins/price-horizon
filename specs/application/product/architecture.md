@@ -10,7 +10,7 @@ The price being forecast is effective price, the net price actually realized per
 
 **Predict.** It turns the question into a forecast: the direction and magnitude of the competitor's likely move in effective price. The forecast is always delivered with a plain-language rationale and distinct measures of certainty attached, never as a bare number. It arrives as a scorecard of the forecast and its confidence, a plain-language account of the expected impact and the KPIs it moves, a map of how the figure breaks down from country to metro, and a chart of the baseline and the drivers behind it. A confidence band gives the range around the forecast itself, drawn from how much uncertainty the underlying forecasting models carry. A confidence score is a separate read of how well-founded the evidence behind the forecast is, explained under [`§ Trust & Explainability`](#trust--explainability). The two can diverge without contradicting each other, as when a precise forecast rests on a weakly sourced fact. The answer shows both without flagging either as an error. Nothing downstream exists without Predict: Position and Simulate both take its output as their starting point. A positioning option carries the forecast's own confidence unchanged. A simulated outcome computes its own confidence, since projecting a business outcome introduces uncertainty the forecast never carried. A positioning option built on a low-confidence forecast is flagged as such, never presented with false certainty.
 
-**Position.** It takes Predict's forecast and frames Brand A's response as a small, named set of options rather than a single recommendation: Hold, Match, Close the Gap, and Diverge. Each option is stated against the predicted outcome as a price gap and as a relative price index. The price gap is the plain currency difference, in the geography's own local currency, never blended into one converted total across countries. The relative price index is the same comparison expressed as a ratio times 100. Above 100 means Brand A sits at a premium, and below 100 a discount. Which options appear depends on the kind of decision the question is asked for, a brand pricing decision or a retailer or promotional one. A retailer or promotional decision drops Diverge, since Diverge moves the brand's price position, which such a decision does not own. The set is never collapsed to one answer. The choice belongs to the executive, and the system's job is to frame it, not make it.
+**Position.** It takes Predict's forecast and frames Brand A's response as a small, named set of options rather than a single recommendation: Hold, Match, Close the Gap, and Diverge. With valid matched prices, each eligible option shows its price gap. Its relative price index also requires a positive competitor target. The price gap is the absolute currency difference, in the geography's own local currency, never blended into one converted total across countries. The relative price index is the same comparison expressed as a ratio times 100. Above 100 means Brand A sits at a premium, and below 100 a discount. Which options appear depends on the kind of decision the question is asked for, a brand pricing decision or a retailer or promotional one. A retailer or promotional decision drops Diverge, since Diverge moves the brand's price position, which such a decision does not own. Options with materially equivalent outcomes may appear as a group. The delivered answer keeps each group’s labels and underlying member figures. Unresolved matches show which comparisons are unavailable. The set is never collapsed to one answer. The choice belongs to the executive, and the system's job is to frame it, not make it.
 
 **Simulate.** It takes each Position option and projects what that option would do to the business: share, volume, category growth, revenue, and margin. The outcomes are shown side by side, so the trade-off between options is visible before a decision is made, not discovered afterward.
 
@@ -36,7 +36,7 @@ An answer a Query user can act on has to survive being questioned afterward: by 
 
 Trust & Explainability is a different concern from whether the models are drifting over time, which is [`§ Accuracy Governance`](#accuracy-governance). It is also a different concern from who accessed the system or how it executed a request, which is [`§ Logging & Traceability`](#logging--traceability). Trust & Explainability is specifically about whether the answer in front of a Query user right now can be trusted.
 
-Fallbacks hold those guarantees up at the edges. A question whose own terms cannot be resolved, or that leaves unclear which business unit or kind of decision it is about, returns a clarifying question rather than a guess. Nothing is computed for it. A forecast whose evidence falls below the confidence threshold is labeled as such rather than stated fluently. A stage that cannot complete after the answer is under way says so plainly and shows whatever earlier stages did complete. Where nothing completed, it says that instead. In none of these cases is a stale or guessed figure substituted. [`§ Diagrams § When an Answer Falls Short`](#when-an-answer-falls-short) pictures this. Full detail: [`specs/application/product/trust-and-explainability/guarantees.md`](/specs/application/product/trust-and-explainability/guarantees.md), [`specs/application/product/trust-and-explainability/degraded-answer-behavior.md`](/specs/application/product/trust-and-explainability/degraded-answer-behavior.md), [`specs/application/product/answer-engine/predict.md`](/specs/application/product/answer-engine/predict.md), [`specs/application/product/answer-engine/simulate.md`](/specs/application/product/answer-engine/simulate.md).
+Fallbacks hold those guarantees up at the edges. A question whose own terms cannot be resolved, or that leaves unclear which business unit or kind of decision it is about, returns a clarifying question rather than a guess. Nothing is computed for it. A forecast whose evidence falls below the confidence threshold is labeled as such rather than stated fluently. A stage that cannot complete after the answer is under way says so plainly and shows whatever earlier stages did complete. If grouping fails after simulation completes, the answer shows the individual candidates with their completed outcomes. Where nothing completed, it says that instead. In none of these cases is a stale or guessed figure substituted. [`§ Diagrams § When an Answer Falls Short`](#when-an-answer-falls-short) pictures this. Full detail: [`specs/application/product/trust-and-explainability/guarantees.md`](/specs/application/product/trust-and-explainability/guarantees.md), [`specs/application/product/trust-and-explainability/degraded-answer-behavior.md`](/specs/application/product/trust-and-explainability/degraded-answer-behavior.md), [`specs/application/product/answer-engine/predict.md`](/specs/application/product/answer-engine/predict.md), [`specs/application/product/answer-engine/simulate.md`](/specs/application/product/answer-engine/simulate.md).
 
 ## Accuracy Governance
 
@@ -107,9 +107,9 @@ config:
 ---
 flowchart TD
     Q(["An executive question"]) --> P["Predict<br/>direction and magnitude<br/>of the competitor's likely move"]
-    P -->|"forecast, confidence, rationale"| POS["Position<br/>Hold · Match · Close the Gap · Diverge<br/>which apply depends on the decision<br/>never collapsed to one answer"]
+    P -->|"forecast, confidence, rationale"| POS["Position<br/>Hold · Match · Close the Gap · Diverge<br/>eligible strategies depend on the decision"]
     POS -->|"never shown more certain<br/>than the forecast"| SIM["Simulate<br/>share, volume, category growth,<br/>revenue, margin"]
-    SIM --> CHOICE(["Trade-offs side by side,<br/>the executive chooses"])
+    SIM --> CHOICE(["At least two choices side by side,<br/>grouped strategies open to member figures"])
 
     DRILL["Drill-down<br/>narrower geography, or a different metric,<br/>without leaving the analysis"]
     P -.- DRILL
@@ -150,7 +150,7 @@ flowchart TD
     BUILT --> ANS
     LIVE --> ANS
     Q(["An executive question"]) --> ANS
-    ANS["The answer<br/>scorecard of the forecast and its confidence,<br/>impact and KPIs, map, driver chart,<br/>options and their outcomes"]
+    ANS["The answer<br/>scorecard of the forecast and its confidence,<br/>impact and KPIs, map, driver chart,<br/>delivered options and their member outcomes"]
     ANS --> WHY(["The baseline, every driver, and every confidence figure<br/>open to the reasons and evidence behind them"])
 
     classDef done fill:#e8f2e8,stroke:#4a7,color:#222
@@ -214,7 +214,8 @@ flowchart TD
     POS -->|"cannot complete"| NP(["The forecast, labeled as<br/>missing Position and Simulate"])
     POS -->|"completes"| SIM["Simulate"]
     SIM -->|"cannot complete"| NS(["The forecast and options,<br/>labeled as missing Simulate"])
-    SIM -->|"completes"| FULL(["The full answer"])
+    SIM -->|"grouping succeeds"| FULL(["The full answer"])
+    SIM -->|"grouping unavailable"| IND(["Individual options with completed outcomes"])
 
     classDef stop fill:#f4f4f4,stroke:#777,color:#222
     classDef done fill:#e8f2e8,stroke:#4a7,color:#222
@@ -222,9 +223,10 @@ flowchart TD
     class FULL done
 ```
 
-**Caption:** What an answer shows when it cannot be completed in full. A question whose terms do not resolve, or that leaves unclear which business unit or kind of decision it is about, gets a clarifying question. A stage that cannot complete leaves whatever earlier stages produced, labeled with what is missing, never a stale or guessed figure in its place.
+**Caption:** What an answer shows when it cannot be completed in full. A question whose terms do not resolve, or that leaves unclear which business unit or kind of decision it is about, gets a clarifying question. A stage that cannot complete leaves whatever earlier stages produced, labeled with what is missing. If only grouping fails, each candidate keeps its completed simulation.
 
 **Sources:**
-- [`specs/application/product/trust-and-explainability/degraded-answer-behavior.md § Degraded Answer Behavior`](/specs/application/product/trust-and-explainability/degraded-answer-behavior.md#degraded-answer-behavior)
-- [`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes)
-- [`§ Answer Engine`](#answer-engine)
+  - [`specs/application/product/answer-engine/position.md § Position: where Brand A should sit`](/specs/application/product/answer-engine/position.md#position-where-brand-a-should-sit)
+  - [`specs/application/product/trust-and-explainability/degraded-answer-behavior.md § Degraded Answer Behavior`](/specs/application/product/trust-and-explainability/degraded-answer-behavior.md#degraded-answer-behavior)
+  - [`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes)
+  - [`§ Answer Engine`](#answer-engine)
