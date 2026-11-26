@@ -94,7 +94,7 @@ Each kind that can be chosen sends something different:
 
 - Reasoning over a question sends the question and the facts and model results it cites, the forecasts and Brand A's own targets among them.
 - Reading the qualitative corpus sends the documents read.
-- Rendering an explanation sends the rationale it explains.
+- Rendering a forecast explanation sends the rationale it explains. PriceHorizon renders candidate, group and simulated figures inside the installation from the records actually delivered.
 
 Searching the qualitative corpus and matching product catalogs always stay inside the installation. Only the kinds the client names leave it, and each carries only what it sends. Each named kind is served by a model version the client pins. Every answer records the version of each language model that served it, whether Acme AI's own or a frontier provider's.
 

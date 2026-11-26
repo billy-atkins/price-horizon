@@ -249,6 +249,8 @@ Produced by the positioning engine ([`specs/application/technical/query-service/
 | Field | Description |
 |---|---|
 | archetype | Hold, Match, Close the Gap, or Diverge |
+| candidate_id | Stable within this Delivered Answer and equal to the canonical archetype code (Hold, Match, Close the Gap, or Diverge), once per seed. All membership, call and evidence references use this code scoped by the delivery ID, including when simulation is unavailable. Display labels are recorded separately |
+| comparison_status | For each price or comparison, its availability and reason, including an unresolved product or geography match or an unusable price base. Available values are calculated before presentation rounding |
 | resulting_effective_price | Brand A's price under this archetype's rule, at the query's geography and horizon, in that geography's resolved currency |
 | price_gap | The absolute difference between resulting_effective_price and the competitor's forecast price, both already in the same geography's resolved currency |
 | relative_price_index | The same comparison as a ratio, times 100 |
@@ -267,9 +269,10 @@ Produced by the simulation engine ([`specs/application/technical/query-service/l
 
 | Field | Description |
 |---|---|
-| share | Projected share impact of this candidate, from the share-response model |
-| volume | Projected volume impact, from the volume model |
-| category_growth | Aggregated from the share and volume outputs at the category level, not a separate model |
+| share | Projected Brand A volume share, expressed as a fraction of category units in the candidate’s market and target period, from the pinned share-response model |
+| volume | Projected Brand A physical units for this candidate and target period, from the pinned volume model |
+| category_growth | Percent change in total category units from the comparable prior-year category volume; carries the projected brand volume, volume-share fraction, implied category units and reference vintage, market, period and physical unit, or an unavailable reason. |
+| metric_evidence | For each projected field, the candidate ID, value, availability, unit, period and referenced source inputs or versioned model call. For a derived figure preserve the input values and the derivation; for a model output preserve the pinned model version, inputs and output |
 | revenue | Calculated directly as price times volume, not a model call, in the resolved currency of the query's geography |
 | margin | Projected margin impact, from the margin model |
 | rationale | A Rationale Record scoped to Simulate, computed by [`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Confidence and rationale package, extended`](/specs/application/technical/query-service/layered-output-synthesis.md#confidence-and-rationale-package-extended) |
@@ -346,6 +349,8 @@ Produced by the query service as the final step of assembling any answer that re
 | positioning_candidates | The set of Positioning Candidates ([`§ Core Data Model § Pipeline and Answer Artifacts § Positioning Candidate`](#positioning-candidate)) generated, each already carrying its own Rationale Record per the Positioning Candidate definition. A candidate's `simulated_outcome` field is null when the outcome was [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: simulate_failed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run). This whole field is empty when the outcome was [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: position_failed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run) |
 | decision_type | The kind of decision this answer was given for, the session's or the question's. It is shown with the answer, and it is the one the answer's candidates were seeded by |
 | rendered_narrative | The complete natural-language text delivered, across whichever stages were reached. [`specs/application/product/trust-and-explainability/degraded-answer-behavior.md § Degraded Answer Behavior`](/specs/application/product/trust-and-explainability/degraded-answer-behavior.md#degraded-answer-behavior) covers a partial answer's labeling text as part of this. Captured directly because the repeatability guarantee ([`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes)) explicitly allows this wording to vary between runs, unlike everything else on this row |
+| displayed_options | The ordered groups actually delivered. Each group holds its ordered candidate IDs and the strategy labels shown at delivery. Each member refers to the immutable delivered candidate and its outcome where available. Predict-only deliveries store an empty list. Deliveries with Position and unavailable Simulate store individually labeled candidates in their delivered order |
+| narrative_evidence | Each delivered numeric claim identifies its source record and field and retains the wording shown. A forecast claim references the forecast or its rationale. A candidate claim references its delivery-scoped candidate ID. A group claim references the displayed group and contributing member IDs. Forecast-only claims require no candidate. Stored figures stay in the candidate, outcome and rationale records |
 | application_version | This delivery's own Answer Provenance ([`§ Core Data Model § Pipeline and Answer Artifacts § Answer Provenance`](#answer-provenance)), captured directly when this row is produced |
 | model_versions | Same Answer Provenance capture: every model this delivery invoked, Predict's, Position's, and Simulate's alike, not only Predict's |
 | language_model_versions | Same Answer Provenance capture: every language model this delivery called |
