@@ -1,81 +1,104 @@
 """Git absent or failing: a search of a commit's files stops and says which case it is in, and a search of any other
-target answers the same whatever version control holds."""
-import os
-import shutil
+target answers the same whatever version control holds.
 
+Four copies of one small project are written once in the file's folder: one committed under git, one whose
+repository holds a HEAD git cannot read, one under no repository below the run's folder, where the run keeps git from
+looking, and one committed under git whose spec's object has since been spoiled. A test that keeps git from the search
+sets the path to an empty folder for the test alone.
+"""
 import pytest
 
-HERON = ("search-heron-project.md", "heron-spec", "stack-naming-one-code-root", "heron-function", "egret-function", "design-citing-the-heron",
-         "plan-citing-the-heron", "follow-ups-naming-a-heron")
+from search_set import HERON, READS_HERON, ask, git, project, search
+
+pytestmark = [READS_HERON[0], pytest.mark.reads("search-heron-project.md", "head-git-cannot-read"), pytest.mark.reads("search-commits.md", "spoiled-git-object")]
+SECTION = "specs/target.md § Target"
+TARGETS = {"current": {}, "working": {"target": search.WORKING, "paths": [".ai/plans"]}, "committed": {"target": search.COMMITTED_OPERATIVE}}
+
+
+def committed(root):
+    git(root, "init", "-q")
+    git(root, "add", "specs", "code")
+    git(root, "commit", "-q", "-m", "first")
+    return root
+
+
+@pytest.fixture
+def projects(shared, fixtures):
+    """-> {name: root} of the four copies of the project, and the empty folder a test keeping git from the search
+    sets the path to."""
+    def build():
+        folder = shared.folder
+        spoiled = committed(project(folder / "spoiled", fixtures, HERON))
+        held = spoiled / ".git" / "objects" / git(spoiled, "rev-parse", "HEAD:specs/target.md")[:2] / git(spoiled, "rev-parse", "HEAD:specs/target.md")[2:]
+        held.chmod(0o666)
+        held.write_bytes(fixtures["spoiled-git-object"].encode("utf-8"))
+        (folder / "no-git-on-path").mkdir()
+        return {"under-git": committed(project(folder / "under-git", fixtures, HERON)),
+                "unreadable": project(folder / "unreadable", fixtures, dict(HERON, **{"head-git-cannot-read": ".git/HEAD"})),
+                "under-none": project(folder / "under-none", fixtures, HERON), "spoiled": spoiled, "no-git-on-path": folder / "no-git-on-path"}
+    return shared.once("projects", build)
+
+
+def answered(opened, root, scratch, **given):
+    """-> the places a search of a target gives for a word and for the citers of a section."""
+    s = opened(root, scratch=scratch, **given)
+    return [str(p) for p in s.terms("heron").places] + [str(p) for p in s.citers(SECTION).places]
+
+
+@pytest.fixture
+def under_git(shared, projects):
+    """-> {target: places} each target gives over the project under git, with git at hand."""
+    return shared.once("under-git", lambda: {name: answered(shared.opened, projects["under-git"], shared.folder / ("index-" + name), **given)
+                                             for name, given in TARGETS.items()})
+
+
+@pytest.mark.parametrize("name, case", [("under-git", search.GIT), ("unreadable", search.GIT), ("under-none", search.NONE_READ), ("spoiled", search.GIT)])
+def test_the_case_a_project_is_in_is_told_from_its_files(projects, name, case):
+    assert search.version_control(projects[name]) == case
+
+
+@pytest.mark.action("--show-term-uses", "--show-citers")
+@pytest.mark.passes
+@pytest.mark.parametrize("target, count", [("current", 3), ("working", 4), ("committed", 3)])
+def test_with_git_at_hand_each_target_answers_over_the_project_under_git(under_git, target, count):
+    assert len(under_git[target]) == count
 
 
 @pytest.mark.action("--show-term-uses", "--show-citers")
 @pytest.mark.reports
-@pytest.mark.reads(*HERON)
-@pytest.mark.reads("search-heron-project.md", "head-git-cannot-read")
-def test_a_search_of_the_committed_files_stops_saying_why_and_every_other_target_answers(fixtures, tools, search, script, monkeypatch, work, check):
-    # three copies of one small project: one committed under git, one whose `.git` folder holds a HEAD git cannot
-    # read, and one with no repository at or above it below the run's folder, where the run keeps git from looking
-    under_git, unreadable, under_none, empty = work / "under-git", work / "unreadable", work / "under-none", work / "no-git-on-path"
-    for root in (under_git, unreadable, under_none):
-        tools.a_project(root, fixtures)
-    empty.mkdir()
-    tools.git(under_git, "init", "-q")
-    tools.git(under_git, "add", "specs", "code")
-    tools.git(under_git, "commit", "-q", "-m", "first")
-    tools.put(unreadable, ".git/HEAD", fixtures["head-git-cannot-read"])
-    check("the three projects are told apart from their files: under git, under git, and under no version control the search reads",
-          [search.version_control(r) for r in (under_git, unreadable, under_none)] == [search.GIT, search.GIT, search.NONE_READ], [search.version_control(r) for r in (under_git, unreadable, under_none)])
+@pytest.mark.parametrize("name, hidden, said, unsaid", [
+    ("unreadable", False, ["git answered with a failure", "`git rev-parse --verify HEAD^{commit}`", "git answered: fatal:"], None),
+    ("under-none", False, ["under no version control the search reads"], None),
+    ("under-git", True, ["the project is under git and git is not installed"], "no version control"),
+    ("under-none", True, ["under no version control the search reads"], None),
+    ("spoiled", False, ["git gave no content for a file the commit lists", "`git cat-file --batch`", "a file it calls missing"], None),
+], ids=["git-cannot-read-the-repository", "under-no-version-control", "git-not-installed", "under-no-version-control-and-git-not-installed",
+        "git-gives-no-content-for-a-file"])
+def test_a_search_of_the_committed_files_stops_saying_which_case_it_is_in_and_writes_nothing(projects, opened, work, monkeypatch, name, hidden, said, unsaid):
+    if hidden:
+        monkeypatch.setenv("PATH", str(projects["no-git-on-path"]))
+    with pytest.raises(search.CannotSearch) as stopped:
+        opened(projects[name], scratch=work / "index", target=search.COMMITTED_OPERATIVE)
+    assert all(words in str(stopped.value) for words in said) and not (unsaid and unsaid in str(stopped.value))
+    assert not (work / "index").exists()
 
-    def answers(root, name, **given):
-        scratch = work / ("index-" + name)
-        try:
-            s = search.Search(root, scratch=scratch, quiet=True, **given)
-        except search.CannotSearch as e:
-            return str(e), scratch.exists()
-        places = [str(p) for p in s.terms("heron").places] + [str(p) for p in s.citers("specs/target.md § Target").places]
-        s.db.close()
-        return places, True
 
-    working = {"target": search.WORKING, "paths": [".ai/plans"]}
-    want = {"current": answers(under_git, "want-current")[0], "working": answers(under_git, "want-working", **working)[0]}
-    check("with git at hand, each target answers over the project under git", len(want["current"]) == 3 and len(want["working"]) == 4 and isinstance(answers(under_git, "want-committed", target=search.COMMITTED_OPERATIVE)[0], list), want)
+@pytest.mark.action("--show-term-uses", "--show-citers")
+@pytest.mark.passes
+@pytest.mark.parametrize("target", ["current", "working"])
+@pytest.mark.parametrize("name, hidden", [("unreadable", False), ("under-none", False), ("under-git", True), ("spoiled", False)],
+                         ids=["git-cannot-read-the-repository", "under-no-version-control", "git-not-installed", "git-gives-no-content-for-a-file"])
+def test_a_search_of_every_other_target_answers_as_it_does_over_the_project_under_git(projects, under_git, opened, work, monkeypatch, name, hidden, target):
+    if hidden:
+        monkeypatch.setenv("PATH", str(projects["no-git-on-path"]))
+    assert answered(opened, projects[name], work / "index", **TARGETS[target]) == under_git[target]
 
-    said, wrote = answers(unreadable, "unreadable-committed", target=search.COMMITTED_OPERATIVE)
-    check("over a repository git cannot read, a search of the committed target stops, giving what it asked and git's own words, and writes nothing",
-          isinstance(said, str) and "git answered with a failure" in said and "`git rev-parse --verify HEAD^{commit}`" in said and "git answered: fatal:" in said and not wrote, said)
-    check("and a search of either other target answers as it does over the project under git",
-          answers(unreadable, "unreadable-current")[0] == want["current"] and answers(unreadable, "unreadable-working", **working)[0] == want["working"])
 
-    said, wrote = answers(under_none, "none-committed", target=search.COMMITTED_OPERATIVE)
-    check("over a folder under no version control, a search of the committed target stops, saying the project is under no version control the search reads, and writes nothing",
-          isinstance(said, str) and "under no version control the search reads" in said and not wrote, said)
-    check("and a search of either other target answers as it does over the project under git",
-          answers(under_none, "none-current")[0] == want["current"] and answers(under_none, "none-working", **working)[0] == want["working"])
-
-    with monkeypatch.context() as hidden_git:
-        hidden_git.setenv("PATH", str(empty))
-        hidden = shutil.which("git") is None
-        said, wrote = answers(under_git, "hidden-committed", target=search.COMMITTED_OPERATIVE)
-        current, worked = answers(under_git, "hidden-current")[0], answers(under_git, "hidden-working", **working)[0]
-        none_said = answers(under_none, "hidden-none-committed", target=search.COMMITTED_OPERATIVE)[0]
-    check("with git kept from it, a search of the committed target over a project under git stops, saying git is not installed, and writes nothing",
-          hidden and isinstance(said, str) and "the project is under git and git is not installed" in said and not wrote, said)
-    check("and it never reads that project as under no version control, which it says of a folder under none even then",
-          "no version control" not in said and isinstance(none_said, str) and "under no version control the search reads" in none_said, (said, none_said))
-    check("and a search of either other target answers as it does with git at hand", current == want["current"] and worked == want["working"], (current, worked))
-    # git names the commit and lists its files, and fails reading what they hold: one file's object is spoiled
-    blob = tools.git(under_git, "rev-parse", "HEAD:specs/target.md").strip()
-    held = under_git / ".git" / "objects" / blob[:2] / blob[2:]
-    os.chmod(held, 0o666)
-    held.write_bytes(b"no object git can read")
-    said, wrote = answers(under_git, "spoiled-committed", target=search.COMMITTED_OPERATIVE)
-    check("where git gives no content for a file the commit lists, a search of the committed target stops, giving what it asked and what git answered, and writes nothing",
-          isinstance(said, str) and "git gave no content for a file the commit lists" in said and "`git cat-file --batch`" in said and "a file it calls missing" in said and not wrote, said)
-    ran, printed = script(under_git, "--show-term-uses", "heron", "--target", search.COMMITTED_OPERATIVE)
-    check("and the script stops with those words and no traceback", ran == 1 and "`git cat-file --batch`" in printed and "Traceback" not in printed, (ran, printed))
-    check("and a search of either other target answers as it does over the project under git",
-          answers(under_git, "spoiled-current")[0] == want["current"] and answers(under_git, "spoiled-working", **working)[0] == want["working"])
-
-    ran, printed = script(under_none, "--show-term-uses", "heron", "--target", search.COMMITTED_OPERATIVE)
-    check("the script stops with the same words and no usage", ran == 1 and "under no version control the search reads" in printed and "usage:" not in printed, (ran, printed))
+@pytest.mark.action("--show-term-uses")
+@pytest.mark.reports
+@pytest.mark.parametrize("name, said", [("under-none", "under no version control the search reads"), ("spoiled", "`git cat-file --batch`")],
+                         ids=["under-no-version-control", "git-gives-no-content-for-a-file"])
+def test_the_entry_script_s_main_stops_with_the_words_of_a_search_it_cannot_answer_and_no_usage(projects, capsys, name, said):
+    assert ask(projects[name], "--show-term-uses", "heron", "--target", search.COMMITTED_OPERATIVE) == 1
+    printed = capsys.readouterr().out
+    assert said in printed and "usage:" not in printed

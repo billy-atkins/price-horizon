@@ -57,7 +57,7 @@ A sentence introducing the block under it says what the block is for, never wher
 Code names a spec it relies on with a spec annotation. A spec annotation is a plain comment on a line of its own, in the comment syntax of the code's language, and never a documentation comment. It holds a tag, a space, and a citation. The citation takes the form [`§ Writing a Citation`](#writing-a-citation) gives for a section in another file, a part in another file or a whole file. It drops the backticks a citation takes in a spec, since the tag marks where the citation begins and the line marks where it ends. Each tag has a rule of its own saying what carries the tag, and [`specs/methodology/sourcing-and-citation/which-citations-are-allowed.md § Which Citations Are Allowed`](/specs/methodology/sourcing-and-citation/which-citations-are-allowed.md#which-citations-are-allowed) says what each tag may cite:
 - `@app-spec`, in the code the application specs govern, as [`specs/methodology/code.md § Citing the Specs From Code`](/specs/methodology/code.md#citing-the-specs-from-code) has it;
 - `@canon-spec`, in a registered skill's scripts and the code the skills share, as [`specs/methodology/skills/authoring-a-skill.md § Authoring a Skill`](/specs/methodology/skills/authoring-a-skill.md#authoring-a-skill) has it. It stands on a unit carrying out a check, citing the check's record, or, while the check's entry stands in a skill's table, the section it enforces. It stands too on a copy of the canon's values, citing the area its values come from;
-- `@canon-spec`, in a kept test of a skill's script, on a test holding a Script Check, citing the check's record, as [`specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Kept Tests`](/specs/methodology/skills/authoring-a-skill.md#kept-tests) has it.
+- `@canon-spec`, in a kept test of a skill's script, on a test holding a Script Check, citing the check's record, or on a test holding a check a skill's table enforces, citing the section the table enforces, as [`specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Kept Tests`](/specs/methodology/skills/authoring-a-skill.md#kept-tests) has it.
 
 ```
 // @app-spec specs/application/technical/example-service/example.md § Parent § Child
@@ -70,9 +70,24 @@ In a language with block comments only, each annotation is a block comment of it
 
 **A test's citing is read apart from a unit's.** One tag marks two things: on a unit of a script, that the unit carries the check out, and on a kept test, that the test holds the check. [`specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Kept Tests`](/specs/methodology/skills/authoring-a-skill.md#kept-tests) has a test's annotation never count as a unit's. So the check that every Script Check is carried out counts the units' annotations alone ([`specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: script-check-carried-out]`](/specs/methodology/skills/authoring-a-skill.md#script-checks)), and the check of what the kept tests hold counts the tests' alone ([`specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: each-script-check-and-action-held-by-a-test]`](/specs/methodology/skills/authoring-a-skill.md#script-checks)).
 
+**The canon is named by an annotation alone.** In a registered skill's scripts, the code the skills share and the kept tests' code, a spec annotation is the one place the canon is named. No other comment and no docstring names a section of the canon by a section sign, or a file of the canon by its path or its file name. A name in prose beside the code is read by no check, so when the canon changes, nothing points at it, while an annotation is checked as a citation is.
+
 **Why it is a citation.** An annotation makes the link one spec makes to another, so it is held to the same guarantee. It names a file, and a heading, that exist. A heading retitled updates every annotation naming it in the same edit, per [`specs/methodology/sourcing-and-citation/titling-a-heading.md § Titling a Heading`](/specs/methodology/sourcing-and-citation/titling-a-heading.md#titling-a-heading). The annotation is kept in the code it describes, so it moves with that code through every refactor. A map kept in a file of its own would drift.
 
 **A comment, not a language's own annotation.** A spec annotation is a comment. It is not a Java annotation, a C# attribute or a decorator, so it compiles the same in every language and needs no tool to know it.
+
+#### Script Checks
+
+**Records:**
+  - **Name:** canon-named-only-in-an-annotation \
+    **Tests:** no comment and no docstring of a registered skill's scripts, of the code the skills share or of the kept tests' code names a section of the canon by a section sign, or a file of the canon by its path or its file name, on a line that is not a spec annotation, a comment read as Python's tokenizer finds one, after code on its line or on a line of its own, and a docstring as Python's parser finds one, as [`§ Writing a Citation § Citing From Code`](#citing-from-code) has code name a spec by an annotation alone \
+    **Reads:**
+      - `canon-specs`
+
+    **Carried Out By:**
+      - `.ai/skills/audit-specs/` `--check-scope`
+      - `.ai/skills/design-specs/` `--check-kept-tests`
+      - `.ai/skills/implement-specs/` `--check-kept-tests`
 
 ### A Citation's Link
 

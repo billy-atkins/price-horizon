@@ -1,12 +1,11 @@
-"""The construct checks: what modeling-constructs.md § Constructs lets a script decide. audit-specs runs them over
+"""The construct checks: what the canon's constructs let a script decide. audit-specs runs them over
 the specs, the design script's --check-design over each construct a design's step holds in its Draft, before the apply,
-and design-specs' --check-constructs on the files an apply wrote, each through run_checks, the one copy
-(specs/methodology/skills/authoring-a-skill.md § Authoring a Skill).
+and design-specs' --check-constructs on the files an apply wrote, each through run_checks, the one copy.
 
 A construct is found by its declaration, a **Construct:** field, and read from the block the
 declaration opens: its fields, then its tables. Each check here decides structure from the files
 alone; what a guard's fact means, what a state's work is, and whether the right construct was
-chosen stay with the Construct choice and form reading audit (modeling-constructs.md § When to Use Which).
+chosen stay with the Construct choice and form reading audit.
 """
 import re
 from datetime import datetime, timedelta, timezone
@@ -32,7 +31,7 @@ MODIFIERS = f"{DEFINING} § Modifiers"
 INTERFACES = f"{DEFINING} § Interfaces and Members"
 REFERENCES = f"{DEFINING} § References and Names"
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs
-# each definition under § Constructs as this script reads it, in its order: its Modifier, the definitions it extends and the
+# each construct's definition as this script reads it, in its order: its Modifier, the definitions it extends and the
 # interfaces it implements; definition_findings holds the copy to the definitions
 DEFINITIONS = {
     "Construct": ("Abstract", (), ()),
@@ -241,7 +240,7 @@ NAMEABLE = {"State Machine": {1}, "Decision Table": {0}, "Constraint": {0}}
 # @canon-spec specs/methodology/modeling-constructs.md § Fields
 # a field: a line opening with its key in bold, the colon inside the bold, then a space and its value or nothing;
 # a list marker and indentation before the key are no part of it, nor are the space and the backslash ending its
-# line, a field's end; the one copy, which spec_checks.py and record_types.py read too
+# line, a field's end; the one copy, which the spec checks and the record types read too
 FIELD = re.compile(r'^(?P<indent>\s*)(?P<marker>-\s+)?\*\*(?P<key>[^*`]+?):\*\*(?: (?P<value>.*?))?(?P<end> \\)?$')
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
 # a jump as the form writes it, and the parser reading every jump: the phrase in any letters and the step number
@@ -271,8 +270,8 @@ def _a(name):
 
 
 def block_faults(given, order, required=(), noun="field", owner="its type"):
-    """-> the faults of a block given against the one its type or form gives, each named on its own, as § Constructs
-    § Record Form lists them: each one given that `order` does not hold, one given again among them; each of `required`
+    """-> the faults of a block given against the one its type or form gives, each named on its own, as the Record Form
+    lists them: each one given that `order` does not hold, one given again among them; each of `required`
     not given; and, where the ones held stand out of `order`, the order it gives them. Empty where the block holds none."""
     order, seen, extra = list(order), set(), []
     for g in given:
@@ -332,13 +331,13 @@ LABEL_WORD = re.compile(f"^{LABEL}$")
 
 # @canon-spec specs/methodology/spec-style/markdown.md § Literal Text
 # literal text: a code span, one backtick to the next, literal text holding no backtick; the one reading of a
-# span, which spec_checks.py reads too
+# span, which the spec checks read too
 CODE_SPAN = re.compile(r'`(?P<text>[^`]+)`')
 
 
 def _margin_field(line):
-    """A field at the left margin, as a construct's own fields stand, opening a paragraph of their own
-    (modeling-constructs.md § Defining Constructs § Declaring a Construct); a field in a list item or indented is none."""
+    """A field at the left margin, as a construct's own fields stand, opening a paragraph of their own; a field in a
+    list item or indented is none."""
     m = FIELD.match(line)
     return m if m and not m["indent"] and not m["marker"] else None
 
@@ -380,7 +379,7 @@ def _rule_row(row):
 
 def feel(text):
     """A cell -> (negated, tests), each test as `_test` sorts it into the forms the checks read, or set aside for
-    the parser to judge with the names in scope (modeling-constructs.md § Constructs § Decision Table). A cell
+    the parser to judge with the names in scope, as a Decision Table's cell is judged. A cell
     written plain is one value, commas and all."""
     v = text.strip()
     if v == "-":
@@ -391,10 +390,10 @@ def feel(text):
 
 
 NUMBER = re.compile(r'-?(?:\d+(?:\.\d+)?|\.\d+)')
-# a date, a date and time, a time of day and a duration of either kind, expressions.py's copy
+# a date, a date and time, a time of day and a duration of either kind, the expression module's copy
 DATE, DATE_TIME, TIME = (expressions.LITERAL[k] for k in ("date", "date and time", "time"))
 YM_DURATION, DT_DURATION = (expressions.LITERAL[k] for k in ("years and months duration", "days and time duration"))
-# a fact's name, as a comparison's or a range's end names one, and a question's, expressions.py's copies
+# a fact's name, as a comparison's or a range's end names one, and a question's, the expression module's copies
 FACT_NAME, QUESTION = expressions.NAME, expressions.QUESTION
 
 
@@ -675,8 +674,7 @@ CONSTRUCT_CITED = re.compile(r"^`(?:(?P<path>[^`§ ]+) )?§ Constructs § (?P<na
 
 
 def construct_named(value):
-    """modeling-constructs.md § Defining Constructs § References and Names: the definition a Construct field names, read from its citation
-    -> (name, path), the path None where the citation leaves it out and "" where the field is a bare name, kept as written
+    """The definition a Construct field names, read from its citation -> (name, path), the path None where the citation leaves it out and "" where the field is a bare name, kept as written
     and read so in the application specs alone."""
     m = CONSTRUCT_CITED.match(value.strip())
     if not m:
@@ -691,11 +689,10 @@ TABLE_OPENERS = ("Table Name", "Reference Key", "Required")
 
 def declarations(body, sections, problems=None):
     """-> [(line, construct, fields, tables, lineage)] for each **Construct:** field in live text, at the margin or
-    opening a construct nested beneath a field (modeling-constructs.md § Fields § A Nested Construct), the declaration,
-    the fields it sets and the Table Name opening each of its tables read as one block of fields through the one reader
-    (modeling-constructs.md § Fields), a list a field holds given as its items one to a line. A field the construct
-    sets standing beneath a Table Name, where only a Table Name opens a table (modeling-constructs.md § Defining
-    Constructs § Declaring a Construct), is appended to `problems` as (0-based line, message) where a list is given."""
+    opening a construct nested beneath a field, the declaration, the fields it sets and the Table Name opening each of
+    its tables read as one block of fields through the one reader of a block of fields, a list a field holds given as
+    its items one to a line. A field the construct sets standing beneath a Table Name, where only a Table Name opens a
+    table, is appended to `problems` as (0-based line, message) where a list is given."""
     import record_types
     body_lines = body.split("\n")
     secs = sorted(sections.items(), key=lambda x: x[1][0])
@@ -706,8 +703,7 @@ def declarations(body, sections, problems=None):
             continue
         lines, at = body_lines, len(m["indent"].expandtabs(4))
         if at:
-            # modeling-constructs.md § Fields § A Nested Construct: a construct nested beneath a field's text, after one
-            # blank line, read as its block stands dedented to the margin, to its first line indented less
+            # a construct nested beneath a field's text, after one blank line, read as its block stands dedented to the margin, to its first line indented less
             if i == 0 or body_lines[i - 1].strip():
                 continue
             stop = next((n for n in range(i, len(body_lines)) if body_lines[n].strip() and record_types._indent(body_lines[n]) < at), len(body_lines))
@@ -724,7 +720,7 @@ def declarations(body, sections, problems=None):
                 if f["line"] == i:
                     continue  # the Construct field itself
                 if f["key"] == "Table Name":
-                    # § Constructs § Tabular Construct: a table's name opens it, before its first table or between its tables
+                    # a tabular construct: a table's name opens it, before its first table or between its tables
                     named = value.strip()
                 elif not tables and named is None:
                     fields.append((f["line"] + 1, f["key"], value.strip()))
@@ -756,7 +752,7 @@ def declarations(body, sections, problems=None):
             if k >= len(lines) or not (_margin_field(lines[k]) and _margin_field(lines[k])["key"] == "Table Name"):
                 break
             j = k
-        # § Constructs § State Machine: a machine's Trigger Classes table, wherever its section holds one after its
+        # a State Machine: a machine's Trigger Classes table, wherever its section holds one after its
         # Transitions table, held as that table's, so the machine's tables stay the two its form gives
         if name == "State Machine" and len(tables) == 2:
             stop = next((end for lin, (h, end) in secs if lin == lineage), len(lines))
@@ -782,9 +778,9 @@ def paths(name, fields, tables):
     return []
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs
 def construct_findings(r, body, found, sections):
-    """modeling-constructs.md § Constructs: each declared construct checked for what its form
-    lets a script decide. `body` is the file's live text, its fences stripped."""
+    """Each declared construct checked for what its form lets a script decide. `body` is the file's live text, its fences stripped."""
     beneath = []
     decls = declarations(body, sections, beneath)
     for ln, msg in beneath:
@@ -796,13 +792,12 @@ def construct_findings(r, body, found, sections):
     lines = body.split(chr(10))
     for line, name, fields, tables, lineage in decls:
         _paragraphs(r, lines, line, fields, found)
-        # § Constructs § State Machine: each of its tables opens with the Table Name its definition gives it
+        # a State Machine: each of its tables opens with the Table Name its definition gives it
         if name == "State Machine" and [t.get("name") for t in tables[:2]] != ["States", "Transitions"]:
             found.append(("modeling-constructs.md § Constructs § State Machine", r, line,
                           f"a State Machine's tables named {[t.get('name') for t in tables[:2]]}, not their Table Names, States and Transitions"))
     # a field a construct sets, outside the block a Construct field opens; but a Reference Key a construct's definition
     # declares, or a Table Name, a Reference Key or a Required opening a Basic Table, the others between it and the table
-    # (modeling-constructs.md § Constructs § Basic Table)
     owned = {ln for _, _, fields, _, _ in decls for ln, _, _ in fields}
     own_keys = {k for keys in OWN_FIELDS.values() for k in keys}
     definitions = [(h, end) for lin, (h, end) in sections.items() if r == "specs/methodology/modeling-constructs.md"
@@ -810,7 +805,7 @@ def construct_findings(r, body, found, sections):
     for i, l in enumerate(lines, 1):
         f = _margin_field(l)
         in_definition = any(h < i - 1 < end for h, end in definitions)
-        # a record type's declaration gives a Modifier of its own (§ Constructs § Record Form), read with its block's fields
+        # a record type's declaration gives a Modifier of its own, read with its block's fields
         if f and f["key"] in DEFINITION_FIELDS and not in_definition and not (f["key"] == "Modifier" and i in owned):
             found.append((DEFINING, r, i, f"a {f['key']} field outside a construct's definition"))
             continue
@@ -826,8 +821,8 @@ def construct_findings(r, body, found, sections):
             found.append((DECLARING, r, i, f"a {f['key']} field outside a construct's block"))
     seen = {}
     for line, name, fields, tables, lineage in decls:
-        # § Defining Constructs § References and Names: a Construct field cites its definition, locally qualified; a bare name is read so in
-        # the application specs alone, until they are migrated
+        # a Construct field cites its definition, locally qualified; a bare name is read so in the application specs
+        # alone, until they are migrated
         _, path = construct_named(_margin_field(lines[line - 1])["value"] or "")
         if path == "" and not r.startswith("specs/application/") or path is None and r != HOME or path not in ("", None, HOME):
             found.append((REFERENCES, r, line, f"a Construct field that is no citation of its construct's definition, locally qualified: {name}"))
@@ -841,12 +836,12 @@ def construct_findings(r, body, found, sections):
         if lineage in seen:
             found.append((DECLARING, r, line, f"a second construct in one section: § {lineage}"))
         seen[lineage] = line
-        # § Constructs § Declared Construct: its section opens with prose describing it, before its Construct field
+        # a declared construct: its section opens with prose describing it, before its Construct field
         h = sections[lineage][0] if lineage in sections else -1
         if not any(l.strip() and reading.starts(l) is None and not FIELD.match(l) for l in lines[h + 1:line - 1]):
             found.append((DECLARED_RULE, r, line, f"{_a(name)} whose section opens with no description before its Construct field"))
         _fields(r, line, name, fields, found)
-        # § Constructs § Record Form: a type extending another may leave out its table of record fields, and so hold none
+        # a Record Form: a type extending another may leave out its table of record fields, and so hold none
         if not tables and not (name == "Record Form" and extends(fields)):
             found.append((DECLARING, r, line, f"{_a(name)} declared with no table"))
             continue
@@ -911,9 +906,11 @@ def construct_findings(r, body, found, sections):
          "DAG": _dag}[name](r, line, name, fields, tables, found, table_facts if name == "Decision Table" else own)
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Construct
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
 def _record_type(r, line, fields, tables, found):
-    """§ Constructs § Record Form: a record type's tables, a table of its section fields where it declares any, then
-    its table of record fields, each row a field named once, its Default Value empty where it is required (§ Fields),
+    """A record type's tables, a table of its section fields where it declares any, then
+    its table of record fields, each row a field named once, its Default Value empty where it is required,
     its Values in one of its forms, its Unique yes or no, and a Reference Key, its own or its base's, naming fields it
     gives and requires, a one-field key's field marked Unique, an extending type declaring none of its own; its table
     of record fields left out only by a type extending another, its records holding its base's fields alone."""
@@ -982,9 +979,10 @@ def extends(fields):
     return values.get("Extends", "none") != "none"
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct
 def _paragraphs(r, lines, line, fields, found):
-    """§ Defining Constructs § Declaring a Construct: the Construct field and the fields it sets are one block of
-    fields (§ Fields), a field whose value is a list its key on a line of its own and its items beneath."""
+    """The Construct field and the fields it sets are one block of fields, a field whose value is a list its key on a
+    line of its own and its items beneath."""
     for ln, key, value in fields:
         i = ln - 1
         inline = (FIELD.match(lines[i])["value"] or "").strip()
@@ -996,6 +994,9 @@ def _paragraphs(r, lines, line, fields, found):
             found.append((DECLARING, r, ln, "a Default Output written beneath its key with fewer than two items"))
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Construct
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
+# @canon-spec specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct
 def _fields(r, line, name, fields, found):
     allowed = OWN_FIELDS.get(name, ())
     keys = [k for _, k, _ in fields]
@@ -1322,8 +1323,9 @@ def _cell(row, i):
     return row[i] if i is not None and i < len(row) else NONE_CELL
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine § A Submachine State
 def submachine_findings(text_of, found, sections, strip_fences, citation, resolve):
-    """§ Constructs § State Machine § A Submachine State: what its form fixes. A state is governed by the State Machine
+    """A submachine state: what its form fixes. A state is governed by the State Machine
     its description names after the words `governed by`, which name a machine only, never a part of one, and never
     nothing; a description citing another machine's whole section names it so; one machine at most; no machine
     governing itself; no protocol machine's state governed; no governed state terminal; and a governed state left, of
@@ -1488,8 +1490,10 @@ def _trigger_problems(trigger, kinds):
     return out
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
+# @canon-spec specs/methodology/modeling-constructs.md § Time
 def occurrence_findings(text_of, found, sections, strip_fences, citation, resolve):
-    """§ Constructs § State Machine and § Time: each trigger written in FEEL in its form, judged with the facts in scope,
+    """Each trigger written in FEEL in its form, judged with the facts in scope,
     its file's and those its Reads cites, each Reads item in its form; no protocol machine taken on time or a condition; and each Trigger Classes table in its form, its rows
     whole, its classes triggers, a member citing another machine's class reaching it, and no state taking a class and
     one of its members. `citation` and `resolve` are the citation check's own."""
@@ -1614,8 +1618,9 @@ def _parsed(type_text):
         return None
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
 def effect_findings(text_of, found, sections, strip_fences, citation, resolve):
-    """§ Constructs § State Machine: an Effect cell cites the Algorithm or the Decision Table its transition runs, or
+    """An Effect cell cites the Algorithm or the Decision Table its transition runs, or
     is `none`. `citation` and `resolve` are the citation check's own."""
     kinds = {}
     for r, body in text_of.items():
@@ -1636,8 +1641,9 @@ def effect_findings(text_of, found, sections, strip_fences, citation, resolve):
                     found.append((f"{RULE} § State Machine", r, ln, f"an Effect cell citing no Algorithm or Decision Table: {cell}"))
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
 def guard_value_findings(text_of, found, sections, strip_fences):
-    """§ Constructs § State Machine: a guard testing a fact for a word, by `=`, `!=` or `in`, wherever FEEL's grammar puts
+    """A guard testing a fact for a word, by `=`, `!=` or `in`, wherever FEEL's grammar puts
     it, tests one of the fact's Values, a quoted list or a closed set its Values cite; the fact is the one the machine's
     own file declares or the one its Reads cites, never one found in other files by its name alone."""
     for r, body in text_of.items():
@@ -1657,8 +1663,9 @@ def guard_value_findings(text_of, found, sections, strip_fences):
                         found.append((f"{RULE} § State Machine", r, ln, f"a guard testing {fact} for a value outside its Values: {word}"))
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
 def guard_fact_findings(text_of, found, sections, strip_fences):
-    """§ Constructs § State Machine: a fact an exclusive choice's guard compares a fact with, in a test the checks read,
+    """A fact an exclusive choice's guard compares a fact with, in a test the checks read,
     is one a guard of its choice tests, its machine's file declares or its Reads cites, or `exit`, of the kind of the fact
     it is compared with; a guard in any other of FEEL's forms is read."""
     for r, body in text_of.items():
@@ -1697,8 +1704,9 @@ def guard_fact_findings(text_of, found, sections, strip_fences):
                                 found.append((f"{RULE} § State Machine", r, ln, f"a guard comparing a {kinds[fact]} fact with a {kinds[f]} one: {f}"))
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
 def recorded_in_findings(text_of, found, sections, strip_fences, citation, resolve):
-    """§ Constructs § State Machine: a Recorded In field names the fact the entity records its state in, a fact's name,
+    """A Recorded In field names the fact the entity records its state in, a fact's name,
     a colon and the citation of the Facts record declaring it, whose Values, a quoted list or a closed set's citation
     read as one, hold each state's name.
     `citation` and `resolve` are the citation check's own."""
@@ -1813,10 +1821,10 @@ def _shown(x, kinds):
 
 # @canon-spec specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact
 # a Facts record's Values written as one citation, of the section holding a closed set, its record section or its keyed Basic Table; and the resolver
-# record_types.py sets, (the file's text, the cell) -> the identifying values of the records it cites, or None
+# the record types set, (the file's text, the cell) -> the identifying values of the records it cites, or None
 CITED_SET = re.compile(r'(?P<d>`+)(?!`)(?:(?!(?P=d)(?!`)).)*§(?:(?!(?P=d)(?!`)).)+(?P=d)(?!`)')
 CLOSED_SET = None
-# the title of a file's Facts sections, the Fact type's Plural Name, which record_types.py reads from its declaration
+# the title of a file's Facts sections, the Fact type's Plural Name, which the record types read from its declaration
 FACTS_SECTION = None
 # and the resolver of a fact a Decision Table reads from another file, (the table's file, the citation, the fact's
 # name) -> (Type, Values, May Be Absent), or None
@@ -1873,7 +1881,7 @@ def facts_of(records):
 # @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
 def checked_facts(records):
     """The facts a file's Facts records declare, as a Decision Table takes them: a record with no Type, or breaking
-    an item of § Defining Constructs § Declaring a Construct § Fact's Checks, gives its fact no Type and no values,
+    an item of the Fact's Checks, gives its fact no Type and no values,
     `null` not among them, the fact still declared, so the record's own report is the one
     -> {name: (Type, Values, May Be Absent)}."""
     broken = {ln for ln, _ in fact_record_findings(records)} | {ln for ln, _, d in records if not d.get("Type")}
@@ -1881,8 +1889,9 @@ def checked_facts(records):
     return {n: ("", "none", "No") if ln in broken else facts[n] for ln, n, _ in records}
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Defining Constructs § Declaring a Construct § Fact
 def fact_record_findings(records):
-    """§ Defining Constructs § Declaring a Construct § Fact: each item of its Checks a record breaks, each breach
+    """Each item of the Fact's Checks a record breaks, each breach
     once, its other fields judged against its Type only once its Type is a type FEEL names -> [(line, message)]."""
     out = []
     for line, name, d in records:
@@ -1937,12 +1946,12 @@ def fact_record_findings(records):
 
 
 def _formless(problem):
-    """Whether a problem expressions.py reports is a form FEEL does not have."""
+    """Whether a problem the expression module reports is a form FEEL does not have."""
     return "in no form" in problem
 
 
 def _unheld(problem):
-    """The name a problem expressions.py reports names outside its context, a fact's or a function's, or None."""
+    """The name a problem the expression module reports names outside its context, a fact's or a function's, or None."""
     m = re.match(r"(?:a name no fact declares|a call of a function FEEL does not build in): (.+)", problem)
     return m and m.group(1)
 
@@ -2005,8 +2014,9 @@ def domains_of(header, idx, values, facts):
     return domains
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
 def _decision_table(r, line, name, fields, tables, found, facts=None):
-    """§ Constructs § Decision Table's Checks, in the groups DMN reads a decision table in, its clauses, its FEEL,
+    """A Decision Table's Checks, in the groups DMN reads a decision table in, its clauses, its FEEL,
     its entries and its rules, each group judging the table only once it breaks no rule read before it, a rule no item
     names among them."""
     rule = f"{RULE} § Decision Table"
@@ -2031,7 +2041,7 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
         if not all(LABEL_WORD.match(w) for w in note.split(" ")) or note.split(" ")[0].isdigit():
             found.append((rule, r, line, f"an annotation not headed by a field label: {note}"))
     n, m = len(conds), len(notes)
-    # § Columns: its conditions first, then one or more outcomes, then its annotations
+    # its columns: its conditions first, then one or more outcomes, then its annotations
     if cols[:n] != conds or (m and cols[len(cols) - m:] != notes) or len(cols) - n - m < 1:
         found.append((rule, r, line, "columns not conditions first, then one or more outcomes, then annotations"))
         return
@@ -2041,7 +2051,7 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
     if any(c not in [header[k] for k in outs] for c in computed):
         found.append((rule, r, line, "a Computed field naming a column that is no outcome"))
         return
-    # § Facts: what a cell, a computed header or a computed outcome may name, each with its kind where known
+    # its facts: what a cell, a computed header or a computed outcome may name, each with its kind where known
     reads = []
     for item in [] if values.get("Reads", "none") == "none" else values["Reads"].split("\n"):
         mm = READS_ITEM.fullmatch(item.strip())
@@ -2160,7 +2170,7 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
     if len(found) > start:
         return
     # its rules (DMN 8.1, 8.2.11, 8.2.12): how its rows match cases and its hit policy takes them
-    # § Cells: a condition no row tests, or one every row tests by one value where no Default Output and no
+    # its cells: a condition no row tests, or one every row tests by one value where no Default Output and no
     # multiple-hit policy catches the cases it excludes, tells no case from another; a configured instance's
     # columns are its data's
     alike = False
@@ -2171,7 +2181,7 @@ def _decision_table(r, line, name, fields, tables, found, facts=None):
             if column == {"-"} or (len(column) == 1 and single):
                 alike = True
                 found.append((rule, r, table["line"], f"a condition column telling no case from another: {header[k]}"))
-    # § Values: under First, the outcome where no other row matches is a last row testing nothing
+    # its values: under First, the outcome where no other row matches is a last row testing nothing
     if "Default Output" in values and values["Default Output"] != DEFAULTS["Default Output"] and policy == "First":
         found.append((rule, r, line, "a First table's fall-through written as a Default Output, not a last row testing nothing"))
     # an aggregating Collect: one outcome column, of numbers but for a count
@@ -2277,8 +2287,9 @@ def _leaves(work):
     return {f.strip() for f in m.group(1).split(",") if f.strip()} if m else None
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § DAG
 def _dag(r, line, name, fields, tables, found, facts=None):
-    """§ Constructs § DAG, what one file decides: the names, the dependencies, the cycles, the guards, the timeouts and
+    """A DAG, what one file decides: the names, the dependencies, the cycles, the guards, the timeouts and
     the tolerated cells; the works, what the tasks give and read, and the Runs When are dag_findings', across files."""
     rule = f"{RULE} § DAG"
     table = tables[0]
@@ -2330,8 +2341,9 @@ def _dag(r, line, name, fields, tables, found, facts=None):
             found.append((rule, r, table["line"], f"a task that depends on itself, directly or through others: {t}"))
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § DAG
 def dag_findings(text_of, found, sections, strip_fences, citation, resolve):
-    """§ Constructs § DAG, across files: each task's work `none`, `none, leaving` facts the file declares or the DAG's
+    """A DAG, across files: each task's work `none`, `none, leaving` facts the file declares or the DAG's
     Reads cites, or the citation of an Algorithm, a Decision Table or a DAG, whole, a table's outcome columns facts of
     either; each Reads item in its form; no
     DAG holding itself through the DAGs its tasks cite; `ended` waited for only of a task that can end other than done, and `Yes`
@@ -2985,8 +2997,9 @@ def _action(rule, r, ln, step, body, raw, known, bind, found):
                 found.append((rule, r, ln, f"an argument of another kind than the Input it gives: {name}"))
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
 def algorithm_findings(text_of, found, sections, strip_fences, citation, resolve):
-    """§ Constructs § Algorithm, each Algorithm checked whole, once, across files: its own forms, by `_algorithm`; a
+    """Each Algorithm checked whole, once, across files: its own forms, by `_algorithm`; a
     Runs When citing each construct that runs it, and no other; work running no construct; a run citing an Algorithm
     or a Decision Table, its arguments naming what that construct takes, each one it takes given or known, and giving
     only what it gives; and a Terminates cell where a step goes back or a run recurs, and only there, judged on one
@@ -3215,11 +3228,11 @@ def algorithm_findings(text_of, found, sections, strip_fences, citation, resolve
 
 # @canon-spec specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation
 # a citation: a section token and a title in one backtick span, after a file's path where it cites another file,
-# never the token alone; the one copy of the form, which spec_checks.py reads as its own and an Enforced By names
+# never the token alone; the one copy of the form, which the spec checks read as their own and an Enforced By names
 # what enforces its rule by
 class _Citations:
-    """sourcing-and-citation/writing-a-citation.md § Writing a Citation: a citation of a section in its code span, the
-    span and the citation's form each as the one reading reads them (reading.py), opened by one backtick, or by one more
+    """A citation of a section in its code span, the span and the citation's form each as the one reading reads
+    them, opened by one backtick, or by one more
     than the longest run in a key value it carries verbatim, and closed by as many; read as a pattern is, its text
     group 1."""
 
@@ -3281,8 +3294,9 @@ APPLIES_TO = re.compile(r'always|(?P<when>after|before) (?P<cite>`[^`]+`)')
 RECORDS_FIELD = "**Records:**"
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Constraint
 def constraint_findings(text_of, found, warned, sections, strip_fences, citation, resolve):
-    """§ Constructs § Constraint, each Constraint checked once, across files, its citations resolved: each rule a FEEL
+    """Each Constraint checked once, across files, its citations resolved: each rule a FEEL
     boolean judged with the facts in scope, its file's, those its Reads cites, each Reads item in its form, and, after or before an Algorithm, or a transition whose effect
     runs one, that Algorithm's; an Applies To in one of its forms, citing an operation whole; and an Enforced By that
     is citations joined by `and`, or `nothing:` and words, the latter appended to `warned`, never to `found`.
@@ -3420,8 +3434,10 @@ def constraint_findings(text_of, found, warned, sections, strip_fences, citation
 
 # ---------------------------------------------------------------- a Name column, present where it is cited
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Configured Construct
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declared Construct
 def held_in_findings(text_of, found, sections, strip_fences, citation, resolve):
-    """§ Constructs § Configured Construct: a Held In, a list, gives an item for each table its construct's form
+    """A Held In, a list, gives an item for each table its construct's form
     gives, in that order, each a fact's name, a colon and the citation of the Facts record declaring it, whose Type
     is a list of a context whose entries are named as that table's columns; an Extends cites a construct of the
     same kind. `citation` and `resolve` are the citation check's own."""
@@ -3490,8 +3506,9 @@ def _split_entries(text):
     return out
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Keyed Construct § Part Identifier
 def name_column_findings(text_of, cited, found, sections, strip_fences):
-    """§ Constructs § Keyed Construct § Part Identifier: a table opens with a Name column exactly where a part
+    """A table opens with a Name column exactly where a part
     of it is cited from outside its construct's section. `cited` holds the (path, lineage) pairs a
     part's citation by Name resolved to."""
     for r, body in text_of.items():
@@ -3684,6 +3701,9 @@ TABULAR = "modeling-constructs.md § Constructs § Tabular Construct"
 COLUMN_SECTIONS = {name: f"Constructs § {name}" for name in [*FORMS, "Construct", "Record Form"]}
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Construct
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Tabular Construct
 def column_table_findings(text, sections):
     """Each tabular construct's Column | Holds tables, in its own section's text, against this script's copy of its
     columns, the form, the optional columns and a Name column where it may open one, each column's header in backticks,
@@ -3731,8 +3751,9 @@ def column_table_findings(text, sections):
     return out
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Defining Constructs
 def definition_findings(text, sections):
-    """§ Defining Constructs: each definition under § Constructs, its Modifier, Extends and Implements read from its own
+    """Each construct's definition, its Modifier, Extends and Implements read from its own
     section, against DEFINITIONS, this script's copy of them; each Extends citing a definition before it, one alone but an
     interface's, an interface extending interfaces and no other definition an interface, every definition but Construct and
     an interface giving one; each Implements citing an interface before it; no definition giving a field or a column a
@@ -3765,7 +3786,7 @@ def definition_findings(text, sections):
                 if key == "Modifier":
                     d["Modifier"] = value
                 elif key in ("Extends", "Implements"):
-                    # the field's value, or the list beneath its key, read through the one reader (§ Fields)
+                    # the field's value, or the list beneath its key, read through the one reader of a block of fields
                     read, _ = record_types.read_block(lines, k, 0, end)
                     held = record_types.value_of(read[0]) if read else value
                     d[key] += [v.strip() for v in str(held).split("\n") if v.strip()]
@@ -3872,11 +3893,27 @@ def definition_findings(text, sections):
     return out
 
 
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Algorithm
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Basic Table
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Configured Construct
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Constraint
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Construct
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § DAG
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Decision Table
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Declared Construct
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Keyed Construct
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Ordered Construct
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Record Form
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § State Machine
+# @canon-spec specs/methodology/modeling-constructs.md § Constructs § Tabular Construct
+# @canon-spec specs/methodology/modeling-constructs.md § Defining Constructs
+# @canon-spec specs/methodology/modeling-constructs.md § Defining Constructs § Interfaces and Members
+# @canon-spec specs/methodology/modeling-constructs.md § Diagrams
 def field_table_findings(text, sections):
-    """§ Constructs § Construct: FIELD_TABLES, this script's copy of each table of the fields a
-    construct declares, against that table in `text`, modeling-constructs.md as it stands, whose sections
-    are `sections`: each row's Field, Required, Default Value and Values, in its order, an interface's members' Specified
-    By, and each Values cell in one of the forms `§ Constructs § Construct` gives it. -> [(rule, line, message)]."""
+    """FIELD_TABLES, this script's copy of each table of the fields a construct declares, against that table in
+    `text`, the canon's file of constructs as it stands, whose sections are `sections`: each row's Field, Required,
+    Default Value and Values, in its order, an interface's members' Specified By, and each Values cell in one of the
+    forms the Construct definition gives it. -> [(rule, line, message)]."""
     lines, found = text.split("\n"), []
     for title, copy in FIELD_TABLES.items():
         # "#2" names a section's second table of fields
@@ -3918,18 +3955,27 @@ def run_checks(text_of):
     read. Then each declared construct's structure, file by file, and the checks that read across files. The setup
     stays in place after the call, for a caller reading the specs further by it."""
     import record_types
-    from spec_text import lineages, parse_citation, sections, strip_fences, resolve
+    from spec_text import canon_texts, lineages, parse_citation, sections, strip_fences, resolve
 
-    # modeling-constructs.md § Purpose: no form template is authored with the constructs, a skill's or the core canon's
+    # no form template is authored with the constructs, a skill's or the core canon's
     text_of = {r: body for r, body in text_of.items() if not record_types.is_form_template(r)}
+    # the setup read from the checkout's canon, with what the texts checked declare of their own joined to it: a text
+    # checked declaring a construct takes the place of the canon's file at its path, and one declaring none, as a
+    # table of the project's data does, leaves the canon's declarations there in place; every text checked is read by
+    # its path as the project holds it. A finding of the setup is kept only of a text checked
+    canon = {r: body for r, body in canon_texts().items() if not record_types.is_form_template(r)}
+    setup = dict(canon, **text_of)
+    declared = dict(canon, **{r: body for r, body in text_of.items() if r not in canon or declarations(strip_fences(body), sections(body))})
     for state in (record_types.TYPES, record_types._TEXT_OF, record_types.CONSTRUCT_KEYS, record_types.NAME_CITED):
         state.clear()
     found, warned = [], []
-    found += record_types.declared_types(text_of)
-    found += record_types.closed_set_findings(text_of)
-    found += record_types.construct_keys(text_of)
+    found += record_types.declared_types(declared)
+    record_types._TEXT_OF.update(text_of)
+    found += record_types.closed_set_findings(declared)
+    found += record_types.construct_keys(declared)
+    found = [f for f in found if f[1] in text_of]
     # the parts a citation names, read for the Name column's check; the citation's own findings are another rule's
-    lineage = {path: lineages(body) for path, body in text_of.items()}
+    lineage = {path: lineages(body) for path, body in setup.items()}
     for r, body in text_of.items():
         for i, line in enumerate(strip_fences(body).split("\n"), 1):
             for m in CITATION.finditer(line):
@@ -3938,7 +3984,7 @@ def run_checks(text_of):
                     continue
                 path, target, sel = parse_citation(cite, r)
                 if sel is not None and path in lineage and target in lineage[path]:
-                    record_types.record_citation(sel, path, target, text_of, r, i, [])
+                    record_types.record_citation(sel, path, target, setup, r, i, [])
     for r, body in text_of.items():
         construct_findings(r, strip_fences(body), found, sections(body))
     # a Name column, present exactly where a part of its table is cited from outside its section
@@ -3963,8 +4009,8 @@ def run_checks(text_of):
     dag_findings(text_of, found, sections, strip_fences, CITATION, resolve)
     # each trigger written in FEEL in its form, and a machine's Trigger Classes
     occurrence_findings(text_of, found, sections, strip_fences, CITATION, resolve)
-    # each copy the checks hold of a table in the specs, held to its home: modeling-constructs.md's fields, columns and
-    # definitions, and expressions.md's FEEL functions, kept words and the canon's functions
+    # each copy the checks hold of a table in the specs, held to its home: the constructs' fields, columns and
+    # definitions, and FEEL's functions, its kept words and the canon's functions
     path = "specs/methodology/modeling-constructs.md"
     if path in text_of:
         text = text_of[path]

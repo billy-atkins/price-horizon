@@ -1,13 +1,12 @@
 """The one reading of where a line of a text stands: under which headings, and in running text, a heading, a table, a
 fenced block, an indented code block or the front matter; each fenced block as a unit; and the form a citation takes.
 The scripts the skills share take a file's headings, its fenced blocks and a citation's form from here, the search
-among them, one copy (specs/methodology/skills/authoring-a-skill.md § Authoring a Skill), and it imports none of them.
+among them, one copy, and it imports none of them.
 A check that reads the rows of a table still finds those rows for itself.
 
 Standard library only, so any script imports it without what a search requires. It reads any text given it: a file a
-target holds, a diagram quoted in a note, standard input. It reads a text as specs/methodology/spec-style/markdown.md
-§ Markdown has a Markdown file read, GFM's blocks as GFM reads them, and a citation as
-specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation writes one. Of two headings sharing
+target holds, a diagram quoted in a note, standard input. It reads a text as the canon has a Markdown
+file read, GFM's blocks as GFM reads them, and a citation as the canon writes one. Of two headings sharing
 a path, which the canon forbids and gives no reading of, a path names the first, and the second is marked.
 
 Reading a file to judge it stays each check's own. What stands here is only where a line stands and what a citation
@@ -186,7 +185,7 @@ def _read(text):
             prev = None
             continue
         holder_before = holder
-        # a line that is not blank and is indented less than an item's text ends the item (spec-style/markdown.md § Markdown)
+        # a line that is not blank and is indented less than an item's text ends the item, as the canon's Markdown has it
         while stack and indent < stack[-1]:
             stack.pop()
         holder = stack[-1] if stack else None

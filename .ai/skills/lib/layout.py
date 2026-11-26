@@ -1,13 +1,12 @@
 """The check of where a blank line falls: each line of a Markdown file read as the element it opens or continues,
-and each blank line held to the Decision Table specs/methodology/spec-style/markdown.md § Blank Lines states, read from the
-canon. The element names the module holds are a copy of the table's Input Values, and the conditions it works out a
-copy of the table's Conditions, each checked against the table as it is read. The audit-specs script, the design-specs script and implement-specs' script, through check_form, run the
-check through this one copy (specs/methodology/skills/authoring-a-skill.md § Authoring a Skill). A fenced block whose info string is
-`markdown` is read as spec-style/markdown.md § Markdown has it, one code block toward what stands outside it and a file of its
-own within."""
+and each blank line held to the canon's table of blank lines, read from the canon. The element names the module holds
+are a copy of the table's Input Values, and the conditions it works out a copy of the table's Conditions, each checked
+against the table as it is read. The audit-specs script, the design-specs script and implement-specs' script, through
+check_form, run the check through this one copy. A fenced block whose info string is `markdown` is read as the canon's
+Markdown style has it, one code block toward what stands outside it and a file of its own within."""
 import constructs
 import reading
-from spec_text import as_root, sections, strip_fences
+from spec_text import checkout, sections, strip_fences
 
 # @canon-spec specs/methodology/spec-style/markdown.md § Blank Lines
 RULE = "spec-style/markdown.md § Blank Lines"
@@ -27,7 +26,7 @@ CODE_BLOCK = "a code block"
 THEMATIC_BREAK = "a thematic break"
 ELEMENTS = (FRONT_MATTER, HEADING, PARAGRAPH, FIELD, RECORD, LIST_ITEM, TABLE, CODE_BLOCK, THEMATIC_BREAK)
 
-# where a line stands, a fence, a list marker and a heading among it, is the one reading's (reading.py); the names
+# where a line stands, a fence, a list marker and a heading among it, is the one reading's; the names
 # kept here are its own, for the scripts that read them from this module
 FENCE = reading.FENCE
 MARKDOWN_INFO = "markdown"
@@ -49,8 +48,7 @@ def _indent(line):
 def elements(text):
     """-> [Line or None] for each line of text, None for a blank line: the element each line opens or continues. Where
     a line stands, in a fenced or an indented code block, a heading, a table, a list item or the front matter, is the
-    one reading's (reading.py), read as GFM reads blocks and as spec-style/markdown.md § Markdown has a list item end
-    before the first line that is not blank and is indented less than its text. What this check tells apart for
+    one reading's, read as GFM reads blocks and as the canon's Markdown style has a list item end before the first line that is not blank and is indented less than its text. What this check tells apart for
     itself is a field, a record and a paragraph within running text."""
     kinds = {reading.FRONT_MATTER: FRONT_MATTER, reading.HEADING: HEADING, reading.TABLE: TABLE, reading.FENCED: CODE_BLOCK,
              reading.INDENTED: CODE_BLOCK, reading.THEMATIC_BREAK: THEMATIC_BREAK}
@@ -94,18 +92,20 @@ def markdown_blocks(text):
 _RULES = {}
 
 
-def rules(root):
-    """-> (the rows of the Decision Table § Blank Lines states, each {column: cell}, its conditions and its outcome
-    column, or None, and the problems with reading it), read from the canon under root once."""
-    root = as_root(root)
-    if root in _RULES:
+def rules(text=None):
+    """-> (the rows of the canon's Decision Table of blank lines, each {column: cell}, its conditions and its outcome
+    column, or None, and the problems with reading it), read from the canon of the checkout once, whatever root a
+    check is given; or, given the text of the table's file as a scope holds it, read from that text, citations' links
+    stripped, so the module's copy of the table's names is held against the file a check is handed."""
+    root = checkout()
+    if text is None and root in _RULES:
         return _RULES[root]
     home = root / HOME
     problems = []
     table, unknown = None, []
-    if home.is_file():
+    if text is not None or home.is_file():
         import citation_links
-        body = citation_links.strip(home.read_text(encoding="utf-8")).replace("\r\n", "\n")
+        body = (text if text is not None else citation_links.strip(home.read_text(encoding="utf-8"))).replace("\r\n", "\n")
         secs = sections(body)
         for line, name, fields, tables, lineage in constructs.declarations(strip_fences(body), secs):
             if lineage != SECTION or name != "Decision Table" or not tables:
@@ -134,6 +134,8 @@ def rules(root):
             break
     if table is None and not unknown:
         problems.append((RULE, HOME, 0, "the layout check reads no Decision Table of where a blank line falls in spec-style/markdown.md § Blank Lines"))
+    if text is not None:
+        return table, problems
     _RULES[root] = (table, problems)
     return _RULES[root]
 

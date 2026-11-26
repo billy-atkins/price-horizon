@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-"""The kept comparison of the design script, .ai/skills/lib/design_documents.py: which designs a change to the script,
-or to a form of the canon it reads, reads differently.
+"""The kept comparison of the design script: which designs a change to the script, or to a form of the canon it reads,
+reads differently.
 
-  comparison.py                      the designs of the checkout's own plans folders, each named for a skill
-  comparison.py PLANS_FOLDER ...     the designs of the plans folders given, with their reports
+  run with no argument               the designs of the checkout's own plans folders, each named for a skill
+  run with PLANS_FOLDER ...          the designs of the plans folders given, with their reports
 
-It stands in the design script's set of kept tests, tests/spec-of-record/scripts/design-script/, whose conftest.py says
-which files are the design script's: the design script runs it where a change holds one of them, and the runner
-takes it for no test.
+It stands in the design script's set of kept tests, whose shared module says which files are the design script's: the
+design script runs it where a change holds one of them, and the runner takes it for no test.
 
 It runs each action of the design script that reads a design over the same design documents and reports by each of its
 sides: the script as the last commit held it, and the script as it stands. Each side is a checkout of its own, a
@@ -61,7 +60,7 @@ PROJECT = next((p for p in (RUN_IN, *RUN_IN.parents) if (p / LIB / "design_docum
 # where the two sides' worktrees stand, among the checkout's working files
 THEN = PROJECT / ".ai" / "tmp" / "worktrees" / "design-script-comparison-then"
 NOW = PROJECT / ".ai" / "tmp" / "worktrees" / "design-script-comparison-now"
-# the search's scratch space in a checkout, where its index stands, as .ai/skills/lib/search.py places it
+# the search's scratch space in a checkout, where its index stands, as the search places it
 SEARCH_SCRATCH = Path(".ai") / "tmp" / "search-spec-of-record-scope"
 # the actions reading the checkout's uncommitted work rather than a design: the side as it stands holds that work and
 # the side at the last commit holds none, so each would list every design for the work alone

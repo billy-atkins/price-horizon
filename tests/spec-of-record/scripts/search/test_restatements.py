@@ -1,10 +1,11 @@
 """A search by meaning held to pairs of passages of the invented library: each pair one judgment of whether the
 search, asked with the first passage, gives the second among the first twenty places of its ranking, the part a
-caller asking for none is given."""
+caller asking for none is given. The file's tests share one index of the library, built once in the file's folder."""
 import pytest
 
-pytestmark = [pytest.mark.reads("search-library-lending.md", "library-membership", "library-loans", "library-overdue", "library-holds", "library-catalogue"),
-              pytest.mark.reads("search-library-premises.md", "library-donations", "library-opening", "library-volunteers", "library-rooms", "library-events")]
+from search_set import LIBRARY, READS_LIBRARY, every_file, line_holding, project, search
+
+pytestmark = READS_LIBRARY
 
 SAME, RELATED = "the same", "something related"
 IN, OUT = "in the result", "not in the result"
@@ -46,67 +47,48 @@ PAIRS = (
     ("desk-never-left-empty", "A held item is kept at the desk for seven days", "The desk is never left empty", RELATED, IN, "shared words"),
     ("counted-of-the-cash-tin", "Each shelf is counted once a year against the catalogue", "The cash tin is counted, the takings", RELATED, IN, "shared words"),
 )
-FOUND = 5  # of the pairs saying the same, those the search gives in the first twenty
 
 
 @pytest.fixture
-def library(shared, fixtures, tools):
-    """-> (the library's root, a search over its ten files), written and indexed by the first test of the file."""
+def library(shared, fixtures):
+    """-> a search over the library's ten files, written and indexed by the first test of the file."""
     def build():
-        root = tools.a_library(shared.folder / "project", fixtures)
-        return root, shared.opened(root, cover=tools.files_under(root), scratch=shared.folder / "index")
+        root = project(shared.folder / "project", fixtures, LIBRARY)
+        return shared.opened(root, cover=every_file(root), scratch=shared.folder / "index")
     return shared.once("library", build)
 
 
-def place_of(root, tools, words):
+def place_of(fixtures, words):
     """-> (the file, the line) of the one line of the library holding the words."""
-    found = [(rel, n) for rel in sorted(tools.LIBRARY.values()) for n, line in enumerate((root / rel).read_text(encoding="utf-8").split("\n"), 1) if words in line]
+    found = [(path, n) for key, path in sorted(LIBRARY.items(), key=lambda kp: kp[1])
+             for n, line in enumerate(fixtures[key].split("\n"), 1) if words in line]
     assert len(found) == 1, (words, found)
     return found[0]
 
 
 @pytest.mark.action("--show-similar-passages")
 @pytest.mark.passes
-def test_each_pair_of_passages_is_ranked_as_its_judgment_expects(library, tools, search, check):
-    root, s = library
-    failed, count = {IN: [], OUT: []}, {IN: 0, OUT: 0}
-    for record, original, copy, says, expected, limit in PAIRS:
-        (opath, oline), (cpath, cline) = place_of(root, tools, original), place_of(root, tools, copy)
-        row = s.db.execute("select p.text from passages p join files f on f.sha=p.sha where f.path=? and p.line_start<=? and p.line_end>=? order by p.id limit 1", (opath, oline, oline)).fetchone()
-        # a passage too short to be ranked is no passage of the index, and is asked with as its line holds it
-        passage = row[0] if row else (root / opath).read_text(encoding="utf-8").split("\n")[oline - 1]
-        result = s.meaning(passage)
-        hit = any(place.path == cpath and place.first <= cline <= place.last for place in result.places)
-        count[expected] += 1
-        if hit != (expected == IN) or result.ranking_part() != f"1 to {search.RANKED}":
-            failed[expected].append(record + ": " + copy)
-    check("every pair holds one expectation, its second passage in the result or not in the result", all(pair[4] in (IN, OUT) and pair[3] in (SAME, RELATED) for pair in PAIRS))
-    check(f"each of the {count[IN]} positive tests passes: the second passage stands among the first twenty places", not failed[IN], failed[IN])
-    check(f"each of the {count[OUT]} negative tests passes: the second passage stands outside the first twenty places", not failed[OUT], failed[OUT])
-
-    # A pair whose expectation parts from what it says records a limit of the search: a place saying the same that
-    # the search does not find, or a related place it gives. Each such pair names the kind of its limit, and no other
-    # pair names one, so a change that finds a restatement the search missed, or leaves out a related place it gave,
-    # fails that pair's test and the pair is then judged again.
-    parts = lambda pair: (pair[3] == SAME) != (pair[4] == IN)
-    check("a pair's expectation parts from what the pair says only where the pair names the limit it records", not [p[0] for p in PAIRS if parts(p) and not p[5]], [p[0] for p in PAIRS if parts(p) and not p[5]])
-    check("a pair the search meets names no limit, so it can never record one", not [p[0] for p in PAIRS if p[5] and not parts(p)], [p[0] for p in PAIRS if p[5] and not parts(p)])
-    same = [pair for pair in PAIRS if pair[3] == SAME]
-    check(f"over the whole set, {FOUND} of the {len(same)} places saying the same stand in the first twenty, the count the search gives of this text",
-          sum(pair[4] == IN for pair in same) == FOUND and not failed[IN] and not failed[OUT], sum(pair[4] == IN for pair in same))
+@pytest.mark.parametrize("record, original, copy, says, expected, limit", PAIRS, ids=[f"{n:02d}-{pair[0]}" for n, pair in enumerate(PAIRS, 1)])
+def test_a_pair_of_passages_is_ranked_as_its_judgment_expects(library, fixtures, record, original, copy, says, expected, limit):
+    (opath, oline), (cpath, cline) = place_of(fixtures, original), place_of(fixtures, copy)
+    row = library.db.execute("select p.text from passages p join files f on f.sha=p.sha where f.path=? and p.line_start<=? and p.line_end>=? order by p.id limit 1",
+                             (opath, oline, oline)).fetchone()
+    # a passage too short to be ranked is no passage of the index, and is asked with as its line holds it
+    key = next(k for k, p in LIBRARY.items() if p == opath)
+    result = library.meaning(row[0] if row else fixtures[key].split("\n")[oline - 1])
+    hit = any(place.path == cpath and place.first <= cline <= place.last for place in result.places)
+    assert hit == (expected == IN) and result.ranking_part() == f"1 to {search.RANKED}"
 
 
 @pytest.mark.action("--show-similar-passages")
 @pytest.mark.reports
-def test_text_that_is_no_prose_is_never_ranked(library, tools, check):
+@pytest.mark.parametrize("asked, key, words", [
+    ("Wet umbrellas stay in the stand in the porch and are not taken among the shelves.", "library-opening", "Umbrellas drip in the porch stand"),
+    ("Placing a hold is free of charge.", "library-holds", "A hold costs nothing."),
+], ids=["a-rule-stated-in-a-fenced-block-alone", "a-paragraph-shorter-than-the-shortest-passage-ranked"])
+def test_text_that_is_no_prose_ranked_is_given_at_no_place_of_the_whole_ranking(library, fixtures, asked, key, words):
     # the library's file on opening holds, in a fenced block alone, a notice that umbrellas are not carried between
     # the shelves; its file on holds says in a paragraph of twenty-one characters that a hold costs nothing
-    root, s = library
-    notice = tools.line_holding(root, "specs/library/opening.md", "Umbrellas drip in the porch stand")
-    r = s.meaning("Wet umbrellas stay in the stand in the porch and are not taken among the shelves.", limit=500)
-    check("a rule stated in a fenced block alone is given at no place of the whole ranking",
-          len(r.places) > 100 and not any(p.path == "specs/library/opening.md" and p.first <= notice <= p.last for p in r.places), len(r.places))
-    short = tools.line_holding(root, "specs/library/holds.md", "A hold costs nothing.")
-    r = s.meaning("Placing a hold is free of charge.", limit=500)
-    check("a paragraph shorter than the shortest passage ranked is given at no place of the whole ranking",
-          len(r.places) > 100 and not any(p.path == "specs/library/holds.md" and p.first <= short <= p.last for p in r.places), len(r.places))
+    line, path = line_holding(fixtures[key], words), LIBRARY[key]
+    r = library.meaning(asked, limit=500)
+    assert len(r.places) > 100 and not any(p.path == path and p.first <= line <= p.last for p in r.places)

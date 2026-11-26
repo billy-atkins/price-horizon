@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """verify-spec-implementation's entry script: checks the app-spec annotations in the application's code
-against specs/methodology/code.md § Citing the Specs From Code and the form it cites, and lists places
+against the canon's rule for citing the specs from code and the form it cites, and lists places
 for the reading to look.
 
 The application's code is the code roots, less what is excluded, that the technical specs' stack.md
-names, per specs/methodology/spec-placement/technical-stack.md § The Technical Stack. Standard library only, and the
-code the skills share. Exit 0 when nothing is found, 1 when something is, 2 for a usage error.
+names. Standard library only, and the code the skills share. Exit 0 when nothing is found, 1 when something is, 2 for
+a usage error.
 
-The code the skills share that it imports: code_checks.py, the check and the candidate list, one copy of each, read
-through spec_text.py.
+The code the skills share that it imports: the check of the code and its candidate list, one copy of each, read
+through the shared reading of a spec's text.
 """
 
 import argparse

@@ -11,12 +11,12 @@ Renderers, tried in order:
   - mermaid.ink over HTTPS. No install, but sends the diagram to a third party
     and runs whatever Mermaid version that service runs.
 
-Usage:
-  author-mermaid-diagram.py --render-diagrams FILE              # every mermaid block in FILE
-  author-mermaid-diagram.py --render-diagrams FILE --block 2    # one block, by number (1-based)
-  author-mermaid-diagram.py --list-diagrams FILE                # list blocks without rendering
-  author-mermaid-diagram.py --render-diagrams - < diagram.mmd   # one diagram from stdin
-  author-mermaid-diagram.py --render-diagrams FILE --output-directory path/  # default: .ai/tmp/author-mermaid-diagram
+Usage, the arguments given the script:
+  --render-diagrams FILE              # every mermaid block in FILE
+  --render-diagrams FILE --block 2    # one block, by number (1-based)
+  --list-diagrams FILE                # list blocks without rendering
+  --render-diagrams - < diagram.mmd   # one diagram from stdin
+  --render-diagrams FILE --output-directory path/  # default: .ai/tmp/author-mermaid-diagram
 
 Paths are resolved against the current working directory, so run it from the
 repository root (or pass --output-directory) if the default output location matters.
@@ -61,7 +61,7 @@ MAX_NAME = 150      # under the 255-byte name limit on Linux and macOS, and keep
 
 def extract_blocks(text: str) -> list[tuple[list[str], str]]:
     """Return (heading lineage, code) for every fenced block whose info string is
-    mermaid, as the one reading gives a fenced block (reading.py): a block quoted in
+    mermaid, as the one reading of a text gives a fenced block: a block quoted in
     a design note among them, its quote prefix taken off, and a block fenced by
     tildes or indented in a list item. The lineage is the chain of headings the
     block stands under, below the level-1 title. A heading inside any fenced block
@@ -282,7 +282,7 @@ def render_diagrams(file, block, out_dir) -> int:
 
 
 def main() -> int:
-    # Actions are flags per specs/methodology/skills/authoring-a-skill.md § Authoring a Skill.
+    # each action is a flag
     ap = argparse.ArgumentParser(description="Render Mermaid diagrams to PNG.", allow_abbrev=False)
     ap.add_argument("--render-diagrams", metavar="FILE", action="append",
                     help="render every mermaid block in FILE, a markdown or .mmd file, to PNG; - reads one diagram "

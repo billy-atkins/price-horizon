@@ -123,19 +123,6 @@
       print("1 design read differently, of 1")
       ```
 
-  - **Fixture:** test-waiting-in-its-folder \
-    **Holds:** a file of one test written for pytest, which writes a file named started.txt into the folder it is handed and then sleeps two minutes \
-    **Snippet:**
-
-      ```python
-      import time
-
-
-      def test_waits(work):
-          (work / "started.txt").write_text("started", encoding="utf-8")
-          time.sleep(120)
-      ```
-
   - **Fixture:** test-ending-its-process \
     **Holds:** a file of one test written for pytest, which ends the process running it at once, with exit status 3 \
     **Snippet:**
@@ -166,21 +153,56 @@
           assert True
       ```
 
-  - **Fixture:** spec-of-one-script-check \
-    **Holds:** a spec holding one Script Check record, guide-names-the-quay, whose Carried Out By names the skill show-guide and its flag `--show-guide` \
+  - **Fixture:** canon-of-the-tide-tables \
+    **Holds:** the files of a project's canon, one path to a line: a spec of the tides and the code reading its tables \
     **Snippet:**
 
-      ```markdown
-      # The Guide's Checks
+      ```text
+      specs/methodology/tides.md
+      .ai/skills/lib/tide_tables.py
+      ```
 
-      ## Script Checks
+  - **Fixture:** code-naming-the-canon-in-annotations-alone \
+    **Holds:** a Python file about the tides naming the canon of the tide tables in a spec annotation alone, its other comments and its docstrings naming none of its files and no section, though a docstring names files whose names hold a canon file's name, and a string holds a section sign \
+    **Snippet:**
 
-      **Records:**
-        - **Name:** guide-names-the-quay \
-          **Tests:** the guide names the quay the ferry leaves from \
-          **Reads:**
-            - `documentation`
+      ```python
+      """Reads the hours of the tides from the table kept beside the harbor."""
+      import re
 
-          **Carried Out By:**
-            - `.ai/skills/show-guide/` `--show-guide`
+      # @canon-spec specs/methodology/tides.md § Tides § High Water
+      HIGH = re.compile(r"high")  # the hour the water stands highest
+
+
+      def hours(text):
+          """-> each hour the table gives; tides.mdx and old_tide_tables.py are no files of the canon."""
+          sign = "§ Tides"  # a string, which no reading takes as a comment
+          return HIGH.findall(text), sign
+      ```
+
+  - **Fixture:** code-naming-a-section-after-code \
+    **Holds:** a line of Python about the tides whose comment after its code names a section by a section sign \
+    **Snippet:**
+
+      ```python
+      HIGH = "high"  # the hour § Tides § High Water gives
+      ```
+
+  - **Fixture:** code-naming-a-canon-file-by-its-name \
+    **Holds:** a Python function about the tides whose docstring names a file of the canon of the tide tables by its file name alone \
+    **Snippet:**
+
+      ```python
+      def hours(text):
+          """-> each hour the table gives, read as tide_tables.py reads it."""
+          return text.split()
+      ```
+
+  - **Fixture:** code-naming-a-canon-path-on-a-line-of-its-own \
+    **Holds:** a Python comment on a line of its own, which is no spec annotation, naming a file of the canon of the tide tables by its path \
+    **Snippet:**
+
+      ```python
+      # the hours, as specs/methodology/tides.md has them read
+      HIGH = "high"
       ```

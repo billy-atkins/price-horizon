@@ -1,142 +1,164 @@
-"""The kept tests run as the entry of a self-review over applied work is appended: --log-entry runs --check-kept-tests
-over the design's changes, writes what the run gave into the report, and refuses the entry where a test fails, a check
-made with the run reports, or the report judges no design a kept comparison lists.
-
-A self-review over applied work also runs --check-work, the audit's checks, which read the canon whole. So a project
-here holds the whole of what FORM_FILES names, the methodology among it, taken as the test runs. It holds the guide's
-set of kept tests, as test_kept.py's projects do.
-"""
+"""The kept tests run as a self-review over applied work is validated: --stamp-settled-report runs the design script's
+checks over the work and --check-kept-tests over the design's changes, read from version control, writes what both
+gave into the report's Script Output, and stamps the report only where no test fails, no check made with the run
+reports and the report judges each design a kept comparison lists. Each project is a ferry design applied to the
+guide, with the guide's set of kept tests and its own runner, all written as fixtures and committed, then the guide
+changed."""
 import pytest
 
-from design_script_set import (APPLYING, CHECK_FIELDS, DRAFTED, FORM_FILES, GUIDE_SET, GUIDE_TESTS, KEPT, KEPT_RULE, NAME, OTHER_DESIGN, Project,
-    RE_EVALUATION, SELF, SKILLS, a_check, a_report, applied, failing, kept_tests, passes, report_at, reports, shown, swap)
+from design_script_set import (DESIGN, GUIDE_SET, KEPT_FIXTURES, KEPT_RUN, KEPT_SET_READS, NAME, REPORTS, acted, committed, design_documents as dd, held,
+                               kept_set, project)
 
-pytestmark = [pytest.mark.reads("design-script-ferry.md", "island-guide", "ferry-design"), pytest.mark.reads("design-script-reports.md", "ferry-self-review-report"),
-              pytest.mark.reads("design-script-kept-sets.md", "guide-script", "guide-set-conftest", "guide-set-tests", "fixture-file-of-one-line", "index-listing-one-file")]
-RAN = "$ --check-kept-tests\nthe kept tests of guide, run for %s\n$ python -B -m pytest " + GUIDE_TESTS + "\n  2 tests, %d failed\n"
-FAILS = "%s holds a test that fails: scripts.guide.test_guide::test_no_pier_is_named" % GUIDE_TESTS
-AUDIT_SCRIPT = ".ai/skills/audit-specs/scripts/audit-specs.py"  # a script of a registered skill, which no set of the project names
+pytestmark = list(KEPT_SET_READS) + [pytest.mark.reads("design-script-ferry.md", "island-guide"),
+                                     pytest.mark.reads("design-script-pages-changed.md", "guide-giving-the-first-ferry")]
+SELF = REPORTS + "/self-review/1.md"
+COMPARISON = GUIDE_SET + "/comparison.py"
+OTHER_DESIGN = ".ai/plans/design-specs/other-design.md"
+SEARCH_INDEX = ".ai/tmp/search-spec-of-record-scope/"
+RAN = "$ --check-kept-tests\nthe kept tests of guide, run for docs/guide.md\n$ python -B -m pytest " + GUIDE_SET + "/test_guide.py\n  2 tests, %d failed\n"
+FAILS = "%s/test_guide.py holds a test that fails: scripts.guide.test_guide::test_no_pier_is_named" % GUIDE_SET
+
+
+def paths(skill):
+    """-> (where the design stands in a skill's plans folder, where its first self-review's report stands)."""
+    return ".ai/plans/%s/%s.md" % (skill, NAME), ".ai/tmp/%s/%s/reports/self-review/1.md" % (skill, NAME)
+
+
+def applied(work, fixtures, tests="guide-set-tests", design="ferry-design-applying", before=None, after=None, report="ferry-self-review-report",
+            skill="design-specs"):
+    """-> the root of a project holding the guide's set of kept tests, its file of tests the fixture `tests` names, the
+    guide and the design given in the skill's plans folder, with what before maps, committed; then the guide giving
+    the first ferry, the self-review's report given, and what after maps."""
+    at, report_at = paths(skill)
+    root = committed(kept_set(work, fixtures, dict({"island-guide": "docs/guide.md", design: at}, **(before or {})), tests=tests))
+    project(work, fixtures, dict({"guide-giving-the-first-ferry": "docs/guide.md", report: report_at}, **(after or {})))
+    return root
+
+
+def stamped(monkeypatch, root, skill="design-specs"):
+    """-> (the exit status of --stamp-settled-report of the self-review, the report's text after it)."""
+    report_at = paths(skill)[1]
+    code = acted(monkeypatch, root, dd.stamp_settled_report, report_at, plans=".ai/plans/" + skill)
+    return code, (root / report_at).read_text(encoding="utf-8")
 
 
 # @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: kept-tests-pass-at-the-self-review]
-@pytest.mark.action("--log-entry")
+@pytest.mark.action("--stamp-settled-report")
 @pytest.mark.passes
-def test_entry_is_appended_where_the_kept_tests_pass(check):
-    for skill in SKILLS:
-        p = Project("kept-pass", canon=FORM_FILES)
-        kept_tests(p)
-        design, path = applied(p, skill, Target="`docs/guide.md`")
-        got = p.run("--log-entry", design, SELF, *CHECK_FIELDS, skill=skill)
-        now = p.read(path)
-        check("--log-entry of %s runs the kept tests of a script whose form the design's changes hold, a change to a form alone, writes what the run gave into the report, and appends the entry" % skill,
-              passes(got, "== log-entry", "- **Entry:** self-review-1") and RAN % ("docs/guide.md", 0) in now and "the checks of %s as a whole were made\n" % KEPT in now
-              and now.index("$ --check-changed-files") < now.index("$ --check-kept-tests") < now.index("## Settlement"), shown(got) + now[-900:])
-    p = Project("kept-code", canon=FORM_FILES)
-    kept_tests(p)
-    design, path = applied(p, log=APPLYING + (("direct-edit", {"Places": "tools/guide.py"}),), Target="`docs/notes.md`")
-    got = p.run("--log-entry", design, SELF, *CHECK_FIELDS)
-    check("--log-entry runs them where the design's changes hold the script's code", passes(got, "== log-entry", "- **Entry:** self-review-1") and RAN % ("tools/guide.py", 0) in p.read(path), shown(got))
+@pytest.mark.reads("design-script-kept-sets.md", "guide-set-tests")
+@pytest.mark.reads("design-script-designs.md", "ferry-design-applying")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.parametrize("skill", ["design-specs", "implement-specs"])
+def test_report_is_stamped_where_the_kept_tests_pass_their_output_and_the_works_in_it(fixtures, work, monkeypatch, skill):
+    code, text = stamped(monkeypatch, applied(work, fixtures, skill=skill), skill)
+    assert code == 0 and dd.report_stamp(text) is not None
+    assert "$ --check-work %s\n== check-work %s\n\n0 findings new against the last commit, over 1 changed file\n" % (paths(skill)[0], NAME) in text
+    assert RAN % 0 in text and "the checks of tests/spec-of-record as a whole were made\n" in text
+    assert text.index("$ --check-changed-files") < text.index("$ --check-kept-tests") < text.index("## Settlement")
 
 
 # @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: kept-tests-pass-at-the-self-review]
-@pytest.mark.action("--log-entry")
+@pytest.mark.action("--stamp-settled-report")
 @pytest.mark.reports
-def test_entry_is_refused_where_a_kept_test_fails(check, fixtures):
-    for skill in SKILLS:
-        p = Project("kept-fail", canon=FORM_FILES)
-        kept_tests(p, tests=failing(fixtures["guide-set-tests"]))
-        design, path = applied(p, skill, Target="`docs/guide.md`")
-        before = p.read(design)
-        got = p.run("--log-entry", design, SELF, *CHECK_FIELDS, skill=skill)
-        now = p.read(path)
-        check("--log-entry of %s refuses the entry of a self-review over applied work where a kept test of a script the design changed fails, the tests' result written into its report" % skill,
-              reports(got, "== log-entry, not logged", ["%s: %s" % (path, FAILS), KEPT_RULE]) and p.read(design) == before
-              and RAN % ("docs/guide.md", 1) + "  FAILED scripts.guide.test_guide::test_no_pier_is_named\n" in now, shown(got) + now[-700:])
-        got = p.run("--check-settled-report", path, skill=skill)
-        check("--check-settled-report of %s, made apart from the entry, runs no kept test: it passes the same report and names none" % skill,
-              passes(got, "== check-settled-report " + path, "0 problems") and "test_guide" not in got[1], shown(got))
-    p = Project("kept-before-the-apply")
-    kept_tests(p, tests=failing(fixtures["guide-set-tests"]))
-    design = p.design(log=DRAFTED)
-    path = p.put(report_at(SELF), a_report("self-review"))
-    got = p.run("--log-entry", design, SELF, *CHECK_FIELDS)
-    check("--log-entry runs no kept test for a self-review before the apply", passes(got, "== log-entry", "- **Entry:** self-review-1") and "check-kept-tests" not in p.read(path), shown(got))
+@pytest.mark.reads("design-script-kept-runs.md", "guide-set-tests-one-failing")
+@pytest.mark.reads("design-script-designs.md", "ferry-design-applying")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+def test_report_is_not_stamped_where_a_kept_test_fails_the_tests_result_in_it(fixtures, work, monkeypatch, capsys):
+    root = applied(work, fixtures, tests="guide-set-tests-one-failing")
+    before = (root / DESIGN).read_bytes()
+    code, text = stamped(monkeypatch, root)
+    out = capsys.readouterr().out
+    assert code == 1 and "== stamp-settled-report, not stamped " + SELF in out and "%s: %s" % (SELF, FAILS) in out and dd.KEPT_TESTS_RULE in out
+    assert dd.report_stamp(text) is None and RAN % 1 + "  FAILED scripts.guide.test_guide::test_no_pier_is_named\n" in text
+    assert (root / DESIGN).read_bytes() == before
 
 
 # @canon-spec specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Script Checks [Name: kept-tests-pass-at-the-self-review]
-@pytest.mark.action("--log-entry")
+@pytest.mark.action("--stamp-settled-report")
 @pytest.mark.reports
-def test_entry_is_refused_where_a_check_made_with_the_run_reports(check, fixtures):
-    p = Project("kept-check-reports", canon=FORM_FILES)
-    # the kept tests pass, and no test holds the script's one action where it reports
-    kept_tests(p, tests=swap(fixtures["guide-set-tests"], "@pytest.mark.reports\n", ""))
-    design, path = applied(p, Target="`docs/guide.md`")
-    before = p.read(design)
-    got = p.run("--log-entry", design, SELF, *CHECK_FIELDS)
-    check("--log-entry refuses the entry of a self-review over applied work where the kept tests pass and a check made with their run reports: an action no test holds where it reports",
-          reports(got, "== log-entry, not logged", ["%s: the action --show-guide of guide is held by no kept test where it reports" % path, "[Name: each-script-check-and-action-held-by-a-test]"])
-          and p.read(design) == before and RAN % ("docs/guide.md", 0) in p.read(path), shown(got))
-    p = Project("kept-folder-reports", canon=FORM_FILES)
-    kept_tests(p)
-    p.put(GUIDE_SET + "/AGENTS.md", fixtures["island-guide"])  # a file kept under the tests under the name of an agent instructions file
-    # the design changed a file under the tests alone, none a set names as its script's: no test is run, and the folder is checked
-    design, path = applied(p, Target="`%s/fixtures/index.md`" % KEPT, Kind="canon-specs")
-    got = p.run("--log-entry", design, SELF, *CHECK_FIELDS)
-    check("--log-entry refuses the entry where the design's changes hold a file under the tests and a check of the tests' folder reports, though no test is run",
-          reports(got, "== log-entry, not logged", ["%s/AGENTS.md carries the name of an agent instructions file" % GUIDE_SET, "[Name: no-instructions-name-kept-under-the-tests]"])
-          and "$ --check-kept-tests\nthe checks of %s as a whole were made\n" % KEPT in p.read(path), shown(got) + p.read(path)[-500:])
+@pytest.mark.reads("design-script-kept-sets.md", "guide-set-tests")
+@pytest.mark.reads("design-script-kept-runs.md", "guide-set-tests-holding-no-test-where-it-reports")
+@pytest.mark.reads("design-script-designs.md", "ferry-design-applying")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.reads("design-script-pages.md", "notes-citing-nothing")
+@pytest.mark.parametrize("tests, after, said", [
+    ("guide-set-tests-holding-no-test-where-it-reports", {}, "the action --show-guide of guide is held by no kept test where it reports"),
+    ("guide-set-tests", {"notes-citing-nothing": KEPT_FIXTURES + "/notes/agents.md"}, KEPT_FIXTURES + "/notes/agents.md carries the name of an agent instructions file"),
+])
+def test_report_is_not_stamped_where_a_check_made_with_the_run_reports(fixtures, work, monkeypatch, capsys, tests, after, said):
+    code, text = stamped(monkeypatch, applied(work, fixtures, tests=tests, after=after))
+    assert code == 1 and "%s: %s" % (SELF, said) in capsys.readouterr().out and dd.report_stamp(text) is None
 
 
-@pytest.mark.action("--log-entry")
-def test_no_kept_test_is_run_where_no_file_of_a_script_changed(check, fixtures):
-    p = Project("kept-none", canon=FORM_FILES)
-    kept_tests(p, tests=failing(fixtures["guide-set-tests"]))
-    design, path = applied(p, log=APPLYING + (("direct-edit", {"Places": AUDIT_SCRIPT}),), Target="`docs/notes.md`")
-    got = p.run("--log-entry", design, SELF, *CHECK_FIELDS)
-    now = p.read(path)
-    check("--log-entry runs no kept test of a script none of whose files the design changed, says which changed script no set of kept tests names, and appends the entry",
-          passes(got, "== log-entry", "- **Entry:** self-review-1") and "$ --check-kept-tests\nno set of kept tests names %s\n" % AUDIT_SCRIPT in now and "test_guide" not in now, shown(got) + now[-400:])
+@pytest.mark.action("--stamp-settled-report")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-kept-runs.md", "guide-set-tests-one-failing")
+@pytest.mark.reads("design-script-designs.md", "ferry-design-applying-to-the-guide-and-the-tides")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.reads("design-script-pages.md", "spring-tides-page")
+def test_no_kept_test_is_run_where_the_designs_changes_hold_no_file_of_a_script(fixtures, work, monkeypatch):
+    root = applied(work, fixtures, tests="guide-set-tests-one-failing", design="ferry-design-applying-to-the-guide-and-the-tides",
+                   after={"island-guide": "docs/guide.md", "spring-tides-page": "docs/tides/spring.md"})
+    code, text = stamped(monkeypatch, root)
+    assert code == 0 and "$ --check-kept-tests\nno changed file is a file of a script holding kept tests\n" in text and "test_guide" not in text
 
 
-@pytest.mark.action("--log-entry")
-def test_pass_proving_the_fixes_runs_the_kept_tests_too(check, fixtures):
-    p = Project("kept-pass-of-the-fixes", canon=FORM_FILES)
-    kept_tests(p, tests=failing(fixtures["guide-set-tests"]))
-    design = p.design(status="applying", log=APPLYING + ((SELF, {}), ("post-apply-review", {})), Target="`docs/guide.md`")
-    path = p.put(report_at(SELF, 2), swap(a_report("self-review", entry="self-review-2"), RE_EVALUATION, ""))
-    got = p.run("--log-entry", design, SELF, *CHECK_FIELDS)
-    check("--log-entry refuses the entry of a pass proving the fixes, a self-review after the apply's review, where a kept test fails",
-          reports(got, "== log-entry, not logged", [FAILS, KEPT_RULE]), shown(got))
-    p.put(GUIDE_TESTS, fixtures["guide-set-tests"])
-    got = p.run("--log-entry", design, SELF, *CHECK_FIELDS)
-    check("and appends it where they pass", passes(got, "== log-entry", "- **Entry:** self-review-2") and RAN % ("docs/guide.md", 0) in p.read(path), shown(got))
+@pytest.mark.action("--stamp-settled-report")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-kept-runs.md", "guide-set-tests-one-failing")
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+def test_self_review_before_the_apply_runs_no_kept_test(fixtures, work, monkeypatch):
+    code, text = stamped(monkeypatch, applied(work, fixtures, tests="guide-set-tests-one-failing", design="ferry-design-drafted"))
+    assert code == 0 and "check-kept-tests" not in text
 
 
-@pytest.mark.action("--log-entry")
-@pytest.mark.reads("design-script-kept-sets.md", "comparison-listing-one-design")
-def test_self_review_judges_each_design_a_comparison_lists(check, fixtures):
-    comparison, lists = GUIDE_SET + "/comparison.py", fixtures["comparison-listing-one-design"]
-    judged = a_check("comparison-judged", "differential test", OTHER_DESIGN)
-    for label, checks, said in (("recording no differential test", (), "no Builder Check of differential test, which is required of it"),
-                                ("whose differential test leaves out a design the comparison lists", (a_check("comparison-judged", "differential test", ".ai/plans/design-specs/%s.md" % NAME),),
-                                 "its Builder Checks of differential test leave out `%s`" % OTHER_DESIGN),
-                                ("whose differential test judges each design the comparison lists", (judged,), None)):
-        p = Project("kept-comparison", canon=FORM_FILES)
-        kept_tests(p, comparison=lists)
-        design, path = applied(p, checks=checks, Target="`docs/guide.md`")
-        got = p.run("--log-entry", design, SELF, *CHECK_FIELDS)
-        if said:
-            check("--log-entry runs the kept comparison of a script the design changed, and refuses the entry of a self-review " + label,
-                  reports(got, "== log-entry, not logged", said) and "$ python -B %s\ndesign %s\n" % (comparison, OTHER_DESIGN) in p.read(path), shown(got) + p.read(path)[-500:])
-        else:
-            check("--log-entry appends the entry of a self-review " + label, passes(got, "== log-entry", "- **Entry:** self-review-1") and "design " + OTHER_DESIGN in p.read(path), shown(got))
-    p = Project("kept-comparison-failed", canon=FORM_FILES)
-    kept_tests(p, comparison=lists + "raise SystemExit(2)\n")  # the comparison ending as one that could not be made
-    design, path = applied(p, Target="`docs/guide.md`")
-    got = p.run("--log-entry", design, SELF, *CHECK_FIELDS)
-    check("--log-entry refuses the entry where the comparison could not be made", reports(got, "== log-entry, not logged", ["%s could not be made, exit 2" % comparison, KEPT_RULE]), shown(got))
-    p = Project("kept-comparison-lists-none", canon=FORM_FILES)
-    kept_tests(p, comparison=swap(swap(lists, "print(\"design %s\")\n" % OTHER_DESIGN, ""), "1 design read differently, of 1", "0 designs read differently, of 1"))
-    design, path = applied(p, Target="`docs/guide.md`")
-    got = p.run("--log-entry", design, SELF, *CHECK_FIELDS)
-    check("--log-entry asks no differential test where the comparison lists no design", passes(got, "== log-entry", "- **Entry:** self-review-1") and "0 designs read differently" in p.read(path), shown(got))
+@pytest.mark.action("--check-settled-report")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-kept-runs.md", "guide-set-tests-one-failing")
+@pytest.mark.reads("design-script-designs.md", "ferry-design-applying")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+def test_report_checked_apart_runs_no_kept_test_and_writes_nothing(fixtures, work, monkeypatch, capsys):
+    root = applied(work, fixtures, tests="guide-set-tests-one-failing")
+    before = held(root)
+    assert acted(monkeypatch, root, dd.check_settled_report, SELF) == 0
+    assert "test_guide" not in capsys.readouterr().out and not (root / KEPT_RUN).exists()
+    # the search the checks read through keeps its index among the working files, and nothing else is written
+    assert {p: b for p, b in held(root).items() if not p.startswith(SEARCH_INDEX)} == before
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: builder-checks-required]
+@pytest.mark.action("--stamp-settled-report")
+@pytest.mark.passes
+@pytest.mark.reports
+@pytest.mark.reads("design-script-kept-sets.md", "guide-set-tests", "comparison-listing-one-design")
+@pytest.mark.reads("design-script-kept-runs.md", "ferry-self-review-report-judging-the-other-design", "ferry-self-review-report-judging-its-own-design")
+@pytest.mark.reads("design-script-designs.md", "ferry-design-applying")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.parametrize("report, said", [
+    ("ferry-self-review-report", "no Builder Check of differential test, which is required of it"),
+    ("ferry-self-review-report-judging-its-own-design", "its Builder Checks of differential test leave out `%s`" % OTHER_DESIGN),
+    ("ferry-self-review-report-judging-the-other-design", None),
+])
+def test_self_review_judges_each_design_the_kept_comparison_lists(fixtures, work, monkeypatch, capsys, report, said):
+    root = applied(work, fixtures, before={"comparison-listing-one-design": COMPARISON}, report=report)
+    code, text = stamped(monkeypatch, root)
+    assert "$ python -B %s\ndesign %s\n" % (COMPARISON, OTHER_DESIGN) in text
+    assert (code, dd.report_stamp(text) is None) == ((1, True) if said else (0, False))
+    assert said is None or said in capsys.readouterr().out
+
+
+@pytest.mark.action("--stamp-settled-report")
+@pytest.mark.passes
+@pytest.mark.reports
+@pytest.mark.reads("design-script-kept-sets.md", "guide-set-tests")
+@pytest.mark.reads("design-script-kept-runs.md", "comparison-that-cannot-be-made", "comparison-listing-no-design")
+@pytest.mark.reads("design-script-designs.md", "ferry-design-applying")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.parametrize("comparison, code, said", [
+    ("comparison-that-cannot-be-made", 1, "%s could not be made, exit 2" % COMPARISON),
+    ("comparison-listing-no-design", 0, "0 designs read differently, of 1"),
+])
+def test_comparison_made_or_not_is_written_and_asks_no_judgment_where_it_lists_none(fixtures, work, monkeypatch, capsys, comparison, code, said):
+    got, text = stamped(monkeypatch, applied(work, fixtures, before={comparison: COMPARISON}))
+    assert got == code and said in (capsys.readouterr().out if code else text)

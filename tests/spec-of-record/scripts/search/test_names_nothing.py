@@ -1,55 +1,119 @@
-"""A question naming nothing to ask of: told to the caller, each case apart."""
+"""A question naming nothing to ask of: told to the caller, each case apart. The file's tests share one index of the
+corpus of forms, which holds a spec at `specs/target.md` with a section Target, no section named No Such Section, no
+file `specs/no-such-file.md` and no folder named nowhere."""
 import pytest
 
-CORPUS_SPECS = ("search-corpus-specs.md", "forms-spec", "target-spec", "promise-product-file", "ledger-glossary")
-CORPUS_CODE = ("search-corpus-code.md", "ledger-python", "ledger-typescript", "ledger-csharp", "ledger-table-sql", "ledger-settings-yaml")
-HERON = ("search-heron-project.md", "heron-spec", "stack-naming-one-code-root", "heron-function", "egret-function", "design-citing-the-heron",
-         "plan-citing-the-heron", "follow-ups-naming-a-heron")
+from search_set import CORPUS, HERON, READS_CORPUS, READS_HERON, ask, every_file, project, search
+
+NO_SECTION = "specs/target.md § No Such Section"
 
 
-@pytest.mark.action("--show-citers", "--show-lines", "--show-similar-passages", "--show-term-uses", "--show-pattern-matches")
+@pytest.fixture
+def corpus(shared, fixtures):
+    """-> a search over every file of the corpus, written and indexed by the first test of the file."""
+    def build():
+        root = project(shared.folder / "project", fixtures, CORPUS)
+        return shared.opened(root, cover=every_file(root), scratch=shared.folder / "index")
+    return shared.once("corpus", build)
+
+
+@pytest.mark.action("--show-citers")
+@pytest.mark.passes
+@READS_CORPUS[0]
+@READS_CORPUS[1]
+def test_a_question_naming_something_tells_its_caller_nothing_of_the_kind(corpus):
+    asked = corpus.citers("specs/target.md § Target")
+    assert asked.names_nothing == [] and asked.places
+
+
 @pytest.mark.reports
-@pytest.mark.reads(*CORPUS_SPECS)
-@pytest.mark.reads(*CORPUS_CODE)
-def test_a_question_naming_nothing_is_told_by_its_case(fixtures, tools, search, opened, work, check):
-    # the corpus holds a spec at `specs/target.md` with a section Target, no section named No Such Section, no file
-    # `specs/no-such-file.md` and no folder named nowhere
-    root = tools.a_corpus(work / "project", fixtures)
-    s = opened(root, cover=tools.files_under(root), scratch=work / "index")
-    asked = s.citers("specs/target.md § Target")
-    check("a question naming something tells its caller nothing of the kind", asked.names_nothing == [] and len(asked.places) > 0, asked.names_nothing)
-    for kind, r in (("citers", s.citers("specs/target.md § No Such Section")), ("lines", s.lines("specs/target.md § No Such Section")), ("citers of a file", s.citers("specs/no-such-file.md § Target")),
-                    ("meaning", s.meaning("specs/target.md § No Such Section"))):
-        check(f"a citation that names no place among the files is told, and the answer stands as no place given ({kind})",
-              r.names_nothing == [search.NO_PLACE] and r.places == [] and any("does not resolve" in n for n in r.notes), (r.names_nothing, r.places, r.notes))
-    r = s.terms("--- !!! ---")
-    check("a term reducing to no word is told", r.names_nothing == [search.NO_WORD] and r.places == [] and any("reduces to no word" in n for n in r.notes), (r.names_nothing, r.notes))
-    r = s.meaning("--- !!! ---")
-    check("a passage reducing to no word is told", r.names_nothing == [search.NO_WORD] and any("reduces to no word" in n for n in r.notes), (r.names_nothing, r.notes))
-    r = s.terms("posting", ["specs/nowhere"])
-    check("a path the search is narrowed to under which no file of its target stands is told, with the path",
-          r.names_nothing == [search.NO_FILE] and r.places == [] and any("`specs/nowhere`" in n for n in r.notes), (r.names_nothing, r.notes))
-    r = s.terms("posting", ["specs", "specs/nowhere"])
-    check("it is told of the one path holding no file where another holds some, the answer standing for the other", r.names_nothing == [search.NO_FILE] and len(r.places) > 0, (r.names_nothing, r.places))
-    r = s.pattern("posting", ["code/nowhere"])
-    check("it is told of a pattern's narrowing too, a pattern holding no word being a question as any other", r.names_nothing == [search.NO_FILE] and s.pattern("§  +").names_nothing == [], r.names_nothing)
-    r = s.terms("--- !!! ---", ["specs/nowhere"])
-    check("each case is told apart from the others, a question holding two holding both", sorted(r.names_nothing) == sorted([search.NO_WORD, search.NO_FILE]) and len(set(search.NAMES_NOTHING)) == 3, r.names_nothing)
-    again = s.terms("posting", ["specs/nowhere"])
-    check("an answer the search kept tells it as the answer computed did", again.kept and again.names_nothing == [search.NO_FILE] and tools.same_answer(again, s.terms("posting", ["specs/nowhere"])))
+@READS_CORPUS[0]
+@READS_CORPUS[1]
+@pytest.mark.parametrize("asked", [
+    pytest.param(lambda s: s.citers(NO_SECTION), marks=pytest.mark.action("--show-citers"), id="citers"),
+    pytest.param(lambda s: s.lines(NO_SECTION), marks=pytest.mark.action("--show-lines"), id="lines"),
+    pytest.param(lambda s: s.citers("specs/no-such-file.md § Target"), marks=pytest.mark.action("--show-citers"), id="citers-of-a-file"),
+    pytest.param(lambda s: s.meaning(NO_SECTION), marks=pytest.mark.action("--show-similar-passages"), id="meaning"),
+])
+def test_a_citation_naming_no_place_among_the_files_is_told_and_no_place_given(corpus, asked):
+    r = asked(corpus)
+    assert r.names_nothing == [search.NO_PLACE] and r.places == [] and any("does not resolve" in n for n in r.notes)
 
 
-@pytest.mark.action("--show-citers", "--show-term-uses")
 @pytest.mark.reports
-@pytest.mark.reads(*HERON)
-def test_the_script_says_what_a_question_named_nothing_by(fixtures, tools, search, opened, script, work, check):
-    # a small project whose one spec holds a section Target, with no folder `.ai/plans/no-such-plans` and no folder
-    # `specs/nowhere`
-    root = tools.a_project(work / "project", fixtures)
-    w = opened(root, scratch=work / "index", target=search.WORKING, paths=[".ai/plans/no-such-plans"])
-    r = w.terms("heron")
-    check("a search of the working files given a path holding no file is told so", r.names_nothing == [search.NO_FILE] and r.places == [], (r.names_nothing, r.places))
-    ran, printed = script(root, "--show-citers", "specs/target.md § No Such Section")
-    check("the script says it of a question it ran, in words of its own for each case", ran == 0 and "the question names nothing to ask of: " + search.NO_PLACE in printed, printed)
-    ran, printed = script(root, "--show-term-uses", "heron", "--paths", "specs/nowhere")
-    check("and of a path holding no file", ran == 0 and "the question names nothing to ask of: " + search.NO_FILE in printed, printed)
+@READS_CORPUS[0]
+@READS_CORPUS[1]
+@pytest.mark.parametrize("asked", [
+    pytest.param(lambda s: s.terms("--- !!! ---"), marks=pytest.mark.action("--show-term-uses"), id="term"),
+    pytest.param(lambda s: s.meaning("--- !!! ---"), marks=pytest.mark.action("--show-similar-passages"), id="passage"),
+])
+def test_a_term_or_a_passage_reducing_to_no_word_is_told(corpus, asked):
+    r = asked(corpus)
+    assert r.names_nothing == [search.NO_WORD] and any("reduces to no word" in n for n in r.notes)
+
+
+@pytest.mark.reports
+@READS_CORPUS[0]
+@READS_CORPUS[1]
+@pytest.mark.parametrize("asked", [
+    pytest.param(lambda s: s.terms("posting", ["specs/nowhere"]), marks=pytest.mark.action("--show-term-uses"), id="term"),
+    pytest.param(lambda s: s.pattern("posting", ["specs/nowhere"]), marks=pytest.mark.action("--show-pattern-matches"), id="pattern"),
+])
+def test_a_path_narrowed_to_under_which_no_file_of_the_target_stands_is_told_with_the_path(corpus, asked):
+    r = asked(corpus)
+    assert r.names_nothing == [search.NO_FILE] and r.places == [] and any("`specs/nowhere`" in n for n in r.notes)
+
+
+@pytest.mark.action("--show-term-uses")
+@pytest.mark.reports
+@READS_CORPUS[0]
+@READS_CORPUS[1]
+def test_the_one_path_holding_no_file_is_told_where_another_holds_some_and_the_answer_stands_for_the_other(corpus):
+    r = corpus.terms("posting", ["specs", "specs/nowhere"])
+    assert r.names_nothing == [search.NO_FILE] and r.places
+
+
+@pytest.mark.action("--show-pattern-matches")
+@pytest.mark.passes
+@READS_CORPUS[0]
+@READS_CORPUS[1]
+def test_a_pattern_holding_no_word_is_a_question_as_any_other(corpus):
+    assert corpus.pattern("§  +").names_nothing == []
+
+
+@pytest.mark.action("--show-term-uses")
+@pytest.mark.reports
+@READS_CORPUS[0]
+@READS_CORPUS[1]
+def test_a_question_holding_two_cases_is_told_both_each_apart(corpus):
+    assert sorted(corpus.terms("--- !!! ---", ["specs/nowhere"]).names_nothing) == sorted([search.NO_WORD, search.NO_FILE]) and len(set(search.NAMES_NOTHING)) == 3
+
+
+@pytest.mark.action("--show-term-uses")
+@pytest.mark.reports
+@READS_CORPUS[0]
+@READS_CORPUS[1]
+def test_an_answer_the_search_kept_tells_it_as_the_answer_computed_did(corpus):
+    computed = corpus.terms("posting", ["code/nowhere"])
+    kept = corpus.terms("posting", ["code/nowhere"])
+    assert kept.kept and kept.names_nothing == computed.names_nothing == [search.NO_FILE] and kept.body() == computed.body()
+
+
+@pytest.mark.action("--show-term-uses")
+@pytest.mark.reports
+@READS_HERON[0]
+def test_a_search_of_the_working_files_given_a_path_holding_no_file_is_told_so(fixtures, opened, work):
+    root = project(work / "heron", fixtures, HERON)
+    r = opened(root, scratch=work / "index", target=search.WORKING, paths=[".ai/plans/no-such-plans"]).terms("heron")
+    assert r.names_nothing == [search.NO_FILE] and r.places == []
+
+
+@pytest.mark.reports
+@READS_HERON[0]
+@pytest.mark.parametrize("argv, case", [
+    pytest.param(["--show-citers", NO_SECTION], search.NO_PLACE, marks=pytest.mark.action("--show-citers"), id="citation"),
+    pytest.param(["--show-term-uses", "heron", "--paths", "specs/nowhere"], search.NO_FILE, marks=pytest.mark.action("--show-term-uses"), id="path"),
+])
+def test_the_script_says_what_a_question_named_nothing_by(fixtures, work, capsys, argv, case):
+    assert ask(project(work / "heron", fixtures, HERON), *argv) == 0
+    assert "the question names nothing to ask of: " + case in capsys.readouterr().out

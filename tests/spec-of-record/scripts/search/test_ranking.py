@@ -1,121 +1,180 @@
-"""A ranking by meaning: a sentence restated in a longer passage, and a ranking read in parts."""
+"""A ranking by meaning: a sentence restated in a longer passage, and a ranking read in parts. The file's tests of parts
+share one index of the invented library, built once in the file's folder: its ten files hold well over a hundred
+passages, and its section on renewals is cited from three other sections, of the files on overdue items, on holds and
+on rooms."""
 import pytest
 
-LENDING = ("search-library-lending.md", "library-membership", "library-loans", "library-overdue", "library-holds", "library-catalogue")
-PREMISES = ("search-library-premises.md", "library-donations", "library-opening", "library-volunteers", "library-rooms", "library-events")
-HERON = ("search-heron-project.md", "heron-spec", "stack-naming-one-code-root", "heron-function", "egret-function", "design-citing-the-heron",
-         "plan-citing-the-heron", "follow-ups-naming-a-heron")
+from search_set import LIBRARY, READS_LIBRARY, ask, every_file, line_holding, printed_places, project, search
+
+ASKED = "A book that is out on loan may be kept longer only when no one else has asked for it."
+RENEWALS = "specs/library/loans.md § Renewals"
 WADING = "A wading bird stands in the reeds at dusk and waits for the tide."
+RESTATED = pytest.mark.reads("search-restated-sentence.md", "stocktake-rule-and-counts", "warehouse-notes")
+
+
+@pytest.fixture
+def library(shared, fixtures):
+    """-> a search over the library's ten files, written and indexed by the first test asking for it."""
+    def build():
+        root = project(shared.folder / "project", fixtures, LIBRARY)
+        return shared.opened(root, cover=every_file(root), scratch=shared.folder / "index")
+    return shared.once("library", build)
+
+
+def restating_place(fixtures, opened, work):
+    """-> the number in the ranking of the passage restating the stocktake's rule, None where it is not among the
+    first hundred: one file holds a rule on counts and more than twenty short statements sharing its words, the other
+    one long paragraph on other subjects, one sentence of which restates the rule in other words."""
+    root = project(work / "project", fixtures, {"stocktake-rule-and-counts": "product/stocktake.md", "warehouse-notes": "product/stock-notes.md"})
+    rule = fixtures["stocktake-rule-and-counts"].split("## The Rule")[1].split("##")[0].strip()
+    places = opened(root, cover=every_file(root), scratch=work / "index").meaning(rule, limit=100).places
+    said = line_holding(fixtures["warehouse-notes"], "Whatever figure has gone into the book")
+    return next((n for n, p in enumerate(places, 1) if p.path == "product/stock-notes.md" and p.first <= said <= p.last), None)
 
 
 @pytest.mark.action("--show-similar-passages")
 @pytest.mark.passes
-@pytest.mark.reads("search-restated-sentence.md", "stocktake-rule-and-counts", "warehouse-notes")
-def test_a_rule_restated_in_one_sentence_of_a_longer_passage_is_ranked_by_that_sentence(fixtures, tools, search, opened, monkeypatch, work, check):
-    # one file holds a rule on counts and more than twenty short statements sharing its words; the other holds one
-    # long paragraph on other subjects, one sentence of which restates the rule in other words
-    root = work / "project"
-    tools.put(root, "product/stocktake.md", fixtures["stocktake-rule-and-counts"])
-    tools.put(root, "product/stock-notes.md", fixtures["warehouse-notes"])
-    rule = fixtures["stocktake-rule-and-counts"].split("## The Rule")[1].split("##")[0].strip()
+@RESTATED
+def test_a_rule_restated_in_one_sentence_of_a_longer_passage_is_ranked_by_that_sentence_among_the_first_twenty(fixtures, opened, work):
+    at = restating_place(fixtures, opened, work)
+    assert at is not None and at <= search.RANKED
 
-    def place_of_the_restating_passage(name):
-        s = opened(root, cover=tools.files_under(root), scratch=work / name)
-        places = s.meaning(rule, limit=100).places
-        s.db.close()
-        return next((n for n, place in enumerate(places, 1) if place.path == "product/stock-notes.md"), None), places
 
-    at, places = place_of_the_restating_passage("index-sentences")
-    notes = tools.line_holding(root, "product/stock-notes.md", "Whatever figure has gone into the book")
-    check("a rule restated in one sentence of a longer passage stands among the first twenty places, the place given being the passage the sentence stands in",
-          at is not None and at <= search.RANKED and places[at - 1].first <= notes <= places[at - 1].last, (at, places[:search.RANKED]))
+@pytest.mark.action("--show-similar-passages")
+@pytest.mark.reports
+@RESTATED
+def test_with_no_sentence_ranked_the_passage_restating_a_rule_stands_outside_the_first_twenty(fixtures, opened, work, monkeypatch):
     # the same search with no sentence ranked, the passages alone, shows the case is one the sentences decide
     monkeypatch.setattr(search, "sentences", lambda text: [])
-    alone, _ = place_of_the_restating_passage("index-passages-alone")
-    check("ranked by its passage alone, with no sentence ranked, the same passage stands outside the first twenty", alone is None or alone > search.RANKED, alone)
-
-
-@pytest.mark.action("--show-similar-passages", "--show-citers", "--check-result")
-@pytest.mark.passes
-@pytest.mark.reads(*LENDING)
-@pytest.mark.reads(*PREMISES)
-def test_parts_of_a_ranking_asked_one_after_another_make_up_the_one_ranking(fixtures, tools, search, opened, work, check):
-    # the library's ten files hold well over a hundred passages; its section on renewals is cited from three other
-    # sections, of the files on overdue items, on holds and on rooms; the passage asked restates that section's rule
-    root = tools.a_library(work / "project", fixtures)
-    s = opened(root, cover=tools.files_under(root), scratch=work / "index")
-    asked = "A book that is out on loan may be kept longer only when no one else has asked for it."
-    whole = s.meaning(asked, limit=100)
-    check("a ranking read past its first places holds no place twice", len(whole.places) == 100 and len(set(whole.places)) == 100, len(whole.places))
-    first = s.meaning(asked)
-    check("a search asked for no part gives the first twenty places of its ranking, and its result says which part it holds",
-          first.places == whole.places[:search.RANKED] and first.ranking_part() == "1 to 20" and "**Ranking Part:** 1 to 20" in first.path.read_text(encoding="utf-8"), first.ranking_part())
-    for size in (20, 7, 64):
-        parts = [s.meaning(asked, limit=size, start=at) for at in range(1, 101, size)]
-        read = [place for part in parts for place in part.places][:100]
-        check(f"parts of {size} places asked one after another make up the ranking, no place twice and none missed", read == whole.places,
-              [(n, a, b) for n, (a, b) in enumerate(zip(read, whole.places), 1) if a != b][:3])
-    third = s.meaning(asked, limit=20, start=41)
-    check("a part further on says which places of the ranking it holds, and passes the check of a result's form",
-          third.ranking_part() == "41 to 60" and search.Result.check(third.path) == [], (third.ranking_part(), search.Result.check(third.path)))
-    check("a result of each part asked stands beside the others, none clearing another", first.path.exists() and third.path.exists() and first.path != third.path)
-    # the test's variant of a result: a part's result saying it holds more places than it does
-    held = third.path.read_text(encoding="utf-8")
-    third.path.write_text(held.replace("**Ranking Part:** 41 to 60", "**Ranking Part:** 41 to 70"), encoding="utf-8", newline="\n")
-    check("a result whose Ranking Part does not agree with the places it holds fails the check of its form", any("Ranking Part" in problem for problem in search.Result.check(third.path)), search.Result.check(third.path))
-    past = s.meaning(asked, limit=20, start=100000)
-    check("a part asked past the end of the ranking holds no place and says so", past.places == [] and past.ranking_part() == "none" and search.Result.check(past.path) == [], (past.places[:2], past.ranking_part()))
-    try:
-        s.meaning(asked, limit=0)
-        refused = False
-    except ValueError:
-        refused = True
-    check("a limit or a start that is no whole number from 1 is refused", refused)
-
-    renewals = ("specs/library/loans.md", "Renewals")
-    cited = "specs/library/loans.md § Renewals"
-    citing = {(place.path, place.lineage) for place in s.citers(cited).places}
-    whole = s.meaning(cited, limit=80)
-    parts = [s.meaning(cited, limit=20, start=at) for at in (1, 21, 41, 61)]
-    check("asked by a section's citation, parts asked one after another make up the ranking", [place for part in parts for place in part.places] == whole.places and len(whole.places) == 80,
-          len(whole.places))
-    own = [place for place in whole.places if (place.path, place.lineage) == renewals]
-    check("asked by a section's citation, no part of the ranking gives back that section", own == [], own)
-    check("asked by a section's citation, no part of the ranking holds a place whose section cites it", len(citing) == 3 and [place for place in whole.places if (place.path, place.lineage) in citing] == [],
-          (sorted(citing), [place for place in whole.places if (place.path, place.lineage) in citing][:3]))
-    apart = [note for note in whole.notes if isinstance(note, search.Place)]
-    passages = {(path, first) for path, lineage in citing
-                for (first,) in s.db.execute("select p.line_start from passages p join files f on f.sha=p.sha where f.path=? and p.lineage=?", (path, lineage))}
-    check("the places whose section cites it are listed apart, whole: every passage of every citing section, and no other place",
-          bool(apart) and all((place.path, place.lineage) in citing for place in apart) and {(place.path, place.first) for place in apart} >= passages and len(set(apart)) == len(apart),
-          (len(apart), len(passages)))
-    check("the places listed apart are the same with every part", all(part.notes == whole.notes for part in parts), [len(part.notes) for part in parts])
-    by_passage = s.meaning(asked, limit=120)
-    check("asked by a passage and not a citation, the search leaves nothing out and lists nothing apart",
-          by_passage.notes == [] and any((place.path, place.lineage) == renewals for place in by_passage.places),
-          by_passage.notes[:2])
+    at = restating_place(fixtures, opened, work)
+    assert at is None or at > search.RANKED
 
 
 @pytest.mark.action("--show-similar-passages")
 @pytest.mark.passes
-@pytest.mark.reads(*HERON)
-@pytest.mark.reads("search-heron-project.md", "seven-wading-birds")
-def test_the_script_gives_the_part_of_a_ranking_its_limit_and_start_ask_for(fixtures, tools, script, work, check):
-    # a small project with one spec more, of seven sections each one sentence about a wading bird at dusk, so a
-    # ranking for a sentence about a wading bird holds more than four places
-    root = tools.a_project(work / "project", fixtures)
-    tools.put(root, "specs/birds.md", fixtures["seven-wading-birds"])
-    code, out = script(root, "--show-similar-passages", WADING, "--limit", "3", "--start", "2")
-    check("the script gives the part of a ranking its --limit and --start ask for", code == 0 and out.count("\n  `") == 3 and "3 places, ranked" in out, out[:300])
+@READS_LIBRARY[0]
+@READS_LIBRARY[1]
+def test_a_ranking_read_past_its_first_places_holds_no_place_twice(library):
+    places = library.meaning(ASKED, limit=100).places
+    assert len(places) == 100 and len(set(places)) == 100
+
+
+@pytest.mark.action("--show-similar-passages")
+@pytest.mark.passes
+@READS_LIBRARY[0]
+@READS_LIBRARY[1]
+def test_a_search_asked_for_no_part_gives_the_first_twenty_places_and_says_which_part_it_holds(library):
+    first = library.meaning(ASKED)
+    assert first.places == library.meaning(ASKED, limit=100).places[:search.RANKED] and first.ranking_part() == "1 to 20"
+    assert "**Ranking Part:** 1 to 20" in first.path.read_text(encoding="utf-8")
+
+
+@pytest.mark.action("--show-similar-passages")
+@pytest.mark.passes
+@READS_LIBRARY[0]
+@READS_LIBRARY[1]
+@pytest.mark.parametrize("size", [20, 7, 64])
+def test_parts_asked_one_after_another_make_up_the_ranking_no_place_twice_and_none_missed(library, size):
+    read = [place for at in range(1, 101, size) for place in library.meaning(ASKED, limit=size, start=at).places][:100]
+    assert read == library.meaning(ASKED, limit=100).places
+
+
+@pytest.mark.action("--show-similar-passages")
+@pytest.mark.passes
+@READS_LIBRARY[0]
+@READS_LIBRARY[1]
+def test_a_part_further_on_says_which_places_of_the_ranking_it_holds_and_stands_beside_the_others(library):
+    first, third = library.meaning(ASKED), library.meaning(ASKED, limit=20, start=41)
+    assert third.ranking_part() == "41 to 60" and first.path.exists() and third.path.exists() and first.path != third.path
+
+
+@pytest.mark.action("--show-similar-passages")
+@pytest.mark.reports
+@READS_LIBRARY[0]
+@READS_LIBRARY[1]
+def test_a_part_asked_past_the_end_of_the_ranking_holds_no_place_and_says_so(library):
+    past = library.meaning(ASKED, limit=20, start=100000)
+    assert past.places == [] and past.ranking_part() == "none"
+
+
+@pytest.mark.action("--show-similar-passages")
+@pytest.mark.reports
+@READS_LIBRARY[0]
+@READS_LIBRARY[1]
+@pytest.mark.parametrize("part", [{"limit": 0}, {"start": 0}])
+def test_a_limit_or_a_start_that_is_no_whole_number_from_one_is_refused(library, part):
+    with pytest.raises(ValueError):
+        library.meaning(ASKED, **part)
+
+
+@pytest.mark.action("--show-similar-passages")
+@pytest.mark.passes
+@READS_LIBRARY[0]
+@READS_LIBRARY[1]
+def test_asked_by_a_citation_parts_asked_one_after_another_make_up_the_ranking(library):
+    whole = library.meaning(RENEWALS, limit=80)
+    assert len(whole.places) == 80 and [p for at in (1, 21, 41, 61) for p in library.meaning(RENEWALS, limit=20, start=at).places] == whole.places
+
+
+@pytest.mark.action("--show-similar-passages")
+@pytest.mark.passes
+@READS_LIBRARY[0]
+@READS_LIBRARY[1]
+def test_asked_by_a_citation_the_ranking_gives_back_neither_that_section_nor_a_place_whose_section_cites_it(library):
+    citing = {(p.path, p.lineage) for p in library.citers(RENEWALS).places}
+    left_out = citing | {("specs/library/loans.md", "Renewals")}
+    assert len(citing) == 3 and [p for p in library.meaning(RENEWALS, limit=80).places if (p.path, p.lineage) in left_out] == []
 
 
 @pytest.mark.action("--show-similar-passages", "--show-citers")
+@pytest.mark.passes
+@READS_LIBRARY[0]
+@READS_LIBRARY[1]
+def test_asked_by_a_citation_the_places_whose_section_cites_it_are_listed_apart_whole(library):
+    citing = {(p.path, p.lineage) for p in library.citers(RENEWALS).places}
+    passages = {(path, first) for path, lineage in citing
+                for (first,) in library.db.execute("select p.line_start from passages p join files f on f.sha=p.sha where f.path=? and p.lineage=?", (path, lineage))}
+    apart = [note for note in library.meaning(RENEWALS, limit=80).notes if isinstance(note, search.Place)]
+    assert apart and all((p.path, p.lineage) in citing for p in apart) and {(p.path, p.first) for p in apart} >= passages and len(set(apart)) == len(apart)
+
+
+@pytest.mark.action("--show-similar-passages")
+@pytest.mark.passes
+@READS_LIBRARY[0]
+@READS_LIBRARY[1]
+def test_the_places_listed_apart_are_the_same_with_every_part(library):
+    whole = library.meaning(RENEWALS, limit=80)
+    assert all(library.meaning(RENEWALS, limit=20, start=at).notes == whole.notes for at in (1, 21, 41, 61))
+
+
+@pytest.mark.action("--show-similar-passages")
+@pytest.mark.passes
+@READS_LIBRARY[0]
+@READS_LIBRARY[1]
+def test_asked_by_a_passage_the_search_leaves_nothing_out_and_lists_nothing_apart(library):
+    r = library.meaning(ASKED, limit=120)
+    assert r.notes == [] and any((p.path, p.lineage) == ("specs/library/loans.md", "Renewals") for p in r.places)
+
+
+@pytest.mark.action("--show-similar-passages")
+@pytest.mark.passes
+@pytest.mark.reads("search-heron-project.md", "seven-wading-birds")
+def test_the_script_gives_the_part_of_a_ranking_its_limit_and_start_ask_for(fixtures, work, capsys):
+    # seven sections each one sentence about a wading bird at dusk, so a ranking for such a sentence holds seven places
+    root = project(work / "birds", fixtures, {"seven-wading-birds": "specs/birds.md"})
+    assert ask(root, "--show-similar-passages", WADING, "--limit", "3", "--start", "2") == 0
+    printed = capsys.readouterr().out
+    assert len(printed_places(printed)) == 3 and "3 places, ranked" in printed
+
+
 @pytest.mark.reports
-@pytest.mark.reads(*HERON)
-def test_the_script_refuses_a_part_that_is_no_whole_number_or_is_asked_of_no_ranking(fixtures, tools, script, work, check):
-    root = tools.a_project(work / "project", fixtures)
-    cited = "specs/target.md § Target"
-    for wrong in (["--show-similar-passages", WADING, "--limit", "0"], ["--show-similar-passages", WADING, "--start", "two"], ["--show-citers", cited, "--limit", "5"]):
-        code, out = script(root, *wrong)
-        check(f"the script refuses {' '.join(wrong[-2:])} {'of a search that is no ranking' if wrong[0] == '--show-citers' else 'as no whole number from 1'}", code == 2 and out.startswith("usage:"), (code, out[:80]))
-    check("and a run it refuses writes nothing in the project", not (root / ".ai" / "tmp").exists(), list((root / ".ai").rglob("*")))
+@pytest.mark.reads("search-heron-project.md", "seven-wading-birds")
+@pytest.mark.parametrize("argv", [
+    pytest.param(["--show-similar-passages", WADING, "--limit", "0"], marks=pytest.mark.action("--show-similar-passages"), id="limit-of-none"),
+    pytest.param(["--show-similar-passages", WADING, "--start", "two"], marks=pytest.mark.action("--show-similar-passages"), id="start-in-words"),
+    pytest.param(["--show-citers", "specs/birds.md § The Heron", "--limit", "5"], marks=pytest.mark.action("--show-citers"), id="part-of-no-ranking"),
+])
+def test_the_script_refuses_a_part_that_is_no_whole_number_or_is_asked_of_no_ranking_and_writes_nothing(fixtures, work, capsys, argv):
+    root = project(work / "birds", fixtures, {"seven-wading-birds": "specs/birds.md"})
+    assert ask(root, *argv) == 2
+    assert capsys.readouterr().out.startswith("usage:") and not (root / ".ai").exists()

@@ -1,5 +1,4 @@
-"""The search of Spec of Record's scope and the code, one copy the skills' scripts share
-(specs/methodology/skills/authoring-a-skill.md § Authoring a Skill): who cites a place, which sections are cited and
+"""The search of Spec of Record's scope and the code, one copy the skills' scripts share: who cites a place, which sections are cited and
 from where, which lines a citation names, where a term is used, which units of code hold a structure, which places say
 the same as a passage, and which places match a pattern. .ai/skills/search-spec-of-record-scope/ runs it for an agent,
 and another skill's script calls `Search` directly.
@@ -9,7 +8,7 @@ answers from an index kept in its skill's scratch space, built whole on first us
 only the files that changed. Every answer is written as one file in the form its skill states (`Result`).
 
 Where a line stands, under which headings and in which fenced block, and the form a citation takes are the one
-reading's (reading.py). Every place a search gives is a citation of the narrowest of a keyed part, a section or a file
+reading's. Every place a search gives is a citation of the narrowest of a keyed part, a section or a file
 holding its lines, and says what those lines stand in (`Place`). The search leaves out no place for the section or the
 table it stands in: a caller leaves out by their citations the places it does not want. A search by meaning ranks a
 section's prose alone, and sets places apart when asked by a citation (`meaning`).
@@ -265,6 +264,20 @@ def home():
     return _HOME
 
 
+# the most memory a process holding the search's model takes, the model and its working memory with room, which the
+# kept test of scale holds a build of an index under and a run of the kept tests counts each process at
+MODEL_MEMORY = 1 << 30
+
+
+def model_threads():
+    """-> the threads the search's model works on: the number a run of the kept tests hands the process it starts, or,
+    handed none, half the machine's processors, so a search run by hand leaves the rest to whoever is using the
+    machine."""
+    from spec_text import MODEL_THREADS_NAMED
+    handed = os.environ.get(MODEL_THREADS_NAMED, "")
+    return int(handed) if handed.isdigit() and int(handed) > 0 else max(1, (os.cpu_count() or 2) // 2)
+
+
 def model_folder():
     """-> where the model's files sit: the skill's scratch space in `home()`."""
     return home() / SCRATCH / "model"
@@ -352,7 +365,7 @@ def install_model(root):
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-# A Markdown file as the index holds it, each part taken from the one reading (reading.py)
+# A Markdown file as the index holds it, each part taken from the one reading
 
 LINK = re.compile(r"\[(`[^`\n]+`)\]\((?:/|#)[^)\s]*\)")
 BARE = reading.BARE
@@ -507,7 +520,7 @@ def split_passage(text):
 
 def item_field(text):
     """-> (indentation, key, value) of a line that is a list item opening with a field, or None. The field's form is
-    the one copy constructs.py holds."""
+    the one copy the construct module holds."""
     m = constructs.FIELD.match(text)
     return (m.group("indent"), m.group("key"), m.group("value")) if m and m.group("marker") and m.group("value") is not None else None
 
@@ -836,8 +849,8 @@ PLACE = re.compile(r"^`[^`\n]+`(?: lines? \d+(?:-\d+)?)?(?:, in a (?:table|headi
 
 
 class Result:
-    """What a search gave, written as one file in the form `.ai/skills/search-spec-of-record-scope/SKILL.md § Search
-    Result` states, the same whoever asked."""
+    """What a search gave, written as one file in the form the search skill gives a search's result, the same whoever
+    asked."""
 
     def __init__(self, kind, query, narrowed, run_as, completeness, places, notes=(), target=CURRENT_OPERATIVE, commit=None, part=None, names_nothing=()):
         self.kind, self.query, self.narrowed, self.run_as = kind, squeeze(query), list(narrowed), run_as
@@ -1187,7 +1200,7 @@ class Search:
         for source in sources:
             for p, sha, size, mtime, stamp in db.execute("select path, sha, size, mtime_ns, stamp from placed where target=?", (source,)):
                 held[p] = (sha, size, mtime, stamp, source)
-        listed, new, left, read, moved = self.covered(target), [], set(), 0, False
+        listed, left, read, moved = self.covered(target), set(), 0, False
         stack = code_checks.code_roots(tree or self.root) if self.cover is None else None
         self._roots = stack[0] if stack else []
         for rel in listed:
@@ -1212,7 +1225,6 @@ class Search:
             sha = hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
             if not db.execute("select 1 from contents where sha=?", (sha,)).fetchone():
                 self._index(sha, rel, data)
-                new.append(sha)
             if was:
                 left.add(was[0])
                 db.execute("delete from placed where target=? and path=?", (was[4], rel))
@@ -1229,11 +1241,11 @@ class Search:
         gone = {p for p in gone if not (target == WORKING and (self.root / p).is_file())}
         self.read_count += read
         if read or gone:
-            # only the content a changed or removed file held is looked at again, so this costs what changed
+            # only the content a changed or removed file held is looked at again, so this costs what changed; no
+            # vector is computed here, since only a search by meaning reads one (`_embed_missing`)
             for sha in left:
                 if not db.execute("select 1 from placed where sha=? limit 1", (sha,)).fetchone():
                     self._drop(sha)
-            self._embed(new)
         changed = bool(read or gone or moved)
         return (len(listed), changed) if own else changed
 
@@ -1348,18 +1360,28 @@ class Search:
             run = ordered[at:at + EMBED_RUN]
             db.executemany("insert or replace into embeddings values(?,?)", list(zip([k for k, _ in run], self._vectors([v for _, v in run]))))
         for sha in new:
-            db.execute("insert into passage_vectors(rowid, embedding) select p.id, e.vector from passages p join embeddings e on e.text_sha = p.text_sha where p.sha=?", (sha,))
-            db.execute("insert into sentence_vectors(rowid, embedding) select s.id, e.vector from sentences s join embeddings e on e.text_sha = s.text_sha where s.sha=?", (sha,))
+            db.execute("insert into passage_vectors(rowid, embedding) select p.id, e.vector from passages p join embeddings e on e.text_sha = p.text_sha"
+                       " where p.sha=? and p.id not in (select rowid from passage_vectors)", (sha,))
+            db.execute("insert into sentence_vectors(rowid, embedding) select s.id, e.vector from sentences s join embeddings e on e.text_sha = s.text_sha"
+                       " where s.sha=? and s.id not in (select rowid from sentence_vectors)", (sha,))
+
+    def _embed_missing(self):
+        """Give each passage and each sentence the index holds with no vector yet its vector, through `_embed`, so only
+        a search by meaning computes one, and the vectors it writes are kept for every later search."""
+        missing = [sha for (sha,) in self.db.execute(
+            "select sha from passages where id not in (select rowid from passage_vectors)"
+            " union select sha from sentences where id not in (select rowid from sentence_vectors)")]
+        if missing:
+            self._embed(missing)
+            self.db.commit()
 
     def _vectors(self, texts):
         import sqlite_vec
         if self.embedder is None:
             from fastembed import TextEmbedding
             os.environ.setdefault("HF_HUB_OFFLINE", "1")
-            # the model works on half the machine's processors and no more, so a search leaves the rest to whoever is
-            # using the machine, and several searches at once do not each take every one
             self.embedder = TextEmbedding(model_name=MODEL, cache_dir=str(model_folder()), local_files_only=True,
-                                          threads=max(1, (os.cpu_count() or 2) // 2))
+                                          threads=model_threads())
         return [sqlite_vec.serialize_float32([float(x) for x in v]) for v in self.embedder.embed(texts, batch_size=EMBED_BATCH)]
 
     # -- helpers the searches share
@@ -1808,6 +1830,7 @@ class Search:
         if limit < 1 or start < 1:
             raise ValueError("a ranking's limit and its start are each a whole number from 1")
         narrowed = self._narrow(narrowed)
+        self._embed_missing()
         asked, own, citing = squeeze(passage.strip("`")) if passage.strip().startswith("`") else squeeze(passage), None, set()
         texts = [asked]
 

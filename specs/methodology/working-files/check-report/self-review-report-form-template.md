@@ -102,7 +102,7 @@
 
 ## Script Output
 
-{the output `--log-entry` writes, never written by hand ([`specs/methodology/working-files/main.md § A Check's Report § Who Writes Each Part`](/specs/methodology/working-files/main.md#who-writes-each-part)): this note and its heading left out until the entry is appended}
+{the output `--stamp-settled-report` writes as the report is validated, never written by hand ([`specs/methodology/working-files/main.md § A Check's Report § Who Writes Each Part`](/specs/methodology/working-files/main.md#who-writes-each-part)): this note and its heading left out until the report is validated}
 
 ## Causes
 
@@ -145,6 +145,7 @@
 
 {the builder's part ([`specs/methodology/working-files/main.md § A Check's Report § Who Writes Each Part`](/specs/methodology/working-files/main.md#who-writes-each-part)): this note removed with its braces once the part is written}
 
+**Validated:** {the report's stamp, written by the design script alone as the report is validated, never by hand, as the section A Report's Stamp has it written: this field left out until the report is validated ([`specs/methodology/working-files/main.md § A Check's Report § A Report's Stamp`](/specs/methodology/working-files/main.md#a-reports-stamp))} \
 **Earlier Reports:**
   - {an earlier report read, or `none` alone where the round's phase holds none before it ([`specs/methodology/working-files/main.md § A Check's Report § The Reading and the Settlement`](/specs/methodology/working-files/main.md#the-reading-and-the-settlement))}
 

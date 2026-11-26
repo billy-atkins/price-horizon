@@ -1364,6 +1364,21 @@ The citation says what the part does. The part stays what its own construct make
 
 In an expense approval process, the step that routes a claim is a Decision Table over independent conditions: the claim's amount band, its category, and whether a receipt is attached. The step that works out the reimbursable total is an Algorithm: it sums the line items, applies each category's own cap, and deducts any advance already paid. A Constraint holds that the total is never negative, however far the caps and the advance deduction reduce it, enforced by that Algorithm's own step flooring the total at zero rather than left as an expectation. Use as many constructs as a spec needs, and never force one to do a job another is built for.
 
+### Logic Constructs
+
+Each logic construct ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md)) names the facts its parts read. The logic constructs, each with what its parts decide together:
+
+**Reference Key:** Construct \
+**Required:** Decides
+
+| Construct | Decides |
+|---|---|
+| [`§ Constructs § Decision Table`](#decision-table) | each case's outcome, its rows read by its hit policy |
+| [`§ Constructs § DAG`](#dag) | what each task waits for, and which tasks run at once |
+| [`§ Constructs § State Machine`](#state-machine) | each state's ways in and out, by its transitions, their triggers and their guards |
+| [`§ Constructs § Algorithm`](#algorithm) | its output, by its steps taken in turn |
+| [`§ Constructs § Constraint`](#constraint) | what must hold of the system's facts, in every state it can reach or as an operation begins or ends, by its rules together |
+
 ## Diagrams
 
 A diagram is a materialized view of a fact. It is for a human reader, technical or not, who wants the shape of something before deciding whether to read the mechanism behind it. Like a materialized view, a diagram is precomputed for whoever consumes it and is never itself the source of truth. A diagram disagreeing with what it was rendered from is wrong, as a materialized view disagreeing with its tables is a bug rather than a second valid answer. An agent reads the construct behind a diagram with ease; many human readers do not. Nothing tells an author which reader will arrive, so a diagram is written for the human, and an agent benefits as well.

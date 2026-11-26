@@ -2,15 +2,14 @@
 """Checks the project against the rules that govern it, mechanically.
 
 Every check enforces one stated rule and names it, so a failure points at the rule
-rather than only at a line. Nothing here needs judgment, per
-specs/methodology/scope/rules-and-skills.md § Rules and Skills. `--check-scope` runs the checks, and
+rather than only at a line. Nothing here needs judgment, since a script never
+decides one. `--check-scope` runs the checks, and
 `--list-candidates` lists places for a reading audit to look, printed apart from any
 finding and never affecting the exit status.
 
-Standard library and the code the skills share in .ai/skills/lib/ only: spec_checks.py, every check and candidate
-list it runs, one copy of each; layout.py and record_types.py, the checks of a block of fields and of a blank line it
-runs over a file it is given; spec_text.py, the reading of a spec's text; and design_documents.py and code_checks.py,
-the kind of change a file is of, which a run's sub-scopes are read by. See SKILL.md.
+Standard library and the code the skills share in .ai/skills/lib/ only: every check and candidate list it runs, one
+copy of each; the checks of a block of fields and of a blank line it runs over a file it is given; the reading of a
+spec's text; and the kind of change a file is of, which a run's sub-scopes are read by. See the skill's own file.
 """
 
 import argparse
@@ -42,25 +41,95 @@ def kind_of_file(root):
     return lambda path: design_documents.file_kind(path, skills, code)
 
 
+def check_layout(args, root, keep, files):
+    """The layout check and the reader's checks of a block, over the given Markdown files alone -> the exit status."""
+    table, problems = layout.rules()
+    # the table's own problems, gathered in a list of the action's own, so no finding enters the rules read once
+    found = list(problems)
+    for value in files:
+        path = Path(value)
+        if not path.is_file():
+            raise SystemExit(f"audit-specs.py: error: --check-layout names no file: {value}")
+        body = read(path)
+        rel = path.resolve().relative_to(root).as_posix() if path.resolve().is_relative_to(root) else value
+        found += [(rule, rel, line, msg) for rule, line, msg in layout.findings(body, table) + block_findings(body)]
+    for rule, path, line, msg in sorted(found):
+        print(f"{path}:{line}  {rule}\n  {msg}")
+    n = len(found)
+    print(f"\n{n} finding{'' if n == 1 else 's'} over {len(files)} file{'' if len(files) == 1 else 's'}")
+    return 1 if n else 0
+
+
+def check_scope(args, root, keep, _):
+    """Every check of the scope, each finding under its rule, then the warnings apart -> the exit status."""
+    warned = []
+    found = [f for f in spec_checks.check(root, warned) if keep(f[1])]
+    warned = [w for w in warned if keep(w[1])]
+    files = [f for f in md_files(root) if keep(f.relative_to(root).as_posix())]
+    by_rule = {}
+    for rule, path, line, msg in found:
+        by_rule.setdefault(rule, []).append((path, line, msg))
+    for rule in sorted(by_rule):
+        print(f"\n{rule}")
+        for path, line, msg in sorted(by_rule[rule]):
+            where = f"{path}:{line}" if line else path
+            print(f"  {where}\n    {msg}")
+    n = len(found)
+    print(f"\n{n} finding{'' if n == 1 else 's'} across {len(files)} files")
+    if warned:
+        # a warning is what the specs record as the system's gap: listed on every run, and never a finding
+        print(f"\nWarnings, {len(warned)} rule{'' if len(warned) == 1 else 's'} the specs record as kept by nothing; listed, not findings")
+        for rule, path, line, msg in sorted(warned):
+            print(f"  {path}:{line}\n    {msg}")
+    return 1 if n else 0
+
+
+def list_candidates(args, root, keep, _):
+    """The places for the reading audits to look, apart from any finding -> 0, since a candidate is never one."""
+    for heading, listed, counted in spec_checks.candidate_groups(root):
+        listed = [c for c in listed if keep(c[0])]
+        if not counted or args.detail:
+            print(f"\n{heading}")
+            for path, line, name, context in listed:
+                print(f"  {path}:{line}  [{name}]\n    {context}")
+            continue
+        print(f"\n{heading}; counts for each file, --detail listing each")
+        counts = {}
+        for path, _, name, _ in listed:
+            group = name.split(":")[0]
+            counts.setdefault(path, {}).setdefault(group, 0)
+            counts[path][group] += 1
+        for path in sorted(counts):
+            print(f"  {path}: {sum(counts[path].values())}  " + "; ".join(f"{k} {v}" for k, v in sorted(counts[path].items())))
+    return 0
+
+
+FLAGS = (
+    ("--check-scope", None, check_scope,
+     "check the files Spec of Record governs against every rule the files alone decide, each finding named for "
+     "the rule it breaks; exits 1 on any finding"),
+    ("--list-candidates", None, list_candidates,
+     "list places for the reading audits to look, printed apart from any finding, and never itself a finding"),
+    ("--check-layout", "FILE", check_layout,
+     "run the layout check and the reader's checks of a block over the given Markdown files alone, as the "
+     "Working-file form audit runs them over the follow-ups; exits 1 on any finding"),
+)
+
+
 def main(argv):
     try:
         sys.stdout.reconfigure(encoding="utf-8")
     except (AttributeError, ValueError):
         pass
-    # Actions are flags per specs/methodology/skills/authoring-a-skill.md § Authoring a Skill.
     parser = argparse.ArgumentParser(prog="audit-specs.py", description=__doc__.split("\n\n")[0], allow_abbrev=False)
-    parser.add_argument("--check-scope", action="store_true",
-                        help="check the files Spec of Record governs against every rule the files alone decide, "
-                             "each finding named for the rule it breaks; exits 1 on any finding")
-    parser.add_argument("--list-candidates", action="store_true",
-                        help="list places for the reading audits to look, printed apart from any finding, "
-                             "and never itself a finding")
+    for flag, metavar, _, help_text in FLAGS:
+        if metavar:
+            parser.add_argument(flag, nargs="+", metavar=metavar, help=help_text)
+        else:
+            parser.add_argument(flag, action="store_true", help=help_text)
     parser.add_argument("--detail", action="store_true",
                         help="with --list-candidates, list every word and construction Clear Prose has a reader test, "
                              "rather than their count for each file")
-    parser.add_argument("--check-layout", nargs="+", metavar="FILE",
-                        help="run the layout check and the reader's checks of a block over the given Markdown files alone, "
-                             "as the Working-file form audit runs them over .ai/follow-ups.md; exits 1 on any finding")
     parser.add_argument("--sub-scope", nargs="+", choices=SUB_SCOPES,
                         help="with --check-scope or --list-candidates, report only the findings, warnings or "
                              "candidates in the files of the sub-scopes given, the checks still run over the whole of "
@@ -68,74 +137,21 @@ def main(argv):
     parser.add_argument("--root", metavar="DIR", default=".",
                         help="the project root the scope is read from; the current directory unless given")
     args = parser.parse_args(argv[1:])
-    if not (args.check_scope or args.list_candidates or args.check_layout):
+    chosen = [(run, getattr(args, flag[2:].replace("-", "_"))) for flag, _, run, _ in FLAGS]
+    chosen = [(run, value) for run, value in chosen if value]
+    if not chosen:
         parser.print_usage(sys.stderr)
         return 2
     root = Path(args.root).resolve()
     if not (root / "specs").is_dir():
         parser.error(f"--root {args.root} holds no specs/ directory")
-    status = 0
     # a test of a path, true of every path where no sub-scope is given
     if args.sub_scope:
         kind = kind_of_file(root)
         keep = lambda path: any(in_sub_scope(s, path, kind(path)) for s in args.sub_scope)  # noqa: E731
     else:
         keep = lambda path: True  # noqa: E731
-
-    if args.check_layout:
-        table, found = layout.rules(root)
-        for value in args.check_layout:
-            path = Path(value)
-            if not path.is_file():
-                parser.error(f"--check-layout names no file: {value}")
-            body = read(path)
-            rel = path.resolve().relative_to(root).as_posix() if path.resolve().is_relative_to(root) else value
-            found += [(rule, rel, line, msg) for rule, line, msg in layout.findings(body, table) + block_findings(body)]
-        for rule, path, line, msg in sorted(found):
-            print(f"{path}:{line}  {rule}\n  {msg}")
-        n = len(found)
-        print(f"\n{n} finding{'' if n == 1 else 's'} over {len(args.check_layout)} file{'' if len(args.check_layout) == 1 else 's'}")
-        status = 1 if n else 0
-
-    if args.check_scope:
-        warned = []
-        found = [f for f in spec_checks.check(root, warned) if keep(f[1])]
-        warned = [w for w in warned if keep(w[1])]
-        files = [f for f in md_files(root) if keep(f.relative_to(root).as_posix())]
-        by_rule = {}
-        for rule, path, line, msg in found:
-            by_rule.setdefault(rule, []).append((path, line, msg))
-        for rule in sorted(by_rule):
-            print(f"\n{rule}")
-            for path, line, msg in sorted(by_rule[rule]):
-                where = f"{path}:{line}" if line else path
-                print(f"  {where}\n    {msg}")
-        n = len(found)
-        print(f"\n{n} finding{'' if n == 1 else 's'} across {len(files)} files")
-        status = 1 if n else 0
-        if warned:
-            # a warning is what the specs record as the system's gap: listed on every run, and never a finding
-            print(f"\nWarnings, {len(warned)} rule{'' if len(warned) == 1 else 's'} the specs record as kept by nothing; listed, not findings")
-            for rule, path, line, msg in sorted(warned):
-                print(f"  {path}:{line}\n    {msg}")
-
-    if args.list_candidates:
-        for heading, listed, counted in spec_checks.candidate_groups(root):
-            listed = [c for c in listed if keep(c[0])]
-            if not counted or args.detail:
-                print(f"\n{heading}")
-                for path, line, name, context in listed:
-                    print(f"  {path}:{line}  [{name}]\n    {context}")
-                continue
-            print(f"\n{heading}; counts for each file, --detail listing each")
-            counts = {}
-            for path, _, name, _ in listed:
-                group = name.split(":")[0]
-                counts.setdefault(path, {}).setdefault(group, 0)
-                counts[path][group] += 1
-            for path in sorted(counts):
-                print(f"  {path}: {sum(counts[path].values())}  " + "; ".join(f"{k} {v}" for k, v in sorted(counts[path].items())))
-    return status
+    return max(run(args, root, keep, value) for run, value in chosen)
 
 
 if __name__ == "__main__":
