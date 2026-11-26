@@ -3,6 +3,7 @@ technical-specs:
   - specs/application/technical/control-plane-service/control-plane.md
   - specs/application/technical/data-model.md
   - specs/application/technical/engineering-and-production-considerations.md
+  - specs/application/technical/environments.md
   - specs/application/technical/identity-and-access.md
   - specs/application/technical/model-registry.md
   - specs/application/technical/secrets-management.md
@@ -19,7 +20,7 @@ That access is the Platform admin role, per [`specs/application/product/roles.md
 - Ordinarily, the client provisions and controls accounts for named Acme AI staff directly in its own identity provider, so revocation never depends on Acme AI's cooperation.
 - Only where that identity provider cannot be reached, a Platform admin signs in with break-glass credentials held in the installation's own isolated vault.
 
-Whichever path is used, the client can disable this access entirely, at any time, from the client's side. A client raises a support case through Acme AI's own support portal. PriceHorizon never connects to that portal.
+The client's infrastructure team can withdraw support access at any time, including during an identity-provider outage. Active sessions lose privileged access immediately and new sign-ins are denied on both paths. Only the client can restore support, after which staff must sign in again. A client raises support cases through Acme AI's own portal independently of the installation.
 
 Wherever PriceHorizon holds a credential, the credential lives in an isolated, access-controlled vault. Such credentials include Acme AI's break-glass access, the secret behind a federated identity integration, and a client's data source connection provided through the self-service control plane ([`specs/application/product/tenant-administration/data-source-connections.md § Data Source Connections`](/specs/application/product/tenant-administration/data-source-connections.md#data-source-connections)). No credential is stored in the same database as the installation's configuration or reference data, so a vulnerability in ordinary application data can never expose the credentials that protect it.
 
@@ -37,11 +38,19 @@ Scenario: Competitively sensitive data stays inside the customer's own environme
   Then every piece of that data stays inside the customer's own infrastructure to answer it
   And none of it is held in a shared store spanning more than one customer
 
-Scenario: A client can disable Acme AI's access entirely from their own side.
-  Given Acme AI's Platform admin staff holds support and monitoring access to North America Snacks' installation
-  When the client disables that access from their own side
-  Then Acme AI's access to the installation ends
-  And ending it does not require Acme AI's cooperation
+Scenario: The client withdraws support while federation is available.
+  Given a named Acme AI engineer is monitoring the installation through a federated support session
+  When the client's infrastructure team disables support locally
+  Then the live monitoring stream ends and the session cannot read more diagnostics
+  And a new sign-in with that engineer's valid federated account is denied
+
+Scenario: Withdrawing support access during an identity-provider outage ends existing and future access.
+  Given a federated Acme AI support session was open before the client's identity provider became unreachable
+  And a second support session opened locally during the outage
+  When the client disables support access inside its installation
+  Then both sessions lose access to the next protected action and a fresh local sign-in is denied
+  And when the identity provider returns, a fresh federated sign-in is denied
+  And after the client restores permission, only a fresh sign-in can regain support access
 
 Scenario: Two business units in one installation keep their own configuration.
   Given a single installation hosts North America Snacks and Europe Beverages, each with its own brand, competitor set, category, and geography
@@ -98,7 +107,7 @@ Each kind that can be chosen sends something different:
 
 Searching the qualitative corpus and matching product catalogs always stay inside the installation. Only the kinds the client names leave it, and each carries only what it sends. Each named kind is served by a model version the client pins. Every answer records the version of each language model that served it, whether Acme AI's own or a frontier provider's.
 
-Acme AI's own models compute every forecast and simulated outcome inside the installation. Where the client names reading the qualitative corpus, what a frontier model reads from documents feeds those forecasts as any reading does. A Control plane admin can see which kinds are named, without being able to change them. The audit log records every change to the choice, with the kinds named before and after it, as the client's own change, never Acme AI's.
+Acme AI's own models compute every forecast and simulated outcome inside the installation. Where the client names reading the qualitative corpus, what a frontier model reads from documents feeds those forecasts as any reading does. A Control plane admin can see which kinds are named, without being able to change them. The audit log records every change to the choice, with the call kinds, providers and dated versions before and after it, as the client's own change, never Acme AI's.
 
 #### Test Scenarios
 
@@ -151,9 +160,15 @@ Scenario: A Control plane admin sees which kinds of model call reach a frontier 
   Then they see that rendering an explanation is named
   And they cannot change it
 
+Scenario: Changing just the provider redirects only the permitted call kind.
+  Given the installation sends only forecast narrative rendering to provider A at a client-selected model version
+  When the client's infrastructure team changes rendering to provider B at the same version label and restarts the installation
+  Then the next rendering call goes to provider B after the change is recorded with both provider identities
+  And reasoning, document search, matching and quantitative computation remain local
+
 Scenario: A change to the choice is recorded as the client's own.
   Given the client's own infrastructure team names rendering an explanation for a frontier model provider in North America Snacks' installation configuration
   When the installation next starts
-  Then the audit log records the change, with the kinds named before and after it
+  Then the audit log records the change, with the call kinds, providers and dated versions before and after it
   And the change is recorded as the client's own, not Acme AI's
 ```

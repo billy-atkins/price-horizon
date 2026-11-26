@@ -63,7 +63,7 @@ The same self-service surface is where a Control plane admin sees, at any time, 
 - every configuration change made to the business unit, and who made it;
 - every change to who has access to it;
 - every change to who holds the Platform admin role;
-- every change to which kinds of model call reach a frontier model provider;
+- each change to the call kinds, providers and dated model versions the client authorizes for external calls;
 - their own Query users' questions, and what they were told.
 
 There, too, a Control plane admin can temporarily raise how much debugging detail PriceHorizon's application logs capture for their own business unit, when they are experiencing an issue and want it resolved faster. The audit record can be searched by who acted, what kind of action, and when. It can be exported as exactly the filtered set, with the narrative wording and figures themselves left behind, so a compliance reviewer can be handed it without needing access of their own.

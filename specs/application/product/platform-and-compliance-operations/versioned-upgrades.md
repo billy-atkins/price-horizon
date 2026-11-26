@@ -1,7 +1,9 @@
 ---
 technical-specs:
   - specs/application/technical/control-plane-service/control-plane.md
+  - specs/application/technical/data-model.md
   - specs/application/technical/engineering-and-production-considerations.md
+  - specs/application/technical/model-registry.md
 ---
 
 ## Versioned Upgrades
@@ -13,6 +15,8 @@ A Platform admin executes an Acme AI-managed upgrade. The Platform admin is the 
 The client elects each upgrade. Acme AI never moves an installation to a version the client has not elected. Whether an upgrade is Acme AI-managed or self-managed settles who carries it out. That choice is made per upgrade rather than fixed once for the installation. Electing an upgrade is a client decision made with Acme AI rather than an action taken inside the product, so electing adds no role here, for the same reason applying a release does not.
 
 A Control plane admin and a Platform admin can each see the installation's versions through their own surface. Each sees the currently pinned application version, one version spanning the installation's services. Alongside it is each model's own version, because models version independently of the application and of one another. Both views are read-only.
+
+The client can read each completed upgrade in the installation-wide audit history throughout its retention period. Each event identifies who applied it and shows the application and every effective model version at activation, even after another release. A model-only release has its own event. Historical records identify any uncaptured versions as unknown.
 
 ### Test Scenarios
 
@@ -26,6 +30,26 @@ Scenario: The application and its models upgrade independently.
   Given a Platform admin executes the upgrade to application version 4.3 while every model the installation calls stays on its own current registry version
   When the application upgrade completes
   Then none of those model versions change as a result
+
+Scenario: Successive upgrades by different operators remain distinguishable in installation history.
+  Given the client elected application 4.3 for Acme AI to apply with forecast model F7 and rendering model R2
+  And Acme AI applied 4.3 before the client separately elected its own team to activate forecast model F8 on 4.3
+  When the client's infrastructure team applies the next elected release 4.4 with rendering still at R2
+  Then the client sees three upgrade events: Acme AI applied 4.3 with F7 and R2, the client applied F8 with 4.3 and R2, and the client applied 4.4 with F8 and R2
+  And reading the first upgrade after the second still shows its original versions
+
+Scenario: A model-only release is visible before any later application release.
+  Given the client is running application 4.3 with forecast model F7 and rendering model R2
+  When its infrastructure team activates the elected forecast model F8
+  Then the client's audit view identifies that operator and shows 4.3, F8 and R2 for the completed upgrade
+  And replaying the same activation leaves one completed upgrade in that history
+
+Scenario: A retained legacy upgrade shows which versions the installation captured.
+  Given the audit history retains a completed application 4.2 upgrade whose model versions were never captured
+  And the current installation runs application 4.4 with forecast model F8
+  When a Control plane admin opens the retained 4.2 event
+  Then the event shows the recorded application version 4.2 and identifies its historical model versions as unknown
+  And F8 appears only in records that captured it
 
 Scenario: A Control plane admin can see current version information at any time.
   Given a client's installation is running application version 4.3 with every model pinned to its own current registry version

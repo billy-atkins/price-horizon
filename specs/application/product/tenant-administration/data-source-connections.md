@@ -1,6 +1,7 @@
 ---
 technical-specs:
   - specs/application/technical/control-plane-service/control-plane.md
+  - specs/application/technical/data-model.md
   - specs/application/technical/secrets-management.md
 ---
 
@@ -15,6 +16,13 @@ Scenario: Enabling a data source connection is a self-service action.
   Given a Control plane admin provides credentials for ScanTrack, a syndicated point-of-sale data source Acme AI has already built a connector for
   When the connection is enabled
   Then ScanTrack begins feeding North America Snacks without Acme AI's involvement
+
+Scenario: Using and rotating a connector credential leaves ordinary installation data free of the secret.
+  Given North America Snacks has enabled the existing ScanTrack connector with a client-supplied credential
+  When its Control plane admin replaces the credential and the connector next retrieves ScanTrack data
+  Then the source accepts the replacement credential and data arrives for North America Snacks
+  And a reader of ordinary configuration, reference data, application logs and the rotation audit record can retrieve neither credential
+  And the rotation is visible in that record
 
 Scenario: Support for a genuinely new data source type is not self-service.
   Given a Control plane admin wants to connect ShelfSense, an in-store shelf-sensor telemetry source Acme AI has not already built a connector for
