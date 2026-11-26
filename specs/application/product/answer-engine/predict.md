@@ -7,6 +7,7 @@ technical-specs:
   - specs/application/technical/model-registry.md
   - specs/application/technical/predict-computation.md
   - specs/application/technical/query-service/intent-and-retrieval.md
+  - specs/application/technical/query-service/layered-output-synthesis.md
 ---
 
 ## Predict: what will the competitor do
@@ -17,9 +18,9 @@ The forecast gives the direction and size of the competitor's likely move in eff
 
 Most of that evidence exists before anyone asks. As documents arrive, the system reads the facts in them that bear on price, such as a tax change or a competitor's stated plan. It tags each fact with how credible its type of source is, and records it. A regulator's filing ranks above licensed third-party commentary, and both rank above an internal analyst note. A fact is used only once it is complete enough to size: when it takes effect, which way it pushes, and by how much. For a competitor's product launch or capacity change, it needs only enough for the model of the competitor's past reactions to judge. A stated range is used at its midpoint and shown as the range. [`specs/application/product/tenant-administration/review-queues.md § Review Queues`](/specs/application/product/tenant-administration/review-queues.md#review-queues) covers a fact that is not complete enough.
 
-The forecast, with its breakdown and its confidence, is computed on a schedule for every competitor and geography a business unit tracks, at a standard set of horizons. A question inside that set retrieves a forecast already built. A question outside it, such as a 9-month horizon, has its forecast built when asked, in the same way and from the same evidence. Either way, what is done with the forecast is computed when the question is asked: the positioning options, their simulated outcomes and the plain-language account.
+The forecast, with its breakdown and its confidence, is computed on a schedule for each tracked competitor brand and geography in a business unit, at 1, 3, 6 and 12 months. A question inside that set retrieves a forecast already built. A question outside it, such as a 9-month horizon, reuses a forecast for the same brand, geography, horizon and versions if one exists. Otherwise the system builds it when asked from the published data and models, using the applicable settings. Either way, what is done with the forecast is computed when the question is asked: the positioning options, their simulated outcomes and the plain-language account.
 
-The confidence band is a range around the forecast. Its width comes from the uncertainty each of the underlying list-price and promotional-depth models carries. The confidence score is a separate reading of the evidence behind the forecast. It weighs how credible the weakest source is, since better sources never average away one poorly sourced fact. It also weighs how current the data is, and whether the evidence agrees with itself.
+The confidence band is a range around the forecast. Its width comes from the uncertainty each of the underlying list-price and promotional-depth models carries. The confidence score is a separate reading of the evidence behind the forecast. It weighs how credible the weakest source is, since better sources never average away one poorly sourced fact. It also weighs how current the data is, and whether the evidence agrees with itself. If no qualitative signal contributes, snapshot freshness alone sets the score. The explanation identifies source credibility and agreement as inapplicable.
 
 The two can diverge. A forecast can sit inside a narrow band and still carry a lower confidence score, when the models are precise but a driver rests on a weakly sourced or stale fact. That is not a contradiction. Each answers a different question about the same forecast, and the answer shows both without flagging either as an error. The confidence score opens to each of its reasons, as [`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes) requires. Here each reason opens to its evidence: the weakest source itself, how old the data is and when each fact took effect, and any disagreement big enough to count as a price move. When a document points to a change big enough to count as a price move on its own, in a direction the baseline does not show, the answer names both sides and shows that the disagreement is holding the score down.
 
@@ -36,9 +37,28 @@ The two can diverge. A forecast can sit inside a narrow band and still carry a l
 
 Every price shown here, current or forecast, is in the local currency of the geography being discussed. [`specs/application/product/answer-engine/position.md § Position: where Brand A should sit`](/specs/application/product/answer-engine/position.md#position-where-brand-a-should-sit) states the rule in full.
 
-A Query user can open each driver in the decomposition graph, and each qualitative fact the narrative names, to see the evidence behind it without leaving the analysis. Most show the qualitative document behind them: its source type, what it states, how credible that kind of source is, and when it took effect. Demand sensitivity has no document behind it, because it is estimated, not reported. Opening it shows the model that produced the estimate and when that model was last validated. Competitor strategy shows both the document and the model that turned it into a magnitude, since this forecast never uses one without the other. A driver that contributed nothing to a forecast still shows why: no signal reached it for this query. It never shows an empty or broken view. Here the sourcing guarantee ([`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes)) becomes visible to a Query user instead of only being asserted. The answer's own lineage ([`specs/application/product/logging-and-traceability.md § Logging and Traceability § Answer Lineage`](/specs/application/product/logging-and-traceability.md#answer-lineage)) refers to this same evidence view.
+A Query user can open each driver in the decomposition graph, and each qualitative fact the narrative names, to see the evidence behind it without leaving the analysis. Most show the qualitative document behind them: its source type, what it states, how credible that kind of source is, and when it took effect. Demand sensitivity has no document behind it, because it is estimated, not reported. Opening it shows the model that produced the estimate and when that model was last validated. Competitor strategy shows both the document and the model that turned it into a magnitude, when a qualifying competitor plan contributes. A zero contribution opens to its cause. If no qualifying signal reached a signal-driven driver, the view says so. If effects cancel, the view shows each signed effect and its source. A measured or modeled zero retains its evidence. It never shows an empty or broken view. Here the sourcing guarantee ([`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes)) becomes visible to a Query user instead of only being asserted. The answer's own lineage ([`specs/application/product/logging-and-traceability.md § Logging and Traceability § Answer Lineage`](/specs/application/product/logging-and-traceability.md#answer-lineage)) refers to this same evidence view.
 
 [`specs/application/product/architecture.md § Diagrams § The Answer`](/specs/application/product/architecture.md#the-answer) and [`specs/application/product/architecture.md § Diagrams § From Evidence to Answer`](/specs/application/product/architecture.md#from-evidence-to-answer) render this.
+
+### Event Type Taxonomy
+
+The governed event types form a closed set. Every event type is declared here exactly once, with its driver category and its single downstream consumer. An event outside this set is sent to the review queue rather than being classified at runtime.
+
+**Table Name:** Event Type Taxonomy \
+**Reference Key:** Event Type \
+**Required:** Driver Category, Route
+
+| Event Type | Driver Category | Route |
+|---|---|---|
+| announced price change | competitor plans | Baseline |
+| promotional calendar change | competitor plans | Baseline |
+| product launch | competitor plans | Driver Attribution |
+| capacity change | competitor plans | Driver Attribution |
+| rate change | tax | Driver Attribution |
+| tax change | tax | Driver Attribution |
+| input cost change | input costs | Driver Attribution |
+| discretionary spending change | discretionary spending | Driver Attribution |
 
 ### Test Scenarios
 
@@ -76,12 +96,6 @@ Scenario: A model-backed driver shows which model produced it, not a document th
   Then the answer names the model that produced it and when it was last validated
   And no document citation is shown, since none exists for this driver
 
-Scenario: A driver with no contribution to this forecast still shows why.
-  Given a Query user has a Predict answer for Competitor Brand's effective price in Texas in 6 months, with consumer spending trends contributing nothing to this particular forecast
-  When the Query user opens the evidence behind that driver
-  Then the answer states that no signal reached this driver for this query
-  And the view is not shown as empty or broken
-
 Scenario: The forecast is exactly its baseline plus each driver's correction.
   Given a Query user has a Predict answer for Competitor Brand's effective price in Texas in 6 months
   When the answer is shown
@@ -113,7 +127,7 @@ Scenario: A stated range is used at its midpoint and shown as the range.
   Then it shows the range the filing states
   And the forecast uses a 1.5-point rise
 
-Scenario: A fact with no stated size is not used in the forecast.
+Scenario: A tax change with no stated size is held out of the forecast.
   Given a regulatory filing states that Texas's sales tax on snacks will rise within 6 months, without saying by how much
   When a Query user asks where Competitor Brand's effective price will be in Texas in 6 months
   Then the forecast's tax driver does not use that fact
@@ -129,4 +143,71 @@ Scenario: A competitor's product launch is used without a stated size.
   When a Query user asks where Competitor Brand's effective price will be in Texas in 6 months
   Then competitor strategy contributes a correction sized by the model of Competitor Brand's past reactions
   And opening that driver shows both the document and the model
+
+Scenario: A forecast based on market and model data explains its confidence.
+  Given a competitor price forecast uses market and model data and no qualitative signal contributed
+  When the Query user opens the confidence score
+  Then the explanation states "No qualitative signals contributed"
+  And source credibility and triangulation agreement are shown as not applicable
+  And the score equals the freshness score of the data snapshot
+
+Scenario: A contributing signal makes the ordinary confidence weights observable.
+  Given the same snapshot and horizon as the forecast without qualitative evidence
+  And one licensed commentary signal contributes, agrees with the baseline, and has a credibility score below snapshot freshness
+  And the ordinary rubric gives credibility a positive weight and the other component scores equal snapshot freshness
+  When the Query user opens the confidence explanation
+  Then credibility, freshness and agreement each show their applicable score and rubric weight
+  And the weighted score is lower than the freshness-only score
+
+Scenario: The evidence view distinguishes all three source ranks.
+  Given three otherwise identical forecasts with one contributing signal each
+  And the signal comes from a regulatory filing, licensed commentary or an internal analyst note
+  When the Query user opens each source's credibility assessment
+  Then the filing ranks above the commentary and the commentary ranks above the note
+
+Scenario: A spending driver with no qualifying signal explains its zero.
+  Given no spending signal qualifies for the competitor, geography and forecast window
+  When the Query user opens the zero spending contribution
+  Then the explanation identifies the missing signal
+
+Scenario: Measured spending effects can cancel.
+  Given two qualifying spending signals with equal and opposite signed effects and a nonzero driver weight
+  When the Query user opens the zero spending contribution
+  Then both signed effects and both source citations are visible
+  And the explanation attributes the zero to their cancellation
+
+Scenario: Competitor plans have no contribution without a qualifying signal.
+  Given an available competitor-response model and no competitor-plans signal for the question
+  When the Query user opens competitor plans in the decomposition
+  Then its contribution is zero and the explanation identifies the missing signal
+  And the evidence view attributes no estimate to the model for that driver
+
+Scenario: Brand A's current price is a reference in Predict.
+  Given two questions with identical competitor evidence and forecast versions
+  And only Brand A's current reference price differs
+  When the Query user compares the Predict scorecards
+  Then each shows its own Brand A reference price alongside the same competitor forecast
+  And neither Predict scorecard reports a computed price gap or relative price index
+
+Scenario: A brand-specific promotion does not alter a sibling brand's forecast.
+  Given a competitor sells two brands in the same market
+  And it announces deeper promotions only for the first brand
+  When the Query user opens each brand's baseline evidence for that period
+  Then only the first brand's baseline cites the promotion
+  And a later announcement explicitly covering both brands appears in both baselines for its effective period
+
+Scenario: Scheduled forecasts remain available when fresh computation is unavailable.
+  Given the business unit published forecasts for two tracked competitors, their two brands each, two geographies and the 1-, 3-, 6- and 12-month horizons
+  And the forecast models are temporarily unavailable after publication
+  When the Query user asks about each of those 32 combinations
+  Then each answer shows the selected brand's published forecast and confidence
+  And its baseline opens to the evidence from that publication
+
+Scenario: A previously answered nine-month question retains its forecast and evidence.
+  Given the Query user received a nine-month forecast outside the scheduled grid
+  And the published data, models, application and applicable settings have stayed the same
+  When the forecast models become unavailable and the user repeats the question
+  Then the nine-month forecast and its original rationale are still available
+  And a first nine-month question for another tracked brand with no stored forecast reports that its forecast could not be produced
+
 ```

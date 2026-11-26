@@ -14,38 +14,37 @@ The business units the user's IdP-asserted access contains are not merely used t
 
 #### Business unit
 
-A Decision Table resolves business unit from the access the user's IdP asserts ([`specs/application/technical/identity-and-access.md § Business unit access, federated`](/specs/application/technical/identity-and-access.md#business-unit-access-federated)), asking its questions in turn. `Business units granted` is how many business units the user's IdP-asserted access contains. `Resolves against one glossary?` reads true where a brand or competitor in the question resolves uniquely against one business unit's glossary, and false where it resolves against more than one or against none. `Session business unit granted?` reads true where the request carries a session business unit ([`§ Dynamic Retrieval and Weighting (when the question is asked) § Session context`](#session-context)) that the IdP-asserted access includes. The table's outcome is the query's business unit, `denied` or `unsettled`. `denied` means no claim mapping grants this identity access to any business unit, and the query is denied. `unsettled` means the pipeline stops and asks for clarification.
+A Decision Table resolves business unit from the access the user's IdP asserts ([`specs/application/technical/identity-and-access.md § Business unit access, federated`](/specs/application/technical/identity-and-access.md#business-unit-access-federated)), asking its questions in turn. `Business units granted` is how many business units the user's IdP-asserted access contains. `Resolves against one glossary?` reads true where a brand or competitor in the question resolves uniquely against the glossary of exactly one business unit the IdP-asserted access grants, and false where it resolves against more than one granted business unit or against none. `Session business unit granted?` reads true where the request carries a session business unit ([`§ Dynamic Retrieval and Weighting (when the question is asked) § Session context`](#session-context)) that the IdP-asserted access includes. The table's outcome is the query's business unit, `denied` or `unsettled`. `denied` means no claim mapping grants this identity access to any business unit, and the query is denied. `unsettled` means the pipeline stops and asks for clarification.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
-**Hit Policy:** First
-
-**Conditions:** Business units granted, Resolves against one glossary?, Session business unit granted?
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Hit Policy:** First \
+**Conditions:** Business units granted, Resolves against one glossary?, Session business unit granted? \
+**Computed:** Business unit
 
 | Name | Business units granted | Resolves against one glossary? | Session business unit granted? | Business unit |
 |---|---|---|---|---|
-| No Business Unit | 0 | - | - | denied |
-| One Business Unit | 1 | - | - | the one business unit granted |
-| Glossary | - | true | - | the business unit whose glossary the brand or competitor resolves against |
-| Session | - | - | true | the session's business unit |
-| Unsettled | - | - | - | unsettled |
+| No Business Unit | 0 | - | - | "denied" |
+| One Business Unit | 1 | - | - | granted business unit |
+| Glossary | - | true | - | glossary business unit |
+| Session | - | - | true | session business unit |
+| Unsettled | - | - | - | "unsettled" |
 
 #### Decision type
 
-Decision type is settled once the plan is validated, as [`specs/application/product/answer-engine/decision-context.md § Decision Context`](/specs/application/product/answer-engine/decision-context.md#decision-context) promises, because the positioning engine seeds its candidates by it ([`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Positioning engine § Archetype seeds`](/specs/application/technical/query-service/layered-output-synthesis.md#archetype-seeds)). `A kind of decision for this question alone?` reads Yes where the request carries one, which is the answer to an earlier clarification about it. A cue is one of a fixed set of decision words, held here and never extended by a business unit: "promotion", "promo", "retailer" and "retail account" for tactical; "list price", "price position", "brand-wide" and "national price" for strategic. A cue counts in any grammatical form: "promotional" or "promotions" as well as "promotion". A cue counts only where it describes Brand A's own decision, never the competitor's price. Intent parsing tells the two apart by what the word refers to in the question. Neither a retailer's name nor a time the question gives for its forecast, its horizon, is ever a cue. A decision word is never itself an unresolved term needing clarification. `A tactical cue?` reads Yes where any tactical cue counts, and `A strategic cue?` where any strategic cue does.
+Decision type is settled once the plan is validated, as [`specs/application/product/answer-engine/decision-context.md § Decision Context`](/specs/application/product/answer-engine/decision-context.md#decision-context) promises, because the positioning engine seeds its candidates by it ([`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Positioning engine § Archetype seeds`](/specs/application/technical/query-service/layered-output-synthesis.md#archetype-seeds)). `A kind of decision for this question alone?` reads true where the request carries one, which is the answer to an earlier clarification about it. A cue is one of a fixed set of decision words, held here and never extended by a business unit: "promotion", "promo", "retailer" and "retail account" for tactical; "list price", "price position", "brand-wide" and "national price" for strategic. A cue counts in any grammatical form: "promotional" or "promotions" as well as "promotion". A cue counts only where it describes Brand A's own decision, never the competitor's price. Intent parsing tells the two apart by what the word refers to in the question. Neither a retailer's name nor a time the question gives for its forecast, its horizon, is ever a cue. A decision word is never itself an unresolved term needing clarification. `A tactical cue?` reads true where any tactical cue counts, and `A strategic cue?` where any strategic cue does.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
-**Conditions:** A kind of decision for this question alone?, A tactical cue?, A strategic cue?, A session kind of decision?
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** A kind of decision for this question alone?, A tactical cue?, A strategic cue?, A session kind of decision? \
+**Computed:** Decision type
 
 | A kind of decision for this question alone? | A tactical cue? | A strategic cue? | A session kind of decision? | Decision type |
 |---|---|---|---|---|
-| Yes | - | - | - | The kind of decision the request carries for this question alone |
-| No | Yes | No | - | Tactical, for this question only |
-| No | No | Yes | - | Strategic, for this question only |
-| No | No | No | Yes | The session's kind of decision, which the request carries ([`§ Dynamic Retrieval and Weighting (when the question is asked) § Session context`](#session-context)) |
-| No | No | No | No | Stop the pipeline and ask for clarification |
-| No | Yes | Yes | - | Stop the pipeline and ask for clarification |
+| true | - | - | - | question kind of decision |
+| false | true | false | - | "Tactical" |
+| false | false | true | - | "Strategic" |
+| false | false | false | true | session kind of decision |
+| false | false | false | false | "unsettled" |
+| false | true | true | - | "unsettled" |
 
 ### Session context
 
@@ -53,13 +52,90 @@ A question request carries the session's business unit and kind of decision, whe
 
 ### Parallel evidence retrieval
 
-The Question Intent fans out into simultaneous, independent retrieval tasks:
+Resolve the business unit, competitor, brand, geography and horizon. For a scheduled cell read its most recently published successful bundle and pin the vintage and computation versions recorded on that bundle. A settings edit leaves that bundle available until the next successful refresh publishes its replacement. A failed read or an absent scheduled cell takes the retrieval retry and failure path.
 
-- call the elasticity model and the list-price and promotional-depth forecast components described in [`specs/application/technical/predict-computation.md § Predict Computation § Baseline forecast`](/specs/application/technical/predict-computation.md#baseline-forecast)
-- pull the competitor's historical effective price series
-- run a filtered vector search of the qualitative corpus scoped to Texas and the relevant time window (tax changes, macro commentary, known competitor plans)
-- retrieve Brand A's current price and margin targets
+For an outside-grid request, select the business unit's latest successfully published grid in one read and pin its data vintage and its complete forecast_model_versions map together. Pin the application version and applicable business-unit settings for this question. A refresh in progress or a failed refresh leaves the previous publication in effect. If there is no published grid to supply those pins, use the retrieval retry and failure path. Match the business unit, competitor, brand, geography, horizon, data vintage, application version, complete forecast_model_versions map and business-unit configuration version. Reuse a live bundle only when every field matches. The model_versions trace lists the subset actually called and plays no part in lookup. Persist on the same unique key so concurrent misses converge on one forecast and rationale before positioning. On either path retrieve Brand A's current price and margin targets for the question. Positioning uses the selected forecast and the question's current positioning settings. The answer keeps its question-time settings and the selected forecast's original versions separately.
 
-These tasks run in parallel because they are independent. Running them in parallel is what keeps a multi-source answer fast.
+When the lookup returns no matching record for an outside-grid request, retrieve the forecast inputs in parallel:
+- retrieve the competitor’s observed list prices, trade-promotion depths, rebates and surcharges per unit from the pinned snapshot
+- read the rebate and surcharge terms for that competitor, brand and geography effective in the target period, as known at the same data vintage. For each adjustment supply its applicable per-unit term and source, or its latest observed per-unit amount and observation date when the future term is unspecified
+- retrieve the signals eligible for this forecast. Both the scheduled cell and the live question use the resolved business-unit namespace, applicable geography and time window. A Competitor signal must match the competitor code and cover the resolved brand through its recorded brand set or explicit portfolio-wide scope. A Business Unit signal must match the unit, market and product scope. An unresolved scope cannot match. Apply this rule before event routing on both paths
+
+The forecast algorithms call their models when they consume these inputs. Confidence packaging persists the resulting bundle under the same pinned key before positioning begins. Brand A's current price is retrieved as a reference point, not modeled or converted into a price gap or relative price index at this stage.
 
 [`specs/application/technical/architecture.md § Architecture Overview § Diagrams § Layer Composition`](/specs/application/technical/architecture.md#layer-composition) renders this.
+
+## Facts
+
+**Records:**
+  - **Name:** IdP-asserted access \
+    **Type:** list<context<business_unit: string, role: string>> \
+    **Means:** the business units and roles the user's identity provider grants
+
+  - **Name:** question entities \
+    **Type:** list<string> \
+    **Means:** the brand and competitor named in the question
+
+  - **Name:** business units granted \
+    **Type:** number \
+    **Means:** how many business units the IdP-asserted access contains
+
+  - **Name:** granted business unit \
+    **Type:** string \
+    **May Be Absent:** Yes \
+    **Means:** the one business unit in the IdP-asserted access where exactly one is granted
+
+  - **Name:** glossary business unit \
+    **Type:** string \
+    **May Be Absent:** Yes \
+    **Means:** the unique granted business unit whose glossary resolves the question's brand or competitor, where exactly one does
+
+  - **Name:** resolves against one glossary? \
+    **Type:** boolean \
+    **Means:** whether the brand or competitor resolves uniquely against the glossary of exactly one business unit the IdP-asserted access grants
+
+  - **Name:** session business unit granted? \
+    **Type:** boolean \
+    **Means:** whether the request carries a session business unit included in the IdP-asserted access
+
+  - **Name:** business unit \
+    **Type:** string \
+    **Means:** the business unit the query is given for, `denied` when no mapping grants access or `unsettled` when clarification is needed
+
+  - **Name:** a kind of decision for this question alone? \
+    **Type:** boolean \
+    **Means:** whether the request carries a kind of decision chosen for this question alone
+
+  - **Name:** a tactical cue? \
+    **Type:** boolean \
+    **Means:** whether a tactical decision word describes Brand A's own decision
+
+  - **Name:** a strategic cue? \
+    **Type:** boolean \
+    **Means:** whether a strategic decision word describes Brand A's own decision
+
+  - **Name:** a session kind of decision? \
+    **Type:** boolean \
+    **Means:** whether the request carries a kind of decision for the session
+
+  - **Name:** session business unit \
+    **Type:** string \
+    **May Be Absent:** Yes \
+    **Means:** the business unit chosen for the session, where one has been chosen
+
+  - **Name:** question kind of decision \
+    **Type:** string \
+    **Values:** "Strategic", "Tactical" \
+    **May Be Absent:** Yes \
+    **Means:** the kind of decision chosen for this question alone, where one has been chosen
+
+  - **Name:** session kind of decision \
+    **Type:** string \
+    **Values:** "Strategic", "Tactical" \
+    **May Be Absent:** Yes \
+    **Means:** the kind of decision chosen for the session, where one has been chosen
+
+  - **Name:** decision type \
+    **Type:** string \
+    **Values:** "Strategic", "Tactical", "unsettled" \
+    **Means:** the kind of decision the question is given for, or `unsettled` when clarification is needed
