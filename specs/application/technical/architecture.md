@@ -22,11 +22,11 @@ Triangulation selects the signals routed to driver attribution that take effect 
 
 An answer is a set of records. Intent parsing turns a question into a Question Intent, which is not stored in either database. The records after it are stored in the structured database. A grid lookup, or Predict computed live, yields an Effective Price Forecast carrying its Rationale Record. The Rationale Record is what the forecast's baseline, drivers and confidence open to. The positioning engine produces Positioning Candidates, each carrying that same Rationale Record. The simulation engine produces a Simulated Outcome per candidate, and all of those outcomes share one Rationale Record, computed once for the question. A Delivered Answer records any answer for which Predict produced a forecast, whether or not Position and Simulate complete. It records the forecast the answer was built on, the candidates generated with their outcomes, their visible group membership, order and labels, the kind of decision the answer was given for, and the versions and data the answer was produced against. So the answer's positioning and simulation can be reproduced, as its forecast can. [`§ Architecture Overview § Diagrams § The Answer`](#the-answer) pictures this.
 
-The services split along a different axis than the layers do. A query service runs the live path, which is request-driven and latency-sensitive. A materialization service runs the batch path, which is throughput-oriented and tolerant of long jobs. The materialization service runs its forecasts nightly, whenever competitor data refreshes, and on demand for one business unit. It runs its document extraction as the corpus refreshes. A control plane service is separated for a security reason, not a workload one. The control plane service alone holds write access to reference data and configuration. So a vulnerability in the far larger, far more exposed query surface can never reach the capability to change what a competitor's code means or what a business unit's threshold is.
+The services split along a different axis than the layers do. A query service runs the live path, which is request-driven and latency-sensitive. A materialization service runs the batch path, which is throughput-oriented and tolerant of long jobs. The materialization service runs its forecasts nightly, whenever competitor data refreshes, and on demand for one business unit. It runs its document extraction as the corpus refreshes. A control plane service is separated for a security reason, not a workload one. The control plane service alone writes application-managed reference data and settings. The client’s infrastructure team controls installation support permission and external model destinations. The installation checks support permission on both sign-in paths and throughout each privileged session. So a vulnerability in the far larger, far more exposed query surface can never reach the capability to change what a competitor's code means or what a business unit's threshold is.
 
 The control plane service is also the client's own self-service surface. A Control plane admin tunes their own business unit there without Acme AI, while the forecasting mechanism itself stays with Acme AI. An Identity admin maps the customer's identity claims to business units and roles there. The control plane service also serves read-only views of the installation's pinned versions, audit retention and frontier model choice.
 
-Across every service, the IdP-asserted claim is the enforcement boundary. The vector database is partitioned one namespace per business unit, with credentials issued per namespace. So a bug in application code cannot reach a namespace its credentials were never issued for. Every structured retrieval is filtered by that same claim at the query level. [`§ Architecture Overview § Diagrams § Trust Boundaries`](#trust-boundaries) pictures these boundaries: the services, the control plane's sole write path, and the claim checked at each.
+Federated access is scoped by the claims that the customer’s identity provider asserts. Vector credentials confine retrieval to the permitted business-unit namespaces, and every structured retrieval applies the business-unit claim filter. Acme AI support also requires the client’s current installation permission at sign-in and for subsequent privileged actions. During an identity-provider outage the installation can authenticate a support operator locally with a vault credential. The same permission governs that session ([`specs/application/technical/identity-and-access.md § Platform admin access`](/specs/application/technical/identity-and-access.md#platform-admin-access)). [`§ Architecture Overview § Diagrams § Trust Boundaries`](#trust-boundaries) shows both support paths and the service credentials.
 
 [`§ Architecture Overview § Layer-to-Architecture Mapping`](#layer-to-architecture-mapping) is the row-by-row proof. It ties each piece of the product-facing answer to the mechanism that produces it, and cites the full detail behind each mechanism from that mechanism's own file.
 
@@ -79,7 +79,7 @@ flowchart TD
     end
 
     subgraph ControlPlane["Control plane service"]
-        CFG["Reference data and configuration"]
+        CFG["Application-managed reference data<br/>and settings"]
     end
 
     DRILL["Drill-down: cross-cutting"]
@@ -126,8 +126,12 @@ flowchart TD
     ACME(["Acme AI's own staff"]) -->|"an account<br/>the client provisions"| IDP
     ACME -.->|"local break-glass credentials,<br/>where the IdP cannot be reached"| VAULT
     subgraph ENV["The customer's own environment"]
+        OPS(["Client infrastructure team"])
         IDP["The customer's own IdP"]
         subgraph INST["PriceHorizon installation"]
+            PERM["Installation support permission"]
+            CHECK["Support authorization"]
+            SUPPORT["Support and monitoring"]
             VAULT[("Secrets vault<br/>one scoped credential per service")]
             QS["Query service"]
             MS["Materialization service"]
@@ -136,18 +140,23 @@ flowchart TD
             VDB[("Vector database<br/>one namespace per business unit")]
         end
     end
-    IDP -->|"a federated claim"| INST
+    IDP -->|"customer roles"| INST
+    OPS -->|"sets or withdraws"| PERM
+    PERM -->|"current permission"| CHECK
+    IDP -->|"Platform admin claim"| CHECK
+    VAULT -.->|"emergency identity during IdP outage"| CHECK
+    CHECK --> SUPPORT
     VAULT --> QS
     VAULT --> MS
     VAULT --> CP
     QS -->|"only the namespaces<br/>its credentials allow"| VDB
     QS -->|"every retrieval<br/>filtered by the claim"| SDB
-    CP -->|"the only write path to<br/>reference data and configuration"| SDB
+    CP -->|"writes application-managed<br/>reference data and settings"| SDB
     QS -.-> FRONT(["A frontier model provider,<br/>seeing only what the client allows"])
     MS -.-> FRONT
 ```
 
-**Caption:** The boundaries that keep each customer's data and configuration safe. The installation, and the customer's own IdP beside it, sit inside the customer's own environment, so signing in needs no connection outside it. A federated claim from the customer's own IdP is the enforcement boundary at every service. The customer's own people and Acme AI's own staff both reach that claim through accounts the client provisions. Local break-glass credentials in the vault, drawn dotted, apply only where that IdP cannot be reached. The vault issues each service its own credential. The vector database is reachable only through each namespace's own credentials. Every structured retrieval is filtered by the claim. The control plane is the only write path to reference data and configuration. A frontier model provider, drawn dotted, sits outside the customer's environment, and the query and materialization services reach it only with what the client lets it see.
+**Caption:** The customer administers support permission inside its environment. The installation checks that permission on federated and emergency support access, including actions in existing sessions. Customer roles reach the installation through its identity provider. Each service has its own vault credential, claims constrain structured retrieval, and namespace credentials constrain vector retrieval. The control plane writes application-managed reference data and settings. The client’s infrastructure team owns installation settings, including support permission and permitted external model destinations.
 
 **Sources:**
 - [`specs/application/technical/data-model.md § Core Data Model § Harmonized quantitative foundation`](/specs/application/technical/data-model.md#harmonized-quantitative-foundation)

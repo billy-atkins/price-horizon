@@ -17,7 +17,7 @@ A Control plane admin can see, at any time, who has done what within the admin's
 
 The admin sees the positioning options, simulated outcomes and exact narrative wording in full, not only a reference that leaves the admin to take Acme AI's word for what it said.
 
-Every Control plane admin also sees each change the client's own infrastructure team makes to which kinds of model call reach a frontier model provider ([`specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology § Frontier Models`](/specs/application/product/platform-and-compliance-operations/deployment-topology.md#frontier-models)), with the kinds named before and after it. This holds whichever business unit the admin administers, since the choice reaches every business unit.
+Every Control plane admin can see each installation-wide external routing change made by the client’s infrastructure team. The audit entry identifies the call kinds, providers and dated versions authorized before and after the change, including a change of provider or version for an existing call kind ([`specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology § Frontier Models`](/specs/application/product/platform-and-compliance-operations/deployment-topology.md#frontier-models)).
 
 An Identity admin sees, across the installation, every change to who is granted which business unit and role, and who made it. The Identity admin also sees every question refused because its asker has access to no business unit at all. A change to access to a business unit is also among the changes that business unit's Control plane admin sees. A change to who holds the Platform admin role is seen by every Control plane admin.
 
@@ -117,8 +117,9 @@ Scenario: Acme AI's scoped access to a client's own external observability platf
   When a Control plane admin for North America Snacks reviews the audit log
   Then that access does not appear in the audit log, since it never touched PriceHorizon at all
 
-Scenario: Every Control plane admin can see a change to which kinds of model call reach a frontier model provider.
-  Given the client's own infrastructure team has named rendering an explanation for a frontier model provider in the installation's configuration
-  When a Control plane admin for Europe Beverages, in the same installation, reviews the audit log
-  Then the admin sees the change, with the kinds named before and after it, and that the client's own infrastructure team made it
+Scenario: An administrator in another business unit sees a provider-only routing change.
+  Given forecast explanation rendering is the only external call kind in the installation and uses provider A at version 2026-09-01
+  When the client’s infrastructure team switches rendering to provider B at the same dated version
+  Then the Control plane admin for Europe Beverages sees the change recorded as the client infrastructure team’s
+  And the entry shows rendering at provider A before the change and provider B after it, both at 2026-09-01
 ```

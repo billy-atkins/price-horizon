@@ -8,12 +8,10 @@ The control plane service also serves read-only views of installation-wide value
 
 ### Configuration change path
 
-The path a change to each configuration surface takes: whether a client makes it themselves (self-service) or only through Acme AI (governed), and what makes it.
+Each configuration surface has one change path. A product role can edit a self-service setting, Acme AI governs product and model releases, and the client’s infrastructure team administers installation permissions and external destinations locally.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
-**Conditions:** Configuration surface
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Configuration surface \
 **Annotations:** Reason, Promised In
 
 | Configuration surface | Change | Made through | Reason | Promised In |
@@ -29,7 +27,9 @@ The path a change to each configuration surface takes: whether a client makes it
 | Product and geography match and driver signal extraction review queues, each a Review Queue Item ([`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Review Queue Item`](/specs/application/technical/data-model.md#review-queue-item)) | Self-service | The control plane service ([`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Service boundaries`](/specs/application/technical/engineering-and-production-considerations.md#service-boundaries)), scoped to the business unit by its Control plane admin claim ([`specs/application/technical/identity-and-access.md § Business unit access, federated`](/specs/application/technical/identity-and-access.md#business-unit-access-federated)) | The client has domain context Acme AI does not | |
 | Credentials and enablement for any data source Acme AI has already built a connector for | Self-service | The control plane service ([`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Service boundaries`](/specs/application/technical/engineering-and-production-considerations.md#service-boundaries)), scoped to the business unit by its Control plane admin claim ([`specs/application/technical/identity-and-access.md § Business unit access, federated`](/specs/application/technical/identity-and-access.md#business-unit-access-federated)) | | [`specs/application/product/tenant-administration/data-source-connections.md § Data Source Connections`](/specs/application/product/tenant-administration/data-source-connections.md#data-source-connections) |
 | The Event Type Taxonomy and its `routes_to` declarations | Governed | The application version ([`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations`](/specs/application/technical/engineering-and-production-considerations.md#engineering-and-production-considerations)) | Editing it would reopen the double-counting risk [`specs/application/technical/predict-computation.md § Predict Computation § Signal route`](/specs/application/technical/predict-computation.md#signal-route) exists to prevent | |
-| The driver attribution weighting rubric's numeric weights, the confidence scoring weighting rubric's weights and bands, the simulate confidence weighting rubric's weights and bands, and every model version | Governed | Model registry ([`specs/application/technical/model-registry.md § Model registry`](/specs/application/technical/model-registry.md#model-registry)) | Validated centrally against the golden-question harness | |
+| The driver attribution weighting rubric's numeric weights, the confidence scoring weighting rubric's weights and bands, the simulate confidence weighting rubric's weights and bands, and Acme AI registry-managed model versions | Governed | Model registry ([`specs/application/technical/model-registry.md § Model registry`](/specs/application/technical/model-registry.md#model-registry)) | Validated centrally against the golden-question harness | |
+| External model-call kinds, provider and dated model version | Client infrastructure | The client-owned installation configuration in [`specs/application/technical/model-registry.md § Model registry`](/specs/application/technical/model-registry.md#model-registry) | Installation-wide, with immediate withdrawal | [`specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology § Frontier Models`](/specs/application/product/platform-and-compliance-operations/deployment-topology.md#frontier-models) |
+| Acme AI support permission | Client infrastructure | The installation-local permission in [`specs/application/technical/identity-and-access.md § Platform admin access`](/specs/application/technical/identity-and-access.md#platform-admin-access) | Effective during an identity-provider outage | [`specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology`](/specs/application/product/platform-and-compliance-operations/deployment-topology.md#deployment-topology) |
 | The archetype price-setting rules themselves | Governed | The application version ([`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations`](/specs/application/technical/engineering-and-production-considerations.md#engineering-and-production-considerations)) | Distinct from their display labels | |
 | The horizon set the grid materializes against | Governed | The application version ([`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations`](/specs/application/technical/engineering-and-production-considerations.md#engineering-and-production-considerations)) | A real infrastructure cost, not a preference | |
 | Support for a new data source type | Governed | The application version, an engineering release ([`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations`](/specs/application/technical/engineering-and-production-considerations.md#engineering-and-production-considerations)) | Connector engineering, not configuration | |
@@ -44,3 +44,39 @@ The bounds below apply to a self-service change to the surfaces they name:
 - **The application log threshold.** The threshold is lowered toward trace ([`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Security and governance`](/specs/application/technical/engineering-and-production-considerations.md#security-and-governance)) only temporarily. A lowered threshold expires automatically rather than persisting.
 
 The installation-wide audit log retention_period ([`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Security and governance`](/specs/application/technical/engineering-and-production-considerations.md#security-and-governance)) is governed and raise-only. A decrease lies outside this surface entirely, by design: the control plane service's write path rejects any submitted value lower than the setting's current value.
+
+### External model routing changes
+
+The client’s infrastructure team records each accepted change as a durable, monotonically numbered installation configuration revision containing the complete set of (call kind, provider, dated model version) tuples, sorted by call kind. Only the client can write these revisions. It retains each one until the audit store acknowledges it, including a withdrawal to an empty set. The control plane service reads this configuration at startup and reconciles pending revisions in order. [`specs/application/technical/model-registry.md § Model registry`](/specs/application/technical/model-registry.md#model-registry) defines the eligible calls and the input each may send.
+
+The installation compares complete sets, including the empty set. It first takes the prior state from its durable checkpoint or, at migration, the most recent retained effective record in installation order. Confirmed first use supplies a known empty prior. A record with missing provider identities preserves the known kinds and dates and marks each absent provider unknown. Where prior evidence is missing and first use cannot be established, the entire prior state is unknown. An empty state observed after withdrawal supersedes every older nonempty state.
+
+#### Routing revision history
+
+For each accepted revision in sequence, the prior state is qualified when every prior route has a known provider and dated version. A known empty set is qualified. A legacy baseline identifies the first observed complete set and preserves the available prior evidence without assigning a time to any unobserved switch.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Prior state qualified?, Prior and observed sets equal?
+
+| Prior state qualified? | Prior and observed sets equal? | Audit action |
+|---|---|---|
+| false | - | Record the first qualified baseline |
+| true | true | Keep the existing history |
+| true | false | Record the change from the prior set to the observed set |
+
+In one installation database transaction the control plane service performs the audit action, writing frontier_models_changed when an entry is due, and advances the checkpoint to the acknowledged revision and observed set. It serializes competing recorders, skips revisions already acknowledged, and retains the checkpoint across audit retention. Withdrawal and restoration are separate revisions even if restoration returns to the original set.
+
+#### External call authorization
+
+A withdrawal takes effect immediately. Each service checks the current client permission at dispatch. Reconciliation is current only after the entire ordered sequence through the current client revision has been acknowledged, including any required audit entry. An unavailable permission, an unknown checkpoint, a gap or an unrecorded change keeps external routing closed across restarts. The destination matches only when both the current client configuration and the acknowledged set authorize the exact call kind, provider and dated version.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Reconciliation current?, Destination matches?
+
+| Reconciliation current? | Destination matches? | External dispatch |
+|---|---|---|
+| false | - | Deny |
+| true | false | Deny |
+| true | true | Send only the input permitted for this call kind |
+
+The Control plane admin can view the permitted call kinds.
