@@ -8,7 +8,7 @@ This file gathers in one place the structures that the query service, the materi
 
 Field tables define the stored data. Event routing belongs to [`specs/application/technical/predict-computation.md § Predict Computation § Signal route`](/specs/application/technical/predict-computation.md#signal-route), unit resolution to [`specs/application/technical/query-service/intent-and-retrieval.md § Dynamic Retrieval and Weighting (when the question is asked) § Intent parsing and decoupling § Business unit`](/specs/application/technical/query-service/intent-and-retrieval.md#business-unit), and candidate grouping to [`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Option Consolidation`](/specs/application/technical/query-service/layered-output-synthesis.md#option-consolidation).
 
-These structures live in separate stores, not one. The Driver Signal lives in the vector database ([`§ Core Data Model § Vector Database Schema`](#vector-database-schema)). The vector database is partitioned into one namespace per business unit, keyed by the Business Unit's stable code. A query against it is scoped by the namespace the connection reaches, not by a filter applied after the fact to a shared index. Every other structure lives in the structured database this section describes: Signal Routing Rule, Rationale Record, Positioning Candidate, Simulated Outcome, Product and Geography Match, Effective Price Forecast, Realized Outcome, Answer Provenance, Delivered Answer, and Review Queue Item. These need exact-key lookups and aggregation rather than similarity search. A Rationale Record cites Driver Signals by reference instead of duplicating them, and that reference is the one place the two stores meet. The Question Intent is the exception to both stores. Each request resolves its own authorized intent. A short-lived cache may reuse the parsing result under the isolation rules in [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations`](/specs/application/technical/engineering-and-production-considerations.md#engineering-and-production-considerations), and neither store persists it.
+These structures live in separate stores, not one. The Driver Signal lives in the vector database ([`§ Core Data Model § Vector Database Schema`](#vector-database-schema)). The vector database is partitioned into one namespace per business unit, keyed by the Business Unit's stable code. A query against it is scoped by the namespace the connection reaches, not by a filter applied after the fact to a shared index. Every other structure lives in the structured database this section describes: Signal Routing Rule, Rationale Record, Positioning Candidate, Simulated Outcome, Product and Geography Match, Effective Price Forecast, Realized Outcome, Answer Provenance, Delivered Answer, and Review Queue Item. These need exact-key lookups and aggregation rather than similarity search. A Rationale Record cites Driver Signals by reference instead of duplicating them, and that reference is the one place the two stores meet. The Question Intent is the exception to both stores. Each request resolves its own authorized intent. A short-lived cache may reuse the parsing result under the isolation rules in [`specs/application/technical/guarantees-mechanics.md § How the Guarantees Are Achieved Mechanically`](/specs/application/technical/guarantees-mechanics.md#how-the-guarantees-are-achieved-mechanically), and neither store persists it.
 
 Business Unit, Geography, and Competitor are reference tables, not per-instance records. Each carries separate identifiers that do different jobs. A sequential integer id serves foreign keys and join performance within the structured database, the normal relational pattern. A stable code serves wherever these entities cross into the vector database, or must be legible to a person or an agent reading them directly. The code is ISO 3166 for a geography where it applies, a public ticker symbol for a competitor that has one, and an assigned short code for a business unit. Structured-database tables reference these entities by integer id. The vector database has no join mechanism and no relationship to those integers. It references them by code, the one identifier both stores can use without translation.
 
@@ -97,7 +97,20 @@ A reference table, with one row per competitor in scope for any business unit.
 |---|---|
 | id | Sequential integer primary key |
 | code | A public ticker symbol where the competitor has one, an assigned code otherwise |
-| name | Display name |
+| name | Shared canonical name and display fallback for units without a local label |
+
+#### Business unit competitor label
+
+There is at most one effective label for each unit and competitor at a given unit configuration version. Resolve the version pinned by the request. This label supplies the unit’s competitor name after the rename described in [`specs/application/product/tenant-administration/reference-data-management.md § Reference Data Management`](/specs/application/product/tenant-administration/reference-data-management.md#reference-data-management).
+
+**Reference Key:** Field \
+**Required:** Description
+
+| Field | Description |
+|---|---|
+| business_unit_id / competitor_id | Foreign keys identifying the unit and its shared competitor. The label covers every tracked brand of that competitor in this unit |
+| effective configuration version | The unit revision at which this value takes effect. A later revision supersedes it for new requests |
+| display label | The unit’s displayed name. If the unit has never supplied a label, use the canonical competitor name |
 
 #### Tracked brand membership
 
@@ -113,7 +126,7 @@ The governed reference set identifies the brands each business unit tracks. A me
 
 #### Entity Alias
 
-A many-to-one crosswalk: several aliases can resolve to one Competitor or Business Unit. It follows the same reconciliation pattern as Product and Geography Match, applied to names instead of catalog identifiers.
+Source names and codes can resolve to an existing Competitor, Business Unit or Geography. The crosswalk associates each alias with the reference row that owns the entity’s stable identity.
 
 **Reference Key:** Field \
 **Required:** Description
@@ -121,11 +134,30 @@ A many-to-one crosswalk: several aliases can resolve to one Competitor or Busine
 | Field | Description |
 |---|---|
 | alias_text | The name or code as it appears in a specific source, not yet resolved |
-| entity_type | Competitor or Business Unit: the reference table this alias resolves against |
+| entity_type | Competitor, Business Unit or Geography, the reference table that contains the target row |
 | entity_id | Foreign key to the matching row in that reference table |
 | source_channel | The ingestion channel or source type that uses this alias, where known |
+| business_unit_id | Required for a Geography correction. Identifies the unit whose future input may resolve through this alias. Competitor and Business Unit aliases retain their existing scope. |
 
-A rebrand, or a data vendor's own naming convention, is a new row here, not a change to the reference table's id or code. The reference table's name field is only the current display name, a convenience. Resolution always runs against this table, which holds every current and historical name, so a competitor's forecast history stays attached to one identity across a name change instead of fragmenting into two. An alias adds a row and changes no id or code that a Product and Geography Match or Effective Price Forecast already references, so adding one, a rebrand included, never invalidates a cell already materialized or a materialization run in flight. It only lets resolution find the same entity under one more name. alias_text is exempt from the code format rule [`§ Core Data Model § Harmonized quantitative foundation`](#harmonized-quantitative-foundation) states. Its job is to capture a source's naming exactly as it appears, spaces, mixed case, punctuation and all. It is not a second code.
+The geographic lookup key consists of the authorized business unit, source channel and incoming alias text. An unspecified channel matches only an unspecified channel. Canonical codes retain precedence. An alias lookup requires the captured unit and matches its complete key. A lookup in one unit cannot use another unit’s mapping. [`§ Core Data Model § Reference and Master Data § Geography correction registration`](#geography-correction-registration) defines registration.
+
+Adding an alias leaves the reference row, its code, indexed signals, materialized cells and retained deliveries intact. A rebrand preserves the competitor’s history under the same identity. The display name can change independently. The source spelling in alias_text can contain spaces, punctuation or mixed case. The canonical code follows [`§ Core Data Model § Harmonized quantitative foundation`](#harmonized-quantitative-foundation).
+
+#### Geography correction registration
+
+Register a corrected code against an existing geography under the administrator’s authorized unit. Apply the decision atomically, including when two registrations race for the same geographic lookup key in [`§ Core Data Model § Reference and Master Data § Entity Alias`](#entity-alias).
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Shadows another canonical geography code?, Current mapping \
+**Input Values:**
+  - Current mapping: "absent", "same target", "different target"
+
+| Shadows another canonical geography code? | Current mapping | Registration result |
+|---|---|---|
+| true | - | Reject the correction |
+| false | "absent" | Register the geography for this key |
+| false | "same target" | Return the existing mapping |
+| false | "different target" | Reject the correction and keep the original mapping |
 
 #### Glossary Term
 
@@ -199,8 +231,8 @@ Declared as a governed table, not per-instance data, with one entry per bounded 
 | Field | Description |
 |---|---|
 | event_type | The bounded name of an event type declared in the [`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do § Event Type Taxonomy`](/specs/application/product/answer-engine/predict.md#event-type-taxonomy) |
-| driver_category | The event type's category, as declared there: competitor plans, tax, input costs, or discretionary spending |
-| routes_to | The single downstream consumer declared there: Baseline for announced price change and promotional calendar change, or Driver Attribution for every other event type |
+| driver_category | The category declared for this event type in the product taxonomy |
+| routes_to | The single consumer assigned to this event type in the product taxonomy |
 
 #### Rationale Record
 
@@ -215,10 +247,15 @@ Produced by the confidence and rationale package ([`specs/application/technical/
 | driver_contribution_breakdown | The full per-driver breakdown from Driver Attribution, covering every driver, not only the largest. These are the values the decomposition graph renders. Each contribution is in the resolved currency of the forecast's geography |
 | driver_evidence | For each driver retain the signals and model calls actually used, even when its net contribution is zero. Elasticity records its model and version. Competitor plans with a qualifying trigger records the trigger and the response model that sized it. Without a trigger it records no call and explains the absence. For a reported zero, zero model estimate, zero rubric weight or offsetting effects, retain the references, signed effects and weight that explain the result. |
 | confidence_score | The overall confidence attached to this answer or candidate |
+| scoring_date | For a forecast, the UTC calendar date its original Predict calculation began. For a Simulated Outcome, the scoring date its own confidence calculation used. An unavailable original date remains unknown. |
+| unavailable_reason | For a Simulated Outcome, the reason its shared score could not be calculated. Empty after successful scoring. |
+| input_issues | For a Simulated Outcome, the model name, version and reason for each unusable input. Empty when no model input failed validation. These details remain available when the score and its components are null. |
+| low_confidence_warning | The forecast’s retained warning decision under [`specs/application/technical/predict-computation.md § Predict Computation § Confidence and rationale package § Forecast confidence warning`](/specs/application/technical/predict-computation.md#forecast-confidence-warning). A Positioning Candidate inherits its forecast’s assessment. |
+| confidence_warning_threshold | The comparison value from the forecast’s pinned scoring rubric, saved with the final score and the corresponding rubric version |
 | confidence_components | Predict records the applicability, score, effective weight and supporting evidence for each component. For a forecast using qualitative signals, the evidence identifies the lowest-tier contributing sources, the snapshot and signal dates used for freshness, and any flagged conflicts. With no contributing signals, the record identifies snapshot freshness as the sole basis of the score and carries the reason "No qualitative signals contributed" for the two inapplicable components. A Positioning Candidate inherits this record. A Simulated Outcome identifies the models that determined model confidence and model freshness and records whether the parent candidate's score lowered its score. |
 | baseline | The baseline move and its direction, from [`specs/application/technical/predict-computation.md § Predict Computation § Baseline forecast [Step: 5]`](/specs/application/technical/predict-computation.md#baseline-forecast) and [`specs/application/technical/predict-computation.md § Predict Computation § Baseline forecast [Step: 6]`](/specs/application/technical/predict-computation.md#baseline-forecast), in the resolved currency of the forecast's geography. The baseline and driver_contribution_breakdown together sum to the forecast's move |
 | baseline_evidence | What the baseline was built from, which a Query user sees on opening the baseline ([`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`](/specs/application/product/answer-engine/predict.md#predict-what-will-the-competitor-do)). It holds the pinned component history, forecast window, list-price and promotional-depth model versions and validation dates, and the baseline Driver Signals. For the rebate and surcharge, it identifies the applicable term or the dated observation carried forward and the per-unit amount used |
-| conflicts | Each conflict [`specs/application/technical/predict-computation.md § Predict Computation § Driver Attribution`](/specs/application/technical/predict-computation.md#driver-attribution) flagged: the baseline's direction, the Driver Signal that disagrees with it, and that signal's contribution. Empty when none was flagged |
+| conflicts | Each conflict [`specs/application/technical/predict-computation.md § Predict Computation § Driver Attribution`](/specs/application/technical/predict-computation.md#driver-attribution) flagged: the baseline's direction, the disagreeing Driver Signal and the individually rounded weighted effect used to flag it. The driver_contribution_breakdown holds the aggregated contributions used in the forecast. Empty when none was flagged |
 
 [`specs/application/technical/architecture.md § Architecture Overview § Diagrams § From Evidence to Answer`](/specs/application/technical/architecture.md#from-evidence-to-answer) and [`specs/application/technical/architecture.md § Architecture Overview § Diagrams § The Answer`](/specs/application/technical/architecture.md#the-answer) render this.
 
@@ -294,6 +331,7 @@ Produced by reconciliation ([`specs/application/technical/materialization-servic
 | brand_a_product_id | Brand A's corresponding internal product identifier. Nullable when no counterpart exists, the whitespace case |
 | match_confidence | How confident the match is. A low-confidence match is flagged for review rather than forced through |
 | match_method | Structured attribute matching or semantic matching, whichever produced the match |
+| matcher_version | Registry version returned by the semantic matcher for this result. Structured and whitespace results have no semantic version. A legacy semantic result without version evidence reports unknown. |
 
 **Table Name:** Geography Crosswalk \
 **Reference Key:** Field \
@@ -336,7 +374,9 @@ Produced by reconciliation ([`specs/application/technical/materialization-servic
 
 #### Delivered Answer
 
-The query service commits one Delivered Answer for a question whose response includes a completed forecast. The forecast may come from a published cell, a reused live bundle or a new live computation. A partial response retains only the stages completed for this question. The qualifying question_asked outcomes are [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: answer_produced]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: position_failed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), or [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: simulate_failed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run). It is never created for [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: query_denied]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: clarification_needed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), or [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: predict_failed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), where there is nothing yet to have lineage over.
+The query service commits one Delivered Answer for a question whose response includes a completed forecast. The Delivered Answer, its provenance, the question_asked event and any newly computed live bundle share the commit described in [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Security and governance`](/specs/application/technical/engineering-and-production-considerations.md#security-and-governance). The forecast may come from a published cell, a reused live bundle or a new live computation. A partial response retains only the stages completed for this question. The qualifying question_asked outcomes are [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: answer_produced]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: position_failed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), or [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: simulate_failed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run). It is never created for [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: query_denied]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: clarification_needed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), or [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: predict_failed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), where there is nothing yet to have lineage over.
+
+[`specs/application/product/tenant-administration/audit-log-visibility.md § Audit Log Visibility`](/specs/application/product/tenant-administration/audit-log-visibility.md#audit-log-visibility) uses this record to show the committed answer and its receipt status to the authorized administrator.
 
 **Reference Key:** Field \
 **Required:** Description
@@ -366,7 +406,7 @@ Each of a Delivered Answer's Answer Provenance fields can differ from the refere
 
 #### Realized Outcome
 
-An immutable scored comparison produced by [`specs/application/technical/materialization-service/forecast-materialization.md § Realized outcome check`](/specs/application/technical/materialization-service/forecast-materialization.md#realized-outcome-check). Pending and unevaluable comparisons expose their disposition and reason separately from a scored outcome.
+An immutable scored comparison produced by [`specs/application/technical/materialization-service/forecast-materialization.md § Realized outcome check`](/specs/application/technical/materialization-service/forecast-materialization.md#realized-outcome-check). Pending and unevaluable comparisons use the separately retained check disposition. Its optional signed error records a known difference even when no verdict can be assigned. Where an older disposition has no recorded error, that value is unknown. [`specs/application/product/accuracy-governance.md § Tracking Forecast Accuracy`](/specs/application/product/accuracy-governance.md#tracking-forecast-accuracy) displays the verdict for a scored comparison and the reason when a forecast cannot be evaluated.
 
 **Reference Key:** Field \
 **Required:** Description
@@ -398,14 +438,14 @@ Attached to every answer, per the repeatability guarantee in [`specs/application
 
 #### Review Queue Item
 
-The status of a single flagged item: a low-confidence product match ([`§ Core Data Model § Pipeline and Answer Artifacts § Product and Geography Match`](#product-and-geography-match)) or an ambiguous or incomplete document extraction ([`specs/application/technical/materialization-service/driver-signal-extraction.md § Vector and semantic mapping, with structured extraction`](/specs/application/technical/materialization-service/driver-signal-extraction.md#vector-and-semantic-mapping-with-structured-extraction)). These are the cases [`specs/application/product/tenant-administration/review-queues.md`](/specs/application/product/tenant-administration/review-queues.md) commits to the client reviewing. Each is a durable record, and resolving one produces a corrected record that every future query benefits from. A low-confidence answer is not another such case. It is the output of one query at one moment, not a record with anything to correct. The confidence guarantee itself ([`specs/application/technical/guarantees-mechanics.md § How the Guarantees Are Achieved Mechanically`](/specs/application/technical/guarantees-mechanics.md#how-the-guarantees-are-achieved-mechanically)) handles it, and it is surfaced to the user directly, not queued for review.
+A durable review item identifies a low-confidence product match, an unresolved source geography ([`§ Core Data Model § Pipeline and Answer Artifacts § Product and Geography Match`](#product-and-geography-match)) or an ambiguous or incomplete document extraction ([`specs/application/technical/materialization-service/driver-signal-extraction.md § Vector and semantic mapping, with structured extraction`](/specs/application/technical/materialization-service/driver-signal-extraction.md#vector-and-semantic-mapping-with-structured-extraction)). These are the cases [`specs/application/product/tenant-administration/review-queues.md`](/specs/application/product/tenant-administration/review-queues.md) commits to the client reviewing. For unresolved geographies, [`specs/application/technical/materialization-service/reconciliation.md § Product and Geography Reconciliation § Source geography review`](/specs/application/technical/materialization-service/reconciliation.md#source-geography-review) defines the evidence key, the permitted resolution, and the effect on future computations. A low-confidence answer is not another such case. It is the output of one query at one moment, not a record with anything to correct. The confidence guarantee itself ([`specs/application/technical/guarantees-mechanics.md § How the Guarantees Are Achieved Mechanically`](/specs/application/technical/guarantees-mechanics.md#how-the-guarantees-are-achieved-mechanically)) handles it, and it is surfaced to the user directly, not queued for review.
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine` \
 **Table Name:** States
 
 | State | Description | Initial | Terminal |
 |---|---|---|---|
-| flagged | Flagged at the point of computation, by a confidence threshold or an incomplete extraction. No reviewer has seen it yet | Yes | No |
+| flagged | The producer found an uncertain product match, an unresolved source geography, or an ambiguous or incomplete extraction. The item awaits its unit reviewer. | Yes | No |
 | under_review | A Control plane admin has opened the item | No | No |
 | resolved | A reviewer has confirmed the underlying record needed no change, corrected it, or supplied the figure it was missing. The record is used | No | Yes |
 | dismissed | A reviewer has found the underlying record cannot be made usable, such as an incomplete extraction whose missing fact no source states. The record stays unused | No | Yes |
@@ -416,7 +456,7 @@ The status of a single flagged item: a low-confidence product match ([`§ Core D
 |---|---|---|
 | flagged | under_review | A Control plane admin opens the item |
 | under_review | resolved | The reviewer confirms the match or extraction needed no change |
-| under_review | resolved | The reviewer corrects the match or extraction |
+| under_review | resolved | The reviewer successfully corrects the product or geography mapping, or corrects the extraction |
 | under_review | resolved | The reviewer supplies the figure the extraction is missing |
 | under_review | dismissed | The reviewer finds the match or extraction cannot be made usable |
 
@@ -457,12 +497,12 @@ All are governed the same way, per [`specs/application/technical/engineering-and
 
 ##### Audit attribution
 
-The installation attributes an upgrade to the authenticated deployment operator and its own automated actions to a fixed system identity. For other actions it records the identity asserted on the access path and the role used, including the local break-glass identity for emergency support. A signed-in person can submit a question before any role is mapped. If that question is refused for lack of a mapped role, the record retains the authenticated identity and leaves actor_role null.
+The installation attributes an upgrade to the authenticated deployment operator and its own automated actions to a fixed system identity. For other actions it records the identity asserted on the access path and the role used, including the local break-glass identity for emergency support. A signed-in person may have only administrative grants or no mapped roles. A question denied for lack of a Query user grant retains the authenticated actor and has no acting role, unit or delivery.
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
-**Conditions:** Action type, Upgrade operator, Question refused for lack of a mapped role?
+**Conditions:** Action type, Upgrade operator, Question denied for lack of Query user access?
 
-| Action type | Upgrade operator | Question refused for lack of a mapped role? | actor | actor_role |
+| Action type | Upgrade operator | Question denied for lack of Query user access? | actor | actor_role |
 |---|---|---|---|---|
 | upgrade | Acme AI | - | Authenticated named Platform admin | platform_admin |
 | upgrade | Client infrastructure | - | Authenticated client deployment principal | client_infrastructure |

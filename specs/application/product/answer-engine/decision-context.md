@@ -7,11 +7,11 @@ technical-specs:
 
 ## Decision Context
 
-Every answer is shaped by the decision it serves, so PriceHorizon settles that decision before the first question rather than guessing it from each one. When a Query user signs in, PriceHorizon asks what they are working on: a brand pricing decision, on list price or the brand's price position, or a retailer or promotional decision. At the same point, a Query user with access to more than one business unit picks the business unit they are working in. A Query user with access to a single business unit is never asked. A Query user who skips the greeting and asks a question straight away is asked the same before anything is computed, unless the question itself says. Their answer counts for the session the same way.
+Every answer is shaped by the decision it serves, so PriceHorizon settles that decision before the first question rather than guessing it from each one. When a Query user signs in, PriceHorizon asks what they are working on: a brand pricing decision, on list price or the brand's price position, or a retailer or promotional decision. Only units in which the person currently holds the Query user role are available for a question. At the same point, a Query user with access to more than one business unit picks the business unit they are working in. A Query user with access to a single business unit is never asked. A Query user who skips the greeting and asks a question straight away is asked the same before anything is computed, unless the question itself says. Their answer counts for the session the same way.
 
-Both choices hold until the Query user signs out. Every answer shows the business unit and the kind of decision it was given for. The Query user can change either choice at any time from where it is shown. Changing it there offers the same choices as the greeting, with only the business units the Query user can access among them. The change holds from then on.
+The choices carry forward through the session while the selected unit remains authorized. Every answer shows the business unit and the kind of decision it was given for. The Query user can change either choice at any time from where it is shown. Changing it there offers the same choices as the greeting, with only the business units the Query user can access among them. The change holds from then on.
 
-A question can still say something different for itself. A decision word in it about Brand A's own decision, such as "promotion", "retailer", "list price" or "price position", applies that kind of decision to that question alone. A particular retailer's name does not, and neither does a word about the competitor's own price. A brand or competitor belonging only to another of the Query user's business units applies that business unit to that question alone. The session's choices stay as they were. A question using decision words of both kinds is asked about before anything is computed, rather than having one kind picked for it. The Query user's answer applies to that question alone. The options each kind of decision brings are in [`specs/application/product/answer-engine/position.md § Position: where Brand A should sit § Options by Kind of Decision`](/specs/application/product/answer-engine/position.md#options-by-kind-of-decision).
+A question can still say something different for itself. A decision word in it about Brand A's own decision, such as "promotion", "retailer", "list price" or "price position", applies that kind of decision to that question alone. A particular retailer's name does not, and neither does a word about the competitor's own price. A brand or competitor belonging only to another unit in which the person currently holds the Query user role applies that business unit to that question alone. The session's choices stay as they were. A question using decision words of both kinds is asked about before anything is computed, rather than having one kind picked for it. The Query user's answer applies to that question alone. The options each kind of decision brings are in [`specs/application/product/answer-engine/position.md § Position: where Brand A should sit § Options by Kind of Decision`](/specs/application/product/answer-engine/position.md#options-by-kind-of-decision).
 
 ### Test Scenarios
 
@@ -21,6 +21,13 @@ Scenario: A session starts by asking what kind of decision the Query user is wor
   When PriceHorizon greets them
   Then it asks whether they are working on a brand pricing decision or a retailer or promotional decision
   And it does not ask which business unit they are working in
+
+Scenario: Administrative access does not add a unit to query choices.
+  Given a person holds the Query user role in East and only the Control plane admin role in West, and their session previously selected West
+  When they skip the greeting and ask about a brand found only in West
+  Then the question uses East as its only eligible unit and asks for clarification about the unknown brand without offering West
+  When an Identity admin removes their East query access and they ask again
+  Then the question is denied
 
 Scenario: A Query user with more than one business unit picks one when the session starts.
   Given a Query user whose access holds North America Snacks and Europe Beverages signs in

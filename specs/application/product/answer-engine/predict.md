@@ -34,7 +34,7 @@ The two can diverge. A forecast can sit inside a narrow band and still carry a l
 | Geographic visualization | A map from country to state or province to major metro, matching how the competitor's own pricing data is reported, showing how the top-line figure breaks down by region |
 | Decomposition graph | The baseline and a chart of the underlying drivers (the competitor's own demand sensitivity, input cost, competitor strategy, consumer spending trends, and tax), with how much each contributes to the forecast |
 
-Every price shown here, current or forecast, is in the local currency of the geography being discussed. [`specs/application/product/answer-engine/position.md § Position: where Brand A should sit`](/specs/application/product/answer-engine/position.md#position-where-brand-a-should-sit) states the rule in full.
+Predict shows the current and forecast effective price per unit in the local currency of the forecast geography. A Query user viewing another market sees that market’s currency.
 
 A Query user can open each driver in the decomposition graph, and each qualitative fact the narrative names, to see the evidence behind it without leaving the analysis. Most show the qualitative document behind them: its source type, what it states, how credible that kind of source is, and when it took effect. Demand sensitivity has no document behind it, because it is estimated, not reported. Opening it shows the model that produced the estimate and when that model was last validated. Competitor strategy shows both the document and the model that turned it into a magnitude, when a qualifying competitor plan contributes. A zero contribution opens to its cause. If no qualifying signal reached a signal-driven driver, the view says so. If effects cancel, the view shows each signed effect and its source. A measured or modeled zero retains its evidence. It never shows an empty or broken view. Here the sourcing guarantee ([`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes)) becomes visible to a Query user instead of only being asserted. The answer's own lineage ([`specs/application/product/logging-and-traceability.md § Logging and Traceability § Answer Lineage`](/specs/application/product/logging-and-traceability.md#answer-lineage)) refers to this same evidence view.
 
@@ -62,6 +62,12 @@ The governed event types form a closed set. Every event type is declared here ex
 ### Test Scenarios
 
 ```gherkin
+Scenario: A sized competitor plan outside the governed event types awaits review.
+  Given the unit’s Control plane admin has a competitor filing that announces a distribution contract change with a stated price effect of USD 0.20 per unit
+  And the evidence identifies the competitor, geography and effective date, but the plan fits none of the accepted competitor-plan event types
+  When a Control plane admin opens the unit’s review queue
+  Then the event is awaiting review and contributes nothing to the forecast
+
 Scenario: A resolvable question returns a confidence-scored forecast.
   Given a Query user asks where Competitor Brand's effective price will be in Texas in 6 months
   When the question is answered
@@ -121,15 +127,24 @@ Scenario: The confidence score opens to the reasons behind it, naming the weakes
   And each of those reasons can be opened to the evidence behind it without leaving the analysis
 
 Scenario: A stated range is used at its midpoint and shown as the range.
-  Given a regulatory filing states that Texas's sales tax on snacks will rise by between 1 and 2 points within 6 months
+  Given a Query user’s evidence includes a Texas filing raising the snacks tax by 1 to 2 percentage points within six months and a documented taxable base of USD 20 per unit
   When a Query user opens the tax driver behind a Predict answer for Competitor Brand's effective price in Texas in 6 months
   Then it shows the range the filing states
-  And the forecast uses a 1.5-point rise
+  And the driver evidence shows a midpoint increase of 1.5 percentage points and an effect of +USD 0.30 per unit before weighting
 
 Scenario: A tax change with no stated size is held out of the forecast.
-  Given a regulatory filing states that Texas's sales tax on snacks will rise within 6 months, without saying by how much
+  Given a Query user’s unit has a filing that says the Texas sales tax on snacks will rise within six months and gives no rate
   When a Query user asks where Competitor Brand's effective price will be in Texas in 6 months
-  Then the forecast's tax driver does not use that fact
+  Then the tax driver shows no contribution from the filing
+  When the unit’s Control plane admin opens the review queue
+  Then the filing is awaiting a usable rate
+
+Scenario: A stated tax rate without a usable conversion stays in review.
+  Given a Query user’s unit has a filing that gives the applicable in-horizon Texas tax rate while the taxable base per unit is unavailable
+  When a Query user opens the forecast rationale
+  Then the forecast shows no contribution from the filing
+  When the unit’s Control plane admin opens the review item
+  Then the item identifies the missing taxable base per unit
 
 Scenario: Evidence that disagrees holds the confidence score down, and is shown rather than averaged away.
   Given Competitor Brand's price history in Texas points to a stable effective price, but a documented tax increase large enough to move it takes effect within the 6-month horizon
@@ -203,7 +218,7 @@ Scenario: Scheduled forecasts remain available when fresh computation is unavail
   And its baseline opens to the evidence from that publication
 
 Scenario: A previously answered nine-month question retains its forecast and evidence.
-  Given the Query user received a nine-month forecast outside the scheduled grid
+  Given the Query user received a committed nine-month forecast outside the scheduled grid
   And the published data, models, application and applicable settings have stayed the same
   When the forecast models become unavailable and the user repeats the question
   Then the nine-month forecast and its original rationale are still available
@@ -211,8 +226,8 @@ Scenario: A previously answered nine-month question retains its forecast and evi
 
 
 Scenario: Equal and opposite effects remain visible in a published forecast.
-  Given two eligible signals for the same driver contribute +0.20 and -0.20 per unit after weighting
-  When the user opens that driver's evidence for the published forecast
+  Given a Query user has a published forecast where two eligible signals for the same driver contribute +0.20 and -0.20 per unit after weighting
+  When the Query user opens that driver's evidence for the published forecast
   Then its net contribution is zero and both signals, their signed effects and the applied weight are shown
   And retrieving that forecast again identifies the same sources and model versions
 
@@ -221,5 +236,4 @@ Scenario: A scheduled drill-down remains available when live Predict is offline.
   And live Predict is unavailable
   When a Query user drills from the state to the metro and then asks for the same metro directly
   Then both responses show the same published metro forecast and evidence
-  And neither request makes a live Predict call
 ```

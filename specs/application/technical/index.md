@@ -19,4 +19,4 @@
 | `engineering-and-production-considerations.md` | Data pipeline cadence, the latency and cost budget, orchestration, service boundaries, API shape, deployment and versioning, and security and governance, including the audit log's mechanics and application telemetry, and its open questions |
 | `query-service/` | The query-service-only parts of the live path, from intent parsing and retrieval to layered output synthesis, plus the bulk evidence and accuracy report it also serves. See `query-service/index.md`. |
 | `materialization-service/` | The batch path: forecast materialization, reconciliation, driver signal extraction, and realized outcome tracking. See `materialization-service/index.md`. |
-| `control-plane-service/` | The self-service configuration surface and its governance table, and the read-only views of the installation's pinned versions and audit retention. See `control-plane-service/index.md`. |
+| `control-plane-service/` | The self-service configuration surface and its governance table, and the read-only views of the installation's pinned versions, frontier-model choice and audit retention. See `control-plane-service/index.md`. |

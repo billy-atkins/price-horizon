@@ -1,6 +1,6 @@
 ## Predict Computation
 
-Predict computation is the mechanism that turns retrieved evidence into a forecast effective price, a driver-by-driver correction, and a confidence score. The materialization service and the query service both invoke this same computation. The materialization service invokes it in batch, across the configured grid ([`specs/application/technical/materialization-service/forecast-materialization.md § Forecast materialization`](/specs/application/technical/materialization-service/forecast-materialization.md#forecast-materialization)). The query service invokes the same computation when [`specs/application/technical/query-service/intent-and-retrieval.md § Dynamic Retrieval and Weighting (when the question is asked) § Parallel evidence retrieval § Select a forecast`](/specs/application/technical/query-service/intent-and-retrieval.md#select-a-forecast) selects a live miss.
+Predict computation is the mechanism that turns retrieved evidence into a forecast effective price, a driver-by-driver correction, and a confidence score. The materialization service and the query service both invoke this same computation. The materialization service invokes it in batch, across the configured grid ([`specs/application/technical/materialization-service/forecast-materialization.md § Forecast materialization`](/specs/application/technical/materialization-service/forecast-materialization.md#forecast-materialization)). The query service invokes the same computation when [`specs/application/technical/query-service/intent-and-retrieval.md § Dynamic Retrieval and Weighting (when the question is asked) § Parallel evidence retrieval § Forecast source`](/specs/application/technical/query-service/intent-and-retrieval.md#forecast-source) selects a live miss.
 
 [`specs/application/technical/architecture.md § Architecture Overview § Diagrams § Layer Composition`](/specs/application/technical/architecture.md#layer-composition), [`specs/application/technical/architecture.md § Architecture Overview § Diagrams § From Evidence to Answer`](/specs/application/technical/architecture.md#from-evidence-to-answer) and [`specs/application/technical/architecture.md § Architecture Overview § Diagrams § The Answer`](/specs/application/technical/architecture.md#the-answer) render this.
 
@@ -9,13 +9,12 @@ Predict computation is the mechanism that turns retrieved evidence into a foreca
 Each Driver Signal feeds exactly one downstream consumer, which its event type decides. No signal feeds both, so no signal's effect on the forecast is counted twice. Each consumer reads a signal's magnitude signed by its direction, and a bracket at its midpoint. [`specs/application/technical/control-plane-service/control-plane.md § Control Plane § Configuration change path`](/specs/application/technical/control-plane-service/control-plane.md#configuration-change-path) decides who may change the routing rule. The complete membership is the closed set in the [`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do § Event Type Taxonomy`](/specs/application/product/answer-engine/predict.md#event-type-taxonomy). This table applies the route: a signal stating a fact about the exact thing being forecast, the competitor's own list price or promotional depth, goes to Baseline; every other event type goes to Driver Attribution.
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
-**Conditions:** States a fact about what is forecast? \
-**Annotations:** Its Event Types
+**Conditions:** States a fact about what is forecast?
 
-| States a fact about what is forecast? | routes_to | Its Event Types |
-|---|---|---|
-| true | Baseline, the baseline forecast Algorithm ([`§ Predict Computation § Baseline forecast`](#baseline-forecast)) | announced price change and promotional calendar change |
-| false | Driver Attribution | product launch, capacity change, rate change, tax change, input cost change, and discretionary spending change |
+| States a fact about what is forecast? | routes_to |
+|---|---|
+| true | Baseline, the baseline forecast Algorithm ([`§ Predict Computation § Baseline forecast`](#baseline-forecast)) |
+| false | Driver Attribution |
 
 ### Baseline forecast
 
@@ -56,7 +55,7 @@ A business unit's own dead-zone threshold is set as [`specs/application/product/
 
 ### Triangulation and conflict checks
 
-The Driver Signal records ([`specs/application/technical/data-model.md § Core Data Model § Vector Database Schema § Driver Signal`](/specs/application/technical/data-model.md#driver-signal)) retrieved alongside the baseline are read by their structured fields, not as raw text re-interpreted on the spot. Triangulation finds each retrieved Driver Signal that is routed to Driver Attribution and takes effect inside the horizon. These are the signals that could disagree with the baseline. Driver Attribution works out each signal's own effect on price. It flags as a conflict each signal that pushes price, by enough to count as a price move on its own ([`§ Predict Computation § Driver Attribution`](#driver-attribution)), in a direction the baseline does not show: the baseline is stable or moving the other way. The common case is a tax increase of that size, taking effect within the horizon against a stable baseline. A flagged conflict is surfaced, never averaged away. It is recorded with the baseline's direction and the disagreeing signal, and a Query user sees it on opening the confidence score ([`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`](/specs/application/product/answer-engine/predict.md#predict-what-will-the-competitor-do)). A smaller or agreeing signal still enters the forecast as its driver's contribution, shown in the decomposition graph.
+The Driver Signal records ([`specs/application/technical/data-model.md § Core Data Model § Vector Database Schema § Driver Signal`](/specs/application/technical/data-model.md#driver-signal)) retrieved alongside the baseline are read by their structured fields, not as raw text re-interpreted on the spot. Triangulation finds each retrieved Driver Signal that is routed to Driver Attribution and takes effect inside the horizon. These are the signals that could disagree with the baseline. Driver Attribution works out each signal's own effect on price. It flags as a conflict each signal that pushes price, by enough to count as a price move on its own ([`§ Predict Computation § Driver Attribution`](#driver-attribution)), in a direction the baseline does not show: the baseline is stable or moving the other way. The common case is a tax increase of that size, taking effect within the horizon against a stable baseline. A flagged conflict is surfaced, never averaged away. It is recorded with the baseline's direction and the disagreeing signal, and a Query user sees it on opening the confidence score ([`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`](/specs/application/product/answer-engine/predict.md#predict-what-will-the-competitor-do)). Smaller and agreeing signals still enter their driver's aggregate, shown in the decomposition graph.
 
 ### Driver Attribution
 
@@ -87,10 +86,10 @@ Driver Attribution is an Algorithm that computes the correction and sizes each s
 |---|---|
 | 1 | For each signal of signals routed here, in any order, gathering sized signal into sized signals: steps 2 to 3 |
 | 2 | Set signed effect to if signal.driver_category = "competitor plans" then competitor price response(signal) else signal.reported magnitudes[1] * signal.currency factors[1] |
-| 3 | Set sized signal to {signal: signal, effect: signed effect, contribution: signed effect * driver weight(driver attribution weighting rubric, signal.driver_category)} |
+| 3 | Set sized signal to {signal: signal, effect: signed effect, contribution: weighted per-unit contribution(signed effect, driver weight(driver attribution weighting rubric, signal.driver_category))} |
 | 4 | For each driver of ["elasticity", "input costs", "discretionary spending", "competitor plans", "tax"], in any order, gathering driver contribution into driver contributions: steps 5 to 6 |
 | 5 | Set magnitude to if driver = "elasticity" then elasticity estimate(current effective price) else if count(sized signals[item.signal.driver_category = driver]) = 0 then 0 else sum(for sized in sized signals[item.signal.driver_category = driver] return sized.effect) |
-| 6 | Set driver contribution to {contribution: magnitude * driver weight(driver attribution weighting rubric, driver), magnitude: magnitude, driver: driver} |
+| 6 | Set driver contribution to {contribution: weighted per-unit contribution(magnitude, driver weight(driver attribution weighting rubric, driver)), magnitude: magnitude, driver: driver} |
 | 7 | Set total correction to sum(for contribution in driver contributions return contribution.contribution) |
 | 8 | Set forecast move to baseline.move + total correction |
 | 9 | Set forecast direction to if forecast move = 0 then "stable" else if current effective price > 0 and abs(forecast move) < dead-zone threshold * current effective price then "stable" else if forecast move > 0 then "increase" else "decrease" |
@@ -103,7 +102,7 @@ Direct effects enter the correction in resolved currency per unit. Retain the so
 
 Store the pinned component observations, terms and model versions with the baseline. Before summing a driver's corrections, retain each signal reference, model version when used, signed effect and effective weight. These records explain a zero total from offsetting effects.
 
-The decomposition shows the baseline move and each driver's weighted contribution. Together they sum to the published forecast move. A conflict records the same signed contribution that its signal made to the correction, so surfacing it preserves that accounting. The weighting rubric version identifies the weights used.
+Each conflict records the signal’s individually weighted, six-decimal effect used to test its direction and size against the baseline. For each driver, aggregate the original signed effects before weighting and rounding to six decimals. Thus independently rounded signal amounts can sum to a different value from the recorded driver contribution. The baseline move plus the driver contributions reconciles to the published forecast move. The pinned rubric identifies the weights used.
 
 Elasticity's magnitude always comes from the named model alone. No document ever backs it. Competitor plans is different. The competitor price-response model estimates how this competitor has historically reacted to comparable triggers, trained and validated against [`specs/application/technical/materialization-service/forecast-materialization.md § Realized outcome check`](/specs/application/technical/materialization-service/forecast-materialization.md#realized-outcome-check) rather than asserted. Its recalibration is [`specs/application/technical/materialization-service/forecast-materialization.md § Open Questions [Name: Recalibration]`](/specs/application/technical/materialization-service/forecast-materialization.md#open-questions)'s subject. The model only translates a Driver Signal's trigger into a magnitude, and does not estimate one without a signal to translate. Whenever competitor plans contributes anything, the signal and the model back it together. When no signal exists for competitor plans in this query, neither backs it, and it contributes zero. For a given driver, driver_evidence ([`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Rationale Record`](/specs/application/technical/data-model.md#rationale-record)) records a signal, a model, both together, or neither. The evidence a Query user sees for a driver ([`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`](/specs/application/product/answer-engine/predict.md#predict-what-will-the-competitor-do)) is therefore the same source the computation used, never a description assembled after the fact.
 
@@ -114,7 +113,8 @@ Rationale here means a Rationale Record ([`specs/application/technical/data-mode
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm` \
 **Inputs:**
   - Driver Signals used in this answer
-  - snapshot age
+  - forecast scoring date
+  - snapshot date
   - Rationale Record's conflicts
   - confidence scoring weighting rubric
 
@@ -132,18 +132,48 @@ Rationale here means a Rationale Record ([`specs/application/technical/data-mode
 | Step | Action |
 |---|---|
 | 1 | Set source credibility score to if count(Driver Signals used in this answer) = 0 then null else source credibility(Driver Signals used in this answer) |
-| 2 | Set data freshness score to if count(Driver Signals used in this answer) = 0 then data freshness(snapshot age) else min(data freshness(snapshot age), data freshness signals(Driver Signals used in this answer)) |
+| 2 | Set data freshness score to if count(Driver Signals used in this answer) = 0 then data freshness(forecast scoring date - snapshot date) else min(data freshness(forecast scoring date - snapshot date), data freshness signals(Driver Signals used in this answer, forecast scoring date)) |
 | 3 | Set triangulation agreement score to if count(Driver Signals used in this answer) = 0 then null else triangulation agreement(Rationale Record's conflicts) |
 | 4 | Set confidence component weights to if count(Driver Signals used in this answer) = 0 then {source credibility: 0, data freshness: 1, triangulation agreement: 0} else {source credibility: confidence scoring weighting rubric.source credibility, data freshness: confidence scoring weighting rubric.data freshness, triangulation agreement: confidence scoring weighting rubric.triangulation agreement} |
 | 5 | Set confidence score to if count(Driver Signals used in this answer) = 0 then data freshness score else source credibility score * confidence component weights.source credibility + data freshness score * confidence component weights.data freshness + triangulation agreement score * confidence component weights.triangulation agreement |
 | 6 | Set confidence score to if count(Rationale Record's conflicts) > 0 then min(confidence score, confidence scoring weighting rubric.flagged conflict ceiling) else confidence score |
 | 7 | End |
 
+Capture the UTC date once when a scheduled or live calculation begins. Retain that date with the snapshot and signal dates used for freshness. A published cell, exact live match or reopened delivery returns the recorded score. An older forecast whose original calculation date cannot be established keeps its recorded score and shows the date as unknown.
+
 Each scoring rubric version pins its component mappings as well as its weights and ceiling. Save the contributing lowest-credibility sources, freshness dates, conflicts, component applicability, effective weights and any ceiling adjustment with the score. When only snapshot freshness applies, retain its date and record why the other components have zero weight.
 
 Baseline evidence retains model validation dates. Their role in scoring follows [`specs/application/technical/model-registry.md § Open Questions [Name: Model Freshness in Predict]`](/specs/application/technical/model-registry.md#open-questions).
 
-A scheduled cell or matching live bundle returns the stored forecast and rationale. A supported live miss persists them together under the captured key. Both origins enter [`specs/application/technical/materialization-service/forecast-materialization.md § Realized outcome check`](/specs/application/technical/materialization-service/forecast-materialization.md#realized-outcome-check) and [`specs/application/technical/query-service/evidence-and-accuracy-reporting.md § Bulk Evidence and Accuracy Report`](/specs/application/technical/query-service/evidence-and-accuracy-reporting.md#bulk-evidence-and-accuracy-report). A question that receives either bundle records its own Delivered Answer. Rendering draws on the persisted facts ([`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer)`](/specs/application/technical/query-service/layered-output-synthesis.md#layered-output-synthesis-producing-the-answer)).
+A scheduled cell or matching live bundle returns the stored forecast and rationale. A supported live miss stages the completed forecast and rationale together for Position. Its answer transaction publishes them under the captured key ([`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Security and governance`](/specs/application/technical/engineering-and-production-considerations.md#security-and-governance)). Committed forecasts from either origin enter [`specs/application/technical/materialization-service/forecast-materialization.md § Realized outcome check`](/specs/application/technical/materialization-service/forecast-materialization.md#realized-outcome-check) and [`specs/application/technical/query-service/evidence-and-accuracy-reporting.md § Bulk Evidence and Accuracy Report`](/specs/application/technical/query-service/evidence-and-accuracy-reporting.md#bulk-evidence-and-accuracy-report). A question that receives either bundle records its own Delivered Answer. Rendering draws on the facts selected for this question ([`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer)`](/specs/application/technical/query-service/layered-output-synthesis.md#layered-output-synthesis-producing-the-answer)).
+
+#### Forecast confidence warning
+
+Apply the pinned confidence rubric to the final score after any conflict ceiling. Store the threshold, rubric version and warning with the forecast rationale for both scheduled and live forecasts.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Confidence score \
+**Computed:** Low confidence warning?
+
+| Confidence score | Low confidence warning? |
+|---|---|
+| < confidence scoring weighting rubric.warning threshold | true |
+| >= confidence scoring weighting rubric.warning threshold | false |
+
+Show the warning with the forecast figures even when the narrative is unavailable. Reopening a delivery reads [`§ Predict Computation § Confidence and rationale package § Historical warning assessment`](#historical-warning-assessment).
+
+#### Historical warning assessment
+
+A Query user reopening a forecast receives the assessment its original evidence supports. Recovery uses the final score and the threshold from that forecast’s own rubric version. This is the historical assessment shown to the user under [`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes).
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Assessment retained?, Original score and threshold recoverable?
+
+| Assessment retained? | Original score and threshold recoverable? | Assessment shown |
+|---|---|---|
+| true | - | Retained assessment |
+| false | true | Result of [`§ Predict Computation § Confidence and rationale package § Forecast confidence warning`](#forecast-confidence-warning) on the original inputs |
+| false | false | Historical assessment unavailable |
 
 #### A flagged conflict's ceiling
 
@@ -236,7 +266,7 @@ Because step 6 enforces the Constraint, the other, unrelated inputs that happen 
 
   - **Name:** driver attribution weighting rubric \
     **Type:** context<version: string, entries: list<context<driver: string, weight: number>>> \
-    **Means:** the pinned attribution version and exactly one numeric weight for each of the five named drivers
+    **Means:** the pinned attribution version and exactly one numeric weight for each named driver
 
   - **Name:** driver weight \
     **Type:** function<context<version: string, entries: list<context<driver: string, weight: number>>>, string> -> number \
@@ -250,6 +280,12 @@ Because step 6 enforces the Constraint, the other, unrelated inputs that happen 
   - **Name:** competitor price response \
     **Type:** function<context<signal reference: string, source_citation: string, entity type: string, entity code: string, reported unit: string, currency factors: list<number>, driver_category: string, event_type: string, direction: string, reported magnitudes: list<number>, effective_date: date, source_type: string, extraction_model_version: string, credibility_tier: string>> -> number \
     **Means:** the model's signed price effect for one competitor-plan event, including an event with no stated magnitude
+
+  - **Name:** weighted per-unit contribution \
+    **Type:** function<number, number> -> number \
+    **Decimal Places:** 6 \
+    **Derivation:** function(effect, weight) effect * weight \
+    **Means:** the signed weighted effect in the geography's local currency per unit, rounded half even
 
   - **Name:** signed effect \
     **Type:** number \
@@ -304,23 +340,27 @@ Because step 6 enforces the Constraint, the other, unrelated inputs that happen 
   - **Name:** flagged conflicts \
     **Type:** list<context<baseline direction: string, signal: context<signal reference: string, source_citation: string, entity type: string, entity code: string, reported unit: string, currency factors: list<number>, driver_category: string, event_type: string, direction: string, reported magnitudes: list<number>, effective_date: date, source_type: string, extraction_model_version: string, credibility_tier: string>, contribution: number>> \
     **Initial Value:** [] \
-    **Means:** each conflict recorded with the baseline's direction, the disagreeing signal, and its contribution
+    **Means:** each conflict recorded with the baseline's direction, the disagreeing signal and its individually rounded weighted effect used in the conflict test
 
   - **Name:** Driver Signals used in this answer \
     **Type:** list<context<signal reference: string, source_citation: string, entity type: string, entity code: string, reported unit: string, currency factors: list<number>, driver_category: string, event_type: string, direction: string, reported magnitudes: list<number>, effective_date: date, source_type: string, extraction_model_version: string, credibility_tier: string>> \
     **Means:** every Driver Signal whose evidence contributes to the answer
 
-  - **Name:** snapshot age \
-    **Type:** days and time duration \
-    **Means:** the age of the data-as-of snapshot used by this answer
+  - **Name:** forecast scoring date \
+    **Type:** date \
+    **Means:** UTC calendar date of the original forecast calculation, captured once for that calculation
+
+  - **Name:** snapshot date \
+    **Type:** date \
+    **Means:** UTC calendar date of the pinned Data Vintage's computed_at
 
   - **Name:** Rationale Record's conflicts \
     **Type:** list<context<baseline direction: string, signal: context<signal reference: string, source_citation: string, entity type: string, entity code: string, reported unit: string, currency factors: list<number>, driver_category: string, event_type: string, direction: string, reported magnitudes: list<number>, effective_date: date, source_type: string, extraction_model_version: string, credibility_tier: string>, contribution: number>> \
     **Means:** the conflicts already recorded in the Rationale Record
 
   - **Name:** confidence scoring weighting rubric \
-    **Type:** context<source credibility: number, data freshness: number, triangulation agreement: number, flagged conflict ceiling: number> \
-    **Means:** the versioned rubric that weights the confidence components and sets the flagged-conflict ceiling
+    **Type:** context<source credibility: number, data freshness: number, triangulation agreement: number, flagged conflict ceiling: number, warning threshold: number> \
+    **Means:** the versioned rubric that weights the confidence components and supplies the flagged-conflict ceiling and a warning threshold on the final score’s scale
 
   - **Name:** source credibility \
     **Type:** function<list<context<signal reference: string, source_citation: string, entity type: string, entity code: string, reported unit: string, currency factors: list<number>, driver_category: string, event_type: string, direction: string, reported magnitudes: list<number>, effective_date: date, source_type: string, extraction_model_version: string, credibility_tier: string>>> -> number \
@@ -331,8 +371,8 @@ Because step 6 enforces the Constraint, the other, unrelated inputs that happen 
     **Means:** the rubric's score for a snapshot's age
 
   - **Name:** data freshness signals \
-    **Type:** function<list<context<signal reference: string, source_citation: string, entity type: string, entity code: string, reported unit: string, currency factors: list<number>, driver_category: string, event_type: string, direction: string, reported magnitudes: list<number>, effective_date: date, source_type: string, extraction_model_version: string, credibility_tier: string>>> -> number \
-    **Means:** the rubric's score for the contributing Driver Signals' effective dates
+    **Type:** function<list<context<signal reference: string, source_citation: string, entity type: string, entity code: string, reported unit: string, currency factors: list<number>, driver_category: string, event_type: string, direction: string, reported magnitudes: list<number>, effective_date: date, source_type: string, extraction_model_version: string, credibility_tier: string>>, date> -> number \
+    **Means:** the pinned rubric's freshness score for the contributing signals, using their effective dates and the forecast scoring date
 
   - **Name:** triangulation agreement \
     **Type:** function<list<context<baseline direction: string, signal: context<signal reference: string, source_citation: string, entity type: string, entity code: string, reported unit: string, currency factors: list<number>, driver_category: string, event_type: string, direction: string, reported magnitudes: list<number>, effective_date: date, source_type: string, extraction_model_version: string, credibility_tier: string>, contribution: number>>> -> number \
@@ -359,3 +399,7 @@ Because step 6 enforces the Constraint, the other, unrelated inputs that happen 
   - **Name:** confidence score \
     **Type:** number \
     **Means:** the completed confidence score
+
+  - **Name:** low confidence warning? \
+    **Type:** boolean \
+    **Means:** whether the final forecast score is strictly below the warning threshold pinned to the forecast

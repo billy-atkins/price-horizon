@@ -13,7 +13,7 @@ PriceHorizon keeps different kinds of record about itself. Each kind answers a d
 
 The audit log is the record of who did something, and when: a Query user asking a question, a Control plane admin or an Identity admin changing what they govern, or Acme AI accessing an installation to support, monitor, or upgrade it. It is a compliance record, kept for at least a year by default. Both the client and Acme AI can read it:
 - A Control plane admin sees their own business unit's activity, and installation-wide events such as an upgrade or a change to who holds the Platform admin role.
-- An Identity admin sees every change to who is granted access, and every question refused for lack of any business unit access.
+- An Identity admin sees every change to who is granted access, and every question refused for lack of Query user access in every business unit.
 - Acme AI sees its own installation's activity.
 
 The full capability, what a Control plane admin and an Identity admin can see and how, is [`specs/application/product/tenant-administration/audit-log-visibility.md`](/specs/application/product/tenant-administration/audit-log-visibility.md).
@@ -28,7 +28,7 @@ The self-service capability, how much detail is captured and who can raise it, i
 
 ### Answer Lineage
 
-Answer lineage is what a specific number is made of: which precomputed forecast, which qualitative evidence, and which model, at which version, produced it. It is neither an activity record nor a debugging record. Answer lineage is how PriceHorizon backs up its guarantee that every number traces back to a named, versioned source ([`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes)). A Query user sees it directly, inside the answer, by opening the evidence behind any driver or option without leaving the analysis ([`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`](/specs/application/product/answer-engine/predict.md#predict-what-will-the-competitor-do)). The Query user never consults a log of any kind to see it.
+A Query user can trace a number to the forecast actually used, whether it came from the published grid, a stored live forecast, or a live forecast computed for the question. Its evidence identifies the contributing sources and the versions of the models and rules that produced it. Answer lineage is how PriceHorizon backs up its guarantee that every number traces back to a named, versioned source ([`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes)). A Query user sees it directly, inside the answer, by opening the evidence behind any driver or option without leaving the analysis ([`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`](/specs/application/product/answer-engine/predict.md#predict-what-will-the-competitor-do)).
 
 ### Test Scenarios
 

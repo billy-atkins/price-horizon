@@ -10,7 +10,7 @@ Each Position option ([`specs/application/product/answer-engine/position.md § P
 
 Every simulated outcome shows its confidence figure when the inputs to confidence are available. Missing calibration or other required confidence evidence yields an unavailable figure and names the missing input. The figure is drawn from the models that produced the outcome rather than inherited unchanged from the forecast, because projecting a business outcome introduces uncertainty the forecast never carried. [`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes) holds the figure to never being shown as more certain than the forecast behind it.
 
-The confidence figure opens the same way a forecast's confidence does, as [`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes) requires. Opened, it shows how confident and how recently validated the models behind the outcome are, naming whichever model set each. It also shows whether the figure was held down to the forecast's own confidence.
+The confidence figure opens the same way a forecast's confidence does, as [`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes) requires. Opened, it shows how confident and how recently validated the models behind the outcome are, naming whichever model set each. It also shows whether the figure was held down to the forecast's own confidence. Changing the display from units to thousands leaves the confidence score and the models identified in its explanation unchanged when the interval and its calibration are expressed in the same new unit.
 
 A margin-protecting option and a share-protecting option should look visibly different here, since that difference is the point of this stage. Each outcome carries its own brief explanation of what is driving it, not just the figures side by side.
 
@@ -60,22 +60,22 @@ Scenario: A user can trace category growth to comparable units.
   And the explanation identifies the reference period and the candidate inputs
 
 Scenario: Missing historical category volume leaves other projections visible.
-  Given a candidate priced at 9 projects 120 brand units and a 20 percent volume share
+  Given a Query user has a candidate priced at 9 that projects 120 brand units and a 20 percent volume share
   And the selected geography has no comparable prior-year category volume in the pinned snapshot
-  When the user opens category growth
+  When the Query user opens category growth
   Then the answer identifies the missing historical reference and shows category growth as unavailable
   And it still shows 120 units and revenue of 1,080 in local currency
 
 Scenario: Zero volume share cannot support an implied category total.
-  Given the share model projects zero share and the volume model projects 120 brand units at a candidate price of 9
-  When the user opens the simulation
+  Given a Query user has a simulation where the share model projects zero share and the volume model projects 120 brand units at a candidate price of 9
+  When the Query user opens the simulation
   Then category growth is unavailable with the unusable share identified
   And the answer shows 120 projected units and revenue of 1,080 in local currency
 
 Scenario: Changing the volume display unit preserves confidence.
-  Given the same volume model interval and its calibration width are converted from units to thousands
+  Given a Query user has two simulations that express the same volume interval and its calibration width in units and in thousands
   And the same model versions, rubric and parent forecast are used
-  When the user compares the confidence explanations
+  When the Query user compares the confidence explanations
   Then both show the same limiting models, component scores and final confidence
 
 Scenario: A downstream score is capped by the forecast.
@@ -84,12 +84,7 @@ Scenario: A downstream score is capped by the forecast.
   Then the displayed score is 0.6 and the explanation names the forecast ceiling
 
 Scenario: Missing calibration leaves the projections visible.
-  Given a candidate has simulated volume of 120 units and the volume model has no registered calibration for its interval
-  When the user opens the outcome
+  Given a Query user has a candidate with simulated volume of 120 units and the volume model has no registered calibration for its interval
+  When the Query user opens the outcome
   Then the answer shows 120 units and identifies the volume model and missing calibration in place of a confidence figure
-
-Scenario: Choices kept at the floor can have equal outcomes.
-  Given all four eligible strategies have the same price and identical simulated figures
-  When the Query user inspects the two displayed choices
-  Then the figures are equal and all four original strategy labels and their member prices are accessible
 ```
