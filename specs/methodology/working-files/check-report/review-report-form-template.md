@@ -2,7 +2,8 @@
 
 **Design:** {the design's Name ([`specs/methodology/working-files/main.md § A Check's Report`](/specs/methodology/working-files/main.md#a-checks-report))} \
 **Entry:** {the log entry naming the report, its kind and its count, as `adversarial-review-1` ([`specs/methodology/working-files/main.md § A Check's Report`](/specs/methodology/working-files/main.md#a-checks-report))} \
-**Stopped At:** {`the structure`, this field kept only where the round stopped at the structure ([`specs/methodology/working-files/main.md § A Check's Report`](/specs/methodology/working-files/main.md#a-checks-report))}
+**Stopped At:** {`the structure`, this field kept only where the adversarial review stopped at the structure ([`specs/methodology/working-files/main.md § A Check's Report`](/specs/methodology/working-files/main.md#a-checks-report))} \
+**Goal Comparison:** {in a full pre-approval review, the basis on which its goal coverage can be verified ([`specs/methodology/working-files/main.md § A Check's Report`](/specs/methodology/working-files/main.md#a-checks-report))}
 
 ## Reading
 
@@ -19,6 +20,18 @@
 
     **Weighing Reads:**
       - {the places it read weighing its findings, a list as the section A Value Holding Places has a value holding places written, `none` where it read none ([`specs/methodology/working-files/main.md § A Check's Report § Reviewer Reading`](/specs/methodology/working-files/main.md#reviewer-reading))}
+
+## Goal Judgments
+
+{kept when [`specs/methodology/working-files/main.md § A Check's Report § Evidence Owed for Goals`](/specs/methodology/working-files/main.md#evidence-owed-for-goals) requires goal judgments, left out with its heading otherwise}
+
+{the reviewer’s part ([`specs/methodology/working-files/main.md § A Check's Report § Who Writes Each Part`](/specs/methodology/working-files/main.md#who-writes-each-part)): this note removed with its braces once the part is written}
+
+**Records:**
+  - **Goal:** {the Name of a goal this review judged ([`specs/methodology/working-files/main.md § A Check's Report § Goal Judgment`](/specs/methodology/working-files/main.md#goal-judgment))} \
+    **Wording:** {its complete Description as read ([`specs/methodology/working-files/main.md § A Check's Report § Goal Judgment`](/specs/methodology/working-files/main.md#goal-judgment))} \
+    **Outcome Only:** {the answer to the outcome question ([`specs/methodology/working-files/main.md § A Check's Report § Goal Judgment`](/specs/methodology/working-files/main.md#goal-judgment))} \
+    **Genuine Change:** {the answer to the change question ([`specs/methodology/working-files/main.md § A Check's Report § Goal Judgment`](/specs/methodology/working-files/main.md#goal-judgment))}
 
 ## Findings
 
@@ -96,7 +109,7 @@
   - **Cause:** {its key ([`specs/methodology/working-files/main.md § A Check's Report § Cause`](/specs/methodology/working-files/main.md#cause))} \
     **Decision:** {the name the builder gives the concept the findings it settles touch, kept across the phase's rounds ([`specs/methodology/working-files/main.md § A Check's Report § Cause`](/specs/methodology/working-files/main.md#cause))} \
     **Continues:** {left out where it is none: the earlier round's cause it continues ([`specs/methodology/working-files/main.md § A Check's Report § Cause`](/specs/methodology/working-files/main.md#cause))} \
-    **Outcome:** {kept where Continues is held: the outcome the section Whether the Goals and the Frame Name a Mechanism gives it ([`specs/methodology/working-files/main.md § A Check's Report § Cause`](/specs/methodology/working-files/main.md#cause))} \
+    **Outcome:** {kept where Continues is held: the outcome the section Whether a Changed Mechanism Serves a Goal gives it ([`specs/methodology/working-files/main.md § A Check's Report § Cause`](/specs/methodology/working-files/main.md#cause))} \
     **Conflicting Steers:**
       - {left out where it is none: each steer it presses on, as the section Weigh the Steers has it weighed, a list as the section A Value Holding Places has a value holding places written ([`specs/methodology/working-files/main.md § A Check's Report § Cause`](/specs/methodology/working-files/main.md#cause))}
 

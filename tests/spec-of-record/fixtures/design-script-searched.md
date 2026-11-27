@@ -531,7 +531,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -547,6 +548,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -592,7 +601,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -608,6 +618,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 

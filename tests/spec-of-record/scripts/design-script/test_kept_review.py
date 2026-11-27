@@ -107,9 +107,10 @@ def test_no_kept_test_is_run_where_the_designs_changes_hold_no_file_of_a_script(
 @pytest.mark.passes
 @pytest.mark.reads("design-script-kept-runs.md", "guide-set-tests-one-failing")
 @pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
-@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-before-approval")
 def test_self_review_before_the_apply_runs_no_kept_test(fixtures, work, monkeypatch):
-    code, text = stamped(monkeypatch, applied(work, fixtures, tests="guide-set-tests-one-failing", design="ferry-design-drafted"))
+    root = applied(work, fixtures, tests="guide-set-tests-one-failing", design="ferry-design-drafted", report="ferry-self-review-before-approval")
+    code, text = stamped(monkeypatch, root)
     assert code == 0 and "check-kept-tests" not in text
 
 

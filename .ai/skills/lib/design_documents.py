@@ -2632,6 +2632,9 @@ REPORT_TITLE = "# Check's Report"
 # one value
 TITLE_FIELDS = ("Design", "Entry")
 STOPPED_AT, THE_STRUCTURE = "Stopped At", "the structure"
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Goal Judgment
+GOAL_COMPARISON, GOAL_JUDGMENTS = "Goal Comparison", "Goal Judgments"
+COMPARED_GOALS, REVIEWER_ACCOUNT = "compared with reviewed goals", "reviewer's account only"
 REVIEWS = ("adversarial-review", "post-apply-review")
 JUDGMENT = "handed-off-judgment"
 # @canon-spec specs/methodology/working-files/main.md § Design Log Entry
@@ -2652,14 +2655,14 @@ OWN_SETTLING, DECIDED, CUT_SHORT = "its own settling", "decided", "cut short"
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Who Writes Each Part
 # the parts a cold agent writes in a review's or a handed-off judgment's report, its Title among them, the parts the
 # builder and the design script write in it, and the parts holding records, each by its type's Plural Name
-REVIEWER_PARTS = ("Title", "Reading", "Findings", "Searches", "Read Assessments", "Traces", "Builder Checks")
+REVIEWER_PARTS = ("Title", "Reading", GOAL_JUDGMENTS, "Findings", "Searches", "Read Assessments", "Traces", "Builder Checks")
 # the one part of a review's report both hands write: its reviewer's Searches, and the builder's after them
 SEARCHES_PART = "Searches"
 BUILDER_PARTS = ("Hand-back", "Script Output", "Causes", "Settlement")
 HAND_BACK = "Hand-back"
 # a Hand-back line: a part's name and the fingerprint of its text, and, for a review's Searches, the lines it covers
 FINGERPRINT = re.compile(r"^- (?P<part>[A-Z][A-Za-z -]*?): (?P<sha>[0-9a-f]{64})(?:, (?P<n>\d+) lines)?$")
-RECORD_PARTS = ("Findings", "Searches", "Read Assessments", "Traces", "Builder Checks", "Causes")
+RECORD_PARTS = (GOAL_JUDGMENTS, "Findings", "Searches", "Read Assessments", "Traces", "Builder Checks", "Causes")
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Finding
 # a Finding's fields naming the parts of the design it bears on, by their Names, and the one citing the rules it breaks
 ANCHORS = {"Affected Goals": "goals", "Affected Frame Outcomes": "outcomes", "Affected Step Objectives": "objectives"}
@@ -2978,6 +2981,84 @@ def cause_key(value, report_rel):
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
+def goal_judgment_problems(rep, ctx):
+    """Check the report author's account. Accepted cold parts never reach this check."""
+    title = rep["title"]
+    part_held = GOAL_JUDGMENTS in dict(rep["parts"])
+    basis = title.get(GOAL_COMPARISON, ("",))[0]
+    stopped = STOPPED_AT in title
+    preapproval = ctx["kind"] == REVIEWS[0] or ctx["trace_outcome"]
+    out = []
+    if stopped and (not preapproval or title[STOPPED_AT][0].strip("`") != THE_STRUCTURE):
+        out.append((FORM_RULE, "Stopped At is the structure in a pre-approval review"))
+    logged = ctx.get("logged", False)
+    changes = steer_changes(ctx["design_text"])
+    entries = ctx["entries"]
+    version = report_version(rep)
+    history = versions(entries, changes) if preapproval and not logged else []
+    if preapproval and not logged and version is not None:
+        if version > (history or [FIRST_VERSION])[-1]:
+            out.append((FORM_RULE, "the review names a future design version"))
+        elif not any(v == version and agreed_before(entries, i + 1, version) for i, v in enumerate(history)):
+            out.append((FORM_RULE, "the review needs a version the log held with agreed goals"))
+    if stopped and not logged:
+        structural_rules = {
+            (WF, "Design Plan Step § Step Objective § Semantic Checks", "Name: objective-serves-its-goals"),
+            (WF, "Design Plan Step § Step Objective § Semantic Checks", "Name: objective-states-an-outcome"),
+            (WF, "A Design Document § Frame Outcome § Semantic Checks", "Name: outcome-upheld"),
+        }
+        failures = [f for f in rep["records"]["Findings"] if f.get("Verdict") in MARKS]
+        affected = {n for f in failures for k in ("Affected Step Objectives", "Affected Frame Outcomes")
+                    for n in names_of_text(f.get(k)) if n != "none"}
+        cited = {p for f in failures for p in named_places(f.get(BROKEN_RULES, ""))}
+        if not affected and not structural_rules.intersection(cited):
+            out.append((FORM_RULE, "a structural stop needs a marked finding about the plan's structure"))
+    if not preapproval or stopped:
+        if part_held or GOAL_COMPARISON in title:
+            out.append((FORM_RULE, "goal judgments and their comparison belong only to a full pre-approval review"))
+        return out
+    if logged and not part_held and GOAL_COMPARISON not in title:
+        return out  # entered under the earlier report form
+    judgments = rep["records"][GOAL_JUDGMENTS]
+    if not judgments:
+        out.append((FORM_RULE, "a full pre-approval review holds no goal judgments"))
+    if basis not in (COMPARED_GOALS, REVIEWER_ACCOUNT):
+        out.append((FORM_RULE, "a full pre-approval review must state its Goal Comparison"))
+    expected = None
+    if not logged:
+        version = version or FIRST_VERSION
+        current = (history or [FIRST_VERSION])[-1]
+        changed_goals = any(e[0] == "steer" and entry_version(e) > version
+                            and any("the goals" in changes_parts(changes.get(n)) for n in set_names(e))
+                            for e in entries)
+        if version[0] == current[0] and not changed_goals:
+            expected = {r.get("Name"): r.get("Description") for r in
+                        map(dict, records(section(ctx["design_text"], "Design Goals")) or [])}
+        required = COMPARED_GOALS if expected is not None else REVIEWER_ACCOUNT
+        if basis != required:
+            out.append((FORM_RULE, "Goal Comparison must read %s" % required))
+    findings = {f.get("Finding"): f for f in rep["records"]["Findings"]}
+    seen = set()
+    for judgment in judgments:
+        goal = judgment.get("Goal", "")
+        if goal in seen:
+            out.append((FORM_RULE, "repeated goal judgment for " + goal))
+        seen.add(goal)
+        if expected is not None and (goal not in expected or judgment.get("Wording") != expected[goal]):
+            out.append((FORM_RULE, "unrecognized goal or wording for " + goal))
+        for question in ("Outcome Only", "Genuine Change"):
+            answer = judgment.get(question)
+            if answer == "met":
+                continue
+            finding = findings.get(answer, {})
+            if finding.get("Verdict") != "design flaw" or goal not in names_of_text(finding.get("Affected Goals")):
+                out.append((FORM_RULE, "%s for %s needs an upheld design flaw on this goal" % (question, goal)))
+    if expected is not None:
+        out.extend((FORM_RULE, "missing goal judgment for " + goal) for goal in sorted(expected.keys() - seen))
+    return out
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
 def form_problems(rep, ctx, types, parts):
     """-> [(rule, message)]: a report out of the form the canon gives a report: its title, its parts in their order
     and those its kind and its settling require, its Reading's and its Settlement's fields, and each record of the type
@@ -2996,17 +3077,16 @@ def form_problems(rep, ctx, types, parts):
     # its title, which opens the report at its first line
     titled = 0 not in taken_up
     title = rep["title"] if titled else {}
-    if titled and list(title) not in (list(TITLE_FIELDS), list(TITLE_FIELDS) + [STOPPED_AT]):
-        out.append((FORM_RULE, constructs.block_refusal("its title", list(title), list(TITLE_FIELDS) + [STOPPED_AT], TITLE_FIELDS,
-                                                  owner="its form")))
+    if titled:
+        extra = [key for key in (STOPPED_AT, GOAL_COMPARISON) if key in title]
+        if list(title) != list(TITLE_FIELDS) + extra:
+            out.append((FORM_RULE, constructs.block_refusal("its title", list(title), list(TITLE_FIELDS) + extra,
+                                                          TITLE_FIELDS, owner="its form")))
     for key, want in (("Design", ctx["design"]), ("Entry", ctx["entry"])):
         if key in title and title[key][0] != want:
             out.append((FORM_RULE, "its title's %s is %s, not %s" % (key, title[key][0], want)))
-    # the mark of an adversarial round stopped at the structure, held in no other report
-    if STOPPED_AT in title and kind != REVIEWS[0]:
-        out.append((FORM_RULE, "its title holds %s, which only an adversarial review's report holds" % STOPPED_AT))
-    elif STOPPED_AT in title and title[STOPPED_AT][0].strip("`") != THE_STRUCTURE:
-        out.append((FORM_RULE, "its title's %s is %s, not %s" % (STOPPED_AT, title[STOPPED_AT][0], THE_STRUCTURE)))
+    if titled:
+        out += goal_judgment_problems(rep, ctx)
     # its parts, in their order, each once, and those required: the order is the whole report's, held at every check
     order = [p for p, _, _, _ in parts]
     held = [p for p, _ in rep["parts"]]
@@ -3079,6 +3159,10 @@ def form_problems(rep, ctx, types, parts):
                 unheld = ASSESSED if before else INDICATORS
                 spec = dict(spec, required=[f for f in spec["required"] if f not in unheld])
             rows = [r for r in raw[plural] if not r or r[0][2] not in taken_up]
+            if plural in ("Causes", "Traces") and ctx.get("logged"):
+                # Check the current record shape with the historical label translated only for this check.
+                rows = [[(k, "cover the mechanism" if k == "Outcome" and v == "name the mechanism" else v, line)
+                         for k, v, line in r] for r in rows]
             if plural == "Searches" and ctx.get("logged"):
                 # a Search of a report the log holds, written before its record held a Kind, read under the field names
                 # it was written with
@@ -3975,7 +4059,7 @@ def reads_assessed_problems(rep, ctx):
 def anchor_problems(rep, ctx):
     """-> [(rule, message)]: a Finding whose Verdict is a mark naming in its Affected Goals, Affected Frame Outcomes and
     Affected Step Objectives no part of the design and citing in its Broken Rules no rule it breaks, or naming a goal, a
-    Frame Outcome or a step Objective the design its Title names does not hold. A cold agent's Finding is read against
+    Frame Outcome or step Objective that its reviewed design and permitted goal evidence cannot identify. A cold agent's Finding is read against
     the design as its report is handed back and as it is taken up, and by no check after, where ctx["taken_up"] gives
     its line: a part of the design the builder removes while settling leaves the taken-up Finding naming it standing."""
     plan, out = read_plan(ctx["design_text"]), []
@@ -3988,9 +4072,14 @@ def anchor_problems(rep, ctx):
         if not any(named.values()) and not place_list(f.get(BROKEN_RULES, "")):
             out.append((rule, "%s, marked a %s, names no goal, Frame Outcome or step Objective it bears on and cites no rule "
                               "it breaks" % (where, f.get("Verdict"))))
+        # The earlier reviewed names can survive only in the reviewer's account.
+        comparison = rep["title"].get(GOAL_COMPARISON, ("",))[0]
+        recorded = {j.get("Goal") for j in rep["records"][GOAL_JUDGMENTS]
+                    if f.get("Finding") in (j.get("Outcome Only"), j.get("Genuine Change"))}
         for key, kind in ANCHORS.items():
+            historical = recorded if key == "Affected Goals" and (comparison == REVIEWER_ACCOUNT or ctx.get("logged")) else set()
             out += [(rule, "%s's %s names %s, which the design %s does not hold" % (where, key, n, ctx["design"]))
-                    for n in named[key] if n not in plan[kind]]
+                    for n in named[key] if n not in plan[kind] and n not in historical]
     return out
 
 

@@ -539,7 +539,7 @@ The builder designs the code from the specs on its own, with the specs as its st
 
 A design's goals ([`specs/methodology/glossary/glossary.md`](/specs/methodology/glossary/glossary.md)) are agreed on before its design frame, and changed and weighed, as [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame) has them. A goal is named, never numbered, so a record speaks of a goal by its Name however the list changes. A design's goals, the cases of its Scope and the principles of its Approach, its Frame Outcomes, steps and step Objectives each take a Name no other part of the design takes. A field naming any of them holds each by its Name alone, a list, one Name to an item, and the design script resolves each against the design. Prose cites a goal as a record is cited, by its record section and its Name ([`specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation`](/specs/methodology/sourcing-and-citation/writing-a-citation.md#writing-a-citation)).
 
-A goal states only an outcome, and the outcome is a change: something new, something updated, or something removed. It may name what a mechanism does differently once the change lands. It never names the means: the steps, the files, or how the change works, since each sentence the design does not need is an edge a reviewer can challenge. A goal states no change where its outcome already holds in full wherever Spec of Record governs. A goal whose outcome is only partly met, or is stated in the canon but not working, states a change.
+A goal states the change the user needs. Another means of achieving that change would satisfy the same goal. A goal may name the mechanism whose result matters to the user. Its steps and operation belong to the design of the means. An outcome already achieved in full wherever Spec of Record governs states no change. An outcome achieved only in part, including one that the canon requires but the work does not deliver, still states a change.
 
 A design's goals sit in its record section of this type, a record type ([`specs/methodology/modeling-constructs.md § Constructs § Record Form`](/specs/methodology/modeling-constructs.md#record-form)):
 
@@ -556,7 +556,7 @@ A design's goals sit in its record section of this type, a record type ([`specs/
 
 **Records:**
   - **Name:** goal-states-an-outcome \
-    **Tests:** each goal's Description states only an outcome, naming at most what a mechanism does differently once the change lands, and never the means, as this section has a goal written \
+    **Tests:** each goal's Description states the change the user needs in terms that hold across different ways of achieving it, as this section has a goal written \
     **Reads:**
       - `working-files`
 
@@ -851,12 +851,13 @@ These tell whose check a report records and which checks read it, never who writ
 
 | Part | Heading | Required | Holds |
 |---|---|---|---|
-| Title | `# Check's Report`, with the fields Design, Entry and Stopped At | yes | the design, by its Name, and the log entry naming the report; and, in an adversarial review's report whose round stopped at the structure, as [`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review) has a round stop, Stopped At holding `the structure`, which marks the round and is held in no other report |
+| Title | `# Check's Report`, with the fields Design, Entry, Stopped At and Goal Comparison as owed | yes | Design and Entry identify the report. [`§ A Check's Report § Evidence Owed for Goals`](#evidence-owed-for-goals) gives its other title fields |
 | Reading | `## Reading` | yes | what the check read, each file read fresh as [`specs/AGENTS.md § Design, Refactor, Refine § Reading Fresh`](/specs/AGENTS.md#reading-fresh) has it, in a review's passes as [`specs/AGENTS.md § Design, Refactor, Refine § Weighing a Review's Findings`](/specs/AGENTS.md#weighing-a-reviews-findings) orders them |
+| Goal Judgments | `## Goal Judgments`, a record section of Goal Judgments | where [`§ A Check's Report § Evidence Owed for Goals`](#evidence-owed-for-goals) requires goal judgments | the wording and both answers for every goal, as [`§ A Check's Report § Goal Judgment`](#goal-judgment) has a judgment made |
 | Findings | `## Findings`, a record section of Findings | where the check found anything | each finding, as [`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review), [`specs/AGENTS.md § Design, Refactor, Refine § Weighing a Review's Findings`](/specs/AGENTS.md#weighing-a-reviews-findings) and the audit's settling in [`specs/AGENTS.md § Design, Refactor, Refine § An Audit`](/specs/AGENTS.md#an-audit) have one reported |
 | Searches | `## Searches`, a record section of Searches | where a search was run | each search the builder or a reviewer ran for its own check, as [`specs/methodology/sourcing-and-citation/one-home-per-fact.md § One Home Per Fact`](/specs/methodology/sourcing-and-citation/one-home-per-fact.md#one-home-per-fact) has a fact's home sought and [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Propose`](/specs/AGENTS.md#propose) has a tactical fix made at every place its defect stands, and each search a cold agent ran doing research, as [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § Research`](/specs/AGENTS.md#research) has research done |
 | Read Assessments | `## Read Assessments`, a record section of Read Assessments | where the report is a judgment's doing research | each area the cold agent doing the research assessed, as [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § Research`](/specs/AGENTS.md#research) has research assessed |
-| Traces | `## Traces`, a record section of Traces | where the builder traced a mechanism | each trace, as [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § Tracing a Mechanism`](/specs/AGENTS.md#tracing-a-mechanism) has a mechanism traced and [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether the Goals and the Frame Name a Mechanism`](/specs/AGENTS.md#whether-the-goals-and-the-frame-name-a-mechanism) has its test asked |
+| Traces | `## Traces`, a record section of Traces | where the builder traced a mechanism | each trace, as [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § Tracing a Mechanism`](/specs/AGENTS.md#tracing-a-mechanism) has a mechanism traced and [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether a Changed Mechanism Serves a Goal`](/specs/AGENTS.md#whether-a-changed-mechanism-serves-a-goal) has its test asked |
 | Builder Checks | `## Builder Checks`, a record section of Builder Checks | where the builder made a check of its own | each check only the builder makes, as [`§ A Check's Report § Kinds of Builder Check`](#kinds-of-builder-check) has it recorded |
 | Hand-back | `## Hand-back`, text | once the builder takes up a report a cold agent wrote | a fingerprint of each part the cold agent wrote, as [`§ A Check's Report § Who Writes Each Part`](#who-writes-each-part) has the builder take a report up |
 | Script Output | `## Script Output`, text | where the report is a self-review's | the output of the design script's checks the self-review runs for its phase, as [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § The Self-Review`](/specs/AGENTS.md#the-self-review) gives them, written by `--stamp-settled-report` as the report is validated |
@@ -1042,8 +1043,15 @@ The design script checks of a report what it works out from the files, and nothi
 - each key it cites names a record a report of the design's current major version holds, or one the report's own Earlier Reports names, as [`§ A Check's Report § Over Applied Work, and a Phase's Record`](#over-applied-work-and-a-phases-record) has a design's reports bind it, each Lands On, a Finding's as it is handed back and a Settlement's as it is settled, naming a Cause or a Settlement;
 - each Finding is settled by exactly one Settlement;
 - each Settlement's Carried By, but `none`, names a step the design holds;
-- each Finding whose Verdict is a mark names in its Affected Goals, Affected Frame Outcomes or Affected Step Objectives what it bears on, each Name one the design its Title names holds, or cites in its Broken Rules the rules it breaks;
+- each Finding whose Verdict is a mark names in its Affected Goals, Affected Frame Outcomes or Affected Step Objectives what it bears on, each Name resolved as [`§ A Check's Report § Finding`](#finding) requires, or cites in its Broken Rules the rules it breaks;
 - each Search read as [`§ A Check's Report § What the Design Script Checks § Reading a Search`](#reading-a-search) has one read.
+
+Of the goal evidence [`§ A Check's Report § Evidence Owed for Goals`](#evidence-owed-for-goals) requires, as [`§ A Check's Report § Goal Judgment`](#goal-judgment) defines it:
+- for a full review, check one judgment per goal. When its goal set is independently available, compare every Name and complete Description. The current design supplies that set when no change of goals intervened. When the original set is unavailable, the comparison basis discloses that limitation;
+- each answer other than `met` names a Finding of this report whose reviewer marked it a design flaw and whose Affected Goals include the judged goal. Whether its evidence establishes failure on this question takes a reader;
+- for a structural stop, check for a marked finding identifying a structural rule, an affected step Objective or a Frame Outcome. The reader judges its substance.
+
+At hand-back and take-up the checker reads the cold reviewer's evidence. Once taken up, it preserves that evidence under [`§ A Check's Report § Who Writes Each Part`](#who-writes-each-part). A builder's self-review is checked before entry. On a later reading its judgments stand against the wording recorded at the time. An entered report written under an earlier form keeps that form.
 
 Of a report holding Read Assessments:
 - each place its Reads holds lying within the Area of one of its Read Assessments, as [`§ A Check's Report § A Value Holding Places`](#a-value-holding-places) has one place cover another, so each report is held to the places it was given to read;
@@ -1150,9 +1158,38 @@ What one reviewer of a review read, its records in a review's report's Reading, 
 | Earlier Reports | no | yes | | text | the earlier reports it read between its passes, a list as [`§ A Check's Report § A Value Holding Places`](#a-value-holding-places) has a value holding places written, `none` where it read none |
 | Weighing Reads | no | yes | | text | the places it read weighing its findings, a list as [`§ A Check's Report § A Value Holding Places`](#a-value-holding-places) has a value holding places written, `none` where it read none |
 
+### Evidence Owed for Goals
+
+The report author follows the first matching row. A pre-approval review here is an adversarial review or the builder's self-review for that round. Its reading names a version the log held in a major version whose goals were agreed. The reviewer judges the structural checks in [`specs/AGENTS.md § Design, Refactor, Refine § The Adversarial Review`](/specs/AGENTS.md#the-adversarial-review). A marked finding identifies the structural check it failed, the affected step Objective or the affected Frame Outcome. A reader judges whether that finding establishes the failure.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Hit Policy:** First \
+**Conditions:** Pre-approval review?, Stopped at a structural failure?
+
+| Pre-approval review? | Stopped at a structural failure? | Evidence owed |
+|---|---|---|
+| false | - | neither goal judgments nor a title field about them or the structural stop |
+| true | true | Stopped At holding `the structure` and the findings explaining the stop |
+| true | false | Goal Comparison and the Goal Judgments for every goal read |
+
+### Goal Judgment
+
+A full review states once how its goal coverage can be verified. Goal Comparison holds `compared with reviewed goals` when the set of Names and Descriptions from the version reviewed is available for independent comparison. When the reviewed set is unavailable, `reviewer's account only` identifies the reviewer as the source of the wording and answers. The reader can inspect that account but cannot independently confirm its completeness or wording. Each answer is either `met` or the key of a design flaw the reviewer upheld about that goal and that question in this report. One such finding can support both answers when it establishes both failures.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
+**Plural Name:** Goal Judgments \
+**Reference Key:** Goal
+
+| Field | Unique | Required | Default Value | Values | Holds |
+|---|---|---|---|---|---|
+| Goal | yes | yes | | text | the Name of the goal judged |
+| Wording | no | yes | | text | the full Description the reviewer judged |
+| Outcome Only | no | yes | | text | the answer to [`§ Design Goal § Semantic Checks [Name: goal-states-an-outcome]`](#semantic-checks-2) |
+| Genuine Change | no | yes | | text | the answer to [`§ Design Goal § Semantic Checks [Name: goal-states-a-change]`](#semantic-checks-2) |
+
 ### Finding
 
-A finding a check reports, of any verdict, its records in a report's Findings. A Finding whose Verdict is a mark and that is anchored in the plan names what it bears on in its Affected Goals, its Affected Frame Outcomes and its Affected Step Objectives, each Name resolved against the design its report's Title names. One showing the work's breach cites each rule it breaks in its Broken Rules, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test`](/specs/AGENTS.md#the-test) sorts a finding. A Finding names no steer: a review judges the design, so a finding pressing on a steer names the part of the design carrying the steer's choice, and the builder finds the steers behind the parts it names at settling ([`§ Steering Decision § Revisiting a Steer`](#revisiting-a-steer)). A triage's Finding may stand for the audit rows one decision settles, and is counted once:
+A finding a check reports, of any verdict, its records in a report's Findings. A Finding whose Verdict is a mark and that is anchored in the plan names what it bears on in its Affected Goals, its Affected Frame Outcomes and its Affected Step Objectives, each Name resolved against the design its report identifies. For a goal judgment, the Finding refers to the goal as it stood in the version reviewed. Where the original goal set is unavailable, the Goal Judgment that cites the Finding supplies the goal’s Name and wording, as [`§ A Check's Report § Goal Judgment`](#goal-judgment) has the comparison disclosed. One showing the work's breach cites each rule it breaks in its Broken Rules, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test`](/specs/AGENTS.md#the-test) sorts a finding. A Finding names no steer: a review judges the design, so a finding pressing on a steer names the part of the design carrying the steer's choice, and the builder finds the steers behind the parts it names at settling ([`§ Steering Decision § Revisiting a Steer`](#revisiting-a-steer)). A triage's Finding may stand for the audit rows one decision settles, and is counted once:
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
 **Plural Name:** Findings \
@@ -1295,7 +1332,7 @@ How an area bears on the design, held by a Read Assessment and an Assessed Area:
 
 ### Trace
 
-A mechanism the builder traced, or, before the apply, asked the test of whether the goals and the frame name it, its records in a report's Traces:
+A Trace records the builder's judgment of coverage before the apply and the paths it traces through the applied mechanism afterward. Its records sit in a report's Traces:
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Record Form` \
 **Plural Name:** Traces \
@@ -1305,7 +1342,7 @@ A mechanism the builder traced, or, before the apply, asked the test of whether 
 |---|---|---|---|---|---|
 | Trace | yes | yes | | text | its key |
 | Mechanism | no | yes | | text | the mechanism traced or asked of, cited by the section holding it, one place as [`§ A Check's Report § A Value Holding Places`](#a-value-holding-places) has a value holding places written |
-| Outcome | no | where the report is a self-review's before the apply, unless a `plan-approval` entry of the phase stands before it with no `another-round` entry after it | | [`§ A Check's Report § Mechanism Outcomes`](#mechanism-outcomes) | the outcome [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether the Goals and the Frame Name a Mechanism`](/specs/AGENTS.md#whether-the-goals-and-the-frame-name-a-mechanism) gives it, asked of a mechanism the steps change, from the steps' What and Objectives, with no rows |
+| Outcome | no | where the report is a self-review's before the apply, unless a `plan-approval` entry of the phase stands before it with no `another-round` entry after it | | [`§ A Check's Report § Mechanism Outcomes`](#mechanism-outcomes) | the outcome [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether a Changed Mechanism Serves a Goal`](/specs/AGENTS.md#whether-a-changed-mechanism-serves-a-goal) gives it, asked of a mechanism the steps change, from the steps' What and Objectives, with no rows |
 | Paths | no | where the report lies over applied work | | a list of [`§ A Check's Report § Trace Path`](#trace-path) | each path traced through the text the apply wrote |
 
 ### Trace Path
@@ -1351,7 +1388,7 @@ A Cause holding no Proposed Change, its nits left or a Settlement naming it plac
 | Cause | yes | yes | | text | its key |
 | Decision | no | yes | | text | the name the builder gives the concept the findings it settles touch, kept across the phase's rounds |
 | Continues | no | no | none | text | the earlier round's cause it continues |
-| Outcome | no | where Continues is held | | [`§ A Check's Report § Mechanism Outcomes`](#mechanism-outcomes) | the outcome [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether the Goals and the Frame Name a Mechanism`](/specs/AGENTS.md#whether-the-goals-and-the-frame-name-a-mechanism) gives it |
+| Outcome | no | where Continues is held | | [`§ A Check's Report § Mechanism Outcomes`](#mechanism-outcomes) | the outcome [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether a Changed Mechanism Serves a Goal`](/specs/AGENTS.md#whether-a-changed-mechanism-serves-a-goal) gives it |
 | Conflicting Steers | no | no | none | text | each steer it presses on, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Weigh the Steers`](/specs/AGENTS.md#weigh-the-steers) has it weighed, a list as [`§ A Check's Report § A Value Holding Places`](#a-value-holding-places) has a value holding places written |
 | Misses | no | where it settles a design flaw or an implementation flaw | | a list of [`§ A Check's Report § Miss`](#miss) | why the builder's pass and self-review let each flaw through |
 | Proposed Change | no | where it settles a flaw, no Settlement naming it giving Lies In the plan or handed on in a post-apply round | | [`§ A Check's Report § Proposed Change`](#proposed-change) | the change the round proposes at it, a Cause settling only nits holding one where the round fixes them |
@@ -1536,16 +1573,16 @@ A fix's kind, held by a Possible Fix and a Proposed Change:
 
 ### Mechanism Outcomes
 
-The outcome [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether the Goals and the Frame Name a Mechanism`](/specs/AGENTS.md#whether-the-goals-and-the-frame-name-a-mechanism) gives, held by a Trace and a Cause:
+The outcome [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether a Changed Mechanism Serves a Goal`](/specs/AGENTS.md#whether-a-changed-mechanism-serves-a-goal) gives, held by a Trace and a Cause:
 
 **Reference Key:** Outcome \
 **Required:** Means
 
 | Outcome | Means |
 |---|---|
-| name the mechanism | the goals and the frame name the mechanism the steps change |
-| miss the mechanism, a design flaw | they miss it |
-| not asked | the test is not asked of it |
+| cover the mechanism | the Trace or Cause records that the mechanism is covered |
+| miss the mechanism, a design flaw | the Trace or Cause records a gap that requires design-flaw triage |
+| not asked | the coverage test does not apply to this case |
 
 ### Kinds of Builder Check
 
@@ -1596,7 +1633,7 @@ The checks only the builder makes, held by a Builder Check, each with the self-r
       - `.ai/skills/implement-specs/` `--check-handed-back`
 
   - **Name:** report-in-its-form \
-    **Tests:** each report a check's entry names holds the parts the form requires of it, in their order, its Reading and its Settlement holding the fields [`§ A Check's Report § The Reading and the Settlement`](#the-reading-and-the-settlement) gives them, and each record of the type its part or field cites, with each field its conditions require and no other, a possible fix in one of its forms among them \
+    **Tests:** each report a check's entry names holds the parts required by its kind, phase and stopping point in their order, with the fields and records their form gives them. Its goal judgments hold the wording, two answers and comparison basis [`§ A Check's Report § What the Design Script Checks`](#what-the-design-script-checks) has checked \
     **Reads:**
       - `working-files`
 
@@ -1607,7 +1644,7 @@ The checks only the builder makes, held by a Builder Check, each with the self-r
       - `.ai/skills/implement-specs/` `--check-handed-back`
 
   - **Name:** findings-anchored-in-the-design \
-    **Tests:** each Finding whose Verdict is a mark, in a report a check's entry names, names in its Affected Goals, Affected Frame Outcomes or Affected Step Objectives what it bears on, each Name one the design its Title names holds, or cites in its Broken Rules the rules it breaks, as [`§ A Check's Report § Finding`](#finding) has a finding name what it bears on \
+    **Tests:** each Finding whose Verdict is a mark, in a report a check's entry names, names in its Affected Goals, Affected Frame Outcomes or Affected Step Objectives what it bears on, each Name resolved as [`§ A Check's Report § Finding`](#finding) requires, or cites in its Broken Rules the rules it breaks, as [`§ A Check's Report § Finding`](#finding) has a finding name what it bears on \
     **Reads:**
       - `working-files`
 

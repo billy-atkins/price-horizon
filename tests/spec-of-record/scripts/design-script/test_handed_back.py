@@ -14,15 +14,15 @@ FINDING = "reviewer-1-last-crossing-in-winter"
 MET = [(dd.check_handed_back, "== check-handed-back " + REVIEW), (dd.take_up_report, "== take-up-report, not taken up " + REVIEW)]
 
 
-def handed_back(work, fixtures, report, at=REVIEW):
+def handed_back(work, fixtures, report, at=REVIEW, design="ferry-design-drafted"):
     """-> the root of a project holding the guide, the design drafted and the report given where its cold agent hands
     it back."""
-    return project(work, fixtures, {"island-guide": "docs/guide.md", "ferry-design-drafted": DESIGN, report: at})
+    return project(work, fixtures, {"island-guide": "docs/guide.md", design: DESIGN, report: at})
 
 
-def refused(work, fixtures, monkeypatch, capsys, action, heading, report):
+def refused(work, fixtures, monkeypatch, capsys, action, heading, report, design="ferry-design-drafted"):
     """-> what an action printed of a report it reports, having held that it exits 1 and writes nothing."""
-    root = handed_back(work, fixtures, report)
+    root = handed_back(work, fixtures, report, design=design)
     before = held(root)
     assert acted(monkeypatch, root, action, REVIEW) == 1
     out = capsys.readouterr().out
@@ -58,7 +58,7 @@ def test_cold_part_in_its_form_passes(fixtures, work, monkeypatch, capsys, repor
     ("review-handed-back-titled-for-another-entry", "its title's Entry is adversarial-review-7, not adversarial-review-1"),
     ("review-handed-back-titled-for-another-design", "its title's Design is another-design, not ferry-times-in-the-guide"),
     ("review-handed-back-holding-no-reading", "it holds no Reading part, which its form requires of it"),
-    ("review-handed-back-its-parts-out-of-order", "the report gives its parts out of order: its form gives them as Reading, Findings, Searches"),
+    ("review-handed-back-its-parts-out-of-order", "the report gives its parts out of order: its form gives them as Reading, Goal Judgments, Findings, Searches"),
     ("review-handed-back-holding-a-part-of-no-form", "a part the form does not give: Afterthoughts"),
     ("review-handed-back-its-marked-finding-holding-no-decision", "Finding %s holds no Decision, which its form requires where its Verdict is a mark" % FINDING),
     ("review-handed-back-its-verdict-out-of-its-values", "the Verdict field holds a value its closed set does not: a worry"),
@@ -159,9 +159,9 @@ def test_report_of_no_cold_agent_is_refused(fixtures, work, monkeypatch, capsys,
 @pytest.mark.passes
 @pytest.mark.reads("design-script-handed-back.md", "review-handed-back", "research-handed-back", "review-handed-back-making-no-search")
 @pytest.mark.parametrize("report, at, parts", [
-    ("review-handed-back", REVIEW, ("Title", "Reading", "Findings", "Searches")),
+    ("review-handed-back", REVIEW, ("Title", "Reading", "Goal Judgments", "Findings", "Searches")),
     ("research-handed-back", RESEARCH, ("Title", "Reading", "Searches", "Read Assessments")),
-    ("review-handed-back-making-no-search", REVIEW, ("Title", "Reading", "Findings")),
+    ("review-handed-back-making-no-search", REVIEW, ("Title", "Reading", "Goal Judgments", "Findings")),
 ])
 def test_take_up_writes_each_cold_parts_fingerprint(fixtures, work, monkeypatch, capsys, report, at, parts):
     root = handed_back(work, fixtures, report, at)
@@ -172,3 +172,64 @@ def test_take_up_writes_each_cold_parts_fingerprint(fixtures, work, monkeypatch,
     marks = re.findall(r"^- ([A-Za-z -]+): [0-9a-f]{64}(, \d+ lines)?$", now.split("## Hand-back")[-1], re.M)
     # a part's fingerprint gives its count of lines where the builder may add to the part, a review's Searches
     assert tuple(m[0] for m in marks) == parts and [bool(m[1]) for m in marks] == [at == REVIEW and m[0] == "Searches" for m in marks]
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
+@pytest.mark.action("--check-handed-back")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-handed-back.md", "goals-all-met",
+                   "goals-upheld-failure",
+                   "goals-historical-account",
+                   "goals-structure")
+@pytest.mark.reads("design-script-reports.md", "ferry-design-with-means-for-objective", "ferry-design-with-replaced-goal")
+@pytest.mark.parametrize("report, design", [
+    ("goals-all-met", "ferry-design-drafted"),
+    ("goals-upheld-failure", "ferry-design-drafted"),
+    ("goals-historical-account", "ferry-design-with-replaced-goal"),
+    ("goals-structure", "ferry-design-with-means-for-objective"),
+])
+def test_accounts_for_the_goals_read(fixtures, work, monkeypatch, capsys, report, design):
+    root = handed_back(work, fixtures, report, design=design)
+    assert acted(monkeypatch, root, dd.check_handed_back, REVIEW) == 0
+    assert "0 problems" in capsys.readouterr().out
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
+@pytest.mark.action("--check-handed-back", "--take-up-report")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-handed-back.md", "goals-missing",
+                   "goals-repeated",
+                   "goals-stale",
+                   "goals-misattributed",
+                   "goals-unsubstantiated",
+                   "goals-dropped",
+                   "goals-different-goal",
+                   "goals-structure-with-answers",
+                   "goals-future", "goals-unexplained-stop", "goals-before-agreement")
+@pytest.mark.parametrize("action, heading", MET)
+@pytest.mark.parametrize("report, said", [
+    ("goals-missing", "holds no goal judgments"),
+    ("goals-repeated", "repeated goal judgment"),
+    ("goals-stale", "unrecognized goal or wording"),
+    ("goals-misattributed", "missing goal judgment"),
+    ("goals-unsubstantiated", "needs an upheld design flaw"),
+    ("goals-dropped", "needs an upheld design flaw"),
+    ("goals-different-goal", "needs an upheld design flaw"),
+    ("goals-structure-with-answers", "belong only to a full pre-approval review"),
+    ("goals-future", "future design version"),
+    ("goals-unexplained-stop", "a structural stop needs a marked finding"),
+    ("goals-before-agreement", "a version the log held with agreed goals"),
+])
+def test_incomplete_goal_evidence_is_refused(fixtures, work, monkeypatch, capsys, action, heading, report, said):
+    assert said in refused(work, fixtures, monkeypatch, capsys, action, heading, report)
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
+@pytest.mark.action("--check-handed-back", "--take-up-report")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-handed-back.md", "goals-all-met")
+@pytest.mark.reads("design-script-reports.md", "ferry-design-with-replaced-goal")
+@pytest.mark.parametrize("action, heading", MET)
+def test_historical_review_cannot_claim_independent_comparison(fixtures, work, monkeypatch, capsys, action, heading):
+    out = refused(work, fixtures, monkeypatch, capsys, action, heading, "goals-all-met", "ferry-design-with-replaced-goal")
+    assert "Goal Comparison must read reviewer's account only" in out

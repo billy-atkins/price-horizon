@@ -7,7 +7,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** self-review-1
+      **Entry:** self-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -15,6 +16,14 @@
       **Reads:**
         - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
         - `docs/guide.md`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Builder Checks
 
@@ -47,7 +56,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** self-review-1
+      **Entry:** self-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -55,6 +65,14 @@
       **Reads:**
         - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
         - `docs/guide.md`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Builder Checks
 
@@ -87,7 +105,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** self-review-1
+      **Entry:** self-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -95,6 +114,14 @@
       **Reads:**
         - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
         - `docs/guide.md`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Builder Checks
 
@@ -127,7 +154,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** self-review-1
+      **Entry:** self-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -135,6 +163,14 @@
       **Reads:**
         - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
         - `docs/guide.md`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Builder Checks
 
@@ -393,7 +429,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** self-review-2
+      **Entry:** self-review-2 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -401,6 +438,14 @@
       **Reads:**
         - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
         - `docs/guide.md`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Builder Checks
 
@@ -560,7 +605,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** self-review-2
+      **Entry:** self-review-2 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -568,6 +614,14 @@
       **Reads:**
         - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
         - `docs/guide.md`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Builder Checks
 
@@ -593,14 +647,15 @@
       ```
 
   - **Fixture:** self-review-tracing-the-hours \
-    **Holds:** a self-review's report on the design ferry-times-in-the-guide, read at version 1.0.1: its Reads the design and the guide, a Traces part tracing the mechanism at the guide's section The Ferry, its Outcome that the goals and the frame name the mechanism, and three Builder Checks, of steers against the user's messages, of linked work and of the problem's re-evaluation \
+    **Holds:** a self-review's report on the design ferry-times-in-the-guide, read at version 1.0.1: its Reads the design and the guide, a Traces part tracing the mechanism at the guide's section The Ferry, its Outcome that the goals and the frame cover the mechanism, and three Builder Checks, of steers against the user's messages, of linked work and of the problem's re-evaluation \
     **Snippet:**
 
       ```markdown
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** self-review-1
+      **Entry:** self-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -609,12 +664,20 @@
         - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
         - `docs/guide.md`
 
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
+
       ## Traces
 
       **Records:**
         - **Trace:** hours-by-season \
           **Mechanism:** `docs/guide.md § The Ferry` \
-          **Outcome:** name the mechanism
+          **Outcome:** cover the mechanism
 
       ## Builder Checks
 
@@ -654,7 +717,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** self-review-1
+      **Entry:** self-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -662,6 +726,14 @@
       **Reads:**
         - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
         - `docs/guide.md`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Traces
 
@@ -707,7 +779,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** self-review-1
+      **Entry:** self-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -715,6 +788,14 @@
       **Reads:**
         - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
         - `docs/guide.md`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Builder Checks
 
@@ -762,13 +843,22 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** self-review-1
+      **Entry:** self-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
       **Design Version:** 1.0.1 \
       **Reads:**
         - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Builder Checks
 
@@ -816,7 +906,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** self-review-1
+      **Entry:** self-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -824,6 +915,14 @@
       **Reads:**
         - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
         - `docs/guide.md`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Builder Checks
 

@@ -286,9 +286,9 @@ def test_research_naming_each_goal_both_ways_over_every_operative_file_passes(fi
 @pytest.mark.passes
 @pytest.mark.reads("design-script-researched.md", "ferry-design-drafted-researched")
 @pytest.mark.reads("design-script-searched.md", "research-taken-up-searching-both-ways")
-@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-before-approval")
 def test_first_builder_check_after_research_searching_both_ways_is_appended(fixtures, work, monkeypatch, capsys):
-    root = researched(work, fixtures, **{"ferry-self-review-report": SELF})
+    root = researched(work, fixtures, **{"ferry-self-review-before-approval": SELF})
     assert acted(monkeypatch, root, dd.stamp_settled_report, SELF) == 0
     assert acted(monkeypatch, root, dd.log_entry, SELF_REVIEWED) == 0
     assert "- **Entry:** self-review-1" in capsys.readouterr().out
@@ -298,9 +298,9 @@ def test_first_builder_check_after_research_searching_both_ways_is_appended(fixt
 @pytest.mark.passes
 @pytest.mark.reads("design-script-researched.md", "ferry-design-drafted-researched")
 @pytest.mark.reads("design-script-searched.md", "research-taken-up-searching-both-ways")
-@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-before-approval")
 def test_design_whose_research_searches_both_ways_is_stamped_validated(fixtures, work, monkeypatch, capsys):
-    root = researched(work, fixtures, **{"ferry-self-review-report": SELF})
+    root = researched(work, fixtures, **{"ferry-self-review-before-approval": SELF})
     assert acted(monkeypatch, root, dd.stamp_settled_report, SELF) == 0
     assert acted(monkeypatch, root, dd.log_entry, SELF_REVIEWED) == 0
     assert acted(monkeypatch, root, dd.stamp_validation, DESIGN) == 0
