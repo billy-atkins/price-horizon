@@ -43,9 +43,9 @@ def appended(root, monkeypatch, capsys, at=SELF):
 @pytest.mark.action("--check-settled-report")
 @pytest.mark.passes
 @pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
-@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-before-approval")
 def test_self_review_holding_each_required_check_passes(fixtures, work, monkeypatch, capsys):
-    root = reviewed(work, fixtures, "ferry-self-review-report")
+    root = reviewed(work, fixtures, "ferry-self-review-before-approval")
     before = held(root)
     assert acted(monkeypatch, root, dd.check_settled_report, SELF) == 0
     assert "== check-settled-report %s\n0 problems" % SELF in capsys.readouterr().out and held(root) == before
@@ -54,9 +54,9 @@ def test_self_review_holding_each_required_check_passes(fixtures, work, monkeypa
 @pytest.mark.action("--stamp-settled-report")
 @pytest.mark.passes
 @pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
-@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-before-approval")
 def test_stamp_writes_the_script_output_where_the_form_orders_it(fixtures, work, monkeypatch, capsys):
-    root = reviewed(work, fixtures, "ferry-self-review-report")
+    root = reviewed(work, fixtures, "ferry-self-review-before-approval")
     assert acted(monkeypatch, root, dd.stamp_settled_report, SELF) == 0
     now = (root / SELF).read_text(encoding="utf-8")
     assert "## Script Output\n\n```text\n$ --check-cited-headings %s\n" % DESIGN in now
@@ -68,9 +68,9 @@ def test_stamp_writes_the_script_output_where_the_form_orders_it(fixtures, work,
 @pytest.mark.action("--log-entry")
 @pytest.mark.passes
 @pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
-@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-before-approval")
 def test_self_reviews_entry_is_appended_once_stamped(fixtures, work, monkeypatch, capsys):
-    root = reviewed(work, fixtures, "ferry-self-review-report")
+    root = reviewed(work, fixtures, "ferry-self-review-before-approval")
     assert "- **Entry:** self-review-1" in appended(root, monkeypatch, capsys)
 
 
@@ -95,10 +95,10 @@ def test_required_builder_check_missing_is_reported(fixtures, work, monkeypatch,
 @pytest.mark.action("--check-settled-report", "--stamp-settled-report")
 @pytest.mark.reports
 @pytest.mark.reads("design-script-self-reviewed.md", "ferry-design-drafted-its-problem-citing-the-lighthouse")
-@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-before-approval")
 @pytest.mark.parametrize("action, heading", MET)
 def test_re_evaluation_leaving_out_a_place_the_problem_cites_is_reported(fixtures, work, monkeypatch, capsys, action, heading):
-    root = reviewed(work, fixtures, "ferry-self-review-report", "ferry-design-drafted-its-problem-citing-the-lighthouse")
+    root = reviewed(work, fixtures, "ferry-self-review-before-approval", "ferry-design-drafted-its-problem-citing-the-lighthouse")
     assert "its Builder Checks of problem re-evaluation leave out " + LIGHTHOUSE in refused(root, monkeypatch, capsys, action, heading)
 
 
@@ -115,9 +115,9 @@ def test_re_evaluation_covering_each_place_the_problem_cites_passes(fixtures, wo
 @pytest.mark.action("--log-entry")
 @pytest.mark.passes
 @pytest.mark.reads("design-script-self-reviewed.md", "ferry-design-drafted-self-reviewed", "second-self-review-holding-no-re-evaluation")
-@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-before-approval")
 def test_later_self_review_of_a_major_version_asks_no_re_evaluation(fixtures, work, monkeypatch, capsys):
-    root = reviewed(work, fixtures, "ferry-self-review-report", "ferry-design-drafted-self-reviewed", **{"second-self-review-holding-no-re-evaluation": SECOND})
+    root = reviewed(work, fixtures, "ferry-self-review-before-approval", "ferry-design-drafted-self-reviewed", **{"second-self-review-holding-no-re-evaluation": SECOND})
     assert "- **Entry:** self-review-2" in appended(root, monkeypatch, capsys, SECOND)
 
 
@@ -126,10 +126,10 @@ def test_later_self_review_of_a_major_version_asks_no_re_evaluation(fixtures, wo
 @pytest.mark.reports
 @pytest.mark.reads("design-script-self-reviewed.md", "ferry-design-reassessed-after-a-self-review",
                    "second-self-review-at-the-next-major-version-holding-no-re-evaluation")
-@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-before-approval")
 @pytest.mark.parametrize("action, heading", MET)
 def test_first_self_review_of_a_new_major_version_asks_the_re_evaluation_again(fixtures, work, monkeypatch, capsys, action, heading):
-    root = reviewed(work, fixtures, "ferry-self-review-report", "ferry-design-reassessed-after-a-self-review",
+    root = reviewed(work, fixtures, "ferry-self-review-before-approval", "ferry-design-reassessed-after-a-self-review",
                     **{"second-self-review-at-the-next-major-version-holding-no-re-evaluation": SECOND})
     out = refused(root, monkeypatch, capsys, action, heading, SECOND)
     assert "no Builder Check of problem re-evaluation, which is required of it" in out
@@ -152,11 +152,11 @@ def test_self_review_tracing_the_mechanism_a_step_names_passes(fixtures, work, m
 @pytest.mark.reports
 @pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
 @pytest.mark.reads("design-script-pages-changed.md", "guide-holding-the-hours-table")
-@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-before-approval")
 @pytest.mark.reads("design-script-self-reviewed.md", "self-review-tracing-the-hours-with-no-outcome")
 @pytest.mark.parametrize("action, heading", MET)
 @pytest.mark.parametrize("report, said", [
-    ("ferry-self-review-report", "no Trace of the Decision Table at " + FERRY),
+    ("ferry-self-review-before-approval", "no Trace of the Decision Table at " + FERRY),
     ("self-review-tracing-the-hours-with-no-outcome", "Trace hours-by-season holds no Outcome, which its form requires where the report is a self-review's before the apply"),
 ])
 def test_mechanism_untraced_or_traced_out_of_form_is_reported(fixtures, work, monkeypatch, capsys, action, heading, report, said):
@@ -197,12 +197,44 @@ def test_reads_leaving_out_a_place_a_miss_names_are_reported(fixtures, work, mon
 @pytest.mark.action("--check-settled-report", "--stamp-settled-report")
 @pytest.mark.reports
 @pytest.mark.reads("design-script-settled.md", "ferry-design-drafted-after-its-first-round", "review-taken-up-and-stamped")
-@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-before-approval")
 @pytest.mark.reads("design-script-self-reviewed.md", "self-review-working-the-rounds-cause-alone")
 @pytest.mark.parametrize("action, heading", MET)
 @pytest.mark.parametrize("report, said", [
-    ("ferry-self-review-report", "no Builder Check of worked case, which is required of it"),
+    ("ferry-self-review-before-approval", "no Builder Check of worked case, which is required of it"),
     ("self-review-working-the-rounds-cause-alone", "its Builder Checks of worked case leave out `%s § Findings [Finding: reviewer-1-last-crossing-in-winter]`" % ROUND),
 ])
 def test_self_review_after_a_round_working_no_case_of_its_change_is_reported(fixtures, work, monkeypatch, capsys, action, heading, report, said):
     assert said in refused(after_a_round(work, fixtures, report), monkeypatch, capsys, action, heading)
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
+@pytest.mark.action("--check-settled-report")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-structural-stop", "ferry-design-with-means-for-objective")
+def test_structural_stop_explains_absent_goal_judgments(fixtures, work, monkeypatch, capsys):
+    root = reviewed(work, fixtures, "ferry-self-review-structural-stop", design="ferry-design-with-means-for-objective")
+    assert acted(monkeypatch, root, dd.check_settled_report, SELF) == 0
+    assert "0 problems" in capsys.readouterr().out
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
+@pytest.mark.action("--check-settled-report", "--stamp-settled-report")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-report")
+@pytest.mark.parametrize("action, heading", MET)
+def test_new_full_self_review_requires_goal_judgments(fixtures, work, monkeypatch, capsys, action, heading):
+    root = reviewed(work, fixtures, "ferry-self-review-report")
+    assert "a full pre-approval review holds no goal judgments" in refused(root, monkeypatch, capsys, action, heading)
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
+@pytest.mark.action("--check-settled-report", "--stamp-settled-report")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.reads("design-script-reports.md", "ferry-self-review-unexplained-stop")
+@pytest.mark.parametrize("action, heading", MET)
+def test_stopped_self_review_requires_a_structural_finding(fixtures, work, monkeypatch, capsys, action, heading):
+    root = reviewed(work, fixtures, "ferry-self-review-unexplained-stop")
+    assert "a structural stop needs a marked finding" in refused(root, monkeypatch, capsys, action, heading)

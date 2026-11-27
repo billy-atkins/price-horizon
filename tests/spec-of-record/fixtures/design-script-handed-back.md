@@ -7,7 +7,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -23,6 +24,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -58,6 +67,633 @@
           **Snapshot:** 0123456789abcdef \
           **Places:**
             - `docs/guide.md § The Ferry`
+      ```
+
+  - **Fixture:** goals-all-met \
+    **Holds:** an adversarial review of the ferry design where both questions are met for the design’s one goal and there are no findings \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
+      ```
+
+  - **Fixture:** goals-upheld-failure \
+    **Holds:** an adversarial review of the ferry design where one answer names a design flaw upheld on the goal \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** reviewer-1-last-crossing-in-winter \
+          **Genuine Change:** met
+
+      ## Findings
+
+      **Records:**
+        - **Finding:** reviewer-1-last-crossing-in-winter \
+          **Verdict:** design flaw \
+          **Decision:** the times the section gives \
+          **Affected Goals:**
+            - guide-says-when-the-ferry-runs
+
+          **Description:** The step's Objective gives one first and one last crossing, and the ferry keeps other hours in winter. \
+          **Evidence:**
+            - **Description:** The section names one quay and no season. \
+              **Places:**
+                - `docs/guide.md § The Ferry`
+
+          **Rationale:** A visitor in winter plans a crossing the ferry does not make. \
+          **Possible Fix:**
+            - **Kind:** revision \
+              **Delivers:** An Objective giving the first and the last crossing of each season.
+      ```
+
+  - **Fixture:** goals-historical-account \
+    **Holds:** an adversarial review of the ferry design where the reviewer names an earlier goal through its own account and upholds a flaw on it \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** reviewer's account only
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** reviewer-1-last-crossing-in-winter \
+          **Genuine Change:** met
+
+      ## Findings
+
+      **Records:**
+        - **Finding:** reviewer-1-last-crossing-in-winter \
+          **Verdict:** design flaw \
+          **Decision:** the times the section gives \
+          **Affected Goals:**
+            - guide-says-when-the-ferry-runs
+
+          **Description:** The step's Objective gives one first and one last crossing, and the ferry keeps other hours in winter. \
+          **Evidence:**
+            - **Description:** The section names one quay and no season. \
+              **Places:**
+                - `docs/guide.md § The Ferry`
+
+          **Rationale:** A visitor in winter plans a crossing the ferry does not make. \
+          **Possible Fix:**
+            - **Kind:** revision \
+              **Delivers:** An Objective giving the first and the last crossing of each season.
+      ```
+
+  - **Fixture:** goals-structure \
+    **Holds:** an adversarial review of the ferry design where the reviewer stopped at the structure \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1 \
+      **Stopped At:** the structure
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+
+      ## Findings
+
+      **Records:**
+        - **Finding:** objective-specifies-typesetting \
+          **Verdict:** implementation flaw \
+          **Decision:** The result the ferry step promises. \
+          **Affected Step Objectives:**
+            - section-gives-the-first-and-last-crossing
+
+          **Description:** The Objective specifies typesetting the section in blue ink. \
+          **Evidence:**
+            - **Description:** The section can be printed in blue without giving any ferry times. \
+              **Places:**
+                - `.ai/plans/design-specs/ferry-times-in-the-guide.md § Design Plan Steps`
+
+          **Rationale:** The Objective prescribes a means and leaves the intended change untested. \
+          **Possible Fix:**
+            - **Kind:** revision \
+              **Delivers:** An Objective stating the crossing times the visitor can learn from the guide.
+      ```
+
+  - **Fixture:** goals-missing \
+    **Holds:** an adversarial review of the ferry design where the goal judgments are absent \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+      ```
+
+  - **Fixture:** goals-repeated \
+    **Holds:** an adversarial review of the ferry design where the same goal is judged twice \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
+
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
+      ```
+
+  - **Fixture:** goals-stale \
+    **Holds:** an adversarial review of the ferry design where the wording differs from the reviewed goal \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide names the quay. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
+      ```
+
+  - **Fixture:** goals-misattributed \
+    **Holds:** an adversarial review of the ferry design where the judgment names a different goal \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-names-the-quay \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
+      ```
+
+  - **Fixture:** goals-unsubstantiated \
+    **Holds:** an adversarial review of the ferry design where the second answer names no finding \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** reviewer-1-no-change
+      ```
+
+  - **Fixture:** goals-dropped \
+    **Holds:** an adversarial review of the ferry design where the answer names a finding the reviewer dropped \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** reviewer-1-last-crossing-in-winter \
+          **Genuine Change:** met
+
+      ## Findings
+
+      **Records:**
+        - **Finding:** reviewer-1-last-crossing-in-winter \
+          **Verdict:** dropped \
+          **Decision:** the times the section gives \
+          **Affected Goals:**
+            - guide-says-when-the-ferry-runs
+
+          **Description:** The step's Objective gives one first and one last crossing, and the ferry keeps other hours in winter. \
+          **Evidence:**
+            - **Description:** The section names one quay and no season. \
+              **Places:**
+                - `docs/guide.md § The Ferry`
+
+          **Rationale:** A visitor in winter plans a crossing the ferry does not make. \
+          **Possible Fix:**
+            - **Kind:** revision \
+              **Delivers:** An Objective giving the first and the last crossing of each season.
+      ```
+
+  - **Fixture:** goals-different-goal \
+    **Holds:** an adversarial review of the ferry design where the finding supports a different goal \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** reviewer-1-last-crossing-in-winter \
+          **Genuine Change:** met
+
+      ## Findings
+
+      **Records:**
+        - **Finding:** reviewer-1-last-crossing-in-winter \
+          **Verdict:** design flaw \
+          **Decision:** the times the section gives \
+          **Affected Goals:**
+            - another-ferry-goal
+
+          **Description:** The step's Objective gives one first and one last crossing, and the ferry keeps other hours in winter. \
+          **Evidence:**
+            - **Description:** The section names one quay and no season. \
+              **Places:**
+                - `docs/guide.md § The Ferry`
+
+          **Rationale:** A visitor in winter plans a crossing the ferry does not make. \
+          **Possible Fix:**
+            - **Kind:** revision \
+              **Delivers:** An Objective giving the first and the last crossing of each season.
+      ```
+
+  - **Fixture:** goals-structure-with-answers \
+    **Holds:** an adversarial review of the ferry design where a stopped review nevertheless gives goal judgments \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1 \
+      **Stopped At:** the structure
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
+      ```
+
+
+  - **Fixture:** goals-unexplained-stop \
+    **Holds:** an adversarial review claiming a structural stop with no finding \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1 \
+      **Stopped At:** the structure
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+      ```
+
+  - **Fixture:** goals-before-agreement \
+    **Holds:** an adversarial review naming a version from before the agreement of any goals \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** reviewer's account only
+
+      ## Reading
+
+      **Design Version:** 0.1.0 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** earlier-ferry-goal \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** reviewer-1-last-crossing-in-winter \
+          **Genuine Change:** met
+
+      ## Findings
+
+      **Records:**
+        - **Finding:** reviewer-1-last-crossing-in-winter \
+          **Verdict:** design flaw \
+          **Decision:** the times the section gives \
+          **Affected Goals:**
+            - earlier-ferry-goal
+
+          **Description:** The step's Objective gives one first and one last crossing, and the ferry keeps other hours in winter. \
+          **Evidence:**
+            - **Description:** The section names one quay and no season. \
+              **Places:**
+                - `docs/guide.md § The Ferry`
+
+          **Rationale:** A visitor in winter plans a crossing the ferry does not make. \
+          **Possible Fix:**
+            - **Kind:** revision \
+              **Delivers:** An Objective giving the first and the last crossing of each season.
+      ```
+
+  - **Fixture:** goals-future \
+    **Holds:** an adversarial review of the ferry design where the review names a later version \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
+
+      ## Reading
+
+      **Design Version:** 1.0.9 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
       ```
 
   - **Fixture:** research-handed-back \
@@ -111,7 +747,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -127,6 +764,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -157,7 +802,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-7
+      **Entry:** adversarial-review-7 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -173,6 +819,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -218,7 +872,8 @@
       # Check's Report
 
       **Design:** another-design \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -234,6 +889,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -279,7 +942,16 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -325,7 +997,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -341,6 +1014,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Searches
 
@@ -386,7 +1067,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -402,6 +1084,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -451,7 +1141,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -467,6 +1158,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -511,7 +1210,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -527,6 +1227,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -572,7 +1280,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -588,6 +1297,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -679,7 +1396,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -695,6 +1413,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -740,7 +1466,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -756,6 +1483,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -798,7 +1533,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -814,6 +1550,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -859,7 +1603,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -875,6 +1620,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -922,7 +1675,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -938,6 +1692,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -983,7 +1745,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -999,6 +1762,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -1044,7 +1815,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -1060,6 +1832,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -1105,7 +1885,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -1121,6 +1902,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 
@@ -1166,7 +1955,8 @@
       # Check's Report
 
       **Design:** ferry-times-in-the-guide \
-      **Entry:** adversarial-review-1
+      **Entry:** adversarial-review-1 \
+      **Goal Comparison:** compared with reviewed goals
 
       ## Reading
 
@@ -1182,6 +1972,14 @@
 
           **Weighing Reads:**
             - `docs/guide.md § The Ferry`
+
+      ## Goal Judgments
+
+      **Records:**
+        - **Goal:** guide-says-when-the-ferry-runs \
+          **Wording:** The guide says when the ferry runs. \
+          **Outcome Only:** met \
+          **Genuine Change:** met
 
       ## Findings
 

@@ -479,12 +479,12 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
     **Caught By:**
       - [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round`](/specs/AGENTS.md#settling-a-round)
 
-  - **Failure:** a marked finding anchored in nothing, or in what the design does not hold \
+  - **Failure:** a marked finding with no supporting rule or recognizable design anchor \
     **Sections:**
       - [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)
 
     **Rule:** [`specs/methodology/working-files/main.md § A Check's Report § Finding`](/specs/methodology/working-files/main.md#finding) \
-    **Leaves:** a marked finding naming no goal, Frame Outcome or step Objective and citing no rule it breaks, or naming one the design does not hold \
+    **Leaves:** a marked finding naming no goal, Frame Outcome or step Objective and citing no rule it breaks, or naming an anchor its reviewed design and permitted goal evidence cannot identify \
     **Caught By:**
       - [`specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: findings-anchored-in-the-design]`](/specs/methodology/working-files/main.md#script-checks-1)
 
@@ -693,16 +693,26 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
     **Sections:**
       - [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)
 
-    **Rule:** [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether the Goals and the Frame Name a Mechanism`](/specs/AGENTS.md#whether-the-goals-and-the-frame-name-a-mechanism) \
+    **Rule:** [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether a Changed Mechanism Serves a Goal`](/specs/AGENTS.md#whether-a-changed-mechanism-serves-a-goal) \
     **Leaves:** a Trace of a self-review before the adversarial review, asked of a mechanism the steps change with no rows, or a Cause continuing an earlier one, stating no outcome of the table \
     **Caught By:**
       - [`specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]`](/specs/methodology/working-files/main.md#script-checks-1)
+
+  - **Failure:** a review reaching goals without a judgment on each goal as read \
+    **Sections:**
+      - [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame`](/specs/AGENTS.md#the-goals-and-the-frame)
+
+    **Rule:** [`specs/methodology/working-files/main.md § A Check's Report § Goal Judgment`](/specs/methodology/working-files/main.md#goal-judgment) \
+    **Leaves:** a full review missing a required judgment or answer, giving a mismatched Name or wording where the reviewed set is available, overstating its comparison basis, or linking a failed answer to no upheld design flaw on that goal \
+    **Caught By:**
+      - [`specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]`](/specs/methodology/working-files/main.md#script-checks-1)
+      - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the adversarial review]`](/specs/AGENTS.md#check-roles), for whether the finding establishes the failed answer
 
   - **Failure:** the goals and frame test left unasked, unrecorded or not borne out \
     **Sections:**
       - [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)
 
-    **Rule:** [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether the Goals and the Frame Name a Mechanism`](/specs/AGENTS.md#whether-the-goals-and-the-frame-name-a-mechanism) \
+    **Rule:** [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether a Changed Mechanism Serves a Goal`](/specs/AGENTS.md#whether-a-changed-mechanism-serves-a-goal) \
     **Leaves:** the self-review's report before an adversarial round with no Trace of a mechanism the test reaches, the round's report settling a decision drawing findings again with no Cause continuing an earlier one, or either holding an outcome the goals and the frame do not bear out \
     **Caught By:**
       - [`specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: traces-name-their-paths]`](/specs/methodology/working-files/main.md#script-checks-1)

@@ -1,7 +1,9 @@
 # Check's Report
 
 **Design:** {the design's Name ([`specs/methodology/working-files/main.md § A Check's Report`](/specs/methodology/working-files/main.md#a-checks-report))} \
-**Entry:** {the log entry naming the report, its kind and its count, as `self-review-1` ([`specs/methodology/working-files/main.md § A Check's Report`](/specs/methodology/working-files/main.md#a-checks-report))}
+**Entry:** {the log entry naming the report, its kind and its count, as `self-review-1` ([`specs/methodology/working-files/main.md § A Check's Report`](/specs/methodology/working-files/main.md#a-checks-report))} \
+**Stopped At:** {`the structure` when the pre-approval self-review stops at the structure ([`specs/methodology/working-files/main.md § A Check's Report`](/specs/methodology/working-files/main.md#a-checks-report))} \
+**Goal Comparison:** {in a full pre-approval review, the basis on which its goal coverage can be verified ([`specs/methodology/working-files/main.md § A Check's Report`](/specs/methodology/working-files/main.md#a-checks-report))}
 
 ## Reading
 
@@ -10,6 +12,18 @@
 **Design Version:** {the design's version as its header gave it when the check began, this field left out at 0.1.0 ([`specs/methodology/working-files/main.md § A Check's Report § The Reading and the Settlement`](/specs/methodology/working-files/main.md#the-reading-and-the-settlement))} \
 **Reads:**
   - {a place the check read, or `none` alone where it read nothing ([`specs/methodology/working-files/main.md § A Check's Report § The Reading and the Settlement`](/specs/methodology/working-files/main.md#the-reading-and-the-settlement))}
+
+## Goal Judgments
+
+{kept when [`specs/methodology/working-files/main.md § A Check's Report § Evidence Owed for Goals`](/specs/methodology/working-files/main.md#evidence-owed-for-goals) requires goal judgments, left out with its heading otherwise}
+
+{the builder’s part ([`specs/methodology/working-files/main.md § A Check's Report § Who Writes Each Part`](/specs/methodology/working-files/main.md#who-writes-each-part)): this note removed with its braces once the part is written}
+
+**Records:**
+  - **Goal:** {the Name of a goal this review judged ([`specs/methodology/working-files/main.md § A Check's Report § Goal Judgment`](/specs/methodology/working-files/main.md#goal-judgment))} \
+    **Wording:** {its complete Description as read ([`specs/methodology/working-files/main.md § A Check's Report § Goal Judgment`](/specs/methodology/working-files/main.md#goal-judgment))} \
+    **Outcome Only:** {the answer to the outcome question ([`specs/methodology/working-files/main.md § A Check's Report § Goal Judgment`](/specs/methodology/working-files/main.md#goal-judgment))} \
+    **Genuine Change:** {the answer to the change question ([`specs/methodology/working-files/main.md § A Check's Report § Goal Judgment`](/specs/methodology/working-files/main.md#goal-judgment))}
 
 ## Findings
 
@@ -82,7 +96,7 @@
 **Records:**
   - **Trace:** {its key ([`specs/methodology/working-files/main.md § A Check's Report § Trace`](/specs/methodology/working-files/main.md#trace))} \
     **Mechanism:** {the mechanism traced or asked of, cited by the section holding it, one place as the section A Value Holding Places has a value holding places written ([`specs/methodology/working-files/main.md § A Check's Report § Trace`](/specs/methodology/working-files/main.md#trace))} \
-    **Outcome:** {kept where the report is a self-review's before the apply, unless a `plan-approval` entry of the phase stands before it with no `another-round` entry after it: the outcome the section Whether the Goals and the Frame Name a Mechanism gives it, asked of a mechanism the steps change, from the steps' What and Objectives, with no rows ([`specs/methodology/working-files/main.md § A Check's Report § Trace`](/specs/methodology/working-files/main.md#trace))} \
+    **Outcome:** {kept where the report is a self-review's before the apply, unless a `plan-approval` entry of the phase stands before it with no `another-round` entry after it: the outcome the section Whether a Changed Mechanism Serves a Goal gives it, asked of a mechanism the steps change, from the steps' What and Objectives, with no rows ([`specs/methodology/working-files/main.md § A Check's Report § Trace`](/specs/methodology/working-files/main.md#trace))} \
     **Paths:**
       - **Path:** {kept where the report lies over applied work: the path, named by its row's or its transition's cells where the mechanism is a Decision Table or a State Machine, and otherwise by the route it takes ([`specs/methodology/working-files/main.md § A Check's Report § Trace Path`](/specs/methodology/working-files/main.md#trace-path))} \
         **Result:** {what the path does, and whether it upholds what its check judges the mechanism against, as the section Tracing a Mechanism has a path judged after the apply ([`specs/methodology/working-files/main.md § A Check's Report § Trace Path`](/specs/methodology/working-files/main.md#trace-path))}
@@ -115,7 +129,7 @@
   - **Cause:** {its key ([`specs/methodology/working-files/main.md § A Check's Report § Cause`](/specs/methodology/working-files/main.md#cause))} \
     **Decision:** {the name the builder gives the concept the findings it settles touch, kept across the phase's rounds ([`specs/methodology/working-files/main.md § A Check's Report § Cause`](/specs/methodology/working-files/main.md#cause))} \
     **Continues:** {left out where it is none: the earlier round's cause it continues ([`specs/methodology/working-files/main.md § A Check's Report § Cause`](/specs/methodology/working-files/main.md#cause))} \
-    **Outcome:** {kept where Continues is held: the outcome the section Whether the Goals and the Frame Name a Mechanism gives it ([`specs/methodology/working-files/main.md § A Check's Report § Cause`](/specs/methodology/working-files/main.md#cause))} \
+    **Outcome:** {kept where Continues is held: the outcome the section Whether a Changed Mechanism Serves a Goal gives it ([`specs/methodology/working-files/main.md § A Check's Report § Cause`](/specs/methodology/working-files/main.md#cause))} \
     **Conflicting Steers:**
       - {left out where it is none: each steer it presses on, as the section Weigh the Steers has it weighed, a list as the section A Value Holding Places has a value holding places written ([`specs/methodology/working-files/main.md § A Check's Report § Cause`](/specs/methodology/working-files/main.md#cause))}
 
