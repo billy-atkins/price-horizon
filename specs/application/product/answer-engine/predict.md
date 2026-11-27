@@ -12,20 +12,19 @@ technical-specs:
 
 ## Predict: what will the competitor do
 
-Effective price is the net price actually realized per unit over the period asked about: list price minus trade promotions and rebates, plus any surcharges. It is neither the list price nor the shelf price. A competitor's effective price can therefore move significantly from one month to the next while its sticker price stays the same, because a bigger promotion moved it. Predict forecasts this number.
+Effective price is the net price realized per unit over the period asked about: list price minus trade promotions and rebates, plus any surcharges. It is neither the list price nor the shelf price. A competitor's effective price can therefore move significantly from one month to the next while its sticker price stays the same, because a bigger promotion moved it. Predict forecasts this number.
 
 The forecast gives the direction and size of the competitor's likely move in effective price. It is built from a baseline and a set of corrections, and the answer keeps both visible, as [`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes) requires. The baseline is the move the competitor's own price trend and usual promotional calendar point to by the horizon, adjusted for any price change or promotion the competitor has already announced. Each driver in the decomposition graph then adds a correction, sized by the evidence behind it and by the driver's weight in a versioned weighting rubric. The forecast is exactly the baseline plus those corrections. The decomposition graph shows each one, so the chart accounts for how the number was built instead of explaining it afterward. The baseline opens to what it was built from: the price history as of when it was taken, the forecasting models that carried it forward and when each was last validated, and any announcement that adjusted it.
 
 Most of that evidence exists before anyone asks. As documents arrive, the system reads the facts in them that bear on price, such as a tax change or a competitor's stated plan. It tags each fact with how credible its type of source is, and records it. A regulator's filing ranks above licensed third-party commentary, and both rank above an internal analyst note. A fact is used only once it is complete enough to size: when it takes effect, which way it pushes, and by how much. For a competitor's product launch or capacity change, it needs only enough for the model of the competitor's past reactions to judge. A stated range is used at its midpoint and shown as the range. [`specs/application/product/tenant-administration/review-queues.md § Review Queues`](/specs/application/product/tenant-administration/review-queues.md#review-queues) covers a fact that is not complete enough.
 
-The forecast, with its breakdown and its confidence, is computed on a schedule for each tracked competitor brand and geography in a business unit, at 1, 3, 6 and 12 months. A question inside that set retrieves a forecast already built. A question outside it, such as a 9-month horizon, reuses a forecast for the same brand, geography, horizon and versions if one exists. Otherwise the system builds it when asked from the published data and models, using the applicable settings. Either way, what is done with the forecast is computed when the question is asked: the positioning options, their simulated outcomes and the plain-language account.
+The forecast, with its breakdown and its confidence, is computed on a schedule for each tracked competitor brand and geography in a business unit, at 1, 3, 6 and 12 months. A question inside that set retrieves a forecast already built. For a supported live request, such as a nine-month horizon at a grounded market for a tracked brand, the system reuses the matching forecast or builds it on a miss. Below the grid, it shows a grounded parent reference or a supported estimate. An untracked brand, unsupported request or unit awaiting publication receives an explanation of unavailability. Either way, what is done with the forecast is computed when the question is asked: the positioning options, their simulated outcomes and the plain-language account.
 
 The confidence band is a range around the forecast. Its width comes from the uncertainty each of the underlying list-price and promotional-depth models carries. The confidence score is a separate reading of the evidence behind the forecast. It weighs how credible the weakest source is, since better sources never average away one poorly sourced fact. It also weighs how current the data is, and whether the evidence agrees with itself. If no qualitative signal contributes, snapshot freshness alone sets the score. The explanation identifies source credibility and agreement as inapplicable.
 
 The two can diverge. A forecast can sit inside a narrow band and still carry a lower confidence score, when the models are precise but a driver rests on a weakly sourced or stale fact. That is not a contradiction. Each answers a different question about the same forecast, and the answer shows both without flagging either as an error. The confidence score opens to each of its reasons, as [`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes) requires. Here each reason opens to its evidence: the weakest source itself, how old the data is and when each fact took effect, and any disagreement big enough to count as a price move. When a document points to a change big enough to count as a price move on its own, in a direction the baseline does not show, the answer names both sides and shows that the disagreement is holding the score down.
 
-**Reference Key:** Layer
-
+**Reference Key:** Layer \
 **Required:** What It Shows
 
 | Layer | What It Shows |
@@ -210,4 +209,17 @@ Scenario: A previously answered nine-month question retains its forecast and evi
   Then the nine-month forecast and its original rationale are still available
   And a first nine-month question for another tracked brand with no stored forecast reports that its forecast could not be produced
 
+
+Scenario: Equal and opposite effects remain visible in a published forecast.
+  Given two eligible signals for the same driver contribute +0.20 and -0.20 per unit after weighting
+  When the user opens that driver's evidence for the published forecast
+  Then its net contribution is zero and both signals, their signed effects and the applied weight are shown
+  And retrieving that forecast again identifies the same sources and model versions
+
+Scenario: A scheduled drill-down remains available when live Predict is offline.
+  Given the active publication contains a state forecast and a metro forecast with its own evidence
+  And live Predict is unavailable
+  When a Query user drills from the state to the metro and then asks for the same metro directly
+  Then both responses show the same published metro forecast and evidence
+  And neither request makes a live Predict call
 ```

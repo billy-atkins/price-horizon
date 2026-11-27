@@ -6,9 +6,9 @@ Syndicated retail data (pricing, volume, share), internal POS and trade history,
 
 This file gathers in one place the structures that the query service, the materialization service, and the control plane reference. Each is defined in prose where it is first produced. This file is their one home, so a later reference cites a field here instead of restating it. Several structures nest inside others. A Positioning Candidate carries its own Rationale Record and Simulated Outcome. A Simulated Outcome carries its own Rationale Record in turn, and so does an Effective Price Forecast.
 
-A field table states what an entity is made of. It states no rule, no process, and no state the entity moves through. The rules that govern these structures are modeled separately, in the constructs, elsewhere in these files: how an event type routes, how the business unit is resolved, how candidates consolidate. Those rules cite this file's tables for the shape of the data they operate on.
+Field tables define the stored data. Event routing belongs to [`specs/application/technical/predict-computation.md § Predict Computation § Signal route`](/specs/application/technical/predict-computation.md#signal-route), unit resolution to [`specs/application/technical/query-service/intent-and-retrieval.md § Dynamic Retrieval and Weighting (when the question is asked) § Intent parsing and decoupling § Business unit`](/specs/application/technical/query-service/intent-and-retrieval.md#business-unit), and candidate grouping to [`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Option Consolidation`](/specs/application/technical/query-service/layered-output-synthesis.md#option-consolidation).
 
-These structures live in separate stores, not one. The Driver Signal lives in the vector database ([`§ Core Data Model § Vector Database Schema`](#vector-database-schema)). The vector database is partitioned into one namespace per business unit, keyed by the Business Unit's stable code. A query against it is scoped by the namespace the connection reaches, not by a filter applied after the fact to a shared index. Every other structure lives in the structured database this section describes: Signal Routing Rule, Rationale Record, Positioning Candidate, Simulated Outcome, Product and Geography Match, Effective Price Forecast, Realized Outcome, Answer Provenance, Delivered Answer, and Review Queue Item. These need exact-key lookups and aggregation rather than similarity search. A Rationale Record cites Driver Signals by reference instead of duplicating them, and that reference is the one place the two stores meet. The Question Intent is the exception to both stores. It lasts only for the life of a request. It is held in the question-intent cache described in [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations`](/specs/application/technical/engineering-and-production-considerations.md#engineering-and-production-considerations), and neither store persists it.
+These structures live in separate stores, not one. The Driver Signal lives in the vector database ([`§ Core Data Model § Vector Database Schema`](#vector-database-schema)). The vector database is partitioned into one namespace per business unit, keyed by the Business Unit's stable code. A query against it is scoped by the namespace the connection reaches, not by a filter applied after the fact to a shared index. Every other structure lives in the structured database this section describes: Signal Routing Rule, Rationale Record, Positioning Candidate, Simulated Outcome, Product and Geography Match, Effective Price Forecast, Realized Outcome, Answer Provenance, Delivered Answer, and Review Queue Item. These need exact-key lookups and aggregation rather than similarity search. A Rationale Record cites Driver Signals by reference instead of duplicating them, and that reference is the one place the two stores meet. The Question Intent is the exception to both stores. Each request resolves its own authorized intent. A short-lived cache may reuse the parsing result under the isolation rules in [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations`](/specs/application/technical/engineering-and-production-considerations.md#engineering-and-production-considerations), and neither store persists it.
 
 Business Unit, Geography, and Competitor are reference tables, not per-instance records. Each carries separate identifiers that do different jobs. A sequential integer id serves foreign keys and join performance within the structured database, the normal relational pattern. A stable code serves wherever these entities cross into the vector database, or must be legible to a person or an agent reading them directly. The code is ISO 3166 for a geography where it applies, a public ticker symbol for a competitor that has one, and an assigned short code for a business unit. Structured-database tables reference these entities by integer id. The vector database has no join mechanism and no relationship to those integers. It references them by code, the one identifier both stores can use without translation.
 
@@ -28,8 +28,7 @@ The one entity stored in the vector database, embedding and structured fields to
 
 Produced by extraction in [`specs/application/technical/materialization-service/driver-signal-extraction.md § Vector and semantic mapping, with structured extraction`](/specs/application/technical/materialization-service/driver-signal-extraction.md#vector-and-semantic-mapping-with-structured-extraction), zero or more per ingested qualitative document. A Driver Signal is the durable record behind the qualitative guarantee ([`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes)).
 
-**Reference Key:** Field
-
+**Reference Key:** Field \
 **Required:** Description
 
 | Field | Description |
@@ -61,24 +60,22 @@ Reference tables and crosswalks, edited through the control plane's self-service
 
 A reference table, not a per-instance record, with one row per business unit the installation hosts.
 
-**Reference Key:** Field
-
+**Reference Key:** Field \
 **Required:** Description
 
 | Field | Description |
 |---|---|
 | id | Sequential integer primary key, used for foreign keys from other structured-database tables |
-| code | A short, stable code, set once during onboarding and never reused, even if the business unit is later renamed. It is the natural key in the vector database and anywhere legibility matters |
+| code | A short code assigned at registration and locked at first use under the foundation’s code rule. Renaming a unit preserves its locked code, and a retired code cannot be reused. It is the natural key in the vector database and anywhere legibility matters |
 | name | Display name |
 
 [`§ Core Data Model § Reference and Master Data § IdP Claim Mapping`](#idp-claim-mapping) records which IdP claims map to this business unit, and with what role. That mapping is not a field here, since one business unit can have several claims mapping to it at different roles.
 
 #### Geography
 
-A reference table, with one row per geography the harmonized foundation or the materialized grid references. Every price, price gap, and revenue figure computed at a geography is denominated in that geography's resolved currency. [`specs/application/technical/materialization-service/reconciliation.md § Product and Geography Reconciliation § Currency normalization`](/specs/application/technical/materialization-service/reconciliation.md#currency-normalization) converts any input reported in another currency, once. At query, aggregation, or reporting time, the system never blends a figure from one geography with a figure from another geography that uses a different currency, so a business unit spanning more than one country, or a country with more than one currency of its own, always sees each geography's figures in that geography's currency downstream. It never sees a converted or summed total.
+A reference table, with one row per geography the harmonized foundation or the materialized grid references. Every price, price gap, and revenue figure computed at a geography is denominated in that geography's resolved currency. [`specs/application/technical/materialization-service/reconciliation.md § Product and Geography Reconciliation § Currency normalization`](/specs/application/technical/materialization-service/reconciliation.md#currency-normalization) converts any input reported in another currency, once. Queries and reports keep figures in each geography’s resolved currency. Across geographies with different currencies, the report shows separate figures and omits a combined total.
 
-**Reference Key:** Field
-
+**Reference Key:** Field \
 **Required:** Description
 
 | Field | Description |
@@ -93,8 +90,7 @@ A reference table, with one row per geography the harmonized foundation or the m
 
 A reference table, with one row per competitor in scope for any business unit.
 
-**Reference Key:** Field
-
+**Reference Key:** Field \
 **Required:** Description
 
 | Field | Description |
@@ -119,8 +115,7 @@ The governed reference set identifies the brands each business unit tracks. A me
 
 A many-to-one crosswalk: several aliases can resolve to one Competitor or Business Unit. It follows the same reconciliation pattern as Product and Geography Match, applied to names instead of catalog identifiers.
 
-**Reference Key:** Field
-
+**Reference Key:** Field \
 **Required:** Description
 
 | Field | Description |
@@ -136,8 +131,7 @@ A rebrand, or a data vendor's own naming convention, is a new row here, not a ch
 
 Declared as a governed table ([`specs/application/technical/glossary-and-grounding.md § Guaranteed grounding`](/specs/application/technical/glossary-and-grounding.md#guaranteed-grounding)), the same discipline [`§ Core Data Model § Pipeline and Answer Artifacts § Signal Routing Rule`](#signal-routing-rule) applies to a different bounded set. It has that table's shape too: its bounded name is the natural key, in place of a surrogate id. It is not per-business-unit data. It holds one entry per term the governed glossary defines.
 
-**Reference Key:** Field
-
+**Reference Key:** Field \
 **Required:** Description
 
 | Field | Description |
@@ -151,8 +145,7 @@ Adding a term here changes the governed vocabulary itself, so it is an applicati
 
 A many-to-one crosswalk: several aliases can resolve to one Glossary Term. It follows the same reconciliation pattern as Entity Alias, applied to business vocabulary instead of entity names.
 
-**Reference Key:** Field
-
+**Reference Key:** Field \
 **Required:** Description
 
 | Field | Description |
@@ -165,8 +158,7 @@ A many-to-one crosswalk: several aliases can resolve to one Glossary Term. It fo
 
 A dimension, with one row per data snapshot the pipeline has ever computed against. [`§ Core Data Model § Pipeline and Answer Artifacts § Effective Price Forecast`](#effective-price-forecast), [`§ Core Data Model § Pipeline and Answer Artifacts § Realized Outcome`](#realized-outcome), and [`§ Core Data Model § Pipeline and Answer Artifacts § Answer Provenance`](#answer-provenance) reference it.
 
-**Reference Key:** Field
-
+**Reference Key:** Field \
 **Required:** Description
 
 | Field | Description |
@@ -177,21 +169,21 @@ A dimension, with one row per data snapshot the pipeline has ever computed again
 
 #### IdP Claim Mapping
 
-A crosswalk, not a per-instance record, with one row per claim value the client's IdP asserts.
+Each unique combination of IdP claim value, role and scope has one mapping. A unit grant names an existing unit. Installation grants name their individual permission, including authorization for a client Control plane admin to register a business unit. An installation creation grant confers no unit role.
 
-**Reference Key:** Field
-
+**Reference Key:** Field \
 **Required:** Description
 
 | Field | Description |
 |---|---|
 | claim_value | The claim or group value the client's IdP asserts |
-| business_unit_id | Foreign key to Business Unit. Null for identity admin and platform admin claims ([`specs/application/technical/identity-and-access.md § Business unit access, federated`](/specs/application/technical/identity-and-access.md#business-unit-access-federated), [`specs/application/technical/identity-and-access.md § Platform admin access`](/specs/application/technical/identity-and-access.md#platform-admin-access)) |
+| business_unit_id | Foreign key to Business Unit. Null for installation-scoped grants ([`specs/application/technical/identity-and-access.md § Business unit access, federated`](/specs/application/technical/identity-and-access.md#business-unit-access-federated), [`specs/application/technical/identity-and-access.md § Platform admin access`](/specs/application/technical/identity-and-access.md#platform-admin-access)) |
 | role | query_user, control_plane_admin, identity_admin, or platform_admin |
+| installation_permission | For a unit creation grant, register_business_unit with control_plane_admin and a null business_unit_id. Absent for ordinary unit grants |
 
 Identity admin is the role that can edit this table. An Identity admin claim is scoped as [`specs/application/technical/identity-and-access.md § Business unit access, federated`](/specs/application/technical/identity-and-access.md#business-unit-access-federated) states. Self-service management of that claim belongs to the client's identity team, not to any single business unit's data steward.
 
-A query user claim that sees every business unit is not a separate case. It is the multi-business-unit claim [`specs/application/technical/identity-and-access.md § Business unit access, federated`](/specs/application/technical/identity-and-access.md#business-unit-access-federated) describes, with one mapping row per currently existing business unit instead of a wildcard. A new business unit does not extend an existing claim's reach on its own. Whoever manages a claim, identity admin for an org-wide one, adds the new mapping row, the same way any multi-business-unit claim gains a newly added business unit.
+A query user claim that sees every business unit is not a separate case. It is the multi-business-unit claim [`specs/application/technical/identity-and-access.md § Business unit access, federated`](/specs/application/technical/identity-and-access.md#business-unit-access-federated) describes, with one mapping row per currently existing business unit instead of a wildcard. A new business unit does not extend an existing claim’s reach on its own. The client-facing capability is [`specs/application/product/identity-and-access/identity-administration.md § Identity Administration`](/specs/application/product/identity-and-access/identity-administration.md#identity-administration). Whoever manages a claim, identity admin for an org-wide one, adds the new mapping row, the same way any multi-business-unit claim gains a newly added business unit.
 
 ### Pipeline and Answer Artifacts
 
@@ -234,8 +226,7 @@ Produced by the confidence and rationale package ([`specs/application/technical/
 
 Produced by intent parsing and decoupling ([`specs/application/technical/query-service/intent-and-retrieval.md § Dynamic Retrieval and Weighting (when the question is asked) § Intent parsing and decoupling`](/specs/application/technical/query-service/intent-and-retrieval.md#intent-parsing-and-decoupling)).
 
-**Reference Key:** Field
-
+**Reference Key:** Field \
 **Required:** Description
 
 | Field | Description |
@@ -254,8 +245,7 @@ Produced by intent parsing and decoupling ([`specs/application/technical/query-s
 
 Produced by the positioning engine ([`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Positioning engine`](/specs/application/technical/query-service/layered-output-synthesis.md#positioning-engine)), one per seeded archetype. Each candidate is held by one of the options [`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Option Consolidation`](/specs/application/technical/query-service/layered-output-synthesis.md#option-consolidation) leaves.
 
-**Reference Key:** Field
-
+**Reference Key:** Field \
 **Required:** Description
 
 | Field | Description |
@@ -275,8 +265,7 @@ Produced by the positioning engine ([`specs/application/technical/query-service/
 
 Produced by the simulation engine ([`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Simulation engine`](/specs/application/technical/query-service/layered-output-synthesis.md#simulation-engine)), once per positioning candidate, in parallel across candidates.
 
-**Reference Key:** Field
-
+**Reference Key:** Field \
 **Required:** Description
 
 | Field | Description |
@@ -295,10 +284,8 @@ Produced by the simulation engine ([`specs/application/technical/query-service/l
 
 Produced by reconciliation ([`specs/application/technical/materialization-service/reconciliation.md § Product and Geography Reconciliation`](/specs/application/technical/materialization-service/reconciliation.md#product-and-geography-reconciliation)). The two are related but distinct structures.
 
-**Table Name:** Product Match
-
-**Reference Key:** Field
-
+**Table Name:** Product Match \
+**Reference Key:** Field \
 **Required:** Description
 
 | Field | Description |
@@ -308,10 +295,8 @@ Produced by reconciliation ([`specs/application/technical/materialization-servic
 | match_confidence | How confident the match is. A low-confidence match is flagged for review rather than forced through |
 | match_method | Structured attribute matching or semantic matching, whichever produced the match |
 
-**Table Name:** Geography Crosswalk
-
-**Reference Key:** Field
-
+**Table Name:** Geography Crosswalk \
+**Reference Key:** Field \
 **Required:** Description
 
 | Field | Description |
@@ -351,10 +336,9 @@ Produced by reconciliation ([`specs/application/technical/materialization-servic
 
 #### Delivered Answer
 
-Produced by the query service as the final step of assembling any answer that reaches at least Predict. That holds whether Predict was a grid lookup or a live computation, and whether or not Position and Simulate also complete ([`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer)`](/specs/application/technical/query-service/layered-output-synthesis.md#layered-output-synthesis-producing-the-answer)). There is one row per question answered, in full or in degraded form. Every question_asked reaching Predict gets one, not only the off-grid case. A Delivered Answer exists only when a forecast was produced. It is created for a question_asked outcome of [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: answer_produced]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: position_failed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), or [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: simulate_failed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run). It is never created for [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: query_denied]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: clarification_needed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), or [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: predict_failed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), where there is nothing yet to have lineage over.
+The query service commits one Delivered Answer for a question whose response includes a completed forecast. The forecast may come from a published cell, a reused live bundle or a new live computation. A partial response retains only the stages completed for this question. The qualifying question_asked outcomes are [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: answer_produced]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: position_failed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), or [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: simulate_failed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run). It is never created for [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: query_denied]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: clarification_needed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), or [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: predict_failed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run), where there is nothing yet to have lineage over.
 
-**Reference Key:** Field
-
+**Reference Key:** Field \
 **Required:** Description
 
 | Field | Description |
@@ -363,7 +347,8 @@ Produced by the query service as the final step of assembling any answer that re
 | effective_price_forecast_id | Foreign key to the Effective Price Forecast ([`§ Core Data Model § Pipeline and Answer Artifacts § Effective Price Forecast`](#effective-price-forecast)) this answer was built on. Always populated, since a Delivered Answer exists only once Predict has completed |
 | positioning_candidates | The set of Positioning Candidates ([`§ Core Data Model § Pipeline and Answer Artifacts § Positioning Candidate`](#positioning-candidate)) generated, each already carrying its own Rationale Record per the Positioning Candidate definition. A candidate's `simulated_outcome` field is null when the outcome was [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: simulate_failed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run). This whole field is empty when the outcome was [`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Orchestration § Question run [States.State: position_failed]`](/specs/application/technical/engineering-and-production-considerations.md#question-run) |
 | decision_type | The kind of decision this answer was given for, the session's or the question's. It is shown with the answer, and it is the one the answer's candidates were seeded by |
-| requested_geography_id / allocation_basis | Resolved geography of the delivered question. For an allocated answer, retain the grounded parent reference and the source version and weight used for the requested geography. An older delivery lacking the original scope identifies it as unavailable |
+| client_received_at | First accepted authenticated receipt for this delivery. Null until confirmed. The committed delivery alone establishes no receipt |
+| requested_geography_id / allocation_basis | Requested geography, grounded parent, and the basis for each local quantity or ratio. Preserve numerator, denominator, sources and units for estimated rates, and identify values shown solely as parent references. Mark an unknown legacy scope unavailable |
 | submitted_question | The text the Query user submitted for this delivery. The retained question_asked audit entry supplies the actor and authorizes access to this text through its Delivered Answer. Purge the text with that answer. For an older delivery without this field, show that the original wording is unavailable |
 | rendered_narrative | The complete natural-language text delivered, across whichever stages were reached. [`specs/application/product/trust-and-explainability/degraded-answer-behavior.md § Degraded Answer Behavior`](/specs/application/product/trust-and-explainability/degraded-answer-behavior.md#degraded-answer-behavior) covers a partial answer's labeling text as part of this. Captured directly because the repeatability guarantee ([`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes)) explicitly allows this wording to vary between runs, unlike everything else on this row |
 | displayed_options | The ordered groups actually delivered. Each group holds its ordered candidate IDs and the strategy labels shown at delivery. Each member refers to the immutable delivered candidate and its outcome where available. Predict-only deliveries store an empty list. Deliveries with Position and unavailable Simulate store individually labeled candidates in their delivered order |
@@ -383,8 +368,7 @@ Each of a Delivered Answer's Answer Provenance fields can differ from the refere
 
 An immutable scored comparison produced by [`specs/application/technical/materialization-service/forecast-materialization.md § Realized outcome check`](/specs/application/technical/materialization-service/forecast-materialization.md#realized-outcome-check). Pending and unevaluable comparisons expose their disposition and reason separately from a scored outcome.
 
-**Reference Key:** Field
-
+**Reference Key:** Field \
 **Required:** Description
 
 | Field | Description |
@@ -401,8 +385,7 @@ An immutable scored comparison produced by [`specs/application/technical/materia
 
 Attached to every answer, per the repeatability guarantee in [`specs/application/technical/guarantees-mechanics.md § How the Guarantees Are Achieved Mechanically`](/specs/application/technical/guarantees-mechanics.md#how-the-guarantees-are-achieved-mechanically). For a live-path answer, it is assembled fresh from whatever application, model, and configuration state is current. For a query served from the materialized grid, the forecast's values are the ones [`§ Core Data Model § Pipeline and Answer Artifacts § Effective Price Forecast`](#effective-price-forecast) captured when that row was produced. The Delivered Answer built on that row captures its own at delivery, since Position applies the configuration current when the question is asked.
 
-**Reference Key:** Field
-
+**Reference Key:** Field \
 **Required:** Description
 
 | Field | Description |
@@ -417,8 +400,7 @@ Attached to every answer, per the repeatability guarantee in [`specs/application
 
 The status of a single flagged item: a low-confidence product match ([`§ Core Data Model § Pipeline and Answer Artifacts § Product and Geography Match`](#product-and-geography-match)) or an ambiguous or incomplete document extraction ([`specs/application/technical/materialization-service/driver-signal-extraction.md § Vector and semantic mapping, with structured extraction`](/specs/application/technical/materialization-service/driver-signal-extraction.md#vector-and-semantic-mapping-with-structured-extraction)). These are the cases [`specs/application/product/tenant-administration/review-queues.md`](/specs/application/product/tenant-administration/review-queues.md) commits to the client reviewing. Each is a durable record, and resolving one produces a corrected record that every future query benefits from. A low-confidence answer is not another such case. It is the output of one query at one moment, not a record with anything to correct. The confidence guarantee itself ([`specs/application/technical/guarantees-mechanics.md § How the Guarantees Are Achieved Mechanically`](/specs/application/technical/guarantees-mechanics.md#how-the-guarantees-are-achieved-mechanically)) handles it, and it is surfaced to the user directly, not queued for review.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine`
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § State Machine` \
 **Table Name:** States
 
 | State | Description | Initial | Terminal |
@@ -445,7 +427,6 @@ The status of a single flagged item: a low-confidence product match ([`§ Core D
 #### Audit Log Entry
 
 Produced by every action that the populations this entry covers take:
-
 - Acme AI's Platform admin access against an installation, whether through a federated claim or break-glass credentials;
 - a Query user's question, the system's core activity, not an afterthought sharing a mechanism built for someone else;
 - a Control plane admin's or an Identity admin's change to what they govern;

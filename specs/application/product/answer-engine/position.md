@@ -113,12 +113,10 @@ Scenario: A zero starting competitor price leaves the independent Hold price vis
 
 The kind of decision an answer serves is the one the Query user chose for the session, or the one the question's own words name where they name one, per [`specs/application/product/answer-engine/decision-context.md § Decision Context`](/specs/application/product/answer-engine/decision-context.md#decision-context). The horizon leaves the eligible strategies unchanged. Their computed prices and outcomes can change with the horizon, so different strategies can end up grouped.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
-**Conditions:** Kind of decision
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Kind of decision \
 **Input Values:**
-- Kind of decision: "A brand pricing decision, on list price or price position", "A retailer or promotional decision"
+  - Kind of decision: "A brand pricing decision, on list price or price position", "A retailer or promotional decision"
 
 | Kind of decision | Eligible options |
 |---|---|
@@ -159,8 +157,7 @@ Scenario: A short horizon keeps every eligible strategic option.
 
 Each option follows one of the defined strategies:
 
-**Reference Key:** Option
-
+**Reference Key:** Option \
 **Required:** Brand A Price Move
 
 | Option | Brand A Price Move |
@@ -202,4 +199,12 @@ Scenario: Diverge leans further into Brand A's existing position.
   When the positioning options are generated
   Then the Diverge option prices Brand A higher than the Match option does
   And its relative price index rises above today's
+
+Scenario: Two matching neighbors cannot pull a nonmatching pair into one group.
+  Given four eligible candidates A, B, C and D in increasing absolute price-gap order
+  And their projected shares are 18.0%, 18.7%, 19.4% and 23.0% with a one-point threshold
+  And every other required measure is available and within its threshold
+  When the Query user opens the positioning choices
+  Then A and B appear together, C appears separately, and D appears separately
+  And opening the first group identifies A and B and their individual delivered figures
 ```

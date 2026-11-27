@@ -3,7 +3,9 @@ technical-specs:
   - specs/application/technical/control-plane-service/control-plane.md
   - specs/application/technical/data-model.md
   - specs/application/technical/glossary-and-grounding.md
+  - specs/application/technical/identity-and-access.md
   - specs/application/technical/materialization-service/driver-signal-extraction.md
+  - specs/application/technical/materialization-service/forecast-materialization.md
   - specs/application/technical/materialization-service/reconciliation.md
   - specs/application/technical/model-registry.md
 ---
@@ -11,11 +13,12 @@ technical-specs:
 ## Reference Data Management
 
 The Control plane admin role ([`specs/application/product/roles.md § Roles`](/specs/application/product/roles.md#roles)) manages the day-to-day realities Acme AI should not need to be paged for:
-
-- Adding a business unit.
+- Registering a new business unit when the client has granted the separate installation-level creation permission.
 - Retiring a competitor no longer worth tracking.
 - Recording a competitor's rebrand without losing the pricing history attached to who the competitor used to be.
 - Registering the business unit's own alternate phrasing for an already-established term in PriceHorizon's governed vocabulary, such as effective price. The business unit's analysts' internal jargon then resolves the same way the term's canonical phrasing already does.
+
+Registering a unit grants its creator no access to its data or administration. Retirement takes effect for a unit when its first complete forecast publication excludes the competitor. Until then, including after a failed refresh, new requests still use that unit's current published membership. Historical deliveries remain available by identifier.
 
 The underlying mechanism stays with Acme AI: the archetype price-setting rules, the model versions, the weighting rubrics behind every forecast, and the governed vocabulary itself. The mechanism changes only through an application or model release. The day-to-day facts stay with the business unit: who competes with whom, and what the business unit's own analysts happen to call something they already track.
 
@@ -23,7 +26,7 @@ The underlying mechanism stays with Acme AI: the archetype price-setting rules, 
 
 ```gherkin
 Scenario: Adding a business unit is a self-service action.
-  Given a Control plane admin adds a new business unit, North America Snacks
+  Given a client Control plane admin authorized to create business units registers a new business unit, North America Snacks
   When the addition is complete
   Then North America Snacks exists on the installation as its own business unit, available for further configuration
   And no Acme AI involvement was required
@@ -52,4 +55,21 @@ Scenario: A glossary alias can only be registered for an already-established ter
   Given a Control plane admin wants an alias registered for "shelf multiplier," a term PriceHorizon's own governed vocabulary does not already define
   When that request is made
   Then it is not possible as a self-service action, the same way a genuinely new governed term is never self-service
+
+Scenario: A creator can register a business unit without gaining access.
+  Given a client Control plane admin can administer East and lacks installation-level creation permission
+  Then a request to register West is denied
+  When the same admin with explicit creation permission successfully registers West
+  Then West exists and the creation is auditable
+  And the creator cannot read or administer West through that action
+  When an Identity admin explicitly grants query access to West
+  Then the creator can query West and still lacks administrative access there
+
+Scenario: A failed refresh leaves a retirement pending for the business unit.
+  Given the current publication includes a competitor and an authorized admin requests its retirement
+  When the first refresh fails before it can publish a complete replacement
+  Then new requests still select the competitor from the preceding publication
+  When the next complete publication excluding the competitor becomes current
+  Then a new request cannot select it or compute a forecast for it outside the grid
+  And the earlier delivery remains retrievable by its original identifier
 ```

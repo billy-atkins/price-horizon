@@ -9,7 +9,6 @@ technical-specs:
 ## Drill-down: cross-cutting, available at every stage
 
 Drill-down has independent axes. A user can move along either one without leaving the analysis:
-
 - **Granularity.** Country to state or province to major metro, matching how the competitor's own pricing data is reported.
 - **Metric.** Price is the default lens. A user can pivot the same drill-down to volume, margin, or share without asking the question again.
 
@@ -21,19 +20,16 @@ Throughout every stage ([`specs/application/product/answer-engine/predict.md § 
 
 What a granularity drill-down shows depends on the geographic level supported by the evidence. A reported competitor observation supports that side of the analysis. A matched Position or Simulate value also requires reliable product and geography alignment at the selected level. When alignment is unresolved, show the available sourced facts and the reason the dependent value is unavailable:
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table`
-
-**Conditions:** Granularity
-
-**Annotations:** Such As
-
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Granularity \
+**Annotations:** Such As \
 **Input Values:**
-- Granularity: "Within the reported range", "Below the reported range"
+  - Granularity: "Within the reported range", "Below the reported range"
 
 | Granularity | Figure shown | Decomposition graph | Such As |
 |---|---|---|---|
-| Within the reported range | The supported analysis re-run at a narrower filter, consistent with the broader figure it was drilled from | Available | country, state or province, major metro |
-| Below the reported range | An allocation of the major metro number, or the state's where no metro is reported, labeled as an estimate, not shown with the confidence of a directly sourced forecast, and opening to the forecast it was allocated from and the weighting used, population or retail footprint | Not available, an allocated figure has no causal story of its own to tell | county, store |
+| Within the reported range | The forecast and evidence for the selected geography, resolved just as for a direct question | Available where attribution was computed | country, state or province, major metro |
+| Below the reported range | A qualified local quantity or recomputed rate, labeled as estimated. Without local rate inputs show the labeled parent reference and mark the local rate unavailable | Unavailable for estimated figures | county, store |
 
 That boundary reflects which competitor data is currently licensed and ingested. It is not a permanent limit. A more granular data source would move it.
 
@@ -43,24 +39,29 @@ That boundary reflects which competitor data is currently licensed and ingested.
 Scenario: Drilling down within the licensed range stays consistent and keeps the decomposition graph.
   Given a Query user has an existing Predict answer for Competitor Brand's effective price in Texas in 6 months, at the state or province granularity
   When the Query user drills down to major metro, within that same licensed range
-  Then the answer is re-run at major metro granularity and is guaranteed consistent with the state-or-province figure it was drilled from
+  Then the answer uses the published metro forecast and evidence a direct question would retrieve
   And the decomposition graph remains available
 
-Scenario: Drilling down below the licensed range produces a labeled allocation, not a sourced forecast.
-  Given a Query user has an existing Predict answer for Competitor Brand's effective price in Texas in 6 months, at major metro, the most granular level the competitor's own pricing data supports
-  When the Query user drills down below major metro, to a county or store
-  Then the figure shown is an allocation of the major metro number, labeled as an estimate, not shown with the confidence of a directly sourced forecast
-  And opening the figure shows the major metro forecast it was allocated from and the weighting used
-  And the decomposition graph is not available
+Scenario: A supported local allocation opens to its source.
+  Given a grounded metro volume of 1,000 units and a supported county retail-footprint weight of 0.1
+  When a Query user drills down to the county volume
+  Then the estimate is 100 units and opens to the metro observation and the dated weight
+  And the answer shows no county-level decomposition
 
 Scenario: Pivoting the metric does not require re-asking the question.
   Given a Query user has an existing Predict answer for Competitor Brand's effective price in Texas in 6 months
   When the Query user pivots the metric from price to volume
   Then the same drill-down is re-projected onto volume without needing to re-ask the question
 
-Scenario: Where no major metro is reported, an allocation comes from the state.
-  Given a Query user has a Predict answer for Competitor Brand's effective price in Texas in 6 months, and Competitor Brand's own pricing data reports no major metro containing Loving County
-  When the Query user drills down to Loving County
-  Then the figure shown is an allocation of the Texas number, labeled as an estimate
-  And opening the figure shows the Texas forecast it was allocated from and the weighting used
+Scenario: A state price is the nearest available reference.
+  Given Texas has a sourced price and no metro or compatible local price inputs cover Loving County
+  When the Query user asks for the county price
+  Then the answer identifies the price as the Texas reference and marks the county price unavailable
+
+Scenario: A share of regional volume cannot establish a county price.
+  Given the regional price is USD 10 per unit and the county has 10 percent of its population
+  When an analyst asks for the county price
+  Then the answer labels USD 10 per unit as the regional reference and the county price as unavailable
+  When compatible county revenue of USD 240 and volume of 20 units are available for the same window
+  Then the county estimate is USD 12 per unit and opens to the two local inputs
 ```

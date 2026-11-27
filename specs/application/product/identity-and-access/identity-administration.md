@@ -1,5 +1,7 @@
 ---
 technical-specs:
+  - specs/application/technical/control-plane-service/control-plane.md
+  - specs/application/technical/data-model.md
   - specs/application/technical/identity-and-access.md
 ---
 
@@ -19,6 +21,6 @@ Scenario: Adding a claim mapping grants the business unit and role it names.
 
 Scenario: An unmapped claim grants no access.
   Given no Identity admin has mapped the customer's IdP group claim "APAC-Users" to any business unit or role
-  When a person asserting that claim asks a question
+  When a person whose only asserted group is "APAC-Users" asks a question
   Then they are granted no access on PriceHorizon
 ```
