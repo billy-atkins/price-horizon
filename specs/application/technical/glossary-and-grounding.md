@@ -1,6 +1,6 @@
 ## Guaranteed grounding
 
-A governed business glossary maps natural language phrasing (Competitor Brand, Brand A, effective price, price gap, relative price index, category growth) directly to trusted schema fields and callable model endpoints. This is the most important design decision in the system: the language model is never allowed to compute a number itself. It orchestrates calls to versioned quantitative models and cites retrieved facts. If a term in the question cannot be resolved against the glossary, the system asks a clarifying question instead of guessing. This is what prevents hallucination programmatically. It is an architectural constraint, not a prompt instruction.
+The governed business glossary resolves terms such as competitor brand, effective price, price gap and relative price index to their defined fields and measures. An unresolved term prompts a clarifying question before computation. The language model interprets the question and can explain retrieved facts and supplied figures. The workflow selects the stage, and its algorithm calls each versioned quantitative model when its inputs are needed.
 
 [`specs/application/technical/architecture.md § Architecture Overview § Diagrams § Layer Composition`](/specs/application/technical/architecture.md#layer-composition) renders this.
 

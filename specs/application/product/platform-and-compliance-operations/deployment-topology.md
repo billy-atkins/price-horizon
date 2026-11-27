@@ -16,14 +16,14 @@ PriceHorizon deploys as a versioned, self-hosted installation inside each custom
 Acme AI, as the technology and service provider, retains the access needed to support, monitor, and upgrade each installation. Access control and audit logging govern that access, rather than cutting Acme AI off from the data. A client's view of that access is a full capability of its own: [`specs/application/product/tenant-administration/audit-log-visibility.md`](/specs/application/product/tenant-administration/audit-log-visibility.md).
 
 That access is the Platform admin role, per [`specs/application/product/roles.md § Roles`](/specs/application/product/roles.md#roles). It stays inside the customer's environment on either of its paths:
-- Ordinarily, the client provisions and controls accounts for named Acme AI staff directly in its own identity provider, so revocation never depends on Acme AI's cooperation.
+- Ordinarily, named Acme AI staff sign in through accounts the client provisions and controls in its own identity provider. The current mapping for an asserted claim must grant the Platform admin role, and the installation must permit support.
 - Only where that identity provider cannot be reached, a Platform admin signs in with break-glass credentials held in the installation's own isolated vault.
 
 The client's infrastructure team can withdraw support access at any time, including during an identity-provider outage. Active sessions lose privileged access immediately and new sign-ins are denied on both paths. Only the client can restore support, after which staff must sign in again. A client raises support cases through Acme AI's own portal independently of the installation.
 
 Wherever PriceHorizon holds a credential, the credential lives in an isolated, access-controlled vault. Such credentials include Acme AI's break-glass access, the secret behind a federated identity integration, and a client's data source connection provided through the self-service control plane ([`specs/application/product/tenant-administration/data-source-connections.md § Data Source Connections`](/specs/application/product/tenant-administration/data-source-connections.md#data-source-connections)). No credential is stored in the same database as the installation's configuration or reference data, so a vulnerability in ordinary application data can never expose the credentials that protect it.
 
-Configuration is scoped to the business unit, not the customer as a whole. A large customer is rarely one competitive picture, so a single installation can host several business units side by side. Each business unit has its own brand, competitor set, category, and geography. Each also keeps its own glossary terms and thresholds without needing a separate installation. Day-to-day configuration, such as adding a business unit, retiring a competitor, or reviewing a flagged case, is the client's own self-service surface. Acme AI should not need to be paged for it. The full capability is [`specs/application/product/tenant-administration/reference-data-management.md`](/specs/application/product/tenant-administration/reference-data-management.md), [`specs/application/product/tenant-administration/business-unit-settings.md`](/specs/application/product/tenant-administration/business-unit-settings.md) and [`specs/application/product/tenant-administration/review-queues.md`](/specs/application/product/tenant-administration/review-queues.md).
+Each business unit manages its own brand, competitor set, category, geography, thresholds and aliases for installation-governed terms. The installation governs the shared vocabulary, audit retention and permitted external model destinations. Clients administer their units through [`specs/application/product/tenant-administration/reference-data-management.md`](/specs/application/product/tenant-administration/reference-data-management.md), [`specs/application/product/tenant-administration/business-unit-settings.md`](/specs/application/product/tenant-administration/business-unit-settings.md) and [`specs/application/product/tenant-administration/review-queues.md`](/specs/application/product/tenant-administration/review-queues.md).
 
 [`specs/application/product/architecture.md § Diagrams § Using and Administering`](/specs/application/product/architecture.md#using-and-administering) renders this.
 
@@ -51,11 +51,10 @@ Scenario: Withdrawing support access during an identity-provider outage ends exi
   And when the identity provider returns, a fresh federated sign-in is denied
   And after the client restores permission, only a fresh sign-in can regain support access
 
-Scenario: Two business units in one installation keep their own configuration.
-  Given a single installation hosts North America Snacks and Europe Beverages, each with its own brand, competitor set, category, and geography
-  When a Control plane admin for North America Snacks changes a materiality threshold for North America Snacks
-  Then Europe Beverages' own thresholds are unchanged
-  And Europe Beverages' own glossary terms are unchanged
+Scenario: A unit can change its alias without changing the shared term.
+  Given North America Snacks and Europe Beverages have distinct aliases for the same governed term and maintain their own thresholds
+  When a Control plane admin changes the North America Snacks alias and its materiality threshold
+  Then the shared term, Europe Beverages’ alias and Europe Beverages’ threshold retain their original values
 
 Scenario: A credential lives in an isolated vault regardless of whose it is.
   Given Acme AI provisions its own break-glass credential for a client's installation, and that same client's Control plane admin separately provides credentials connecting ScanTrack, a new data source
@@ -70,7 +69,7 @@ Scenario: An installation can run entirely inside the customer's security bounda
   And when they ask where Competitor Brand's effective price will be in Texas in 6 months, they are answered
 
 Scenario: Acme AI's staff sign in through the client's own identity provider.
-  Given the client has provisioned an account in its own identity provider for a named Acme AI engineer holding the Platform admin role
+  Given the client has provisioned an account for a named Acme AI engineer, mapped an asserted claim to Platform admin, and enabled installation support
   When that Platform admin signs in to support North America Snacks' installation
   Then their access comes through the client's own identity provider
   And the client can end it by revoking that account, without Acme AI's involvement

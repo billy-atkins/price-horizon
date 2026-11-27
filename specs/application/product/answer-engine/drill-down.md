@@ -19,18 +19,19 @@ Throughout every stage ([`specs/application/product/answer-engine/predict.md § 
 
 ### What a granularity drill-down shows
 
-What a granularity drill-down shows depends on the geographic level supported by the evidence. A reported competitor observation supports that side of the analysis. A matched Position or Simulate value also requires reliable product and geography alignment at the selected level. When alignment is unresolved, show the available sourced facts and the reason the dependent value is unavailable:
+A reported competitor observation supports that side of the analysis. A matched Position or Simulate value also requires reliable product and geography alignment at the selected level. When alignment is unresolved, the answer shows the available sourced facts and explains which dependent value is unavailable. Below reported coverage, the parent is the nearest grounded market. The local basis for allocating a quantity is a supported weight for that location. For a rate, the basis is a set of compatible local components.
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
-**Conditions:** Granularity \
-**Annotations:** Such As \
-**Input Values:**
-  - Granularity: "Within the reported range", "Below the reported range"
+**Conditions:** Within reported coverage?, Parent forecast available?, Additive quantity?, Local basis available?
 
-| Granularity | Figure shown | Decomposition graph | Such As |
-|---|---|---|---|
-| Within the reported range | The forecast and evidence for the selected geography, resolved just as for a direct question | Available where attribution was computed | country, state or province, major metro |
-| Below the reported range | A qualified local quantity or recomputed rate, labeled as estimated. Without local rate inputs show the labeled parent reference and mark the local rate unavailable | Unavailable for estimated figures | county, store |
+| Within reported coverage? | Parent forecast available? | Additive quantity? | Local basis available? | Figure shown | Decomposition graph |
+|---|---|---|---|---|---|
+| true | - | - | - | The forecast and evidence for the selected market, as on a direct question | Available where attribution was computed |
+| false | false | - | - | Local forecast unavailable, with the reason the parent forecast is unavailable | Unavailable |
+| false | true | true | true | Estimated local quantity in its original unit, with the parent observation and dated allocation weight | Unavailable |
+| false | true | true | false | Local quantity unavailable, with the missing allocation basis identified | Unavailable |
+| false | true | false | true | Estimated local rate in its own unit, with the components used to calculate it | Unavailable |
+| false | true | false | false | Local rate unavailable. Show the parent rate labeled with its market and unit. | Unavailable |
 
 That boundary reflects which competitor data is currently licensed and ingested. It is not a permanent limit. A more granular data source would move it. [`specs/application/product/architecture.md § Diagrams § From Evidence to Answer`](/specs/application/product/architecture.md#from-evidence-to-answer) shows when the user receives a local estimate or a regional reference.
 
@@ -47,7 +48,19 @@ Scenario: A supported local allocation opens to its source.
   Given a grounded metro volume of 1,000 units and a supported county retail-footprint weight of 0.1
   When a Query user drills down to the county volume
   Then the estimate is 100 units and opens to the metro observation and the dated weight
-  And the answer shows no county-level decomposition
+  And the estimate label and its evidence explain its basis without a separate county confidence score or driver decomposition
+
+Scenario: A county volume is unavailable without an allocation weight.
+  Given a Query user sees a grounded metro volume of 1,000 units and no supported weight for the county
+  When the user drills down to the county volume
+  Then the county volume is unavailable and the answer identifies the missing county allocation weight
+
+Scenario: A county inherits the reason its parent forecast is unavailable.
+  Given a Query user asks for a nine-month forecast for Loving County below reported coverage
+  And Texas is its nearest grounded market and cannot supply that forecast because model support for nine months is unknown
+  When the user opens the county result
+  Then the answer explains that the Texas forecast is unavailable for that reason
+  And the county result contains neither a local estimate nor a regional reference
 
 Scenario: Pivoting the metric does not require re-asking the question.
   Given a Query user has an existing Predict answer for Competitor Brand's effective price in Texas in 6 months

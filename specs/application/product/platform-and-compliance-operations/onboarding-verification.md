@@ -13,12 +13,14 @@ A Platform admin checks onboarding in the bulk view ([`specs/application/product
 ### Test Scenarios
 
 ```gherkin
-Scenario: A scheduled forecast verifies production and its first delivery verifies use.
+Scenario: Publication verifies forecast production and authenticated receipt verifies use.
   Given a recently onboarded business unit has published a forecast with signal evidence and confidence
   When the Platform admin inspects it before any question has been answered
-  Then the forecast verifies production and the report shows no deliveries in the fully retained interval
-  When a Query user receives that forecast in an answer
-  Then its retained client acknowledgement verifies receipt while the forecast is still pending
+  Then the forecast verifies production and the fully retained interval has no committed answers or receipts
+  When a Query user asks for that forecast and the service commits the answer
+  Then the report shows one prepared answer and zero confirmed receipts
+  When the intended user’s authenticated client receives the answer and acknowledges that unit, question and delivery
+  Then the first matching receipt verifies use while the forecast still awaits comparable actual prices
 
 Scenario: A gap in retention limits the onboarding evidence.
   Given a published forecast has no linked deliveries remaining for a partly purged interval

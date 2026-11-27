@@ -18,7 +18,19 @@ The forecast gives the direction and size of the competitor's likely move in eff
 
 Most of that evidence exists before anyone asks. As documents arrive, the system reads the facts in them that bear on price, such as a tax change or a competitor's stated plan. It tags each fact with how credible its type of source is, and records it. A regulator's filing ranks above licensed third-party commentary, and both rank above an internal analyst note. A fact is used only once it is complete enough to size: when it takes effect, which way it pushes, and by how much. For a competitor's product launch or capacity change, it needs only enough for the model of the competitor's past reactions to judge. A stated range is used at its midpoint and shown as the range. [`specs/application/product/tenant-administration/review-queues.md § Review Queues`](/specs/application/product/tenant-administration/review-queues.md#review-queues) covers a fact that is not complete enough.
 
-The forecast, with its breakdown and its confidence, is computed on a schedule for each tracked competitor brand and geography in a business unit, at 1, 3, 6 and 12 months. A question inside that set retrieves a forecast already built. For a supported live request, such as a nine-month horizon at a grounded market for a tracked brand, the system reuses the matching forecast or builds it on a miss. Below the grid, it shows a grounded parent reference or a supported estimate. An untracked brand, unsupported request or unit awaiting publication receives an explanation of unavailability. Either way, what is done with the forecast is computed when the question is asked: the positioning options, their simulated outcomes and the plain-language account.
+For each tracked competitor brand and grounded market, a business unit publishes forecasts at 1, 3, 6 and 12 months. A question at one of those horizons reads its published forecast. For another lead time, such as nine months, the user sees the result below. The required models are those that forecast list price and promotional depth for the published data.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** One target observation period?, Support known for both models?, Both support the requested horizon?
+
+| One target observation period? | Support known for both models? | Both support the requested horizon? | What the Query user sees |
+|---|---|---|---|
+| false | - | - | Forecast unavailable because the target period cannot be resolved |
+| true | false | - | Forecast unavailable because support cannot be verified for a required model |
+| true | true | false | Forecast unavailable because a required model excludes this lead time |
+| true | true | true | A matching forecast when one is available, otherwise a forecast calculated for this request or the reason calculation failed |
+
+Below the grid, the nearest grounded parent’s available forecast supplies a regional reference or a supported estimate. An untracked brand or a unit awaiting publication receives the reason. Positioning, simulation and the plain-language account are produced when the question is asked.
 
 The confidence band is a range around the forecast. Its width comes from the uncertainty each of the underlying list-price and promotional-depth models carries. The confidence score is a separate reading of the evidence behind the forecast. It weighs how credible the weakest source is, since better sources never average away one poorly sourced fact. It also weighs how current the data is, and whether the evidence agrees with itself. If no qualitative signal contributes, snapshot freshness alone sets the score. The explanation identifies source credibility and agreement as inapplicable.
 
@@ -114,10 +126,28 @@ Scenario: The baseline opens to what it was built from.
   And it names the forecasting models that carried it forward, and when each was last validated
   And it shows the announcement that adjusted the baseline
 
-Scenario: A question outside the standard horizons is built when asked, with the full answer.
-  Given a Query user asks where Competitor Brand's effective price will be in Texas in 9 months
-  When the question is answered
-  Then the answer includes the forecast, its confidence score, the decomposition graph, and the evidence behind each driver
+Scenario: A supported nine-month forecast is built on a miss.
+  Given a Query user selects tracked Competitor Brand in grounded Texas and asks for its effective price in nine months
+  And the published list-price and promotional-depth models both support nine months, the target falls in one observation period, and no matching forecast exists
+  When the forecast calculation succeeds
+  Then the answer includes the Texas forecast, confidence score, decomposition graph and evidence behind each driver
+
+Scenario: The requested lead time exceeds a required model’s support.
+  Given a Query user asks for tracked Competitor Brand in grounded Texas at eighteen months with one target period
+  And the list-price model supports eighteen months and the promotional-depth model declares only six and nine months
+  When the user opens the answer
+  Then the forecast is unavailable because the promotional-depth model excludes eighteen months
+
+Scenario: Unknown model support prevents a new forecast.
+  Given a Query user asks for tracked Competitor Brand in grounded Texas at nine months with one target period
+  And the published promotional-depth model has no support declaration
+  When the user asks again with an otherwise matching stored forecast available
+  Then the answer explains that support for the promotional-depth model cannot be verified
+
+Scenario: An ambiguous observation period prevents a forecast.
+  Given a Query user asks for tracked Competitor Brand in grounded Texas at nine months and both required models support it
+  When two observation periods match the target and the publication cannot resolve one
+  Then the answer explains that the target observation period cannot be resolved
 
 Scenario: The confidence score opens to the reasons behind it, naming the weakest source.
   Given the facts behind a Predict answer for Competitor Brand's effective price in Texas in 6 months come from a regulatory filing and from an internal analyst note
@@ -158,20 +188,25 @@ Scenario: A competitor's product launch is used without a stated size.
   Then competitor strategy contributes a correction sized by the model of Competitor Brand's past reactions
   And opening that driver shows both the document and the model
 
-Scenario: A forecast based on market and model data explains its confidence.
-  Given a competitor price forecast uses market and model data and no qualitative signal contributed
-  When the Query user opens the confidence score
-  Then the explanation states "No qualitative signals contributed"
-  And source credibility and triangulation agreement are shown as not applicable
-  And the score equals the freshness score of the data snapshot
+Scenario: A contributing source changes confidence for scheduled forecasts.
+  Given a Query user compares two independent forecasts for tracked brand X in Texas at six months
+  And both use the November 1, 2026 structured snapshot, November 3 UTC scoring date, and identical model, settings and rubric versions
+  And each is produced by a separate scheduled run and read from its published cell with effective freshness 0.80
+  And the first has no qualitative contribution while the second has one eligible agreeing licensed source with credibility 0.60 and agreement 1.00
+  And the rubric weights credibility, freshness and agreement at 0.50, 0.30 and 0.20
+  When the Query user opens each forecast’s confidence explanation
+  Then the first scores 0.80 and marks source credibility and agreement inapplicable
+  And the second scores 0.74 and shows the licensed source, all three component scores and their weights
 
-Scenario: A contributing signal makes the ordinary confidence weights observable.
-  Given the same snapshot and horizon as the forecast without qualitative evidence
-  And one licensed commentary signal contributes, agrees with the baseline, and has a credibility score below snapshot freshness
-  And the ordinary rubric gives credibility a positive weight and the other component scores equal snapshot freshness
-  When the Query user opens the confidence explanation
-  Then credibility, freshness and agreement each show their applicable score and rubric weight
-  And the weighted score is lower than the freshness-only score
+Scenario: A contributing source changes confidence for live forecasts.
+  Given a Query user compares two independent forecasts for tracked brand X in Texas at nine months
+  And both use the November 1, 2026 structured snapshot, November 3 UTC scoring date, and identical model, settings and rubric versions
+  And each is produced by a separate supported live request that misses its exact forecast key with effective freshness 0.80
+  And the first has no qualitative contribution while the second has one eligible agreeing licensed source with credibility 0.60 and agreement 1.00
+  And the rubric weights credibility, freshness and agreement at 0.50, 0.30 and 0.20
+  When the Query user opens each forecast’s confidence explanation
+  Then the first scores 0.80 and marks source credibility and agreement inapplicable
+  And the second scores 0.74 and shows the licensed source, all three component scores and their weights
 
 Scenario: The evidence view distinguishes all three source ranks.
   Given three otherwise identical forecasts with one contributing signal each
@@ -217,8 +252,8 @@ Scenario: Scheduled forecasts remain available when fresh computation is unavail
   Then each answer shows the selected brand's published forecast and confidence
   And its baseline opens to the evidence from that publication
 
-Scenario: A previously answered nine-month question retains its forecast and evidence.
-  Given the Query user received a committed nine-month forecast outside the scheduled grid
+Scenario: A supported live forecast remains reusable during a model outage.
+  Given the Query user received a committed nine-month forecast whose published baseline models both declare support for nine months
   And the published data, models, application and applicable settings have stayed the same
   When the forecast models become unavailable and the user repeats the question
   Then the nine-month forecast and its original rationale are still available

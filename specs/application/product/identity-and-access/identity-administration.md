@@ -7,7 +7,7 @@ technical-specs:
 
 ## Identity Administration
 
-The Identity admin role manages the mapping between the customer's own identity system and PriceHorizon's business units and roles. Adding or correcting a mapping is what grants a person the access the mapping names. Before a mapping exists, the claim exists on the customer's side but grants nothing on PriceHorizon's.
+The Identity admin grants, corrects or withdraws access by mapping the customer’s identity claims to PriceHorizon business units and roles. On each question PriceHorizon combines the grants from all current mappings for the person’s asserted claims. An unmapped claim supplies no grant.
 
 [`specs/application/product/architecture.md § Diagrams § Using and Administering`](/specs/application/product/architecture.md#using-and-administering) renders this.
 
@@ -18,6 +18,16 @@ Scenario: Adding a claim mapping grants the business unit and role it names.
   Given an Identity admin adds a mapping from the customer's IdP group claim "NA-Snacks-Users" to the North America Snacks business unit and the Query user role
   When a person asserting that claim next asks a question
   Then they are granted Query user access scoped to North America Snacks
+
+Scenario: Correcting a mapping changes access on the next question.
+  Given a person’s only asserted group grants Query user access to North America Snacks
+  When the Identity admin corrects its mapping to Europe Beverages and the person next asks a question with the same claim
+  Then they can query Europe Beverages and have no access to North America Snacks
+
+Scenario: Removing one mapping preserves independent grants.
+  Given a person asserts two groups granting Query user access to North America Snacks and Europe Beverages respectively
+  When the Identity admin removes the North America Snacks mapping and the person next asks a question
+  Then they retain access to Europe Beverages and have no access to North America Snacks
 
 Scenario: An unmapped claim grants no access.
   Given no Identity admin has mapped the customer's IdP group claim "APAC-Users" to any business unit or role
