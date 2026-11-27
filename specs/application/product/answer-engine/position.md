@@ -17,7 +17,7 @@ Price gap is shown in the local currency of the geography being discussed, never
 
 Every option carries the forecast's confidence and rationale unchanged. Position computes no score of its own. Applying a positioning strategy to a forecast introduces no uncertainty the forecast did not already carry. An option built on a low-confidence forecast is therefore flagged low-confidence, as the forecast is, with the same explanation behind it. Opening an option's confidence shows the forecast's reasons, since it is the same score. [`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes) is where that sits alongside the other stages.
 
-After simulation, options close on every displayed comparison may be shown together. Every member must qualify against every other member of its group. Two choices remain even when every outcome is equal. Each group opens to the original strategy labels and individual figures. If grouping is unavailable, the answer shows individual options and preserves completed outcomes. Options are framed for judgment: the answer surfaces the choice and does not make it. Each option carries a brief explanation of the trade-off it represents, alongside its numbers. This is the same discipline as the Predict narrative.
+After simulation, neighboring options may be grouped only when every pair has both values for every configured comparison and every difference is within its threshold. A missing comparison value keeps those options separate. Two choices remain even when every outcome is equal. Each group opens to the original strategy labels and individual figures. If grouping is unavailable, the answer shows individual options and preserves completed outcomes. Options are framed for judgment: the answer surfaces the choice and does not make it. Each option carries a brief explanation of the trade-off it represents, alongside its numbers. This is the same discipline as the Predict narrative.
 
 [`specs/application/product/architecture.md § Diagrams § The Answer`](/specs/application/product/architecture.md#the-answer), [`specs/application/product/architecture.md § Diagrams § From Evidence to Answer`](/specs/application/product/architecture.md#from-evidence-to-answer) and [`specs/application/product/architecture.md § Diagrams § When an Answer Falls Short`](/specs/application/product/architecture.md#when-an-answer-falls-short) render this.
 
@@ -44,10 +44,29 @@ Scenario: Each option carries its own trade-off explanation.
   Then each option includes its own brief explanation of the trade-off it represents, not just its price gap and relative price index
 
 Scenario: Options with the same outcome are consolidated, but never down to one.
-  Given a strategic decision where the competitor price stays unchanged and all four candidates have identical prices and complete, identical projected outcomes
-  When the user opens the positioning choices
+  Given a Query user has a strategic decision where the competitor price stays unchanged and all four candidates have identical prices and complete, identical projected outcomes
+  When the Query user opens the positioning choices
   Then Hold, Match and Close the Gap appear as members of the first option in that order
   And Diverge appears separately with its equal figures as the second option
+
+Scenario: Two matching neighbors cannot pull a nonmatching pair into one group.
+  Given a Query user has four eligible candidates A, B, C and D in increasing absolute price-gap order
+  And their projected shares are 18.0%, 18.7%, 19.4% and 23.0% with a one-point threshold
+  And every other required measure is available and within its threshold
+  When the Query user opens the positioning choices
+  Then A and B appear together, C appears separately, and D appears separately
+  And opening the first group identifies A and B and their individual delivered figures
+
+Scenario: Choices kept at the floor can have equal outcomes.
+  Given a Query user has four eligible strategies with the same price and identical simulated figures
+  When the Query user inspects the two displayed choices
+  Then the figures are equal and all four original strategy labels and their member prices are accessible
+
+Scenario: A missing comparison measure keeps otherwise equal choices separate.
+  Given a Query user has two choices with the same price and equal values for every available measure
+  And the unit compares category growth and one choice has no category growth figure
+  When the Query user opens the positioning choices
+  Then those choices appear separately and the available figures remain visible
 
 Scenario: The system frames the choice without making it.
   Given a Query user has generated positioning options for Competitor Brand's effective price in Texas in 6 months
@@ -91,20 +110,20 @@ Scenario: The requested geography supplies the positioned comparison.
   Then the option shows the metro gap of 1 in its local currency and identifies its metro forecast
 
 Scenario: Failure to group completed outcomes preserves each result.
-  Given simulation completed for all three tactical options and grouping retries were exhausted
-  When the user opens the delivered answer
+  Given a Query user’s simulation completed for all three tactical options and grouping retries were exhausted
+  When the Query user opens the delivered answer
   Then it shows Hold, Match and Close the Gap separately in that order with their completed projections
   And it identifies grouping as unavailable
 
 Scenario: A zero target preserves the gap and withholds the index.
-  Given Brand A starts at 9 and a resolved competitor starts at 10 and is forecast to reach zero
-  When the user opens Hold
+  Given a Query user has a forecast where Brand A starts at 9 and a resolved competitor starts at 10 and is forecast to reach zero
+  When the Query user opens Hold
   Then its price is 9 and its currency gap is 9
   And the index is unavailable because the target denominator is zero
 
 Scenario: A zero starting competitor price leaves the independent Hold price visible.
-  Given Brand A starts at 9 and the matched competitor starts at zero and is forecast to reach 10
-  When the user opens a strategic positioning answer
+  Given a Query user has a forecast where Brand A starts at 9 and the matched competitor starts at zero and is forecast to reach 10
+  When the Query user opens a strategic positioning answer
   Then Hold shows 9 with a gap of 1 and an index of 90
   And Match, Close the Gap and Diverge show that the starting competitor price cannot support a percentage move
 ```
@@ -200,11 +219,8 @@ Scenario: Diverge leans further into Brand A's existing position.
   Then the Diverge option prices Brand A higher than the Match option does
   And its relative price index rises above today's
 
-Scenario: Two matching neighbors cannot pull a nonmatching pair into one group.
-  Given four eligible candidates A, B, C and D in increasing absolute price-gap order
-  And their projected shares are 18.0%, 18.7%, 19.4% and 23.0% with a one-point threshold
-  And every other required measure is available and within its threshold
-  When the Query user opens the positioning choices
-  Then A and B appear together, C appears separately, and D appears separately
-  And opening the first group identifies A and B and their individual delivered figures
+Scenario: Deepening a strategic discount reaches the zero price floor.
+  Given a Query user is evaluating a strategic discount, Brand A starts at 8 and its competitor at 10, and the competitor’s forecast price is 2 in the same local currency per unit
+  When they open Diverge, whose uncapped price is −4.80 against a Match price of 1.60
+  Then Diverge shows a price of 0, an absolute gap of 2 and a relative price index of 0
 ```

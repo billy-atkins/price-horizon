@@ -18,4 +18,11 @@ Scenario: A diagnostic window keeps its deadline across a restart.
   When PriceHorizon restarts at 14:20 UTC
   Then North America Snacks still receives the increased detail at 14:29 UTC and returns to its applicable level at 14:30 UTC
   And Europe Beverages keeps its own logging level throughout
+
+Scenario: Extending diagnostic logging requires fresh unit authorization.
+  Given the unit’s diagnostic window ends at 14:30 UTC and its former admin no longer holds the unit’s Control plane admin role
+  When the former admin requests an extension
+  Then the request is denied and the window expires at 14:30 UTC
+  When the unit’s authorized Control plane admin starts a new window at 14:32 UTC
+  Then the unit receives increased detail until 15:02 UTC
 ```

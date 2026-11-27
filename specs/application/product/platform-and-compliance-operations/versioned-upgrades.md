@@ -52,9 +52,11 @@ Scenario: A retained legacy upgrade shows which versions the installation captur
   And F8 appears only in records that captured it
 
 Scenario: A Control plane admin can see current version information at any time.
-  Given a client's installation is running application version 4.3 with every model pinned to its own current registry version
+  Given a Control plane admin’s installation is running application version 4.3 with each model pinned to its current registry version
   When a Control plane admin checks the installation's current versions
   Then they see application version 4.3 and each model's own current version
+  And the view offers no action to change the application or model pins
+  And after attempting to edit them through this view and reopening it, the admin sees the same versions
 
 Scenario: Acme AI executes an elected upgrade.
   Given a client has elected an Acme AI-managed upgrade to application version 4.3, which Acme AI has released
@@ -70,7 +72,9 @@ Scenario: Acme AI does not apply a released version the client has not elected.
   And Acme AI does not execute an upgrade to version 4.3 on its own initiative
 
 Scenario: A Platform admin can see current version information at any time.
-  Given a client's installation is running application version 4.3 with every model pinned to its own current registry version
+  Given a Platform admin’s installation is running application version 4.3 with each model pinned to its current registry version
   When a Platform admin checks the installation's current versions
   Then they see application version 4.3 and each model's own current version
+  And the view offers no action to change the application or model pins
+  And after attempting to edit them through this view and reopening it, the admin sees the same versions
 ```

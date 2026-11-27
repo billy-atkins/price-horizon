@@ -11,12 +11,19 @@ technical-specs:
 
 Each forecast shows the dates it predicts and where its evidence came from. A forecast is pending until its observation period ends and complete comparable prices arrive. If its original comparison terms cannot be recovered, the report explains why it cannot be evaluated. Each scored forecast contributes once to the pattern of model accuracy, however many people received it.
 
-Each checked forecast gets a verdict, always shown with how far off the forecast was:
-- Right, when the actual price landed inside the forecast's confidence band.
-- Right direction, when the actual price landed outside the band but moved the way the forecast said: up, down, or stable within the business unit's stable-price threshold.
-- Wrong, otherwise.
+Once comparable actuals are available, the report shows the signed error and judges the observed move against the forecast's original band, direction and stable-price threshold. Both ends of the band count as inside. Outside the band, an unchanged price is stable. A nonzero move from a zero starting price has no percentage direction. Later settings changes leave the original judgment intact.
 
-A verdict is judged against what the forecast committed to when it was made: its band, its direction, and the stable-price threshold then in effect. So a later settings change never rewrites a verdict.
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Observed move inside original band?, Observed direction relative to forecast \
+**Input Values:**
+  - Observed direction relative to forecast: "matches", "differs", "undefined"
+
+| Observed move inside original band? | Observed direction relative to forecast | What the report shows |
+|---|---|---|
+| true | - | Right |
+| false | "matches" | Right direction |
+| false | "differs" | Wrong |
+| false | "undefined" | No verdict. The report explains that the zero starting price prevents a direction comparison. |
 
 A Platform admin sees the forecasts across the installation, the driver signals each used, and any recorded verdict and signed error. Retained delivery counts show usage over the selected dates. The report identifies gaps when audit retention covers only part of that period.
 
@@ -77,10 +84,11 @@ Scenario: Checking a forecast against what happened tracks model drift, not the 
   And no grade or flag is attached to the answer the executive already acted on
 
 Scenario: A Platform admin reviews evidence and accuracy in bulk across every business unit an installation hosts.
-  Given an installation hosts multiple business units that have each accumulated forecasts and driver signals over time, some with their horizon already passed
-  When a Platform admin reviews the installation in bulk
-  Then the Platform admin sees every driver signal used, every forecast it fed, and whether each completed forecast turned out to be right, across every business unit
-  And this view is not limited to a single business unit or a single forecast
+  Given a Platform admin has a September forecast for North America Snacks that used a Texas tax filing and a September forecast for Europe Beverages that used a German input-cost bulletin
+  And the Texas price move is inside its forecast band while the German forecast still lacks complete comparable prices
+  When the admin opens the installation’s September forecast report
+  Then the North America Snacks row shows the Texas filing and the verdict Right
+  And the Europe Beverages row shows the German bulletin and a pending comparison because the prices are incomplete
 
 Scenario: A Control plane admin's escalation gives a Platform admin the same business unit's evidence.
   Given a Control plane admin reviewing North America Snacks in bulk suspects the platform itself, not their own business unit, is behind a pattern they are seeing
@@ -88,15 +96,30 @@ Scenario: A Control plane admin's escalation gives a Platform admin the same bus
   Then the Platform admin looks at North America Snacks' own evidence and accuracy inside the view they already have, the same records the Control plane admin was looking at
 
 Scenario: A Control plane admin reviews forecast evidence and accuracy in bulk for their own business unit.
-  Given North America Snacks has accumulated multiple forecasts and driver signals over time, some with their horizon already passed
+  Given the Control plane admin for North America Snacks has forecasts and driver signals to review, including forecasts whose horizons have passed
   When a Control plane admin reviews North America Snacks in bulk
-  Then the Control plane admin sees every driver signal used, every forecast it fed, and whether each completed forecast turned out to be right
+  Then the Control plane admin sees the unit’s driver signals and forecasts, with each recorded verdict or reason a verdict is unavailable
   And this view is not limited to a single forecast
 Scenario: A Control plane admin follows up on one delivery of a reused forecast.
-  Given Maya and Luis each received the same scheduled forecast for North America Snacks
+  Given the Control plane admin for North America Snacks can see deliveries of the same scheduled forecast to its Query users Maya and Luis
   And another forecast has no deliveries during the fully retained interval
   When their Control plane admin opens Luis’s delivery in the report
   Then the report shows two forecasts with delivery counts of two and zero
   And the admin can identify Luis’s question and raise that prediction with Luis
   And the detail contains only activity for North America Snacks
+
+Scenario: A zero starting price can yield a known error without a verdict.
+  Given a Control plane admin has two retained forecasts with a starting price of zero and a predicted move of 2
+  And the original band for each move is 1 to 3 in local currency per unit
+  When comparable actuals show moves of 2 and 4 respectively
+  Then the first forecast is Right with signed error zero
+  And the second has signed error −2 and explains that the zero starting price prevents a direction verdict
+
+Scenario: Receipt status follows the selected delivery.
+  Given a Control plane admin sees two committed deliveries of the same forecast in the unit
+  And the client has acknowledged only the first delivery
+  When the Control plane admin opens the second delivery
+  Then its receipt is unconfirmed
+  When the client acknowledges that delivery and the Control plane admin opens it again
+  Then the second delivery shows confirmed receipt
 ```

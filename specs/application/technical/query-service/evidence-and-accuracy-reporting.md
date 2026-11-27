@@ -18,7 +18,7 @@ The report is open to the two roles this Decision Table names, each seeing the b
 
 ### Report assembly
 
-Select successfully published batch forecasts and committed live forecasts, one per immutable ID in the authorized unit selection. Resolve their rationale and retrieval trace, origin, target window and dated comparison state. Use the stored outcome for the observed price, actuals vintage, signed error and verdict. Distinct outcomes supply the accuracy denominator.
+Select successfully published batch forecasts and committed live forecasts, one per immutable ID in the authorized unit selection. Resolve their rationale and retrieval trace, origin, target window and dated comparison state. For a scored forecast, use its immutable outcome for observed price, actuals vintage, signed error and verdict. Otherwise use the latest retained check for state, reason and any known signed error, with no verdict. Missing historical errors remain unknown. Only distinct scored outcomes enter the accuracy denominator.
 
 For each unit, associate each committed forecast-bearing answer with its question and forecast. Count it once by delivery identifier. Count its first authenticated client receipt separately, using the original question time for both counts. A disconnected client leaves the first count intact. Expose asker and question details only under the applicable unit audit permission. Label each count as retained only when its coverage is incomplete.
 
@@ -40,7 +40,7 @@ For each unit, associate each committed forecast-bearing answer with its questio
 
 | Step | Action |
 |---|---|
-| 1 | Set report rows to for f in forecast rows[list contains(permitted units, item.unit)] return {forecast: f.id, unit: f.unit, evidence: f.evidence, state: f.state, reason: f.reason, outcome: f.outcome, deliveries: delivered activity[item.unit = f.unit and item.forecast = f.id and item.at >= activity interval.start and item.at < activity interval.end].delivery, confirmations: confirmed activity[item.unit = f.unit and item.forecast = f.id and item.at >= activity interval.start and item.at < activity interval.end].delivery} |
+| 1 | Set report rows to for f in forecast rows[list contains(permitted units, item.unit)] return {forecast: f.id, unit: f.unit, evidence: f.evidence, state: f.state, reason: f.reason, signed error: f.signed error, outcome: f.outcome, deliveries: delivered activity[item.unit = f.unit and item.forecast = f.id and item.at >= activity interval.start and item.at < activity interval.end].delivery, confirmations: confirmed activity[item.unit = f.unit and item.forecast = f.id and item.at >= activity interval.start and item.at < activity interval.end].delivery} |
 | 2 | Set accuracy report to {rows: report rows, requested: activity interval, covered from: if retained since > activity interval.start then min([retained since, activity interval.end]) else activity interval.start, covered until: activity interval.end, complete: retained since <= activity interval.start, confirmations covered from: min([activity interval.end, max([retained since, receipts retained since, activity interval.start])]), confirmations complete: max([retained since, receipts retained since]) <= activity interval.start} |
 | 3 | End |
 
@@ -60,15 +60,15 @@ For each unit, associate each committed forecast-bearing answer with its questio
     **Means:** business-unit codes permitted by the role and selected report filter; an empty scope produces no rows
 
   - **Name:** forecast rows \
-    **Type:** list<context<id: number, unit: string, evidence: number, state: string, reason: string, outcome: number>> \
-    **Means:** one eligible stored forecast per immutable ID, with rationale reference, comparison state, reason for a pending or unevaluable comparison, and optional stored outcome ID
+    **Type:** list<context<id: number, unit: string, evidence: number, state: string, reason: string, signed error: number, outcome: number>> \
+    **Means:** one forecast per immutable ID, with its rationale, comparison state and reason, optional scored outcome ID and the signed error from the selected outcome or check, null when unknown
 
   - **Name:** delivered activity \
     **Type:** list<context<unit: string, forecast: number, delivery: number, at: number>> \
     **Means:** distinct retained audit-to-delivery links with question time in UTC epoch milliseconds permitted for the requested scope; a qualifying delivery actually references this forecast, including partial answers containing Predict
 
   - **Name:** report rows \
-    **Type:** list<context<forecast: number, unit: string, evidence: number, state: string, reason: string, outcome: number, deliveries: list<number>, confirmations: list<number>>> \
+    **Type:** list<context<forecast: number, unit: string, evidence: number, state: string, reason: string, signed error: number, outcome: number, deliveries: list<number>, confirmations: list<number>>> \
     **Means:** one row per forecast in scope, preserving the eligible retained deliveries as a nested collection
 
   - **Name:** activity interval \
@@ -80,5 +80,5 @@ For each unit, associate each committed forecast-bearing answer with its questio
     **Means:** the start of provably complete question history at the report snapshot. Use the later of the start of audit collection and the greatest cutoff applied by a retention purge. Extending retention cannot restore purged history. If earlier cutoffs cannot be established for a legacy installation, certify coverage only from the first known continuous boundary, or the report snapshot when none is known
 
   - **Name:** accuracy report \
-    **Type:** context<rows: list<context<forecast: number, unit: string, evidence: number, state: string, reason: string, outcome: number, deliveries: list<number>, confirmations: list<number>>>, requested: context<start: number, end: number>, covered from: number, covered until: number, complete: boolean, confirmations covered from: number, confirmations complete: boolean> \
+    **Type:** context<rows: list<context<forecast: number, unit: string, evidence: number, state: string, reason: string, signed error: number, outcome: number, deliveries: list<number>, confirmations: list<number>>>, requested: context<start: number, end: number>, covered from: number, covered until: number, complete: boolean, confirmations covered from: number, confirmations complete: boolean> \
     **Means:** the forecast rows, requested and retained bounds, and whether counts cover the entire request. Equal covered bounds denote no certified coverage
