@@ -15,7 +15,7 @@ A Control plane admin can see, at any time, who has done what within the admin's
 - every configuration change made to the business unit's settings, and who made it
 - the business unit's Query users' questions and what was returned to them, the positioning options, simulated outcomes, and exact narrative wording alike
 
-The admin sees the positioning options, simulated outcomes and exact narrative wording in full, not only a reference that leaves the admin to take Acme AI's word for what it said.
+Opening a retained question shows the answer as its Query user received it, including the original wording, option labels and order, figures, and links to their evidence. A later change of settings leaves that detail as delivered.
 
 Every Control plane admin can see each installation-wide external routing change made by the client’s infrastructure team. The audit entry identifies the call kinds, providers and dated versions authorized before and after the change, including a change of provider or version for an existing call kind ([`specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology § Frontier Models`](/specs/application/product/platform-and-compliance-operations/deployment-topology.md#frontier-models)).
 
@@ -29,7 +29,7 @@ Reviewing this record at scale means finding one entry, not reading every one. A
 
 The filtered set, exactly the entries matching, can be exported to hand to a security or compliance reviewer of the client's own. That reviewer needs no PriceHorizon access to receive it. The export never carries the exact narrative wording or the positioning-and-simulation figures a Query user saw. Only the fact of what happened and a reference to the forecast behind it travel with the export. The wording and figures stay viewable in the product, never inside a file that leaves it.
 
-A Control plane admin can also see, read-only, how long this record is currently kept for the installation. Raising that period further is a contractual matter Acme AI governs, not a self-service setting. This is the same distinction already drawn for the archetype rules and weighting rubrics behind every forecast.
+A Control plane admin can read the installation’s current retention period. An authorized Platform admin raises the period to meet the client’s contractual requirement. From the moment the raise takes effect, it protects every still-retained entry within the longer period and its delivered answer. Previously removed history stays unavailable.
 
 ### Test Scenarios
 
@@ -46,10 +46,11 @@ Scenario: A Control plane admin can see which of their own Query users asked wha
   Then the admin sees who asked, when, which forecast was actually returned, the positioning options and simulated outcomes actually shown, and the exact narrative text the Query user was shown
   And the underlying forecast's own substance is shown by a reference to that forecast, not a duplicate of its values
 
-Scenario: A Control plane admin can see who changed a configuration setting, and what it changed from and to.
-  Given a Control plane admin for North America Snacks lowered the materiality threshold for North America Snacks last week
-  When a Control plane admin for North America Snacks reviews the audit log
-  Then the admin sees who made the change, which setting it was, its previous value, its new value, and when it happened
+Scenario: An administrator can trace a settings change within its business unit.
+  Given Dana changed North America Snacks' simulated-share materiality threshold from 1 point to 2 points at 14:00 UTC
+  When Control plane admins for North America Snacks and Europe Beverages review their respective audit records
+  Then the North America Snacks admin sees Dana, the business unit, the setting, both values and 14:00 UTC
+  And the admin scoped only to Europe Beverages cannot see the edit
 
 Scenario: An Identity admin can see every change to who is granted access.
   Given an Identity admin mapped the IdP group EU-Pricing-Analysts to the Query user role for Europe Beverages yesterday
@@ -101,11 +102,13 @@ Scenario: Exporting the audit log never carries the protected content it referen
   Then the export includes who asked, when, and a reference to the forecast returned
   And the export does not include the narrative text or the positioning and simulation figures themselves
 
-Scenario: A Control plane admin can see how long their own audit log is retained, without being able to shorten it.
-  Given North America Snacks' installation retains its audit log for the default one-year period
-  When a Control plane admin for North America Snacks views the audit log's retention setting
-  Then the admin sees the currently configured retention period
-  And the admin has no self-service way to lower it
+Scenario: A longer retention period protects an answer still present when the change takes effect.
+  Given two 18-month-old North America Snacks questions each have a delivered answer under one-year retention
+  And the first question and its answer have been removed while the second pair is still present
+  When an authorized Platform admin raises retention to two years during the purge
+  Then the unit’s Control plane admin sees the two-year setting and can open the second question and its original answer after the purge retries
+  And the first question and its answer remain unavailable
+  And the retention setting is read-only for the Control plane admin
 
 Scenario: Acme AI reading the application log in the viewer shipped alongside PriceHorizon is recorded.
   Given North America Snacks' installation runs no observability system of its own, so its application log goes to the viewer shipped alongside PriceHorizon

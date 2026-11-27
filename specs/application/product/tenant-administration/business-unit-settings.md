@@ -50,12 +50,13 @@ Scenario: Disagreeing evidence below the stable-price threshold enters the forec
   Then the tax increase's correction is part of the forecast
   And it is not flagged as a disagreement holding the confidence score down
 
-Scenario: A materiality threshold change reaches the next answer.
-  Given a Control plane admin for North America Snacks raises the materiality threshold for simulated share from 0.5 to 1 point
-  And Close the Gap and Match, adjacent in absolute price-gap order, would differ by 0.8 points of simulated share and by less than their thresholds on every other measure
-  And Hold and Close the Gap would differ by 1.5 points of simulated share
-  When a Query user in North America Snacks next asks where Competitor Brand's effective price will be in Texas in 6 months
-  Then Close the Gap and Match are shown as one option
+Scenario: An accepted threshold edit reaches the next answer and can be traced to its author.
+  Given North America Snacks uses a simulated-share materiality threshold of 1 point
+  And Close the Gap and Match are adjacent in absolute price-gap order and differ by 1.5 points of share, with all other measures within their thresholds
+  And Hold differs from both by more than 2 points of share
+  When its Control plane admin Dana raises the threshold to 2 points within the permitted bounds at 14:00 UTC
+  Then the next answer groups Close the Gap and Match together
+  And the unit’s audit detail shows Dana changed its simulated-share threshold from 1 point to 2 points at 14:00 UTC
 
 Scenario: A threshold cannot be set outside the bounds Acme AI provides.
   Given Acme AI's default bounds allow North America Snacks' materiality threshold for simulated share to be no more than 2 points

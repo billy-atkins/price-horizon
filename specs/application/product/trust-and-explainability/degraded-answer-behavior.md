@@ -11,7 +11,7 @@ If the system cannot complete a forecast at all once retries are exhausted, the 
 
 If the forecast completes but positioning cannot, the forecast, its confidence, and its rationale are still shown, clearly labeled as missing Position and Simulate. If the forecast and positioning both complete but simulation cannot, the forecast and the positioning options are still shown, clearly labeled as missing Simulate.
 
-None of these answers ever substitutes a stale, placeholder, or previous run's figure for what could not be freshly computed. None ever withholds a result that was already computed because a later stage failed.
+When narrative generation exhausts its retries, the Query user receives the completed stages as labeled figures with their evidence. Each missing stage is identified. Only figures computed for this answer are shown. The retained delivery preserves the fallback text and the results as displayed.
 
 [`specs/application/product/architecture.md § Diagrams § When an Answer Falls Short`](/specs/application/product/architecture.md#when-an-answer-falls-short) renders this.
 
@@ -36,4 +36,10 @@ Scenario: A completed forecast and positioning are still shown even when simulat
   When a Query user asks the question
   Then the answer shows the completed forecast and positioning options
   And the answer is clearly labeled as missing Simulate
+
+Scenario: Narrative failure leaves the completed figures and their evidence available.
+  Given Predict, Position and Simulate have completed for a North America Snacks Query user
+  When narrative generation exhausts its retries
+  Then the user sees the labeled forecast, confidence, options and simulated outcomes and can open the evidence behind their figures
+  And the unit’s Control plane admin reopening that delivery sees the same fallback text and figures
 ```
