@@ -197,12 +197,16 @@ def test_a_keyed_part_under_either_of_two_headings_sharing_a_path_is_cited_by_it
 
 @pytest.mark.action("--show-term-uses")
 @pytest.mark.passes
-def test_terms_finds_a_term_in_every_form_it_takes_and_not_where_its_words_only_stand_apart(corpus, at):
+def test_terms_finds_a_term_in_every_form_it_takes_and_marks_where_its_words_stand_apart(corpus, at):
     # the forms spec writes the term append entry as a function's name, a flag, a class's name, a plural and a phrase
-    # broken across two lines, and once with its words standing apart; the code calls and defines it in three languages
-    want = {(FORMS, at(w)) for w in ("function append_entry", "flag --append-entry", "class AppendEntry", "appending entries", "the clerk will append")}
-    want |= {("code/sample.py", 19), ("code/sample.py", 27), ("code/sample.ts", 12), ("code/sample.ts", 18), ("code/sample.cs", 12), ("code/sample.cs", 15)}
-    assert lines_of(corpus.terms("append entry").places) == want
+    # broken across two lines, and once with its words standing apart in one sentence, which is found marked words
+    # apart; the code calls and defines it in three languages
+    together = {(FORMS, at(w)) for w in ("function append_entry", "flag --append-entry", "class AppendEntry", "appending entries", "the clerk will append")}
+    together |= {("code/sample.py", 19), ("code/sample.py", 27), ("code/sample.ts", 12), ("code/sample.ts", 18), ("code/sample.cs", 12), ("code/sample.cs", 15)}
+    places = corpus.terms("append entry").places
+    assert lines_of(p for p in places if not p.apart) == together
+    assert lines_of(p for p in places if p.apart) == {(FORMS, at("Nothing here appends an unrelated thing"))}
+    assert lines_of(corpus.terms("append entry", exact=True).places) == together
 
 
 @pytest.mark.action("--show-term-uses")

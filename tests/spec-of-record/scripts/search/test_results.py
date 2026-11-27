@@ -8,14 +8,15 @@ pytestmark = pytest.mark.reads("search-results.md", "result-as-the-search-wrote-
                                "committed-result-naming-its-last-commit", "committed-result-naming-the-commit-asked-for", "committed-result-naming-no-commit",
                                "committed-result-naming-both-commits", "current-result-naming-a-commit", "working-files-result-naming-its-paths",
                                "working-files-result-naming-no-path", "ranked-result-holding-its-part", "ranked-result-whose-part-holds-more-places",
-                               "ranked-result-past-the-ranking")
+                               "ranked-result-past-the-ranking", "terms-result-holding-a-place-words-apart", "terms-result-asked-for-exact",
+                               "terms-result-whose-exact-is-neither-yes-nor-no", "meaning-result-asked-for-exact")
 
 
 @pytest.mark.action("--check-result")
 @pytest.mark.passes
 @pytest.mark.parametrize("key", ["result-as-the-search-wrote-it", "cited-sections-listing", "committed-result-naming-its-last-commit",
                                  "committed-result-naming-the-commit-asked-for", "working-files-result-naming-its-paths", "ranked-result-holding-its-part",
-                                 "ranked-result-past-the-ranking"])
+                                 "ranked-result-past-the-ranking", "terms-result-holding-a-place-words-apart", "terms-result-asked-for-exact"])
 def test_a_result_as_the_search_writes_it_is_in_its_form(fixtures, work, key):
     assert search.Result.check(result_file(work, fixtures[key])) == []
 
@@ -32,6 +33,8 @@ def test_a_result_as_the_search_writes_it_is_in_its_form(fixtures, work, key):
     ("current-result-naming-a-commit", "it names a Commit, and its Target is not the committed files"),
     ("working-files-result-naming-no-path", "it answered over the working files and holds no Narrowed To"),
     ("ranked-result-whose-part-holds-more-places", "its Ranking Part is `41 to 70`, and it holds 2 places"),
+    ("terms-result-whose-exact-is-neither-yes-nor-no", "its Exact is `maybe`, neither yes nor no"),
+    ("meaning-result-asked-for-exact", "it was asked for exact, and only a search by terms is"),
 ])
 def test_a_result_out_of_its_form_is_reported_for_what_it_breaks_alone(fixtures, work, key, said):
     problems = search.Result.check(result_file(work, fixtures[key]))

@@ -1,4 +1,14 @@
 **Records:**
+  - **Fixture:** walkers-notes-naming-the-north-wall-of-the-quay \
+    **Holds:** a page of notes, one sentence holding the words north and quay with other words between them \
+    **Snippet:**
+
+      ```markdown
+      # Notes
+
+      A walker's notes: the north wall of the quay is slippery after rain.
+      ```
+
   - **Fixture:** ferry-design-drafted-retiring-the-north-quay \
     **Holds:** the design ferry-times-in-the-guide in progress at version 1.0.1, a log of three entries, its Retired Phrases retiring north quay for north pier \
     **Snippet:**
@@ -1046,6 +1056,69 @@
         - none
       ```
 
+  - **Fixture:** research-searching-both-ways-its-meaning-narrowed-to-the-guide \
+    **Holds:** a handed-off judgment's report of research for the design ferry-times-in-the-guide, read at version 1.0.0, its one Read Assessment of the guide's section The Ferry, naming the design's goal in a Search by meaning giving that section and in ferry-times-by-terms, a Search by terms for north quay, its Search by meaning narrowed to docs/guide.md, with a Settlement and no Hand-back part \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** handed-off-judgment-1
+
+      ## Reading
+
+      **Design Version:** 1.0.0 \
+      **Reads:**
+        - `docs/guide.md § The Ferry`
+
+      ## Searches
+
+      **Records:**
+        - **Search:** ferry-times-by-meaning \
+          **For:** every place saying when the ferry runs \
+          **Goals:**
+            - guide-says-when-the-ferry-runs
+
+          **Kind:** meaning \
+          **Query:** The ferry makes its first crossing in the morning and its last in the evening. \
+          **Narrowed To:**
+            - `docs/guide.md`
+
+          **Ranking Part:** 1 to 20 \
+          **Snapshot:** 0123456789abcdef \
+          **Places:**
+            - `docs/guide.md § The Ferry`
+
+        - **Search:** ferry-times-by-terms \
+          **For:** every use of the quay the ferry leaves from \
+          **Goals:**
+            - guide-says-when-the-ferry-runs
+
+          **Kind:** terms \
+          **Query:** north quay \
+          **Snapshot:** 0123456789abcdef \
+          **Places:**
+            - `docs/guide.md § The Ferry`
+
+      ## Read Assessments
+
+      **Records:**
+        - **Area:** `docs/guide.md § The Ferry` \
+          **Impact:**
+            - changes
+
+          **Reason:** The section names the ferry and is where its times are to stand. \
+          **Goals:**
+            - guide-says-when-the-ferry-runs
+
+      ## Settlement
+
+      **Ending:** its own settling \
+      **Earlier Reports:**
+        - none
+      ```
+
   - **Fixture:** research-handed-back-searching-by-terms-for-no-word \
     **Holds:** a handed-off judgment's report of research for the design ferry-times-in-the-guide, read at version 1.0.0, its one Read Assessment of the guide's section The Ferry, naming the design's goal in a Search by meaning giving that section and in ferry-times-by-terms, a Search by terms for three dots, as its cold agent hands it back \
     **Snippet:**
@@ -1237,6 +1310,7 @@
 
           **Kind:** terms \
           **Query:** first crossing \
+          **Exact:** yes \
           **Target:** working-files \
           **Narrowed To:**
             - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
@@ -1367,6 +1441,7 @@
 
           **Kind:** terms \
           **Query:** first crossing \
+          **Exact:** yes \
           **Target:** working-files \
           **Narrowed To:**
             - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
@@ -1497,6 +1572,7 @@
 
           **Kind:** terms \
           **Query:** first crossing \
+          **Exact:** yes \
           **Target:** working-files \
           **Narrowed To:**
             - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
@@ -1615,6 +1691,7 @@
 
           **Kind:** terms \
           **Query:** first crossing \
+          **Exact:** yes \
           **Target:** working-files \
           **Narrowed To:**
             - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
@@ -1972,6 +2049,7 @@
 
           **Kind:** terms \
           **Query:** north quay \
+          **Exact:** yes \
           **Snapshot:** 0123456789abcdef \
           **Places:**
             - `docs/guide.md § The Ferry`
@@ -2107,6 +2185,7 @@
 
           **Kind:** terms \
           **Query:** north quay \
+          **Exact:** yes \
           **Snapshot:** 0123456789abcdef \
           **Places:**
             - `docs/guide.md § The Ferry`
@@ -2119,6 +2198,7 @@
 
           **Kind:** terms \
           **Query:** north quay \
+          **Exact:** yes \
           **Target:** current-fixture-files \
           **Snapshot:** 0123456789abcdef \
           **Places:**
@@ -2255,6 +2335,7 @@
 
           **Kind:** terms \
           **Query:** north quay \
+          **Exact:** yes \
           **Snapshot:** 0123456789abcdef \
           **Places:**
             - `docs/guide.md § The Ferry`
@@ -2267,6 +2348,7 @@
 
           **Kind:** terms \
           **Query:** north quay \
+          **Exact:** yes \
           **Target:** current-fixture-files \
           **Snapshot:** 0123456789abcdef \
           **Places:**

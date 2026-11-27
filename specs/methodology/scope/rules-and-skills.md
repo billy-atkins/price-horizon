@@ -114,6 +114,24 @@ A Skipped Step is one failure a step carrying out an operating rule leaves when 
       - `.ai/skills/implement-specs/` `--log-entry`
       - [`specs/AGENTS.md § Design, Refactor, Refine § Who Checks What and Why § Check Roles [Check: the validation review]`](/specs/AGENTS.md#check-roles)
 
+  - **Failure:** the commit history read for why the files say what they say \
+    **Sections:**
+      - [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)
+
+    **Rule:** [`specs/AGENTS.md § Design, Refactor, Refine § Reading Fresh`](/specs/AGENTS.md#reading-fresh) \
+    **Leaves:** nothing in the files \
+    **Caught By:**
+      - the user
+
+  - **Failure:** text located in research by a lookup outside the search \
+    **Sections:**
+      - [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)
+
+    **Rule:** [`specs/AGENTS.md § Design, Refactor, Refine § Measure Twice, Cut Once § Research`](/specs/AGENTS.md#research) \
+    **Leaves:** nothing in the files \
+    **Caught By:**
+      - the user
+
   - **Failure:** a review's model and effort not offered \
     **Sections:**
       - [`specs/AGENTS.md § Design, Refactor, Refine`](/specs/AGENTS.md#design-refactor-refine)
