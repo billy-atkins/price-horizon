@@ -194,8 +194,22 @@ A configured external rendering model receives only the forecast rationale. The 
 
 Drill-down runs along independent axes, the ones [`specs/application/product/answer-engine/drill-down.md § Drill-down: cross-cutting, available at every stage`](/specs/application/product/answer-engine/drill-down.md#drill-down-cross-cutting-available-at-every-stage) promises. Each new request checks current authorization and resolves its scope. A pivot within an already delivered answer uses its retained records:
 - **Granularity change, within the grid.** Resolve the narrower request through [`specs/application/technical/query-service/intent-and-retrieval.md § Dynamic Retrieval and Weighting (when the question is asked) § Parallel evidence retrieval`](/specs/application/technical/query-service/intent-and-retrieval.md#parallel-evidence-retrieval). A scheduled cell reads its stored forecast and rationale. A supported live key reuses a matching stored bundle or computes once on a miss. Run the eligible downstream stages for the selected scope.
-- **Granularity change, below the grid.** Select the nearest grounded parent. Allocate additive quantities using a relevant, versioned population or retail-footprint weight. A derived price, share or growth rate requires compatible local components for the same product, currency, measurement window and population, with a positive denominator. Show the components and sources. Without that basis show the parent rate labeled with its geography and currency, and mark the local rate unavailable. Estimated quantities retain the parent currency and identify the weight and lower confidence. No local driver decomposition exists. [`specs/application/product/answer-engine/drill-down.md § Drill-down: cross-cutting, available at every stage § What a granularity drill-down shows`](/specs/application/product/answer-engine/drill-down.md#what-a-granularity-drill-down-shows) covers the display.
+- **Granularity change, below the grid.** Resolve the nearest grounded parent through the forecast selector. An unavailable parent forecast leaves the local forecast unavailable with the same reason. With an available parent forecast, use the measure and evidence decision below.
 - **Metric pivot.** It re-projects the existing output onto a different metric field (price to volume to margin to share). If that metric was already computed as part of the Simulated Outcome, the pivot is a display-only operation with no new model call. For a measure requiring a new computation, resolve and authorize a new request for the selected scope.
+
+For an additive quantity a valid allocation weight is a relevant, versioned population or retail-footprint weight for the local geography. For a derived price, share or growth rate, compatible local components cover the same product, population and measurement window, agree on units and currency where applicable, and have a positive denominator.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Additive quantity?, Valid allocation weight?, Compatible local components?
+
+| Additive quantity? | Valid allocation weight? | Compatible local components? | Figure and evidence |
+|---|---|---|---|
+| true | true | - | Allocate the parent quantity using the dated weight. Show both sources. Physical volume retains its physical unit and a monetary amount retains its currency. |
+| true | false | - | Mark the local quantity unavailable and identify the missing allocation basis. |
+| false | - | true | Compute the local rate from the compatible components and show their sources. Report price in currency per unit and share or growth in the measure’s own ratio or percentage unit. |
+| false | - | false | Mark the local rate unavailable. Label the parent reference with its market and the unit of that rate, such as USD per unit or percent. |
+
+Label a local estimate and show the basis for judging it. An estimate has no separate numeric confidence score or local driver decomposition. [`specs/application/product/answer-engine/drill-down.md § Drill-down: cross-cutting, available at every stage § What a granularity drill-down shows`](/specs/application/product/answer-engine/drill-down.md#what-a-granularity-drill-down-shows) covers the display.
 
 [`specs/application/technical/architecture.md § Architecture Overview § Diagrams § Layer Composition`](/specs/application/technical/architecture.md#layer-composition) renders this.
 

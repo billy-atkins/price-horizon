@@ -52,11 +52,11 @@ A question request carries the session's business unit and kind of decision, whe
 
 ### Parallel evidence retrieval
 
-Capture the resolved unit’s current publication after authorization and intent resolution. Classify a requested geography below the grid’s resolution for allocation from its grounded parent. Other unsupported geographies are unavailable. Only a tracked brand at a grounded market and supported horizon can take the live route. A scheduled key must read its own published bundle. A missing scheduled row or failed read follows the existing retrieval retry and failure path. A unit awaiting its first publication returns the specific unavailability reason. No forecast or delivery is created.
+Capture the resolved unit’s current publication after authorization and intent resolution. Use the [`§ Dynamic Retrieval and Weighting (when the question is asked) § Parallel evidence retrieval § Forecast source`](#forecast-source) decision to select the market and forecast. A missing scheduled row or failed read follows the existing retrieval retry and failure path. A unit awaiting its first publication receives the specific reason, with no forecast or delivery created.
 
 For a live lookup, match unit, competitor, brand, geography, horizon, metric, resolved period and basis, publication ID, data vintage, complete forecast model map, application and business-unit configuration versions. Pin the question’s applicable settings and application version on entry. Look up committed forecasts by this unique key. The model call trace records only invoked versions. On either path retrieve Brand A’s current price and margin targets. Positioning uses the selected forecast and the current positioning settings. Show the forecast’s origin and target window from its immutable record on each delivery.
 
-When the lookup returns no matching record for an outside-grid request, retrieve the forecast inputs in parallel:
+For an eligible live request that has no exact committed match, retrieve the forecast inputs in parallel:
 - retrieve the competitor’s observed list prices, trade-promotion depths, rebates and surcharges per unit from the pinned snapshot
 - read the rebate and surcharge terms for that competitor, brand and geography effective in the target period, as known at the same data vintage. For each adjustment supply its applicable per-unit term and source, or its latest observed per-unit amount and observation date when the future term is unspecified
 - retrieve the signals eligible for this forecast. Both the scheduled cell and the live question use the resolved business-unit namespace, applicable geography and time window. A Competitor signal must match the competitor code and cover the resolved brand through its recorded brand set or explicit portfolio-wide scope. A Business Unit signal must match the unit, market and product scope. An unresolved scope cannot match. Apply this rule before event routing on both paths
@@ -67,21 +67,24 @@ The forecast algorithms call their models when they consume these inputs. Confid
 
 #### Forecast source
 
-Resolve each authorized request against its captured publication. A drill-down uses the same selector as a direct question for the narrower market, as [`specs/application/product/answer-engine/drill-down.md § Drill-down: cross-cutting, available at every stage § What a granularity drill-down shows`](/specs/application/product/answer-engine/drill-down.md#what-a-granularity-drill-down-shows) requires. For a below-grid request, select the grounded parent for [`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Drill-down mechanics`](/specs/application/technical/query-service/layered-output-synthesis.md#drill-down-mechanics). An exact live match fulfills the reuse promise in [`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`](/specs/application/product/answer-engine/predict.md#predict-what-will-the-competitor-do).
+Resolve each authorized request against its captured publication. A drill-down uses the same selector as a direct question for the narrower market, as [`specs/application/product/answer-engine/drill-down.md § Drill-down: cross-cutting, available at every stage § What a granularity drill-down shows`](/specs/application/product/answer-engine/drill-down.md#what-a-granularity-drill-down-shows) requires. For a below-grid request, run this same selection at the nearest grounded ancestor. If its forecast is unavailable, return the reason. Its forecast, when available, supplies the basis for [`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Drill-down mechanics`](/specs/application/technical/query-service/layered-output-synthesis.md#drill-down-mechanics). For a rejected request, return the reason selected below. Identify the target window or the affected published model and requested lead time so the user can see which check failed. Reopening a retained delivery retrieves its original forecast by identity. An exact eligible live match fulfills the reuse promise in [`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`](/specs/application/product/answer-engine/predict.md#predict-what-will-the-competitor-do).
 
 **Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
-**Conditions:** Publication available?, Tracked brand?, Forecast route, Exact live match? \
+**Conditions:** Publication available?, Tracked brand?, Requested market grounded?, Grounded ancestor?, Scheduled horizon?, One observation window?, Support declarations known?, Lead time supported?, Exact live match? \
 **Computed:** Lookup result
 
-| Publication available? | Tracked brand? | Forecast route | Exact live match? | Lookup result |
-|---|---|---|---|---|
-| false | - | - | - | "awaiting publication" |
-| true | false | - | - | "untracked" |
-| true | true | "cell" | - | "published cell" |
-| true | true | "allocation" | - | "use grounded parent" |
-| true | true | "unsupported" | - | "unavailable" |
-| true | true | "live" | true | "stored live" |
-| true | true | "live" | false | "compute live" |
+| Publication available? | Tracked brand? | Requested market grounded? | Grounded ancestor? | Scheduled horizon? | One observation window? | Support declarations known? | Lead time supported? | Exact live match? | Lookup result |
+|---|---|---|---|---|---|---|---|---|---|
+| false | - | - | - | - | - | - | - | - | "awaiting publication" |
+| true | false | - | - | - | - | - | - | - | "untracked" |
+| true | true | false | false | - | - | - | - | - | "no grounded market" |
+| true | true | false | true | - | - | - | - | - | "use grounded parent" |
+| true | true | true | - | true | - | - | - | - | "published cell" |
+| true | true | true | - | false | false | - | - | - | "unresolved observation window" |
+| true | true | true | - | false | true | false | - | - | "unknown model support" |
+| true | true | true | - | false | true | true | false | - | "unsupported lead time" |
+| true | true | true | - | false | true | true | true | true | "stored live" |
+| true | true | true | - | false | true | true | true | false | "compute live" |
 
 [`specs/application/technical/architecture.md § Architecture Overview § Diagrams § Layer Composition`](/specs/application/technical/architecture.md#layer-composition) shows how a published cell, an exact live match and a newly computed forecast reach synthesis.
 
@@ -168,10 +171,29 @@ Resolve each authorized request against its captured publication. A drill-down u
     **Type:** boolean \
     **Means:** whether the selected competitor and brand belong to the captured published membership
 
-  - **Name:** forecast route \
-    **Type:** string \
-    **Values:** "cell", "live", "allocation", "unsupported" \
-    **Means:** requested scope classified using the captured publication and geographic grounding rules
+  - **Name:** requested market grounded? \
+    **Type:** boolean \
+    **Means:** whether the requested market itself belongs to the captured publication’s reconciled geography grid
+
+  - **Name:** grounded ancestor? \
+    **Type:** boolean \
+    **Means:** whether a strict ancestor of the requested market in the reconciled geography hierarchy belongs to that grid
+
+  - **Name:** scheduled horizon? \
+    **Type:** boolean \
+    **Means:** whether the requested lead time belongs to the captured publication’s schedule, regardless of whether its cell can be read
+
+  - **Name:** one observation window? \
+    **Type:** boolean \
+    **Means:** whether the requested lead time resolves to exactly one supported observation period for the published series and price basis
+
+  - **Name:** support declarations known? \
+    **Type:** boolean \
+    **Means:** whether each horizon-consuming forecast call in [`specs/application/technical/predict-computation.md § Predict Computation § Baseline forecast`](/specs/application/technical/predict-computation.md#baseline-forecast) has an identifiable published model version with a readable declaration under [`specs/application/technical/model-registry.md § Model registry`](/specs/application/technical/model-registry.md#model-registry)
+
+  - **Name:** lead time supported? \
+    **Type:** boolean \
+    **Means:** whether the requested lead time belongs to every required version’s declared set after normalization within the same duration family
 
   - **Name:** exact live match? \
     **Type:** boolean \
