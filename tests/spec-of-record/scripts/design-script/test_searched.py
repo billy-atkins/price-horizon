@@ -45,6 +45,18 @@ def test_reach_lists_each_line_holding_a_retired_phrase(fixtures, work, monkeypa
 
 
 @pytest.mark.action("--show-reach")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-searched.md", "ferry-design-drafted-retiring-the-north-quay", "walkers-notes-naming-the-north-wall-of-the-quay")
+def test_reach_asks_for_exact_and_lists_no_line_holding_a_retired_phrase_s_words_apart(fixtures, work, monkeypatch, capsys):
+    # the notes say the north wall of the quay: north and quay in one sentence with other words between them, which a
+    # search by terms asked by default gives, and which the reach, asking for exact, does not
+    root = searched(work, fixtures, "ferry-design-drafted-retiring-the-north-quay", notes="walkers-notes-naming-the-north-wall-of-the-quay")
+    assert acted(monkeypatch, root, dd.show_reach, DESIGN) == 0
+    out = capsys.readouterr().out
+    assert "== show-reach " + NAME in out and "1 line" in out and "docs/guide.md:7  " + QUAY in out and "docs/notes.md" not in out
+
+
+@pytest.mark.action("--show-reach")
 @pytest.mark.reports
 @pytest.mark.reads("design-script-searched.md", "ferry-design-drafted-retiring-the-south-quay")
 def test_reach_lists_no_line_for_a_phrase_no_operative_file_holds(fixtures, work, monkeypatch, capsys):
@@ -192,6 +204,66 @@ def test_research_searching_each_goal_both_ways_is_handed_back(fixtures, work, m
     assert "== check-handed-back %s\n0 problems" % RESEARCH in capsys.readouterr().out
 
 
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]
+@pytest.mark.action("--check-handed-back", "--take-up-report")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.reads("design-script-searched.md", "research-handed-back-searching-both-ways")
+@pytest.mark.parametrize("action, heading", [(dd.check_handed_back, "== check-handed-back "), (dd.take_up_report, "== take-up-report, not taken up ")])
+def test_research_whose_search_gives_a_place_its_places_leave_out_is_refused(fixtures, work, monkeypatch, capsys, action, heading):
+    # the walker's notes name the north quay, and the research's Search by terms records the guide alone
+    root = searched(work, fixtures, "ferry-design-drafted", **{"research-handed-back-searching-both-ways": RESEARCH})
+    before = kept(root)
+    assert acted(monkeypatch, root, action, RESEARCH) == 1
+    out = capsys.readouterr().out
+    assert heading + RESEARCH in out and "Search ferry-times-by-terms gives `docs/notes.md`, which its Places do not cover" in out and kept(root) == before
+
+
+def asked_for_exact(root, report, key):
+    """Write `Exact: yes` into the Search a report holds under the key, after its Query."""
+    path = root / report
+    lines = path.read_text(encoding="utf-8").split("\n")
+    at = next(i for i, line in enumerate(lines) if line.endswith("**Search:** %s \\" % key))
+    query = next(i for i in range(at, len(lines)) if "**Query:**" in lines[i])
+    lines.insert(query + 1, lines[query][:lines[query].index("**")] + "**Exact:** yes \\")
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def asked_by_default(root, report, key):
+    """Take the `Exact: yes` out of the Search a report holds under the key, so it reads as asked by default."""
+    path = root / report
+    lines = path.read_text(encoding="utf-8").split("\n")
+    at = next(i for i, line in enumerate(lines) if line.endswith("**Search:** %s \\" % key))
+    exact = next(i for i in range(at, len(lines)) if "**Exact:** yes" in lines[i])
+    path.write_text("\n".join(lines[:exact] + lines[exact + 1:]), encoding="utf-8")
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]
+@pytest.mark.action("--check-handed-back")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.reads("design-script-searched.md", "research-handed-back-searching-both-ways")
+def test_research_searching_by_terms_asked_for_exact_is_refused(fixtures, work, monkeypatch, capsys):
+    root = searched(work, fixtures, "ferry-design-drafted", notes="notes-citing-nothing", **{"research-handed-back-searching-both-ways": RESEARCH})
+    asked_for_exact(root, RESEARCH, "ferry-times-by-terms")
+    assert acted(monkeypatch, root, dd.check_handed_back, RESEARCH) == 1
+    assert ("Search ferry-times-by-terms is research's search by terms, which the canon has ask by default, and it was asked for exact"
+            in capsys.readouterr().out)
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]
+@pytest.mark.action("--check-settled-report")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-designs.md", "ferry-design-drafted")
+@pytest.mark.reads("design-script-searched.md", "review-taken-up-its-tactical-fix-changing-what-its-search-of-the-design-found")
+def test_tactical_fix_whose_search_by_terms_was_asked_by_default_is_refused(fixtures, work, monkeypatch, capsys):
+    root = tactical(work, fixtures, "review-taken-up-its-tactical-fix-changing-what-its-search-of-the-design-found")
+    asked_by_default(root, REVIEW, "first-crossing-named")
+    assert acted(monkeypatch, root, dd.check_settled_report, REVIEW) == 1
+    assert ("Search first-crossing-named is a round's tactical fix's search by terms, which the canon has ask for exact, and it was asked by default"
+            in capsys.readouterr().out)
+
+
 def researched(work, fixtures, report="research-taken-up-searching-both-ways", notes="notes-citing-nothing", **more):
     """-> the root of a project whose design's log names its research, with that research's report."""
     return searched(work, fixtures, "ferry-design-drafted-researched", notes=notes, **{report: RESEARCH, **more})
@@ -204,6 +276,8 @@ def researched(work, fixtures, report="research-taken-up-searching-both-ways", n
 @pytest.mark.reads("design-script-researched.md", "ferry-design-drafted-researched")
 @pytest.mark.reads("design-script-searched.md", "research-taken-up-searching-both-ways")
 def test_research_naming_each_goal_both_ways_over_every_operative_file_passes(fixtures, work, monkeypatch, capsys):
+    # the Search by meaning shows the guide alone, the notes nowhere in its Places, and the goal still passes: a Search
+    # by meaning counts as searching only the files its places show, and the goal's Search by terms searched every file
     assert acted(monkeypatch, researched(work, fixtures), dd.check_design, DESIGN) == 0
     assert "== check-design %s\n0 problems" % NAME in capsys.readouterr().out
 
@@ -240,13 +314,17 @@ def test_design_whose_research_searches_both_ways_is_stamped_validated(fixtures,
 @pytest.mark.action("--check-design")
 @pytest.mark.reports
 @pytest.mark.reads("design-script-researched.md", "ferry-design-drafted-researched")
-@pytest.mark.reads("design-script-searched.md", "research-taken-up-searching-both-ways", "research-searching-both-ways-narrowed-to-the-guide")
+@pytest.mark.reads("design-script-searched.md", "research-taken-up-searching-both-ways", "research-searching-both-ways-narrowed-to-the-guide",
+                   "research-searching-both-ways-its-meaning-narrowed-to-the-guide")
 @pytest.mark.parametrize("report, notes, said, rule", [
     # the Search by terms, run over the files as they stand, gives the notes naming the quay
     ("research-taken-up-searching-both-ways", "walkers-notes",
      "Search ferry-times-by-terms of %s gives `docs/notes.md`, which no binding research report's Read Assessment's Area covers" % RESEARCH, "research-covers-its-matches"),
     ("research-searching-both-ways-narrowed-to-the-guide", "notes-citing-nothing",
      "the Searches by terms naming the goal %s were narrowed to paths that together leave out" % GOAL, "goals-searched-over-every-operative-file"),
+    # the goal's Search by meaning was not asked over every operative file, so the notes were never ranked
+    ("research-searching-both-ways-its-meaning-narrowed-to-the-guide", "notes-citing-nothing",
+     "the Searches by meaning naming the goal %s were narrowed to paths that together leave out" % GOAL, "goals-searched-over-every-operative-file"),
 ])
 def test_research_leaving_a_place_or_a_file_out_is_reported(fixtures, work, monkeypatch, capsys, report, notes, said, rule):
     root = researched(work, fixtures, report, notes)

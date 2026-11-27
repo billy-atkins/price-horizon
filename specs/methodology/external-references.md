@@ -129,6 +129,14 @@
     **Relation:** adopts \
     **Covers:** a design's version: the version core and its three counters, initial development at major version zero, 1.0.0 defining the public interface, what raises each counter, and precedence
 
+  - **Name:** UAX #29 \
+    **Title:** Unicode Standard Annex #29, Unicode Text Segmentation, the Unicode Consortium \
+    **Version:** revision 45, for Unicode 16.0.0 \
+    **URL:** `https://www.unicode.org/reports/tr29/tr29-45.html` \
+    **Access:** free \
+    **Relation:** adopts \
+    **Covers:** sentence boundaries, which bound a sentence of prose where the search finds a phrase's words apart
+
   - **Name:** UML \
     **Title:** Unified Modeling Language, the Object Management Group \
     **Version:** 2.5.1 \

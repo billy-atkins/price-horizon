@@ -3703,9 +3703,6 @@ def earlier_targets(root):
 
 
 earlier_targets.held = {}
-# the moments a Search is read as its own report is checked: as a cold agent hands its report back, as the builder
-# takes it up, and as the settled report is checked and its entry appended
-HANDED_BACK, TAKEN_UP, SETTLED = "handed back", "taken up", "settled"
 # where a question names nothing to ask of, as the search tells its caller, by what each refusal of a research's report
 # turns on: the Query alone, or what the checkout holds
 NAMES_NO_WORD = "a term or a passage reducing to no word"
@@ -3791,8 +3788,9 @@ def search_place(place):
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § What the Design Script Checks
 def run_search(s, ctx):
     """-> (the places a Search written in the form gives, where its question names nothing, None), run through the
-    search the skills share exactly as it was asked: its Kind and its Query, over the files its Target asks of, within
-    the paths it was narrowed to; or (None, None, why, whether the search itself refused what was asked) where it
+    search the skills share exactly as it was asked: its Kind and its Query, a search by terms asking for exact where
+    its Exact is "yes" and by default where it holds "no" or none, over the files its Target asks of, within the paths
+    it was narrowed to; or (None, None, why, whether the search itself refused what was asked) where it
     cannot be run. A Search naming the operative files or the fixture files as they stand is run over them as every
     reading of the files as they stand is made, at the last commit where ctx["kept"] has such a reading take it; one naming the committed files
     is run over the commit it holds, and over the last commit where it holds none; and the working files it names are
@@ -3800,7 +3798,8 @@ def run_search(s, ctx):
     search gives the answer it kept where what was asked, the files and its own reading stand."""
     kind, query = unquoted(s.get("Kind", "")), unquoted(s.get("Query", ""))
     target, commit, narrowed = search_target(s)
-    asked = (kind, query, target, commit, tuple(narrowed))
+    exact = kind == "terms" and asked_exact(s)
+    asked = (kind, query, exact, target, commit, tuple(narrowed))
     held = ctx.setdefault("runs", {})
     if asked in held:
         return held[asked]
@@ -3823,7 +3822,7 @@ def run_search(s, ctx):
         elif kind == "lines":
             result = engine.lines(query)
         elif kind == "terms":
-            result = engine.terms(query, narrowed)
+            result = engine.terms(query, narrowed, exact=exact)
         elif kind == "code structure":
             structure, _, name = query.partition(" ")
             result = engine.code_structure(structure, name.strip(), narrowed)
@@ -3842,25 +3841,56 @@ def run_search(s, ctx):
     return held[asked]
 
 
+EXACT_DEFAULT = "no"   # the default value the canon's Search record gives its Exact, read where a Search holds none
+
+
+def asked_exact(s):
+    """Whether a Search by terms was asked for exact: its Exact "yes", a Search holding none read as its default."""
+    return unquoted(s.get("Exact", EXACT_DEFAULT)) == "yes"
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Search § Who Asks for Exact
+def exact_owed(s, rep):
+    """-> (the kind of search a Search by terms is, as the canon's table of who asks for exact names it, whether that
+    kind asks for exact): a round's tactical fix's where a tactical fix's Proposed Change names it, or it is the Search
+    of the fixture files as they stand asking the same beside one so named, which asks for exact; research's where it
+    stands in a report of research; and otherwise the builder's, a reviewer's or another cold agent's own, neither of
+    which asks."""
+    searches = {x.get("Search"): x for x in rep["records"]["Searches"]}
+    named = [searches[ch["Search"]] for c in rep["records"]["Causes"] for ch in c.get("Proposed Change") or []
+             if isinstance(ch, dict) and ch.get("Kind") == "tactical fix" and ch.get("Search") in searches]
+    same = lambda a, b: unquoted(a.get("Kind", "")) == unquoted(b.get("Kind", "")) and unquoted(a.get("Query", "")) == unquoted(b.get("Query", ""))
+    if any(n is s for n in named) or (search_target(s)[0] == CURRENT_FIXTURES and any(same(n, s) for n in named)):
+        return "a round's tactical fix's", True
+    if rep["records"].get("Read Assessments"):
+        return "research's", False
+    return "the builder's, a reviewer's or another cold agent's own", False
+
+
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: searches-cover-their-matches]
-def search_problems(rep, ctx, moment=SETTLED):
-    """-> [(rule, message)]: each Search of a report read as its own report is checked, at the moment given. A Search
-    whose Kind gives every place, in a report other than research's, is run as it was asked and each place it gives
-    must stand among its Places; one the search refuses refuses the report. A Search a cold agent recorded, a
-    reviewer's or any in a handed-off judgment's report, is run as its report is handed back and as it is taken up,
-    and by no check after: it stands at a line ctx["taken_up"] gives and is passed over, the part holding it then
-    held to its fingerprint alone, by cold_parts_problems. The builder's own is run as the settled report is
-    checked. A Search in a report of research, one holding Read Assessments, is held as its report is handed back and
-    taken up to nothing it gives: its report is refused where the search refuses what the Search asks or its term or
-    passage reduces to no word, and, as it is handed back alone, where its citation names no place or a path it is
-    narrowed to holds no file. A Search by meaning is never run. A Search logged holding a Pattern is read as it was
-    before the record held a Kind, its Pattern run over its ground and its matches held to its Places, a research's
-    held here to nothing."""
+def search_problems(rep, ctx):
+    """-> [(rule, message)]: each Search of a report read as its own report is checked. A Search
+    whose Kind gives every place is run as it was asked and each place it gives must stand among its Places, each
+    place counting as its citation alone; one the search refuses refuses the report. A Search a cold agent recorded, a
+    reviewer's or any in a handed-off judgment's report, research's among them, is run as its report is handed back
+    and as it is taken up, and by no check after: it stands at a line ctx["taken_up"] gives and is passed over, the
+    part holding it then held to its fingerprint alone, by cold_parts_problems. The builder's own is run as the settled
+    report is checked. A Search in a report of research, one holding Read Assessments, refuses its report too where its
+    term or passage reduces to no word, its citation names no place, or a path it is narrowed to holds no file. A
+    Search by terms asked other than as the canon's table has its kind of search ask, by its Exact or its default,
+    refuses its report. A Search by meaning is never run. A Search logged holding a Pattern is read as it was before
+    the record held a Kind, its Pattern run over its ground and its matches held to its Places, a research's held here
+    to nothing."""
     out, research = [], bool(rep["records"].get("Read Assessments"))
     for s in rep["records"]["Searches"]:
         key = s.get("Search", "")
         if s["_line"] in ctx["taken_up"]:
             continue
+        if not logged_form(s) and unquoted(s.get("Kind", "")) == "terms":
+            whose, owed = exact_owed(s, rep)
+            if asked_exact(s) != owed:
+                out.append("Search %s is %s search by terms, which the canon has ask %s, and it was asked %s"
+                           % (key, whose, "for exact" if owed else "by default", "for exact" if asked_exact(s) else "by default"))
         if logged_form(s):
             if research:
                 continue
@@ -3877,14 +3907,13 @@ def search_problems(rep, ctx, moment=SETTLED):
         places, nothing, why, _ = run_search(s, ctx)
         if why:
             out.append("Search %s cannot be run as it was asked: %s" % (key, why))
-        elif research:
-            if NAMES_NO_WORD in nothing:
-                out.append("Search %s asks nothing: its term or passage reduces to no word" % key)
-            if moment == HANDED_BACK and NAMES_NO_PLACE in nothing:
-                out.append("Search %s asks nothing: its citation names no place among the files its Target asks of" % key)
-            if moment == HANDED_BACK and NAMES_NO_FILE in nothing:
-                out.append("Search %s asks nothing under a path it is narrowed to, where no file of its Target stands" % key)
         else:
+            if research and NAMES_NO_WORD in nothing:
+                out.append("Search %s asks nothing: its term or passage reduces to no word" % key)
+            if research and NAMES_NO_PLACE in nothing:
+                out.append("Search %s asks nothing: its citation names no place among the files its Target asks of" % key)
+            if research and NAMES_NO_FILE in nothing:
+                out.append("Search %s asks nothing under a path it is narrowed to, where no file of its Target stands" % key)
             listed = place_list(s.get("Places", ""))
             out += ["Search %s gives %s, which its Places do not cover" % (key, cite(p)) for p in places if not covered(listed, p)]
     return [(ctx["rule"]("Searches"), p) for p in out]
@@ -4591,8 +4620,10 @@ def union_coverage_problems(root, design, design_text, entries, ctx=None, among=
 
 
 GOALS_SEARCHED_RULE = WF + " § A Check's Report § Script Checks [Name: goals-searched-over-every-operative-file]"
-# the kinds of search that between them read the whole of what a file holds, and what each reads
-COVERING_KINDS = ((MEANING, "by meaning"), ("terms", "by terms"))
+# the kinds of search a goal is named by over every operative file, each with how it is told: by terms, which gives
+# every place and so searches every file it is asked over, and by meaning, which ranks every file it is asked over and
+# counts as searching only the files its places show
+COVERING_KINDS = (("terms", "by terms"), (MEANING, "by meaning"))
 
 
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: goals-searched-over-every-operative-file]
@@ -4607,10 +4638,13 @@ def covering_files(root):
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: goals-searched-over-every-operative-file]
 def goals_searched_problems(root, design, design_text, entries, among=None, files=None):
     """-> [(rule, message)]: among the research binding a design, read together, each goal the design holds named by
-    no Search by meaning of the operative files naming no commit, or by none by terms, and each goal whose Searches of
+    no Search by terms of the operative files naming no commit, or by none by meaning, and each goal whose Searches of
     one of those kinds were narrowed to paths that together leave an operative file out, naming the goal, the kind of
-    search and the files. A Search narrowed to no path covers every file. A Search of the working files, one of a
-    commit by name, one of any other Kind and one logged before a Search held a Kind count for nothing. The check runs
+    search and the files. A Search narrowed to no path is asked over every file. A goal counts as searched over every
+    operative file by its Searches by terms alone, which give every place; a Search by meaning gives a part of a
+    ranking and counts as searching only the files its Places hold, however few, so the check asks only that a goal's
+    Searches by meaning were asked over every operative file between them, each file ranked. A Search of the working
+    files, one of a commit by name, one of any other Kind and one logged before a Search held a Kind count for nothing. The check runs
     no search: it reads the paths each Search was narrowed to against the operative files the last commit holds, so a
     file an apply has written and not committed is not asked for. among, where given, the indexes of the research
     entries read, else every binding research report; files, given by a test, the operative files asked of."""
@@ -5323,21 +5357,20 @@ def check_handed_back(value):
     design_text = read(design).replace("\r\n", "\n")
     rep = read_report(read(Path(value)))
     ctx = report_context(root, design, design_text, kind, n, log_entries(design_text), reviewer=True)
-    return report("check-handed-back " + rel_to(value, root), handed_back_problems(root, design, kind, n, value, moment=HANDED_BACK))
+    return report("check-handed-back " + rel_to(value, root), handed_back_problems(root, design, kind, n, value))
 
 
-def handed_back_problems(root, design, kind, n, value, moment=TAKEN_UP):
-    """-> [(rule, message)]: a review's or a handed-off judgment's report as its cold agent hands it back, its parts held
-    to their form, its Searches run, and no part held that the builder or the design script writes. moment says which
-    reading it is: as the cold agent hands the report back, which alone asks of a research's Search what turns on the
-    checkout, or as the builder takes it up. These are the two readings of a cold agent's parts: no check after the
-    take-up makes this one again."""
+def handed_back_problems(root, design, kind, n, value):
+    """-> [(rule, message)]: a review's or a handed-off judgment's report as its cold agent hands it back or the
+    builder takes it up, its parts held to their form, its Searches run, and no part held that the builder or the
+    design script writes. The two readings of a cold agent's parts read alike, and no check after the take-up makes
+    this one again."""
     design_text = read(design).replace("\r\n", "\n")
     rep = read_report(read(Path(value)))
     ctx = report_context(root, design, design_text, kind, n, log_entries(design_text), reviewer=True)
     problems = form_problems(rep, ctx, report_types(), report_parts())
     if rep["in_form"]:
-        problems += layout_problems(rep, root) + places_problems(rep, report_types()) + search_problems(rep, ctx, moment)
+        problems += layout_problems(rep, root) + places_problems(rep, report_types()) + search_problems(rep, ctx)
         named = named_reports(design, ctx["entries"], root)
         problems += reads_assessed_problems(rep, ctx) + anchor_problems(rep, ctx)
         problems += key_problems(rep, ctx, named, handed_back=True)
@@ -5673,7 +5706,7 @@ def places(value):
 def phrase_places(root, phrases, committed=False, fixtures=None):
     """-> [(path, line number, line, phrase, replacement)] for each line of an operative file holding a retired phrase
     in whatever form it takes, a plural and an identifier among them, outside the places it stays right: found by the
-    search the skills share as it finds a term, over the operative files as they stand or, committed, as the last
+    search the skills share as it finds a term asked for exact, its words together, over the operative files as they stand or, committed, as the last
     commit held them. fixtures, where given, says of a fixture file's path whether a design's Target holds it: the
     fixture files are then searched too, each by a search of its own target, and a line of one the Target holds is
     given. A fixture file no Target holds is read for no design's wording, and a file outside Spec of Record's scope
@@ -5687,7 +5720,9 @@ def phrase_places(root, phrases, committed=False, fixtures=None):
         engine = searching.Search(root, quiet=True, target=target)
         try:
             for phrase, replacement, stays in phrases:
-                for place in engine.terms(phrase).places:
+                # asked for exact, as the canon's table of who asks has --show-reach and --check-retired-wording ask:
+                # each judges a retired phrase's exact wording, and words standing apart are other wording
+                for place in engine.terms(phrase, exact=True).places:
                     path, lineage = place.path, place.lineage or ""
                     if not read_of(path) or any(p == path and (s is None or lineage == s or lineage.startswith(s + " § ")) for p, s in stays):
                         continue

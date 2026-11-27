@@ -345,3 +345,92 @@
           **Ranking Part:** none \
           **Places:** none
       ```
+
+  - **Fixture:** terms-result-holding-a-place-words-apart \
+    **Holds:** a search's result of the phrase run again over the operative files as they stand, asked by default, one place where its words stand together and one marked words apart, its name ending with the hash of its content \
+    **Snippet:**
+
+      ```markdown
+      # Search Result
+
+      The places are places to read, never findings. They are every place the search found.
+
+      **Records:**
+        - **Result:** terms-run-again-802564-9339e5e5.md \
+          **Kind:** terms \
+          **Query:** run again \
+          **Target:** current-operative-files \
+          **Snapshot:** 2f509deed56230ca \
+          **Run As:** each form searched as a phrase, every word reduced to its stem and every identifier split into its words: `run again`. The glossary gives the term no other name \
+          **Completeness:** complete \
+          **Places:**
+            - `specs/target.md § Target` line 5
+            - `specs/target.md § Target` line 7 words apart
+      ```
+
+  - **Fixture:** terms-result-asked-for-exact \
+    **Holds:** a search's result of the phrase run again over the operative files as they stand, asked for exact, one place, its name ending with the hash of its content \
+    **Snippet:**
+
+      ```markdown
+      # Search Result
+
+      The places are places to read, never findings. They are every place the search found.
+
+      **Records:**
+        - **Result:** terms-run-again-e159df-5bd21e56.md \
+          **Kind:** terms \
+          **Query:** run again \
+          **Exact:** yes \
+          **Target:** current-operative-files \
+          **Snapshot:** 2f509deed56230ca \
+          **Run As:** each form searched as a phrase, every word reduced to its stem and every identifier split into its words: `run again`. The glossary gives the term no other name \
+          **Completeness:** complete \
+          **Places:**
+            - `specs/target.md § Target` line 5
+      ```
+
+  - **Fixture:** terms-result-whose-exact-is-neither-yes-nor-no \
+    **Holds:** a search's result of the phrase run again whose Exact is maybe, its name ending with the hash of its content \
+    **Snippet:**
+
+      ```markdown
+      # Search Result
+
+      The places are places to read, never findings. They are every place the search found.
+
+      **Records:**
+        - **Result:** terms-run-again-e159df-66b53e60.md \
+          **Kind:** terms \
+          **Query:** run again \
+          **Exact:** maybe \
+          **Target:** current-operative-files \
+          **Snapshot:** 2f509deed56230ca \
+          **Run As:** each form searched as a phrase, every word reduced to its stem and every identifier split into its words: `run again`. The glossary gives the term no other name \
+          **Completeness:** complete \
+          **Places:**
+            - `specs/target.md § Target` line 5
+      ```
+
+  - **Fixture:** meaning-result-asked-for-exact \
+    **Holds:** a ranked result by meaning holding an Exact of yes, which only a search by terms holds, its name ending with the hash of its content \
+    **Snippet:**
+
+      ```markdown
+      # Search Result
+
+      The places are places to read, never findings. They are a part of a ranking, and never every place.
+
+      **Records:**
+        - **Result:** meaning-the-heron-waits-b9afa7-d361fb49.md \
+          **Kind:** meaning \
+          **Query:** The heron waits. \
+          **Exact:** yes \
+          **Target:** current-operative-files \
+          **Snapshot:** 2f509deed56230ca \
+          **Run As:** as asked \
+          **Completeness:** ranked \
+          **Ranking Part:** 1 to 1 \
+          **Places:**
+            - `specs/target.md § Target` lines 3-5
+      ```

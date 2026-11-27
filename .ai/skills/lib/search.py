@@ -105,6 +105,10 @@ NO_PLACE = "a citation naming no place among the files the search reads"
 NO_WORD = "a term or a passage reducing to no word"
 NO_FILE = "a path under which no file of the target stands"
 NAMES_NOTHING = (NO_PLACE, NO_WORD, NO_FILE)
+# what a search by meaning tells its searcher, in place of ranking, where it is asked a passage closing on a question:
+# the places worded as a question is are rarely the rule answering it
+QUESTION_TURNED_BACK = ("a search by meaning ranks places by their wording, so a question finds the places worded as the question is "
+                        "and may miss the rule answering it: ask again as a statement, in the words a rule answering the question would use")
 # the kinds of search whose answer rests on the files of its target alone, so the search keeps it: a search by meaning
 # ranks over every content its index holds, and a search of the structure `constructs` reads the classes all of it defines
 KEPT_KINDS = ("citers", "cited sections", "lines", "terms", "code structure", "pattern")
@@ -312,6 +316,10 @@ REQUIREMENTS = [
                 "python -m pip install tree-sitter-typescript", _module("tree_sitter_typescript")),
     Requirement("tree-sitter-c-sharp", "the grammar the parser reads C# by",
                 "python -m pip install tree-sitter-c-sharp", _module("tree_sitter_c_sharp")),
+    Requirement("markdown-it-py", "reads Markdown as CommonMark and its tables as GitHub Flavored Markdown, so a search by terms finds a phrase's words apart only where prose stands",
+                "python -m pip install markdown-it-py", _module("markdown_it")),
+    Requirement("uniseg", "bounds a sentence as Unicode Standard Annex #29 bounds it, so a phrase's words are found apart only within one sentence",
+                "python -m pip install uniseg", _module("uniseg")),
     Requirement("the model's files", "the model " + MODEL + ", kept on this machine so a search sends no text anywhere and downloads nothing",
                 ENTRY + " --install-model", _model_present),
 ]
@@ -828,32 +836,278 @@ def phrase(text):
     return '"' + " ".join(words) + '"' if words else None
 
 
+def is_question(asked):
+    """Whether what a search by meaning was asked is a passage closing on a question: its last character, past any
+    closing quotation mark or bracket, a question mark. A citation is never one, nor a passage holding a question
+    within it and closing on a statement."""
+    parsed = parse_citation(asked)
+    return not (parsed and parsed[0]) and asked.rstrip().rstrip("\"'”’)]»").endswith(("?", "？"))
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Where prose stands, the one place a phrase's words may stand apart
+#
+# The search defines neither prose nor a sentence. It reads where prose stands in a file by the standard of the file's
+# kind: Markdown as CommonMark reads it, a table as GitHub Flavored Markdown reads it, and code by its language's
+# grammar, Python's own tokenizer and parser or tree-sitter's. Within each run of prose, a sentence is bounded as
+# Unicode Standard Annex #29, Unicode Text Segmentation, bounds it.
+
+# the languages a fenced block may name to hold Markdown, read as Markdown
+MARKDOWN_FENCES = ("markdown", "md")
+# the names a fenced block may give a language the search parses, each with the language its code is read as
+CODE_FENCES = {"python": "python", "py": "python", "typescript": "typescript", "ts": "typescript", "tsx": "tsx",
+               "csharp": "c_sharp", "cs": "c_sharp", "c#": "c_sharp"}
+
+
+def stems(text):
+    """-> the stems of a text's words in their order, each reduced by the tokenizer the index reduces its words by, so
+    a phrase's words are matched against a sentence as the index matches them."""
+    if stems.db is None:
+        stems.db = sqlite3.connect(":memory:")
+        stems.db.execute("create virtual table said using fts5(x, tokenize='porter unicode61')")
+        stems.db.execute("create virtual table said_terms using fts5vocab(said, instance)")
+    stems.db.execute("delete from said")
+    stems.db.execute("insert into said(rowid, x) values (1, ?)", (normalize(text),))
+    return [term for (term,) in stems.db.execute("select term from said_terms order by offset")]
+
+
+stems.db = None
+
+
+def together_in(got, wanted):
+    """Whether the stems wanted stand together, in their order, among the stems got."""
+    return any(got[i:i + len(wanted)] == wanted for i in range(len(got) - len(wanted) + 1))
+
+
+def words_apart(sentence, groups):
+    """Whether a sentence holds the groups of stems wanted in their order, each group's stems together, with other
+    words between the groups, and holds them nowhere together."""
+    got, at = stems(sentence), 0
+    for group in groups:
+        at = next((i + len(group) for i in range(at, len(got) - len(group) + 1) if got[i:i + len(group)] == group), None)
+        if at is None:
+            return False
+    return not together_in(got, [s for g in groups for s in g])
+
+
+def prose_sentences(text, kind, language):
+    """-> [(first line, last line, sentence)] of each sentence of prose a file holds, its lines counted from 1: in
+    Markdown, the prose `markdown_prose` reads; in code, the prose of its comments and docstrings; in any other file,
+    none."""
+    if kind == "markdown":
+        runs = markdown_prose(text)
+    elif kind == "code":
+        runs = code_prose(text, language)
+    else:
+        runs = []
+    return [s for run in runs for s in run_sentences(run)]
+
+
+def code_prose(text, language):
+    """-> [run] of the prose of code in a language the search parses, as its grammar reads its comments and
+    docstrings, or none for any other language."""
+    if language == "python":
+        return python_prose(text)
+    if language in TREE_SITTER:
+        return tree_sitter_prose(text, language)
+    return []
+
+
+def markdown_prose(text, offset=0):
+    """-> [run], each run a list of (line, its text), of the prose a Markdown text holds, as CommonMark reads its blocks
+    and GitHub Flavored Markdown its tables: a paragraph, its lines one run, a list's item among them; a field's value in
+    a record form, which the hard line break ending it bounds; and a table's cell. A heading holds no prose. A fenced
+    block is read as what it holds: one naming Markdown as Markdown, and one naming a language the search parses as
+    that language's code, its comments and docstrings its prose. Any other fenced block, an indented block of code and
+    HTML hold none. `offset` is the number of lines standing above the text in its file."""
+    from markdown_it import MarkdownIt
+    tokens = MarkdownIt("commonmark").enable("table").parse(text)
+    runs, heading = [], False
+    for tok in tokens:
+        if tok.type == "heading_open":
+            heading = True
+        elif tok.type == "heading_close":
+            heading = False
+        elif tok.type == "inline" and not heading and tok.map:
+            runs += inline_runs(tok.content, offset + tok.map[0] + 1)
+        elif tok.type == "fence" and tok.map:
+            named = (tok.info.strip().split() or [""])[0].lower()
+            # the fence's own line stands above its content, which starts on the line after it
+            above = offset + tok.map[0] + 1
+            if named in MARKDOWN_FENCES:
+                runs += markdown_prose(tok.content, above)
+            elif named in CODE_FENCES:
+                runs += [[(line + above, said) for line, said in run] for run in code_prose(tok.content, CODE_FENCES[named])]
+    return runs
+
+
+def inline_runs(content, first):
+    """-> [run] of an inline block's text whose first line is the file's line `first`: its lines joined into one run,
+    as CommonMark joins a paragraph's, each hard line break, a backslash or two spaces ending a line, ending a run."""
+    runs, run = [], []
+    for k, line in enumerate(content.split("\n")):
+        hard = line.endswith("\\") or line.endswith("  ")
+        run.append((first + k, line[:-1] if line.endswith("\\") else line))
+        if hard:
+            runs.append(run)
+            run = []
+    return runs + ([run] if run else [])
+
+
+def python_prose(text):
+    """-> [run] of the prose of Python code, as its own tokenizer and parser read it: each comment standing alone on
+    its line joined with the comments on the lines below it into one run, an empty comment ending a run; a comment
+    after code a run of its own; and each docstring, its paragraphs each a run."""
+    runs, run, last = [], [], None
+    try:
+        tokens = list(tokenize.generate_tokens(io.StringIO(text).readline))
+    except (tokenize.TokenError, IndentationError, SyntaxError):
+        return []
+    for tok in tokens:
+        if tok.type != tokenize.COMMENT:
+            if tok.type not in (tokenize.NL, tokenize.NEWLINE, tokenize.INDENT, tokenize.DEDENT) and run:
+                runs.append(run)
+                run = []
+            continue
+        line, said = tok.start[0], tok.string.lstrip("#").strip()
+        alone = not tok.line[:tok.start[1]].strip()
+        if run and (not alone or last != line - 1 or not said):
+            runs.append(run)
+            run = []
+        if said:
+            run.append((line, said))
+        if not alone and run:
+            runs.append(run)
+            run = []
+        last = line
+    if run:
+        runs.append(run)
+    try:
+        tree = ast.parse(text)
+    except (SyntaxError, ValueError):
+        return runs
+    lines = text.split("\n")
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) and node.body:
+            head = node.body[0]
+            if isinstance(head, ast.Expr) and isinstance(head.value, ast.Constant) and isinstance(head.value.value, str):
+                written = lines[head.lineno - 1:head.end_lineno]
+                written[-1] = written[-1][:head.end_col_offset]
+                written[0] = written[0][head.col_offset:]
+                written = [re.sub(r'^[rRbBuU]*("""|\'\'\'|"|\')', "", w) if i == 0 else w for i, w in enumerate(written)]
+                written[-1] = re.sub(r'("""|\'\'\'|"|\')$', "", written[-1])
+                runs += paragraphs([(head.lineno + i, w.strip()) for i, w in enumerate(written)])
+    return runs
+
+
+def paragraphs(lines):
+    """-> [run] of a comment's or a docstring's lines, (line, text), a blank line ending each run."""
+    runs, run = [], []
+    for line, said in lines:
+        if said:
+            run.append((line, said))
+        elif run:
+            runs.append(run)
+            run = []
+    return runs + ([run] if run else [])
+
+
+def tree_sitter_prose(text, language):
+    """-> [run] of the prose of code tree-sitter parses, as its grammar reads the code's comments: each comment
+    standing alone on its line joined with the line comments on the lines below it into one run, a block comment's
+    paragraphs each a run with the stars opening its lines left out, and a comment after code a run of its own."""
+    source = text.encode("utf-8")
+    try:
+        tree = tree_sitter_parser(language).parse(source)
+    except Exception:  # the grammar could not be loaded or read the text: no prose is read from it
+        return []
+    lines, found, stack = text.split("\n"), [], [tree.root_node]
+    while stack:
+        node = stack.pop()
+        if node.type == "comment":
+            found.append(node)
+        stack.extend(reversed(node.children))
+    runs, run, last = [], [], None
+    for node in sorted(found, key=lambda n: n.start_byte):
+        written = source[node.start_byte:node.end_byte].decode("utf-8", "replace")
+        line = node.start_point[0] + 1
+        alone = not lines[line - 1][:node.start_point[1]].strip()
+        if written.startswith("//"):
+            said = written.lstrip("/").strip()
+            if run and (not alone or last != line - 1 or not said):
+                runs.append(run)
+                run = []
+            if said:
+                run.append((line, said))
+            if not alone and run:
+                runs.append(run)
+                run = []
+            last = line
+            continue
+        if run:
+            runs.append(run)
+            run = []
+        body = re.sub(r"^/\*+|\*+/$", "", written).split("\n")
+        runs += paragraphs([(line + i, re.sub(r"^\s*\*?\s?", "", b).strip()) for i, b in enumerate(body)])
+    return runs + ([run] if run else [])
+
+
+def run_sentences(run):
+    """-> [(first line, last line, sentence)] of a run of prose, its lines joined by a space as CommonMark joins a
+    paragraph's, each sentence bounded as Unicode Standard Annex #29 bounds it."""
+    from uniseg.sentencebreak import sentences
+    joined, at = "", []
+    for line, piece in run:
+        if joined:
+            joined += " "
+            at.append(line)
+        joined += piece
+        at += [line] * len(piece)
+    out, pos = [], 0
+    for sentence in sentences(joined):
+        said = sentence.strip()
+        if said:
+            start = pos + len(sentence) - len(sentence.lstrip())
+            out.append((at[start], at[start + len(said) - 1], said))
+        pos += len(sentence)
+    return out
+
+
 # ---------------------------------------------------------------------------------------------------------------------
 # A search's result
 
 class Place(str):
     """A place to read, as a result writes it: a citation of the narrowest of a keyed part, a section or a file that
     holds every line the place gives, with its lines and, where they all stand in one, `in a table`, `in a heading` or
-    `in a fenced block`. It keeps what it was written from: its file, its section's heading path, its keyed part's
-    key, and its first and last line."""
+    `in a fenced block`, and, where it holds a phrase's words with other words between them within one sentence,
+    `words apart`. It keeps what it was written from: its file, its section's heading path, its keyed part's key, its
+    first and last line, and whether its words stand apart."""
 
-    def __new__(cls, path, lineage, key, first, last, stands=""):
+    def __new__(cls, path, lineage, key, first, last, stands="", apart=False):
         cite = path + (" § " + lineage if lineage else "") + (f" [{key}]" if key else "")
-        text = f"`{cite}` " + (f"line {first}" if last in (None, first) else f"lines {first}-{last}") + (f", in a {stands}" if stands else "")
+        text = (f"`{cite}` " + (f"line {first}" if last in (None, first) else f"lines {first}-{last}") + (f", in a {stands}" if stands else "")
+                + (" words apart" if apart else ""))
         place = super().__new__(cls, text)
         place.path, place.lineage, place.key, place.first, place.last, place.stands = path, lineage, key, first, first if last is None else last, stands
+        place.apart = apart
         return place
 
+    def marked_apart(self):
+        """-> the same place, marked as holding a phrase's words with other words between them."""
+        return Place(self.path, self.lineage, self.key, self.first, self.last, self.stands, apart=True)
 
-PLACE = re.compile(r"^`[^`\n]+`(?: lines? \d+(?:-\d+)?)?(?:, in a (?:table|heading|fenced block))?(?: cites `[^`\n]+`)?$")
+
+PLACE = re.compile(r"^`[^`\n]+`(?: lines? \d+(?:-\d+)?)?(?:, in a (?:table|heading|fenced block))?(?: words apart)?(?: cites `[^`\n]+`)?$")
 
 
 class Result:
     """What a search gave, written as one file in the form the search skill gives a search's result, the same whoever
     asked."""
 
-    def __init__(self, kind, query, narrowed, run_as, completeness, places, notes=(), target=CURRENT_OPERATIVE, commit=None, part=None, names_nothing=()):
+    def __init__(self, kind, query, narrowed, run_as, completeness, places, notes=(), target=CURRENT_OPERATIVE, commit=None, part=None, names_nothing=(), exact=False):
         self.kind, self.query, self.narrowed, self.run_as = kind, squeeze(query), list(narrowed), run_as
+        # whether a search by terms was asked for exact, giving only where a phrase's words stand together
+        self.exact = bool(exact) and kind == "terms"
         self.completeness, self.places, self.notes = completeness, list(places), list(notes)
         # the commit its asker named to the search, and the last commit where a search of the committed files named
         # none: a result holds the first only where one was asked for, so a record copied from it pins no search
@@ -877,7 +1131,7 @@ class Result:
         def items(values, pad="      "):
             return "".join(f"{pad}- {v}\n" for v in values)
 
-        out = f"    **Kind:** {self.kind} \\\n    **Query:** {self.query} \\\n    **Target:** {self.target} \\\n"
+        out = f"    **Kind:** {self.kind} \\\n    **Query:** {self.query} \\\n" + ("    **Exact:** yes \\\n" if self.exact else "") + f"    **Target:** {self.target} \\\n"
         if self.commit:
             out += f"    **Commit:** {self.commit} \\\n"
         if self.last_commit:
@@ -907,6 +1161,7 @@ class Result:
         question. A run that finds a file changed clears every result before it answers, so no result outlives the
         files it answered for."""
         part = "\0" + self.run_as if self.completeness == "ranked" else ""
+        part += "\0exact" if self.exact else ""   # a search asked for exact is another question than one asked by default
         asked = hashlib.sha256((self.kind + "\0" + self.query + "\0" + "\0".join(self.narrowed) + "\0" + self.target + "\0" + (self.commit or "") + part).encode()).hexdigest()[:6]
         content = hashlib.sha256(self.body().encode()).hexdigest()[:8]
         kind = self.kind.replace(" ", "-")
@@ -936,14 +1191,19 @@ class Result:
         if m.group(1) != path.name:
             problems.append(f"{path.name}: its Result names `{m.group(1)}`, another file")
         held = {}
-        for field in ("Kind", "Query", "Target", "Commit", "Last Commit", "Snapshot", "Run As", "Completeness", "Ranking Part", "Places"):
+        for field in ("Kind", "Query", "Exact", "Target", "Commit", "Last Commit", "Snapshot", "Run As", "Completeness", "Ranking Part", "Places"):
             f = re.search(r"^    \*\*" + field + r":\*\*(?: (.*?))?(?: \\)?$", text, re.M)
             if f:
                 held[field] = (f.group(1) or "").strip()
-            elif field not in ("Commit", "Last Commit", "Ranking Part"):
+            elif field not in ("Exact", "Commit", "Last Commit", "Ranking Part"):
                 problems.append(f"{path.name}: it holds no {field}")
         if held.get("Kind") not in KINDS + (None,):
             problems.append(f"{path.name}: its Kind is `{held['Kind']}`, no kind of search")
+        # a result holding no Exact was asked by default, its value "no" read where none is written
+        if "Exact" in held and held["Exact"] not in ("yes", "no"):
+            problems.append(f"{path.name}: its Exact is `{held['Exact']}`, neither yes nor no")
+        elif held.get("Exact") == "yes" and held.get("Kind") != "terms":
+            problems.append(f"{path.name}: it was asked for exact, and only a search by terms is")
         if held.get("Target") not in TARGETS + (None,):
             problems.append(f"{path.name}: its Target is `{held['Target']}`, not one of {', '.join(TARGETS)}")
         if "Target" in held:
@@ -1446,27 +1706,27 @@ class Search:
             self._codes[target] = held.hexdigest()[:16]
         return self._codes[target]
 
-    def _asked(self, kind, query, narrowed):
-        """-> the name the search keeps an answer under: the kind of search, what was asked, the target, with the
-        commit its asker named, and the paths it was narrowed to."""
-        asked = [kind, squeeze(query), self.target, self.commit if self.named else "", "\0".join(narrowed), "\0".join(self.paths)]
+    def _asked(self, kind, query, narrowed, exact=False):
+        """-> the name the search keeps an answer under: the kind of search, what was asked, whether a search by terms
+        was asked for exact, the target, with the commit its asker named, and the paths it was narrowed to."""
+        asked = [kind, squeeze(query), "exact" if exact else "", self.target, self.commit if self.named else "", "\0".join(narrowed), "\0".join(self.paths)]
         return hashlib.sha256("\1".join(asked).encode()).hexdigest()
 
-    def kept_answer(self, kind, query, narrowed):
+    def kept_answer(self, kind, query, narrowed, exact=False):
         """-> the answer the search kept for this question, or None where it kept none that still stands: the same kind of
-        search, Query, Target, with the Commit, and paths, kept under the snapshot code the Target's files now take and under
+        search, Query, asking for exact or by default, Target, with the Commit, and paths, kept under the snapshot code the Target's files now take and under
         the code of the search's own reading, built from what this script and each module of the shared code it imports hold
         as the checkout running it has them, with the index's form and the model's name. An answer is kept only of a kind
         resting on its Target's files alone: none of a search by meaning, and none of a search of the structure `constructs`.
         Each other answer the search computes is kept so, with the index."""
         if not self._keeps(kind, query):
             return None
-        row = self.db.execute("select snapshot, reading, operative, held from answers where asked=?", (self._asked(kind, query, narrowed),)).fetchone()
+        row = self.db.execute("select snapshot, reading, operative, held from answers where asked=?", (self._asked(kind, query, narrowed, exact),)).fetchone()
         if not row or (row[0], row[1], row[2]) != (self.snapshot_code(), own_reading(), self._operative()):
             return None
         held = json.loads(row[3])
         places = [Place(*p) if isinstance(p, list) else p for p in held["places"]]
-        result = Result(kind, held["query"], held["narrowed"], held["run_as"], held["completeness"], places, held["notes"], names_nothing=held["names_nothing"])
+        result = Result(kind, held["query"], held["narrowed"], held["run_as"], held["completeness"], places, held["notes"], names_nothing=held["names_nothing"], exact=exact)
         result.kept = True
         return result
 
@@ -1482,16 +1742,16 @@ class Search:
         """Keep an answer the search computed, in place of any it kept for the same question."""
         if not self._keeps(result.kind, query):
             return
-        places = [[p.path, p.lineage, p.key, p.first, p.last, p.stands] if isinstance(p, Place) else str(p) for p in result.places]
+        places = [[p.path, p.lineage, p.key, p.first, p.last, p.stands, p.apart] if isinstance(p, Place) else str(p) for p in result.places]
         held = json.dumps({"query": result.query, "narrowed": result.narrowed, "run_as": result.run_as, "completeness": result.completeness,
                            "places": places, "notes": [str(n) for n in result.notes], "names_nothing": result.names_nothing})
-        self.db.execute("insert or replace into answers values(?,?,?,?,?)", (self._asked(result.kind, query, narrowed), self.snapshot_code(), own_reading(), self._operative(), held))
+        self.db.execute("insert or replace into answers values(?,?,?,?,?)", (self._asked(result.kind, query, narrowed, result.exact), self.snapshot_code(), own_reading(), self._operative(), held))
         self.db.commit()
 
-    def _answer(self, kind, query, narrowed, compute):
+    def _answer(self, kind, query, narrowed, compute, exact=False):
         """-> the result of a search of a kind the search may keep an answer of: the answer it kept where one still
         stands, and otherwise the answer computed anew, which it then keeps."""
-        kept = self.kept_answer(kind, query, narrowed)
+        kept = self.kept_answer(kind, query, narrowed, exact)
         if kept is not None:
             return self._finish(kept)
         self.computed += 1
@@ -1710,11 +1970,14 @@ class Search:
                 return [n for n in names if n.lower() != wanted]
         return []
 
-    def terms(self, term, narrowed=None):
+    def terms(self, term, narrowed=None, exact=False):
+        """-> every place using a word, a phrase or an identifier, in every form it takes and under every other name the
+        glossary gives it: where a form's words stand together, and, unless asked for exact, each sentence of prose
+        holding a form's words in their order with other words between, marked `words apart`."""
         narrowed = self._narrow(narrowed)
-        return self._answer("terms", term, narrowed, lambda: self._terms_used(term, narrowed))
+        return self._answer("terms", term, narrowed, lambda: self._terms_used(term, narrowed, exact), exact)
 
-    def _terms_used(self, term, narrowed):
+    def _terms_used(self, term, narrowed, exact=False):
         forms = [squeeze(term)] + self.other_names(term)
         found = {}
         for form in forms:
@@ -1726,18 +1989,88 @@ class Search:
             broken = {(path, n) for path, n in self.db.execute("select f.path, t.n from term_pairs t join files f on f.sha = t.sha where term_pairs match ?", (query,))
                       if (path, n) not in alone and (path, n + 1) not in alone}
             for path, n in alone | broken:
-                if self._within(path, narrowed):
+                if self._within(path, narrowed) and (exact or self._together_in_prose(path, n, form, (path, n) in broken)):
                     found.setdefault((path, n), form)
         places = [self._place(path, n) for path, n in sorted(found)]
+        if not exact:
+            apart = self._words_apart(forms, narrowed)
+            places = sorted(places + [self._place(path, first, last).marked_apart() for path, first, last in apart], key=lambda p: (p.path, p.first, p.apart))
         run = ("each form searched as a phrase, every word reduced to its stem and every identifier split into its words: "
-               + ", ".join(f"`{f}`" for f in forms) + (". The glossary gives the term no other name" if len(forms) == 1 else ". The names after the first are the glossary's other names for it"))
-        result = Result("terms", term, narrowed, run, "complete", places)
+               + ", ".join(f"`{f}`" for f in forms) + (". The glossary gives the term no other name" if len(forms) == 1 else ". The names after the first are the glossary's other names for it")
+               + (". Asked for exact, only where a form's words stand together" if exact else
+                  ". A form written as more than one word is found too where those words stand in their order within one sentence of prose with other words between them, "
+                  "each such place marked `words apart`; an identifier written as one word keeps its words together"))
+        result = Result("terms", term, narrowed, run, "complete", places, exact=exact)
         if not phrase(squeeze(term)):
             result.notes.append("the term reduces to no word, so the search asked of nothing by it")
             result.names_nothing.append(NO_WORD)
         return result
 
     # -- which places match a pattern
+
+    def _prose(self, path):
+        """-> [(first line, last line, sentence)] of each sentence of prose a file of the target holds, read once for each
+        content in a search, as `prose_sentences` reads them."""
+        row = self.db.execute("select f.sha, c.kind, c.language from files f join contents c on c.sha = f.sha where f.path=?", (path,)).fetchone()
+        if not row:
+            return []
+        held = self.__dict__.setdefault("_prose_of", {})
+        if row[0] not in held:
+            text = "\n".join(r[0] for r in self.db.execute("select text from lines where sha=? order by n", (row[0],)))
+            held[row[0]] = prose_sentences(text, row[1], row[2])
+        return held[row[0]]
+
+    def _together_in_prose(self, path, n, form, broken=False):
+        """Whether a place where the index finds a form's words together holds them together within one sentence: on
+        line n alone, or, broken, across line n and the line after it. A form of one word always does, and so do lines
+        no sentence of prose covers, since words outside prose, in code or in a heading, are found together alone. Lines
+        of prose do only where a sentence covering them holds the form's words together, or, on one line, where the
+        line's text outside the sentences standing on it alone, code before a comment, holds them: so words standing
+        in two sentences, two cells, two rows or two fields are never found together."""
+        wanted = stems(form)
+        if len(wanted) < 2:
+            return True
+        last_line = n + 1 if broken else n
+        covering = [(first, last, s) for first, last, s in self._prose(path) if first <= last_line and last >= n]
+        if not covering or any(together_in(stems(s), wanted) for _, _, s in covering):
+            return True
+        if broken:
+            return False
+        rest = self._line(path, n)
+        for first, last, s in covering:
+            if first == last == n:
+                rest = rest.replace(s, " ")
+        return together_in(stems(rest), wanted)
+
+    def _line(self, path, n):
+        """-> the text of a file's line n, counted from 1, as the index holds it."""
+        row = self.db.execute("select l.text from lines l join files f on f.sha = l.sha where f.path=? and l.n=?", (path, n)).fetchone()
+        return row[0] if row else ""
+
+    def _words_apart(self, forms, narrowed):
+        """-> {(path, first line, last line)} of each sentence of prose holding a form's words in their order with other
+        words between them and holding them nowhere together. Each word of a form as its searcher wrote it, apart from
+        the next by white space, is one group of stems: an identifier the index splits into several words, `TypeScript`
+        or `append_entry`, stays one group, so only the words a searcher wrote apart may stand apart. A file is read
+        only where it holds every word of the form somewhere."""
+        apart = set()
+        for form in forms:
+            groups = [g for g in (stems(word) for word in form.split()) if g]
+            if len(groups) < 2:
+                continue
+            holding = None
+            for word in set(re.findall(r"[^\W_]+", normalize(form))):
+                shas = {r[0] for r in self.db.execute("select sha from terms where terms match ?", (f'"{word}"',))}
+                holding = shas if holding is None else holding & shas
+                if not holding:
+                    break
+            for path, in self.db.execute("select path from files where sha in (%s) order by path" % ",".join("?" * len(holding or ())), tuple(holding or ())) if holding else []:
+                if not self._within(path, narrowed):
+                    continue
+                for first, last, sentence in self._prose(path):
+                    if words_apart(sentence, groups):
+                        apart.add((path, first, last))
+        return apart
 
     def pattern(self, expression, narrowed=None):
         narrowed = self._narrow(narrowed)
@@ -1829,9 +2162,11 @@ class Search:
         limit, start = RANKED if limit is None else limit, 1 if start is None else start
         if limit < 1 or start < 1:
             raise ValueError("a ranking's limit and its start are each a whole number from 1")
+        asked, own, citing = squeeze(passage.strip("`")) if passage.strip().startswith("`") else squeeze(passage), None, set()
+        if is_question(asked):
+            raise ValueError(QUESTION_TURNED_BACK)
         narrowed = self._narrow(narrowed)
         self._embed_missing()
-        asked, own, citing = squeeze(passage.strip("`")) if passage.strip().startswith("`") else squeeze(passage), None, set()
         texts = [asked]
 
         def nothing(note, names=()):
@@ -2010,8 +2345,9 @@ class Asked:
     """What one run of the entry script asked: the project, the values its action takes, the paths it is narrowed to,
     the target and the commit it names, and the part of a ranking it asks for."""
 
-    def __init__(self, root, values, narrowed, target, commit, part):
+    def __init__(self, root, values, narrowed, target, commit, part, exact=False):
         self.root, self.values, self.narrowed, self.target, self.commit, self.part = root, values, narrowed, target, commit, part
+        self.exact = exact
 
     def search(self):
         """-> the search over the project and the target asked for, the operative files as they stand where none is
@@ -2065,7 +2401,7 @@ def run_show_lines(asked):
 
 @stopping
 def run_show_term_uses(asked):
-    return _places(asked, lambda search: search.terms(asked.values[0], asked.narrowed))
+    return _places(asked, lambda search: search.terms(asked.values[0], asked.narrowed, exact=asked.exact))
 
 
 @stopping
@@ -2137,6 +2473,7 @@ OPTIONS = (
     ("--limit", "N", f"how many places of its ranking --show-similar-passages gives, {RANKED} where none is named"),
     ("--start", "N", "the place of its ranking it gives them from, the first where none is named"),
     ("--paths", "PATH ...", f"answer over these files and folders alone, which a search of {WORKING} requires"),
+    ("--exact", "", "--show-term-uses gives only where a phrase's words stand together, and no sentence holding them apart"),
 )
 COVERS = (
     (CURRENT_OPERATIVE, "the operative files as they stand, where none is named"),
@@ -2153,7 +2490,7 @@ def usage():
         return f"  {(flag + ' ' + metavar).strip():<39}{text}"
 
     widest = max(len(target) for target, _ in COVERS)
-    out = [f"usage: {SKILL}.py ACTION " + " ".join(f"[{flag} {metavar}]" for flag, metavar, _ in OPTIONS), "",
+    out = [f"usage: {SKILL}.py ACTION " + " ".join(f"[{(flag + ' ' + metavar).strip()}]" for flag, metavar, _ in OPTIONS), "",
            "Each action answers one question over the files of Spec of Record's scope and the code, and writes its result as a",
            f"file under {SCRATCH}/results/. Every search first checks everything the search requires.", ""]
     out += [row(flag, metavar, text) for flag, metavar, _, text in FLAGS] + [""]
@@ -2181,8 +2518,15 @@ def main(argv, root=None):
         if not narrowed:
             print(USAGE)
             return 2
+    # asking for exact is a search by terms' alone, and takes no value
+    exact = "--exact" in args
+    if exact:
+        args.remove("--exact")
+        if "--show-term-uses" not in args:
+            print(USAGE)
+            return 2
     given = {}
-    for flag in [flag for flag, _, _ in OPTIONS if flag != "--paths"]:
+    for flag in [flag for flag, metavar, _ in OPTIONS if flag != "--paths" and metavar]:
         if flag in args:
             at = args.index(flag)
             if at + 1 >= len(args) or args[at + 1].startswith("--"):
@@ -2203,4 +2547,4 @@ def main(argv, root=None):
     if not args or args[0] not in actions or len(args) != 1 + actions[args[0]][0]:
         print(USAGE)
         return 2
-    return actions[args[0]][1](Asked(root, args[1:], narrowed, given.get("--target"), given.get("--commit"), part))
+    return actions[args[0]][1](Asked(root, args[1:], narrowed, given.get("--target"), given.get("--commit"), part, exact))
