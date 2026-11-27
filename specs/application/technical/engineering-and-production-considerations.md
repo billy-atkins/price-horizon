@@ -129,7 +129,7 @@ Both the client and Acme AI can read the audit record, but not through the same 
 
 Further capabilities follow directly from fields already on the Audit Log Entry, not from any new mechanism. They exist so the audit trail can be used under pressure, not only consulted after the fact.
 
-Verifying the repeatability guarantee ([`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes)) in production is a matter of comparing two question_asked entries for what looks like the same question, side by side. The comparison reads each entry's referenced Delivered Answer's Effective Price Forecast, and that forecast's pinned key: competitor, brand, business unit, geography, horizon, data_vintage_id, application_version, forecast_model_versions, and business_unit_configuration_version ([`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Effective Price Forecast`](/specs/application/technical/data-model.md#effective-price-forecast)). An identical key with a different forecast value is a defect worth escalating. An identical key with an identical forecast value confirms the guarantee held. A changed key explains a legitimate difference, instead of leaving it looking like an unexplained one: a data refresh landed in between, or a configuration_changed entry bumped the version in between. The configuration_changed entry is what makes that explanation traceable to a specific edit instead of an inference.
+In production, compare two retained deliveries under [`§ Engineering and Production Considerations § Security and governance § Comparing two delivered answers`](#comparing-two-delivered-answers). A question that produced no delivery remains visible under the existing audit permissions and supplies no delivered figures for comparison.
 
 Investigating a non-technical executive's complaint about what they were told never depends on recomputing anything. The Delivered Answer record captures directly what Position and Simulate produced, and the exact application and model versions that produced it, alongside the forecast reference and the rendered narrative, so every piece of one delivered answer lives in one row, referenced as a whole by `delivered_answer_id`. A question_asked entry's `delivered_answer_id` points to the one record holding every piece together. Nothing about a past answer ever needs to be recomputed to know what it was.
 
@@ -163,6 +163,28 @@ The same tracing discipline extends to the materialization service's batch path.
 
 Document vectorization is a separate process, with its own trace per ingested document (or per corpus-refresh batch). The trace is independent of any specific grid cell, because a Driver Signal the process produces may feed many future cells' computations, or sit unused for months. The process follows the cadence of [`specs/application/technical/materialization-service/driver-signal-extraction.md § Vector and semantic mapping, with structured extraction`](/specs/application/technical/materialization-service/driver-signal-extraction.md#vector-and-semantic-mapping-with-structured-extraction), "the same cadence as the corpus refresh," not tied to a business unit's grid materialization run. That section reads every document first. It names distinct operations on each document that states an event in a driver category: the document is chunked, embedded, and extracted. These operations are separate spans, not one. Embedding and extraction are each their own model call. The registry ([`specs/application/technical/model-registry.md § Model registry`](/specs/application/technical/model-registry.md#model-registry)) names extraction as one of its LLM-based tools, a different model entirely from the one that embeds. So a slow or failed document is traceable to the operation responsible, whether chunking, the embedding call, or the extraction call, not just to "driver signal extraction" generically.
 
+#### Comparing two delivered answers
+
+Follow each question_asked entry to its Delivered Answer and referenced Effective Price Forecast ([`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Delivered Answer`](/specs/application/technical/data-model.md#delivered-answer)). Compare the inputs to each figure as delivered. Predict uses the forecast’s business unit, competitor, brand, geography, horizon, data vintage, application version, numeric model versions and business-unit configuration version. An allocated Predict figure also uses the requested geography, grounded parent, allocation source version and weight. Position inherits those forecast inputs and adds its resolved matches, decision type, origin prices and delivery-time data, configuration, application and numeric model versions. Simulate inherits the inputs of the positioning options it uses and adds its own effective inputs and versions. A reused forecast carries its original pins through every dependent layer. A configuration_changed entry can identify an intervening edit.
+
+For each requested layer compare its recorded availability. For comparable, available layers compare the delivered forecast, confidence scorecard and numeric rationale, positioning seeds, prices, groups and every delivered numeric output and confidence figure. Simulate covers projected share, volume, category growth, revenue, margin and simulation confidence ([`specs/application/product/answer-engine/simulate.md § Simulate: what follows for the business`](/specs/application/product/answer-engine/simulate.md#simulate-what-follows-for-the-business)). Match options by business identity and seed membership within the request. Compare the delivered groups and their numeric contents independently of delivery-local IDs and explanatory wording.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Known input difference?, Input evidence complete?, Availability known?, Same availability?, Stage available?, Known field difference?, Evidence complete?
+
+| Known input difference? | Input evidence complete? | Availability known? | Same availability? | Stage available? | Known field difference? | Evidence complete? | Layer verdict |
+|---|---|---|---|---|---|---|---|
+| true | - | - | - | - | - | - | Changed inputs |
+| false | false | - | - | - | - | - | Insufficient evidence |
+| false | true | false | - | - | - | - | Insufficient evidence |
+| false | true | true | false | - | - | - | Different availability |
+| false | true | true | true | false | - | - | Unavailable in both |
+| false | true | true | true | true | true | - | Different figures |
+| false | true | true | true | true | false | false | Insufficient evidence |
+| false | true | true | true | true | false | true | Equal figures |
+
+Report any established input difference alongside each missing input. When no input difference is established, a comparison can proceed only with evidence for all inputs used by the layer. For available layers, a known field difference includes a changed figure, a changed option or group membership, or a field delivered on only one side. An explicitly unavailable figure differs from zero. A field missing from an older record leaves a gap in the evidence. Report each established difference by layer and field alongside any such gaps. Continue with every other requested layer. A delivery-wide numeric match requires matching availability for all requested layers and equal figures for every available layer.
+
 #### Release activation
 
 The client elects the release and its operator outside PriceHorizon. Its infrastructure administration binds an installation-unique activation attempt to the exact elected package, the authorized deployment principal and the expected active revision. An Acme AI-managed attempt authenticates the named Platform admin and requires current installation support permission at activation. A self-managed attempt authenticates the client infrastructure principal locally. Both use the same installation-side activation path.
@@ -189,31 +211,63 @@ A confirmed terminal failure records the attempt outcome and failed upgrade toge
 
 #### Audit log purge
 
-The purge of what has aged past retention_period runs on the nightly schedule that materialization already keeps ([`specs/application/technical/materialization-service/forecast-materialization.md § Forecast materialization`](/specs/application/technical/materialization-service/forecast-materialization.md#forecast-materialization)). Pin the run time and retention setting on entry. Their difference is the applied UTC cutoff for every age comparison in the run. Persist the greatest applied cutoff before the first deletion so a partially completed run cannot overstate retained coverage on retry.
+The nightly materialization schedule starts the purge ([`specs/application/technical/materialization-service/forecast-materialization.md § Forecast materialization`](/specs/application/technical/materialization-service/forecast-materialization.md#forecast-materialization)). Each run retains its identity and its UTC start time across interruptions. The scan reads candidate IDs for that run in ascending order. Each deletion and the completion record serialize with retention changes. Readers obtain the installation’s greatest applied cutoff and the retained entries from the same committed snapshot. A raise protects records still present at its commit. It cannot restore an earlier deletion or move the coverage boundary backward.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm` \
+**Inputs:**
+  - run identity
+  - candidate ids
 
-**Inputs:** the installation's Audit Log Entries, and its current retention_period
-
-**Output:** every Audit Log Entry aged past retention_period deleted, with the Delivered Answer each references, but for the retention_purge entries and the latest frontier_models_changed entry, which are kept; and a retention_purge entry recording the run
+**Output:** none \
+**Runs When:**
+  - the nightly materialization schedule requests an audit purge. A missed run starts when service resumes. A delayed run starts once. A crash, conflicting transaction or uncertain commit resumes the same run from step 1 after uncommitted work rolls back.
 
 | Step | Action |
 |---|---|
-| 1 | If an Audit Log Entry is left that this run has not checked, continue; otherwise, Go to step 7 |
-| 2 | Take the next Audit Log Entry this run has not checked |
-| 3 | If its action_type is retention_purge, or it is the latest frontier_models_changed entry, Go to step 6; otherwise, continue |
-| 4 | If its occurred_at is older than the installation's current retention_period, continue; otherwise, the entry being checked again on a later run, Go to step 6 |
-| 5 | Delete the entry, a hard delete, not an archive, since retaining compliance data longer than a stated purpose requires is its own exposure, not a safety margin, and, where it has a delivered_answer_id, that Delivered Answer row in the same operation, since nothing else in the system ever references it once its own audit entry is gone |
-| 6 | If an Audit Log Entry is left that this run has not checked, Go to step 2; otherwise, continue |
-| 7 | Record the run as a retention_purge entry with its applied cutoff, including when no entry qualified for deletion. End |
+| 1 | Create or reopen the durable run under its identity, preserving the original UTC start time and candidate scan on retry |
+| 2 | If purge completed(run identity), End; otherwise, continue |
+| 3 | For each candidate of candidate ids, by candidate ascending: steps 4 to 9 |
+| 4 | Open a deletion transaction serialized with retention changes and concurrent processing of this candidate |
+| 5 | Set observed to purge observation(run identity, candidate) |
+| 6 | Run [`§ Engineering and Production Considerations § Security and governance § Audit log purge § Entry disposition`](#entry-disposition) with Entry still present? as observed.present, with Entry exempt? as observed.exempt, with Before effective cutoff? as observed.older, giving Disposition |
+| 7 | If Disposition = "Delete", remove the audit entry and its associated Delivered Answer if present; otherwise, continue |
+| 8 | If Disposition = "Delete", advance the run and installation cutoff records to at least the observed cutoff; otherwise, continue |
+| 9 | Commit the candidate transaction |
+| 10 | Begin a completion transaction serialized with retention changes and other completions for this run |
+| 11 | If purge completed(run identity), close the transaction, End; otherwise, continue |
+| 12 | Set final cutoff to purge completion cutoff(run identity) |
+| 13 | Record one retention_purge event with the run identity and final cutoff, advance the installation boundary to at least that cutoff, and mark the run complete in the same commit |
+| 14 | End |
 
-The purge keeps every retention_purge entry as evidence that retention ran. It also keeps the latest frontier_models_changed entry as evidence of the last recorded routing decision. A later entry supersedes it, after which the usual retention period applies. During migration the control plane may read that evidence to establish prior routing. Subsequent comparisons use the durable checkpoint under [`specs/application/technical/control-plane-service/control-plane.md § Control Plane § External model routing changes`](/specs/application/technical/control-plane-service/control-plane.md#external-model-routing-changes).
+##### Entry disposition
 
-The retention_period setting can only be raised through this design ([`specs/application/technical/control-plane-service/control-plane.md § Control Plane § Configuration change path`](/specs/application/technical/control-plane-service/control-plane.md#configuration-change-path), [`§ Open Questions [Name: Retention Decrease]`](#open-questions)). So the "current retention_period" that step 4 checks against is always the longest that has ever applied. Step 4 compares every entry against the setting captured on entry, not against the setting in effect when the entry was written. That comparison never retroactively shortens a commitment already made. A raise takes effect immediately, and protects entries that would otherwise have aged out under the old, shorter setting. That is the outcome a client extending their own retention requirement expects.
+The comparison uses the candidate’s occurred_at. The exemption covers every retention_purge event and the installation’s latest recorded frontier_models_changed event. A later routing entry supersedes that exemption ([`specs/application/technical/control-plane-service/control-plane.md § Control Plane § External model routing changes`](/specs/application/technical/control-plane-service/control-plane.md#external-model-routing-changes)). Removing a Delivered Answer leaves its referenced forecast under the forecast’s own lifecycle.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Entry still present?, Entry exempt?, Before effective cutoff?
+
+| Entry still present? | Entry exempt? | Before effective cutoff? | Disposition |
+|---|---|---|---|
+| false | - | - | Already removed |
+| true | true | - | Keep |
+| true | false | false | Keep |
+| true | false | true | Delete |
 
 ## Facts
 
 **Records:**
+  - **Name:** purge completed \
+    **Type:** function<string> -> boolean \
+    **Means:** the durable completion marker for the supplied run identity, read in the current transaction
+
+  - **Name:** purge observation \
+    **Type:** function<string, number> -> context<present: boolean, exempt: boolean, older: boolean, cutoff: date and time> \
+    **Means:** the installation database’s observation of the run and candidate under the deletion transaction. The cutoff is the run’s fixed UTC start time minus the current committed retention_period. Present records existence, exempt records the applicable exemption, and older means the present entry’s occurred_at is strictly earlier than the cutoff. Both tests are false for an absent entry.
+
+  - **Name:** purge completion cutoff \
+    **Type:** function<string> -> date and time \
+    **Means:** the database reads the run’s greatest cutoff committed with an actual deletion. For a run with no deletions, it uses the original UTC run time minus the retention_period read in the completion transaction.
+
   - **Name:** forecast lookup \
     **Type:** string \
     **Values:** "stored", "live required", "unavailable" \
@@ -246,4 +300,4 @@ The retention_period setting can only be raised through this design ([`specs/app
 - **Name:** Retention Decrease
   **Open Question:** How is a genuine decrease to an installation's retention period made, and is it contract- and legal-reviewed?
   **Provisional Answer:** It is not made: the retention period only rises, through the control plane, and nothing shortens it.
-  **Impacts:** the purge that relies on a period that never shrinks, in [`§ Engineering and Production Considerations § Security and governance § Audit log purge [Step: 4]`](#audit-log-purge) and that section's account of why comparing against today's setting never shortens a commitment; and the retention period's raise-only control ([`specs/application/technical/control-plane-service/control-plane.md § Control Plane § Configuration change path`](/specs/application/technical/control-plane-service/control-plane.md#configuration-change-path)).
+  **Impacts:** the deletion boundary in [`§ Engineering and Production Considerations § Security and governance § Audit log purge`](#audit-log-purge) and the raise-only setting in [`specs/application/technical/control-plane-service/control-plane.md § Control Plane § Configuration change path`](/specs/application/technical/control-plane-service/control-plane.md#configuration-change-path).

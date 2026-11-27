@@ -41,9 +41,27 @@ The bounds below apply to a self-service change to the surfaces they name:
 
 - **Reference data.** A Business Unit, Geography or Competitor entry is added, disabled and has its display label renamed at any time. Its code is changed only before ingested data first uses it, and is corrected afterward through Entity Alias. A new Geography entry specifies either its parent in the hierarchy or, for a country-level entry with no parent, its own currency, for the reason the currency field of [`specs/application/technical/data-model.md § Core Data Model § Reference and Master Data § Geography`](/specs/application/technical/data-model.md#geography) gives.
 - **Materiality and dead-zone thresholds.** These thresholds are set within bounds Acme AI provides as defaults ([`specs/application/product/tenant-administration/business-unit-settings.md § Business Unit Settings`](/specs/application/product/tenant-administration/business-unit-settings.md#business-unit-settings); for the materiality thresholds, [`specs/application/technical/query-service/layered-output-synthesis.md § Open Questions [Name: Default Materiality Thresholds]`](/specs/application/technical/query-service/layered-output-synthesis.md#open-questions)).
-- **The application log threshold.** The threshold is lowered toward trace ([`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Security and governance`](/specs/application/technical/engineering-and-production-considerations.md#security-and-governance)) only temporarily. A lowered threshold expires automatically rather than persisting.
+- **The application log threshold.** A Control plane admin can temporarily lower the threshold for the unit’s own traffic ([`specs/application/product/tenant-administration/application-log-control.md § Application Log Control`](/specs/application/product/tenant-administration/application-log-control.md#application-log-control)).
 
-The installation-wide audit log retention_period ([`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Security and governance`](/specs/application/technical/engineering-and-production-considerations.md#security-and-governance)) is governed and raise-only. A decrease lies outside this surface entirely, by design: the control plane service's write path rejects any submitted value lower than the setting's current value.
+The control plane serializes governed changes to the installation’s retention_period with each purge deletion ([`specs/application/technical/engineering-and-production-considerations.md § Engineering and Production Considerations § Security and governance § Audit log purge`](/specs/application/technical/engineering-and-production-considerations.md#audit-log-purge)). It compares the submitted period with the current committed setting, rejects a decrease and records an accepted raise with its audit event in the same transaction.
+
+#### Temporary business-unit logging
+
+On an authorized increase, persist the request identity, unit, requested threshold, activation time and absolute UTC deadline together. The deadline is the activation time plus the window specified in [`specs/application/product/tenant-administration/application-log-control.md § Application Log Control`](/specs/application/product/tenant-administration/application-log-control.md#application-log-control). Return the deadline to the administrator. A retry of that request reuses the original result, even after restart or expiry. Replacing an elevation requires a fresh authorized request.
+
+Resolve the effective threshold for the traffic’s business unit whenever detail is emitted. Use the current UTC time and the currently applicable installation settings. At the deadline the elevation has expired. Cleanup may remove only the expired activation it observed, so delayed cleanup cannot clear a replacement.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Conditions:** Platform override applies?, Unit elevation recorded?, Before its deadline?
+
+| Platform override applies? | Unit elevation recorded? | Before its deadline? | Effective threshold |
+|---|---|---|---|
+| true | - | - | Platform override |
+| false | false | - | Applicable baseline |
+| false | true | false | Applicable baseline |
+| false | true | true | Requested unit threshold |
+
+The applicable baseline is the current installation default for that unit. An authorized platform override takes precedence for as long as it applies.
 
 ### External model routing changes
 
