@@ -1,12 +1,12 @@
-A single PriceHorizon installation can host several business units side by side. Each business unit has its own brand, competitor set, category, and geography, and its own glossary terms and thresholds. Almost everything this file describes is scoped to a business unit: the answers a person may ask for, the configuration they may change, and the records they may see.
+A single PriceHorizon installation can host several business units side by side. Each business unit has its own brand, competitor set, category, and geography, its own thresholds, and its own alternate phrasing of installation-governed terms. Almost everything this file describes is scoped to a business unit: the answers a person may ask for, the configuration they may change, and the records they may see.
 
-PriceHorizon's roles distinguish everyday use from administration. A Query user asks questions and explores the answer, in whichever business units their identity grants. A Control plane admin manages a business unit's own configuration, reference data, thresholds and review queues. The Control plane admin also reviews the business unit's forecast evidence and accuracy, and sees the record of who has done what within it. All of this is scoped to that business unit alone. An Identity admin maps the customer's own identity claims to business units and roles, and sees the record of every such change. The Identity admin works across the whole installation rather than the business units a person is granted, since a mistake there could affect access across all of them. The Platform admin described under [`§ Platform & Compliance Operations`](#platform--compliance-operations) likewise works across every business unit an installation hosts. Every domain relies on these roles, and no domain holds them. They are set out in [`specs/application/product/roles.md § Roles`](/specs/application/product/roles.md#roles).
+PriceHorizon's roles distinguish everyday use from administration. A Query user asks questions and explores the answer, in whichever business units their identity grants. A Control plane admin manages a business unit's own configuration, reference data, thresholds and review queues. The Control plane admin also reviews the business unit's forecast evidence and accuracy, and sees the record of who has done what within it. The client may separately authorize a Control plane admin to register a unit. Registration grants no membership. An Identity admin maps the customer's own identity claims to business units and roles, and sees the record of every such change. The Identity admin works across the whole installation rather than the business units a person is granted, since a mistake there could affect access across all of them. The Platform admin described under [`§ Platform & Compliance Operations`](#platform--compliance-operations) likewise works across every business unit an installation hosts. Every domain relies on these roles, and no domain holds them. They are set out in [`specs/application/product/roles.md § Roles`](/specs/application/product/roles.md#roles).
 
 ## Answer Engine
 
 PriceHorizon answers one executive question: what will a competitor do on price, where should Brand A sit in response, and what happens to the business as a result. It answers through capabilities that compose in a fixed order, plus one lens that cuts across all of them. Each question is asked in a decision context: the kind of decision the Query user is working on, and the business unit they are working in. PriceHorizon asks for the kind of decision when the session starts, and for the business unit too where the Query user has more than one. The decision context is shown with every answer and can be changed where it is shown. A question's own words can override it for that question alone ([`specs/application/product/answer-engine/decision-context.md § Decision Context`](/specs/application/product/answer-engine/decision-context.md#decision-context)).
 
-The price being forecast is effective price, the net price actually realized per unit over the period being asked about. Effective price is list price minus trade promotions and rebates, plus any surcharges. That is why a competitor's price can move materially while their shelf tag does not.
+The price being forecast is effective price, the net price realized per unit over the period being asked about. Effective price is list price minus trade promotions and rebates, plus any surcharges. That is why a competitor's price can move materially while their shelf tag does not.
 
 **Predict.** It turns the question into a forecast: the direction and magnitude of the competitor's likely move in effective price. The forecast is always delivered with a plain-language rationale and distinct measures of certainty attached, never as a bare number. It arrives as a scorecard of the forecast and its confidence, a plain-language account of the expected impact and the KPIs it moves, a map of how the figure breaks down from country to metro, and a chart of the baseline and the drivers behind it. A confidence band gives the range around the forecast itself, drawn from how much uncertainty the underlying forecasting models carry. A confidence score is a separate read of how well-founded the evidence behind the forecast is, explained under [`§ Trust & Explainability`](#trust--explainability). The two can diverge without contradicting each other, as when a precise forecast rests on a weakly sourced fact. The answer shows both without flagging either as an error. Nothing downstream exists without Predict: Position and Simulate both take its output as their starting point. A positioning option carries the forecast's own confidence unchanged. A simulated outcome computes its own confidence, since projecting a business outcome introduces uncertainty the forecast never carried. A positioning option built on a low-confidence forecast is flagged as such, never presented with false certainty.
 
@@ -14,15 +14,15 @@ The price being forecast is effective price, the net price actually realized per
 
 **Simulate.** It takes each Position option and projects what that option would do to the business: share, volume, category growth, revenue, and margin. The outcomes are shown side by side, so the trade-off between options is visible before a decision is made, not discovered afterward.
 
-**Drill-down.** Drill-down is not a capability of its own. It is a lens available within every capability: a narrower geography, or a different metric, without leaving the analysis or re-asking the question. Within the range the underlying competitor data supports, a drilled figure is guaranteed consistent with the broader figure it was drilled from. Past that range, a drilled figure becomes a labeled allocation rather than a sourced forecast. It carries no decomposition of its own, since an allocated figure has no causal story to tell. That boundary reflects which competitor data is currently licensed and ingested, not a permanent limit.
+**Drill-down.** Drill-down is not a capability of its own. It is a lens available within every capability: a narrower geography, or a different metric, without leaving the analysis or re-asking the question. Within the range the underlying competitor data supports, a drilled figure is guaranteed consistent with the broader figure it was drilled from. Past that range, the answer labels qualified local estimates and shows a regional reference when a local rate lacks supporting inputs. It carries no decomposition of its own, since an allocated figure has no causal story to tell. That boundary reflects which competitor data is currently licensed and ingested, not a permanent limit.
 
-Throughout every stage, the narrative layer explains numbers that already exist rather than generating new ones. That is what keeps an answer defensible in front of a CFO or a retailer. These capabilities are what "the answer" means throughout this product, together with the guarantee that no later stage is ever shown as more certain than the stage it was built on ([`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes)). [`§ Diagrams § The Answer`](#the-answer) renders the capabilities and how they compose. [`§ Diagrams § From Evidence to Answer`](#from-evidence-to-answer) renders how a forecast is built from its evidence, and [`§ Diagrams § When an Answer Falls Short`](#when-an-answer-falls-short) renders what an answer shows when a stage cannot complete. Full detail: [`specs/application/product/answer-engine/predict.md`](/specs/application/product/answer-engine/predict.md), [`specs/application/product/answer-engine/position.md`](/specs/application/product/answer-engine/position.md), [`specs/application/product/answer-engine/simulate.md`](/specs/application/product/answer-engine/simulate.md), [`specs/application/product/answer-engine/drill-down.md`](/specs/application/product/answer-engine/drill-down.md), [`specs/application/product/answer-engine/decision-context.md`](/specs/application/product/answer-engine/decision-context.md).
+Throughout every stage, the narrative layer explains numbers that already exist rather than generating new ones. That is what keeps an answer defensible in front of a CFO or a retailer. These capabilities are what "the answer" means throughout this product, together with the guarantee that no later stage is ever shown as more certain than the stage it was built on ([`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes)). [`§ Diagrams § The Answer`](#the-answer) renders the capabilities and how they compose. [`§ Diagrams § From Evidence to Answer`](#from-evidence-to-answer) renders how a forecast is built from its evidence. [`§ Diagrams § When an Answer Falls Short`](#when-an-answer-falls-short) renders what an answer shows when a stage cannot complete. Full detail: [`specs/application/product/answer-engine/predict.md`](/specs/application/product/answer-engine/predict.md), [`specs/application/product/answer-engine/position.md`](/specs/application/product/answer-engine/position.md), [`specs/application/product/answer-engine/simulate.md`](/specs/application/product/answer-engine/simulate.md), [`specs/application/product/answer-engine/drill-down.md`](/specs/application/product/answer-engine/drill-down.md), [`specs/application/product/answer-engine/decision-context.md`](/specs/application/product/answer-engine/decision-context.md).
 
 ## Trust & Explainability
 
-A forecast here is never a magic number. It is built from a baseline plus a correction from each driver behind it. The baseline is the competitor's own price trend and promotional calendar carried forward, adjusted for anything the competitor has already announced. Each correction is sized by the evidence and by that driver's versioned weight. The forecast is exactly that sum, and the driver chart shows each part. Most of the evidence is in place before anyone asks. Documents are read as they arrive, and their facts are recorded and tagged with how credible that type of source is. Forecasts are computed on a schedule for each tracked competitor brand and geography in a business unit at the standard horizons. A question outside that set reuses its forecast if the evidence and versions still match, or has it built when asked. When a forecast is built, the price history and the documents are checked against each other. Evidence that points where the baseline does not go, by enough to count as a price move, is then caught rather than averaged away.
+A forecast here is never a magic number. It is built from a baseline plus a correction from each driver behind it. The baseline is the competitor's own price trend and promotional calendar carried forward, adjusted for anything the competitor has already announced. Each correction is sized by the evidence and by that driver's versioned weight. The forecast is exactly that sum, and the driver chart shows each part. Most of the evidence is in place before anyone asks. Documents are read as they arrive, and their facts are recorded and tagged with how credible that type of source is. Forecasts are computed on a schedule for each tracked competitor brand and geography in a business unit at the standard horizons. An eligible live request reuses a matching stored forecast or builds one from the published inputs. A finer geography draws on its grounded parent. Unavailable requests show the reason. When a forecast is built, the price history and the documents are checked against each other. Evidence that points where the baseline does not go, by enough to count as a price move, is then caught rather than averaged away.
 
-The forecast's figures open to their why, without leaving the analysis. The baseline opens to the price history, forecasting models and announcements it was built from. Each driver opens to the document it came from, to the model that produced it where the driver is estimated rather than reported, to both, or to an explanation that no qualifying signal reached the driver. This includes competitor strategy, whose response model runs only when a qualifying competitor plan reaches it. A figure estimated below the geography the data reports opens to the figure it was allocated from and the weighting used. Every confidence figure opens to the reasons it sits where it does:
+The forecast's figures open to their why, without leaving the analysis. The baseline opens to the price history, forecasting models and announcements it was built from. Each driver opens to the document it came from, to the model that produced it where the driver is estimated rather than reported, to both, or to an explanation that no qualifying signal reached the driver. This includes competitor strategy, whose response model runs only when a qualifying competitor plan reaches it. A local estimate opens to its source quantities and any weights. A regional price shown for context identifies its own market. Every confidence figure opens to the reasons it sits where it does:
 - For a forecast and its positioning options, the confidence explanation shows how current the data is. When qualitative signals contribute, it also identifies the weakest source and names both sides of any disagreement big enough to count as a price move. Otherwise it tells the user that snapshot freshness alone determined confidence. Predict's score does not read a model's last-validated date; those dates remain evidence metadata.
 - For a simulated outcome, the reasons are how confident and how recently validated its models are, and whether the figure was held down to the forecast's own confidence.
 
@@ -36,16 +36,15 @@ An answer a Query user can act on has to survive being questioned afterward: by 
 
 Trust & Explainability is a different concern from whether the models are drifting over time, which is [`§ Accuracy Governance`](#accuracy-governance). It is also a different concern from who accessed the system or how it executed a request, which is [`§ Logging & Traceability`](#logging--traceability). Trust & Explainability is specifically about whether the answer in front of a Query user right now can be trusted.
 
-Fallbacks hold those guarantees up at the edges. A question whose own terms cannot be resolved, or that leaves unclear which business unit or kind of decision it is about, returns a clarifying question rather than a guess. Nothing is computed for it. A forecast whose evidence falls below the confidence threshold is labeled as such rather than stated fluently. A stage that cannot complete after the answer is under way says so plainly and shows whatever earlier stages did complete. If grouping fails after simulation completes, the answer shows the individual candidates with their completed outcomes. Where nothing completed, it says that instead. In none of these cases is a stale or guessed figure substituted. [`§ Diagrams § When an Answer Falls Short`](#when-an-answer-falls-short) pictures this. Full detail: [`specs/application/product/trust-and-explainability/guarantees.md`](/specs/application/product/trust-and-explainability/guarantees.md), [`specs/application/product/trust-and-explainability/degraded-answer-behavior.md`](/specs/application/product/trust-and-explainability/degraded-answer-behavior.md), [`specs/application/product/answer-engine/predict.md`](/specs/application/product/answer-engine/predict.md), [`specs/application/product/answer-engine/simulate.md`](/specs/application/product/answer-engine/simulate.md).
+Fallbacks hold those guarantees up at the edges. A question whose own terms cannot be resolved, or that leaves unclear which business unit or kind of decision it is about, returns a clarifying question rather than a guess. Nothing is computed for it. A forecast whose evidence falls below the confidence threshold is labeled as such rather than stated fluently. A stage that cannot complete after the answer is under way says so plainly and shows whatever earlier stages did complete. If grouping fails after simulation completes, the answer shows the individual candidates with their completed outcomes. If wording cannot be rendered, the completed figures and evidence remain available with the narrative marked unavailable. Where nothing completed, the answer states that outcome. In none of these cases is a stale or guessed figure substituted. [`§ Diagrams § When an Answer Falls Short`](#when-an-answer-falls-short) pictures this. Full detail: [`specs/application/product/trust-and-explainability/guarantees.md`](/specs/application/product/trust-and-explainability/guarantees.md), [`specs/application/product/trust-and-explainability/degraded-answer-behavior.md`](/specs/application/product/trust-and-explainability/degraded-answer-behavior.md), [`specs/application/product/answer-engine/predict.md`](/specs/application/product/answer-engine/predict.md), [`specs/application/product/answer-engine/simulate.md`](/specs/application/product/answer-engine/simulate.md).
 
 ## Accuracy Governance
 
-Forecast accuracy is measured against the period and terms of each original prediction. The report shows the evidence, any verdict and signed error, and why a forecast is still pending or cannot be evaluated. A Platform admin uses patterns across business units to inform tuning. A Control plane admin can escalate a pattern or follow a retained delivery to the Query user who received a particular forecast. [`specs/application/product/accuracy-governance.md § Tracking Forecast Accuracy`](/specs/application/product/accuracy-governance.md#tracking-forecast-accuracy) describes the review.
+Forecast accuracy is measured against the period and terms of each original prediction. The report shows the evidence, any verdict and signed error, and why a forecast is still pending or cannot be evaluated. A Platform admin uses patterns across business units to inform tuning. A Control plane admin can escalate a pattern or distinguish a committed answer from an acknowledged client receipt. [`specs/application/product/accuracy-governance.md § Tracking Forecast Accuracy`](/specs/application/product/accuracy-governance.md#tracking-forecast-accuracy) describes the review.
 
 ## Tenant Administration
 
 A self-service control plane lets a client manage the day-to-day realities of running PriceHorizon without needing Acme AI paged for routine changes. With it, a client can:
-
 - add a business unit;
 - retire a competitor;
 - record a rebrand without losing its pricing history;
@@ -58,7 +57,6 @@ A self-service control plane lets a client manage the day-to-day realities of ru
 A threshold change reaches the very next answer. The exception is a forecast computed on a schedule, which picks up a new stable-price threshold only when it is next computed. A Control plane admin can ask for the business unit's scheduled forecasts to be computed again rather than waiting for the next run.
 
 The same self-service surface is where a Control plane admin sees, at any time, who has done what within their own business unit:
-
 - Acme AI's own access through PriceHorizon's own systems;
 - every configuration change made to the business unit, and who made it;
 - every change to who has access to it;
@@ -120,17 +118,16 @@ flowchart TD
     class CHOICE done
 ```
 
-**Caption:** The capabilities in their fixed order, what each contributes, and Drill-down cutting across all of them.
-
+**Caption:** The capabilities in their fixed order, what each contributes, and Drill-down cutting across all of them. \
 **Sources:**
-- [`specs/application/product/answer-engine/drill-down.md § Drill-down: cross-cutting, available at every stage`](/specs/application/product/answer-engine/drill-down.md#drill-down-cross-cutting-available-at-every-stage)
-- [`specs/application/product/answer-engine/position.md § Position: where Brand A should sit`](/specs/application/product/answer-engine/position.md#position-where-brand-a-should-sit)
-- [`specs/application/product/answer-engine/position.md § Position: where Brand A should sit § Options by Kind of Decision`](/specs/application/product/answer-engine/position.md#options-by-kind-of-decision)
-- [`specs/application/product/answer-engine/position.md § Position: where Brand A should sit § The Strategies`](/specs/application/product/answer-engine/position.md#the-strategies)
-- [`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`](/specs/application/product/answer-engine/predict.md#predict-what-will-the-competitor-do)
-- [`specs/application/product/answer-engine/simulate.md § Simulate: what follows for the business`](/specs/application/product/answer-engine/simulate.md#simulate-what-follows-for-the-business)
-- [`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes)
-- [`§ Answer Engine`](#answer-engine)
+  - [`specs/application/product/answer-engine/drill-down.md § Drill-down: cross-cutting, available at every stage`](/specs/application/product/answer-engine/drill-down.md#drill-down-cross-cutting-available-at-every-stage)
+  - [`specs/application/product/answer-engine/position.md § Position: where Brand A should sit`](/specs/application/product/answer-engine/position.md#position-where-brand-a-should-sit)
+  - [`specs/application/product/answer-engine/position.md § Position: where Brand A should sit § Options by Kind of Decision`](/specs/application/product/answer-engine/position.md#options-by-kind-of-decision)
+  - [`specs/application/product/answer-engine/position.md § Position: where Brand A should sit § The Strategies`](/specs/application/product/answer-engine/position.md#the-strategies)
+  - [`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`](/specs/application/product/answer-engine/predict.md#predict-what-will-the-competitor-do)
+  - [`specs/application/product/answer-engine/simulate.md § Simulate: what follows for the business`](/specs/application/product/answer-engine/simulate.md#simulate-what-follows-for-the-business)
+  - [`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes)
+  - [`§ Answer Engine`](#answer-engine)
 
 ### From Evidence to Answer
 
@@ -146,10 +143,16 @@ flowchart TD
     DOCS --> BUILD
     BUILD["The forecast: baseline plus each driver's correction,<br/>price history and documents checked against each other"]
     BUILD -->|"for a tracked competitor and geography,<br/>at a standard horizon"| BUILT["computed on a schedule"]
-    BUILD -->|"for anything else"| LIVE["built when asked,<br/>the same way"]
+    Q(["An executive question"]) --> SELECT{"Available forecast source"}
+    SELECT -->|"scheduled key"| BUILT
+    SELECT -->|"matching live key"| REUSE["stored live forecast"]
+    SELECT -->|"eligible live miss"| LIVE["compute from grounded inputs"]
+    SELECT -->|"below the grid"| PARENT["parent reference or supported local estimate"]
+    SELECT -->|"unsupported or unpublished"| NA["explain unavailability"]
     BUILT --> ANS
+    REUSE --> ANS
     LIVE --> ANS
-    Q(["An executive question"]) --> ANS
+    PARENT --> LOCAL(["Local result or regional reference<br/>with its source and scope"])
     ANS["The answer<br/>scorecard of the forecast and its confidence,<br/>impact and KPIs, map, driver chart,<br/>delivered options and their member outcomes"]
     ANS --> WHY(["The baseline, every driver, and every confidence figure<br/>open to the reasons and evidence behind them"])
 
@@ -157,14 +160,13 @@ flowchart TD
     class WHY done
 ```
 
-**Caption:** How a forecast is built from its evidence, and what a Query user can open once the answer arrives.
-
+**Caption:** How a forecast is built from its evidence, and what a Query user can open once the answer arrives. \
 **Sources:**
-- [`specs/application/product/answer-engine/position.md § Position: where Brand A should sit`](/specs/application/product/answer-engine/position.md#position-where-brand-a-should-sit)
-- [`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`](/specs/application/product/answer-engine/predict.md#predict-what-will-the-competitor-do)
-- [`specs/application/product/answer-engine/simulate.md § Simulate: what follows for the business`](/specs/application/product/answer-engine/simulate.md#simulate-what-follows-for-the-business)
-- [`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes)
-- [`§ Answer Engine`](#answer-engine)
+  - [`specs/application/product/answer-engine/position.md § Position: where Brand A should sit`](/specs/application/product/answer-engine/position.md#position-where-brand-a-should-sit)
+  - [`specs/application/product/answer-engine/predict.md § Predict: what will the competitor do`](/specs/application/product/answer-engine/predict.md#predict-what-will-the-competitor-do)
+  - [`specs/application/product/answer-engine/simulate.md § Simulate: what follows for the business`](/specs/application/product/answer-engine/simulate.md#simulate-what-follows-for-the-business)
+  - [`specs/application/product/trust-and-explainability/guarantees.md § Guarantees This Answer Engine Makes`](/specs/application/product/trust-and-explainability/guarantees.md#guarantees-this-answer-engine-makes)
+  - [`§ Answer Engine`](#answer-engine)
 
 ### Using and Administering
 
@@ -188,15 +190,14 @@ flowchart TD
     IDP --> PLAT
 ```
 
-**Caption:** Who uses PriceHorizon and who administers it. The customer's people sign in through the customer's own identity provider, and so, ordinarily, do Acme AI's staff, through an account the client provisions. From there, using and administering run on separate paths. The path that answers questions never holds the credentials to change configuration, so a problem in the far more widely used path cannot reach the more sensitive one. Acme AI's own staff administer as Platform admins, on access that is governed, recorded, and something the client can disable.
-
+**Caption:** Who uses PriceHorizon and who administers it. The customer's people sign in through the customer's own identity provider, and so, ordinarily, do Acme AI's staff, through an account the client provisions. From there, using and administering run on separate paths. The path that answers questions never holds the credentials to change configuration, so a problem in the far more widely used path cannot reach the more sensitive one. Acme AI's own staff administer as Platform admins, on access that is governed, recorded, and something the client can disable. \
 **Sources:**
-- [`specs/application/product/accuracy-governance.md § Tracking Forecast Accuracy`](/specs/application/product/accuracy-governance.md#tracking-forecast-accuracy)
-- [`specs/application/product/identity-and-access/identity-administration.md § Identity Administration`](/specs/application/product/identity-and-access/identity-administration.md#identity-administration)
-- [`specs/application/product/identity-and-access/identity-federation.md § Identity Federation`](/specs/application/product/identity-and-access/identity-federation.md#identity-federation)
-- [`specs/application/product/identity-and-access/using-and-administering-kept-apart.md § Using and Administering Kept Apart`](/specs/application/product/identity-and-access/using-and-administering-kept-apart.md#using-and-administering-kept-apart)
-- [`specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology`](/specs/application/product/platform-and-compliance-operations/deployment-topology.md#deployment-topology)
-- [`specs/application/product/roles.md § Roles`](/specs/application/product/roles.md#roles)
+  - [`specs/application/product/accuracy-governance.md § Tracking Forecast Accuracy`](/specs/application/product/accuracy-governance.md#tracking-forecast-accuracy)
+  - [`specs/application/product/identity-and-access/identity-administration.md § Identity Administration`](/specs/application/product/identity-and-access/identity-administration.md#identity-administration)
+  - [`specs/application/product/identity-and-access/identity-federation.md § Identity Federation`](/specs/application/product/identity-and-access/identity-federation.md#identity-federation)
+  - [`specs/application/product/identity-and-access/using-and-administering-kept-apart.md § Using and Administering Kept Apart`](/specs/application/product/identity-and-access/using-and-administering-kept-apart.md#using-and-administering-kept-apart)
+  - [`specs/application/product/platform-and-compliance-operations/deployment-topology.md § Deployment Topology`](/specs/application/product/platform-and-compliance-operations/deployment-topology.md#deployment-topology)
+  - [`specs/application/product/roles.md § Roles`](/specs/application/product/roles.md#roles)
 
 ### When an Answer Falls Short
 
@@ -214,8 +215,12 @@ flowchart TD
     POS -->|"cannot complete"| NP(["The forecast, labeled as<br/>missing Position and Simulate"])
     POS -->|"completes"| SIM["Simulate"]
     SIM -->|"cannot complete"| NS(["The forecast and options,<br/>labeled as missing Simulate"])
-    SIM -->|"grouping succeeds"| FULL(["The full answer"])
-    SIM -->|"grouping unavailable"| IND(["Individual options with completed outcomes"])
+    SIM -->|"grouping succeeds"| GROUP["Grouped options"]
+    SIM -->|"grouping unavailable"| IND["Individual options with completed outcomes"]
+    GROUP --> NARR{"Narrative available?"}
+    IND --> NARR
+    NARR -->|"yes"| FULL(["Figures and explanation"])
+    NARR -->|"no"| STRUCT(["Completed figures and evidence,<br/>narrative unavailable"])
 
     classDef stop fill:#f4f4f4,stroke:#777,color:#222
     classDef done fill:#e8f2e8,stroke:#4a7,color:#222
@@ -223,8 +228,7 @@ flowchart TD
     class FULL done
 ```
 
-**Caption:** What an answer shows when it cannot be completed in full. A question whose terms do not resolve, or that leaves unclear which business unit or kind of decision it is about, gets a clarifying question. A stage that cannot complete leaves whatever earlier stages produced, labeled with what is missing. If only grouping fails, each candidate keeps its completed simulation.
-
+**Caption:** What an answer shows when it cannot be completed in full. A question whose terms do not resolve, or that leaves unclear which business unit or kind of decision it is about, gets a clarifying question. A stage that cannot complete leaves whatever earlier stages produced, labeled with what is missing. If only grouping fails, each candidate keeps its completed simulation. \
 **Sources:**
   - [`specs/application/product/answer-engine/position.md § Position: where Brand A should sit`](/specs/application/product/answer-engine/position.md#position-where-brand-a-should-sit)
   - [`specs/application/product/trust-and-explainability/degraded-answer-behavior.md § Degraded Answer Behavior`](/specs/application/product/trust-and-explainability/degraded-answer-behavior.md#degraded-answer-behavior)

@@ -12,7 +12,6 @@ technical-specs:
 Each forecast shows the dates it predicts and where its evidence came from. A forecast is pending until its observation period ends and complete comparable prices arrive. If its original comparison terms cannot be recovered, the report explains why it cannot be evaluated. Each scored forecast contributes once to the pattern of model accuracy, however many people received it.
 
 Each checked forecast gets a verdict, always shown with how far off the forecast was:
-
 - Right, when the actual price landed inside the forecast's confidence band.
 - Right direction, when the actual price landed outside the band but moved the way the forecast said: up, down, or stable within the business unit's stable-price threshold.
 - Wrong, otherwise.
@@ -23,7 +22,7 @@ A Platform admin sees the forecasts across the installation, the driver signals 
 
 The pattern across every business unit, not just one, is the feedback Acme AI tunes the platform's archetype rules, model versions, and weighting rubrics against. Acme AI delivers that tuning through the next application or model release. The pattern is diagnostic input to that engineering work. It is not a conversation with any Query user. [`specs/application/product/identity-and-access/using-and-administering-kept-apart.md § Using and Administering Kept Apart`](/specs/application/product/identity-and-access/using-and-administering-kept-apart.md#using-and-administering-kept-apart) keeps the same separation between using the product and administering it.
 
-A Control plane admin sees the same forecasts, signals and accuracy within their own business unit. To raise a particular prediction with a Query user, the admin selects that user’s retained delivery and opens its question and forecast. A scheduled forecast can appear here even when nobody has received it.
+A Control plane admin sees the same forecasts, signals and accuracy within their own business unit. To raise a particular prediction with a Query user, the admin selects the retained question and its committed forecast, and sees whether the client confirmed receipt. The report distinguishes committed and confirmed counts over the same cohort and identifies the retained coverage of each. A scheduled forecast can appear here even when nobody has received it.
 
 Sometimes a Control plane admin's review points to something that looks like the platform itself rather than their own business unit. That review lands in the same accuracy view: a Platform admin looks at that business unit's own records inside the view the Platform admin already has. These are the same underlying facts the Control plane admin was looking at, rather than a secondhand description of them.
 

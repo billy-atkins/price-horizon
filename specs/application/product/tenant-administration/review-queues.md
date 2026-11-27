@@ -1,5 +1,6 @@
 ---
 technical-specs:
+  - specs/application/technical/control-plane-service/control-plane.md
   - specs/application/technical/data-model.md
   - specs/application/technical/materialization-service/driver-signal-extraction.md
   - specs/application/technical/materialization-service/reconciliation.md
@@ -16,15 +17,15 @@ The review queues sit alongside the same role's other self-service work ([`specs
 ### Test Scenarios
 
 ```gherkin
-Scenario: An uncertain product match is resolved using the client's own catalog knowledge.
-  Given the system has flagged an uncertain match between a newly listed Northern Rival product and an existing catalog entry
-  When a Control plane admin reviews the flagged match
-  Then the admin either confirms the match needed no change or corrects it, using their own knowledge of the catalog
+Scenario: A reviewer corrects an uncertain catalog match.
+  Given a flagged match pairs a Northern Rival six-pack with Brand A's single pack
+  When the unit's Control plane admin corrects the match to Brand A's six-pack
+  Then the resolved match identifies the six-pack and the single pack stays excluded from the comparison
 
-Scenario: An ambiguous document extraction is resolved using the client's own market knowledge.
-  Given the system has flagged an ambiguous extraction from a newly ingested document about Northern Rival
-  When a Control plane admin reviews the flagged extraction
-  Then the admin either confirms the extraction needed no change or corrects it, using their own knowledge of the market
+Scenario: A reviewer confirms an ambiguous document extraction.
+  Given a filing states a two-point tax increase and the extracted figure awaits review
+  When the unit's Control plane admin checks the filing and confirms the two-point figure
+  Then the item is resolved and the figure retains the filing as its source
 
 Scenario: A fact missing its size waits for review before any forecast uses it.
   Given a newly ingested regulatory filing states that Texas's sales tax on snacks will rise, without saying by how much

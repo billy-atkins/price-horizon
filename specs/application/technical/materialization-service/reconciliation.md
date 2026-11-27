@@ -1,23 +1,29 @@
 ## Product and Geography Reconciliation
 
-The harmonized foundation ([`specs/application/technical/data-model.md § Core Data Model § Harmonized quantitative foundation`](/specs/application/technical/data-model.md#harmonized-quantitative-foundation)) lands two independently sourced views of the market: the competitor's syndicated data and Brand A's own internal data. A cross-brand comparison requires a common, resolved product and geography reference. An unresolved match withholds that comparison and its dependent values. Independently grounded competitor forecasts and Brand A prices retain their source and availability. Product matching is an Algorithm.
+Match the syndicated product to Brand A's catalog. Both matchers inspect the same product and catalog from the reconciliation run. The structured matcher uses category, pack size, unit count and formulation where both sources supply them. The semantic matcher uses product names and records the model version. Each returns the selected catalog identifier and confidence, or null when it finds no candidate.
 
-**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm`
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Algorithm` \
+**Inputs:**
+  - competitor product
+  - brand catalog
+  - review threshold
 
-**Inputs:** the competitor's product, and Brand A's catalog
+**Output:**
+  - product match
 
-**Output:** the product's match, flagged for review where its confidence falls below the review threshold, or a whitespace signal
+**Runs When:**
+  - the reconciliation service matches a competitor product from an incoming data vintage against Brand A's catalog
 
 | Step | Action |
 |---|---|
-| 1 | Attempt structured attribute matching between the competitor's product and Brand A's catalog (category, pack size, unit count, formulation, wherever both sources report comparable attributes) |
-| 2 | If step 1 finds a match, set match_method to structured attribute matching and record its confidence, Go to step 5; otherwise, continue |
-| 3 | Attempt semantic matching as a fallback |
-| 4 | If step 3 finds a match, set match_method to semantic matching and record its confidence; otherwise, record the competitor product as a whitespace signal, not an error, End |
-| 5 | If match_confidence falls below the review threshold, flag the match for review rather than accepting it silently, the same governance discipline the business glossary ([`specs/application/technical/glossary-and-grounding.md § Guaranteed grounding`](/specs/application/technical/glossary-and-grounding.md#guaranteed-grounding)) applies to an unresolvable term; otherwise, continue |
-| 6 | Record the match, flagged or not. End |
+| 1 | Set candidate to structured match(competitor product, brand catalog) |
+| 2 | If candidate != null, Set method to "structured attribute matching", Go to step 5; otherwise, continue |
+| 3 | Set candidate to semantic match(competitor product, brand catalog) |
+| 4 | If candidate = null, Set product match to {competitor: competitor product.id, brand: null, method: null, confidence: null, status: "whitespace"}, Go to step 6; otherwise, Set method to "semantic matching" |
+| 5 | Set product match to {competitor: competitor product.id, brand: candidate.id, method: method, confidence: candidate.confidence, status: if candidate.confidence < review threshold then "flagged" else "accepted"} |
+| 6 | Persist the result for this product and vintage. End |
 
-A whitespace signal is kept rather than silently dropped or forced into a false match. Deciding what Brand A should add to its own lineup, though, is an assortment decision outside what this system answers. Each match is recorded as a Product and Geography Match ([`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Product and Geography Match`](/specs/application/technical/data-model.md#product-and-geography-match)).
+The disposition of a comparison awaiting review follows [`§ Open Questions [Name: Flagged Matches]`](#open-questions). A whitespace result retains the competitor product even though it has no Brand A counterpart. Independently grounded prices remain available in either case. Assortment decisions remain outside the product scope. Each match is recorded as a Product and Geography Match ([`specs/application/technical/data-model.md § Core Data Model § Pipeline and Answer Artifacts § Product and Geography Match`](/specs/application/technical/data-model.md#product-and-geography-match)).
 
 [`specs/application/technical/architecture.md § Architecture Overview § Diagrams § From Evidence to Answer`](/specs/application/technical/architecture.md#from-evidence-to-answer) renders this.
 
@@ -25,7 +31,7 @@ A whitespace signal is kept rather than silently dropped or forced into a false 
 
 Geography normalization solves the equivalent problem for geography. It maps each source's own regional codes onto a shared hierarchy. Geography normalization, not the competitor data's raw reporting granularity alone, sets the materialized grid's geography ceiling ([`specs/application/technical/materialization-service/forecast-materialization.md § Forecast materialization`](/specs/application/technical/materialization-service/forecast-materialization.md#forecast-materialization)). The ceiling is the coarser of what the competitor data reports and how finely that reporting can be reliably normalized against Brand A's own geography.
 
-That ceiling is a statement about which data sources are currently ingested, not a fixed architectural limit. A store-level scanner panel, a geo-tagged competitive price-scraping service, or a retailer-specific POS feed would each lower it, if licensed and ingested. What cannot go below the ceiling is any claim of a grounded, sourced number. An allocation is the honest answer until better data closes that gap. The gap is not a wall this architecture imposes on its own.
+The ceiling follows the licensed sources and the reliability of their alignment. Finer data can extend it. Below it, the answer identifies a qualified estimate, a parent reference or unavailability as specified in [`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Drill-down mechanics`](/specs/application/technical/query-service/layered-output-synthesis.md#drill-down-mechanics).
 
 ### Currency normalization
 
@@ -33,11 +39,46 @@ Once geography normalization resolves a price observation's geography, the obser
 
 [`specs/application/technical/architecture.md § Architecture Overview § Diagrams § From Evidence to Answer`](/specs/application/technical/architecture.md#from-evidence-to-answer) renders this.
 
+## Facts
+
+**Records:**
+  - **Name:** competitor product \
+    **Type:** context \
+    **Means:** the source product, its stable identifier, name and reported attributes in this data vintage
+
+  - **Name:** brand catalog \
+    **Type:** list<context> \
+    **Means:** the unit's Brand A products with stable identifiers, names and available attributes at that vintage
+
+  - **Name:** review threshold \
+    **Type:** number \
+    **Means:** the minimum candidate confidence for automatic acceptance
+
+  - **Name:** candidate \
+    **Type:** context<id: string, confidence: number> \
+    **May Be Absent:** Yes \
+    **Means:** the chosen catalog product and confidence returned by the matcher, absent on a miss
+
+  - **Name:** method \
+    **Type:** string \
+    **Means:** the matcher that produced the selected catalog candidate
+
+  - **Name:** product match \
+    **Type:** context<competitor: string, brand: string, method: string, confidence: number, status: string> \
+    **Means:** the persisted disposition of the source product and the candidate evidence when one exists
+
+  - **Name:** structured match \
+    **Type:** function<context, list<context>> -> context \
+    **Means:** the reconciliation service's candidate and confidence from comparable structured attributes, or null when no candidate is found
+
+  - **Name:** semantic match \
+    **Type:** function<context, list<context>> -> context \
+    **Means:** the registered semantic matcher's candidate and confidence from product names, or null when no candidate is found
+
 ## Open Questions
 
 **Records:**
-
-- **Name:** Flagged Matches
-  **Open Question:** What does a match flagged for review ([`§ Product and Geography Reconciliation [Step: 5]`](#product-and-geography-reconciliation)) do to a price gap or comparison before a reviewer resolves it? What catches a match that is wrong but scored as confident?
-  **Provisional Answer:** A flagged match is held back from every price gap, relative price index and comparison until a reviewer resolves it. The comparison is shown as unavailable rather than computed on the flagged match. Nothing catches a wrong match scored as confident.
-  **Impacts:** the flag [`§ Product and Geography Reconciliation [Step: 5]`](#product-and-geography-reconciliation) sets; the price gap and relative price index ([`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Price gap and relative price index, defined`](/specs/application/technical/query-service/layered-output-synthesis.md#price-gap-and-relative-price-index-defined)); and the review queue a flagged match goes to ([`specs/application/product/tenant-administration/review-queues.md § Review Queues`](/specs/application/product/tenant-administration/review-queues.md#review-queues)).
+  - **Name:** Flagged Matches \
+    **Open Question:** What does a match flagged for review ([`§ Product and Geography Reconciliation [Step: 5]`](#product-and-geography-reconciliation)) do to a price gap or comparison before a reviewer resolves it? What catches a match that is wrong but scored as confident? \
+    **Provisional Answer:** A flagged match is held back from every price gap, relative price index and comparison until a reviewer resolves it. The comparison is shown as unavailable rather than computed on the flagged match. Nothing catches a wrong match scored as confident. \
+    **Impacts:** the flag [`§ Product and Geography Reconciliation [Step: 5]`](#product-and-geography-reconciliation) sets; the price gap and relative price index ([`specs/application/technical/query-service/layered-output-synthesis.md § Layered Output Synthesis (producing the answer) § Price gap and relative price index, defined`](/specs/application/technical/query-service/layered-output-synthesis.md#price-gap-and-relative-price-index-defined)); and the review queue a flagged match goes to ([`specs/application/product/tenant-administration/review-queues.md § Review Queues`](/specs/application/product/tenant-administration/review-queues.md#review-queues)).

@@ -10,7 +10,6 @@ technical-specs:
 [`specs/application/product/logging-and-traceability.md § Logging and Traceability § Audit Log`](/specs/application/product/logging-and-traceability.md#audit-log) defines the audit log: what it is, and why it is kept separate from an application log or an answer's own lineage. This capability is how the Control plane admin and the Identity admin ([`specs/application/product/roles.md § Roles`](/specs/application/product/roles.md#roles)) see it.
 
 A Control plane admin can see, at any time, who has done what within the admin's own business unit:
-
 - Acme AI's access
 - every configuration change made to the business unit's settings, and who made it
 - the business unit's Query users' questions and what was returned to them, the positioning options, simulated outcomes, and exact narrative wording alike

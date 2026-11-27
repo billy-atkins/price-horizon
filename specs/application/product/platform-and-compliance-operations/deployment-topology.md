@@ -16,7 +16,6 @@ PriceHorizon deploys as a versioned, self-hosted installation inside each custom
 Acme AI, as the technology and service provider, retains the access needed to support, monitor, and upgrade each installation. Access control and audit logging govern that access, rather than cutting Acme AI off from the data. A client's view of that access is a full capability of its own: [`specs/application/product/tenant-administration/audit-log-visibility.md`](/specs/application/product/tenant-administration/audit-log-visibility.md).
 
 That access is the Platform admin role, per [`specs/application/product/roles.md § Roles`](/specs/application/product/roles.md#roles). It stays inside the customer's environment on either of its paths:
-
 - Ordinarily, the client provisions and controls accounts for named Acme AI staff directly in its own identity provider, so revocation never depends on Acme AI's cooperation.
 - Only where that identity provider cannot be reached, a Platform admin signs in with break-glass credentials held in the installation's own isolated vault.
 
@@ -100,7 +99,6 @@ Scenario: Raising a support case needs no connection from the installation.
 Every model an installation calls runs inside the customer's own infrastructure by default: Acme AI provides the models, and the installation hosts them. The client can instead choose to let some kinds of model call reach a frontier model provider outside that infrastructure. The client's own infrastructure team makes that choice, in the installation's configuration. Neither Acme AI, nor any role inside PriceHorizon, nor an upgrade makes it. An installation that must stay air-gapped never makes it.
 
 Each kind that can be chosen sends something different:
-
 - Reasoning over a question sends the question and the facts and model results it cites, the forecasts and Brand A's own targets among them.
 - Reading the qualitative corpus sends the documents read.
 - Rendering a forecast explanation sends the rationale it explains. PriceHorizon renders candidate, group and simulated figures inside the installation from the records actually delivered.
