@@ -3229,3 +3229,664 @@
           **Cause:** times-by-season \
           **How Settled:** The Objective was revised to give each season's first and last crossing.
       ```
+
+  - **Fixture:** review-settling-the-winter-judgment \
+    **Holds:** the settled review whose primary change also settles the winter judgment's finding \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+
+      ## Findings
+
+      **Records:**
+        - **Finding:** reviewer-1-last-crossing-in-winter \
+          **Verdict:** implementation flaw \
+          **Decision:** the times the section gives \
+          **Affected Goals:**
+            - guide-says-when-the-ferry-runs
+
+          **Description:** The step's Objective gives one first and one last crossing, and the ferry keeps other hours in winter. \
+          **Evidence:**
+            - **Description:** The section names one quay and no season. \
+              **Places:**
+                - `docs/guide.md § The Ferry`
+
+          **Rationale:** A visitor in winter plans a crossing the ferry does not make. \
+          **Possible Fix:**
+            - **Kind:** revision \
+              **Delivers:** An Objective giving the first and the last crossing of each season.
+
+      ## Searches
+
+      **Records:**
+        - **Search:** reviewer-1-winter-hours \
+          **For:** every place giving the hours the ferry keeps in winter \
+          **Goals:**
+            - none
+
+          **Kind:** meaning \
+          **Query:** In winter the ferry makes fewer crossings than in summer. \
+          **Ranking Part:** 1 to 20 \
+          **Snapshot:** 0123456789abcdef \
+          **Places:**
+            - `docs/guide.md § The Ferry`
+
+      ## Hand-back
+
+      - Title: 995211494468f397e04f1afc8673dc0b73832bdfee063eae0b341f25ef92381e
+      - Reading: b3717fe41e62ad79543a93fdbdf93b42650fdb0f7fc56982b7e8eafd7fc54c2f
+      - Findings: d6abcb124a030a819207797c7e369642db26ccd7497be747687ca1a138e62475
+      - Searches: f65373ca24a6137d34ca60e8f006d7b17385ff594e8437e93baf4190dffa4068, 14 lines
+
+      ## Causes
+
+      **Records:**
+        - **Cause:** times-by-season \
+          **Decision:** the times the section gives \
+          **Misses:**
+            - **Miss:** winter-hours-not-read \
+              **Kind:** place not read \
+              **Place:** `docs/guide.md § The Ferry` \
+              **Reads:**
+                - `docs/guide.md § The Ferry`
+
+          **Proposed Change:**
+            - **Kind:** revision \
+              **Decision Rewritten:** The Objective gives the first and the last crossing of each season. \
+              **Places:**
+                - **Place:** `.ai/plans/design-specs/ferry-times-in-the-guide.md § Design Plan Steps [Name: ferry-times-stated]` \
+                  **Order:** primary \
+                  **Settles:**
+                    - reviewer-1-last-crossing-in-winter
+                    - winter-crossing
+
+      ## Settlement
+
+      **Ending:** its own settling \
+      **Earlier Reports:**
+        - none
+
+      **Settling Reads:**
+        - `docs/guide.md § The Ferry`
+
+      **Settlements:**
+        - **Settlement:** times-by-season-kept \
+          **Settled Findings:**
+            - reviewer-1-last-crossing-in-winter
+
+          **Verdict:** implementation flaw \
+          **Required By:** the goals \
+          **Justifying Goals:**
+            - guide-says-when-the-ferry-runs
+
+          **Assessment:** The guide says when the ferry runs only where it gives each season's hours. \
+          **Order:** primary \
+          **Fix Authority:** the builder's \
+          **Cause:** times-by-season \
+          **How Settled:** The Objective was revised to give each season's first and last crossing.
+      ```
+
+  - **Fixture:** winter-judgment-adversarial-cause \
+    **Holds:** the winter crossing's marked Settlement citing the Cause in adversarial-review round 1 \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** handed-off-judgment-1
+
+      ## Settlement
+
+      **Settlements:**
+        - **Settlement:** winter-hours \
+          **Settled Findings:**
+            - winter-crossing
+
+          **Verdict:** implementation flaw \
+          **Cause:** `.ai/tmp/design-specs/ferry-times-in-the-guide/reports/adversarial-review/1.md § Causes [Cause: times-by-season]`
+      ```
+
+  - **Fixture:** winter-judgment-post-apply-cause \
+    **Holds:** the winter crossing's marked Settlement citing the Cause in post-apply-review round 1 \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** handed-off-judgment-1
+
+      ## Settlement
+
+      **Settlements:**
+        - **Settlement:** winter-hours \
+          **Settled Findings:**
+            - winter-crossing
+
+          **Verdict:** implementation flaw \
+          **Cause:** `.ai/tmp/design-specs/ferry-times-in-the-guide/reports/post-apply-review/1.md § Causes [Cause: times-by-season]`
+      ```
+
+  - **Fixture:** winter-judgment-another-rounds-cause \
+    **Holds:** the winter crossing's marked Settlement citing the Cause in adversarial-review round 2 \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** handed-off-judgment-1
+
+      ## Settlement
+
+      **Settlements:**
+        - **Settlement:** winter-hours \
+          **Settled Findings:**
+            - winter-crossing
+
+          **Verdict:** implementation flaw \
+          **Cause:** `.ai/tmp/design-specs/ferry-times-in-the-guide/reports/adversarial-review/2.md § Causes [Cause: times-by-season]`
+      ```
+
+  - **Fixture:** winter-judgment-no-cause \
+    **Holds:** the winter crossing's marked Settlement without a Cause citation \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** handed-off-judgment-1
+
+      ## Settlement
+
+      **Settlements:**
+        - **Settlement:** winter-hours \
+          **Settled Findings:**
+            - winter-crossing
+
+          **Verdict:** implementation flaw
+      ```
+
+  - **Fixture:** winter-judgment-later-no-cause \
+    **Holds:** the winter crossing's marked Settlement without a Cause citation in a later judgment \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** handed-off-judgment-2
+
+      ## Settlement
+
+      **Settlements:**
+        - **Settlement:** winter-hours \
+          **Settled Findings:**
+            - winter-crossing
+
+          **Verdict:** implementation flaw
+      ```
+
+  - **Fixture:** adversarial-round-before-independent-judgment \
+    **Holds:** an earlier-form adversarial round followed by a separately logged winter judgment \
+    **Snippet:**
+
+      ```markdown
+      # Design Document
+
+      **Name:** ferry-times-in-the-guide \
+      **Version:** 1.0.1 \
+      **Status:** in-progress \
+      **Source:** "The guide never says when the ferry runs." \
+      **Kind:** documentation \
+      **Target:** `docs/guide.md` \
+      **Spawned By:** none \
+      **Depends On Designs:** none \
+      **Validated:** none
+
+      ## The Problem
+
+      The guide tells a visitor how to reach the island, and `docs/guide.md § The Ferry` names the ferry without saying when it runs.
+
+      ## Design Goals
+
+      **Records:**
+        - **Name:** guide-says-when-the-ferry-runs \
+          **Description:** The guide says when the ferry runs.
+
+      ## The Design Frame
+
+      ### Scope
+
+      **Cases:**
+        - **Name:** visitor-planning-a-crossing \
+          **Goals:**
+            - guide-says-when-the-ferry-runs
+
+          **Description:** A visitor reads the guide to plan a crossing. What tells it apart is that the visitor has not yet left the mainland.
+
+      The sweep read the guide whole.
+
+      ### Assessed Areas
+
+      **Records:**
+        - **Area:** `docs/guide.md § The Ferry` \
+          **Impact:**
+            - changes
+
+          **Assessment:** `.ai/tmp/design-specs/ferry-times-in-the-guide/reports/handed-off-judgment/1.md`
+
+      ### Approach
+
+      **Principles:**
+        - **Name:** times-stated-where-the-ferry-is-named \
+          **Goals:**
+            - guide-says-when-the-ferry-runs
+
+          **Description:** The times stand in the section naming the ferry, and nowhere else.
+
+      ### Frame Outcomes
+
+      **Records:**
+        - **Name:** crossing-planned-from-the-guide \
+          **Goals:**
+            - guide-says-when-the-ferry-runs
+
+          **Description:** A visitor plans a crossing from the guide alone. It is judged by reading the section naming the ferry.
+
+      ## Design Plan Steps
+
+      **Records:**
+        - **Name:** ferry-times-stated \
+          **What:** `docs/guide.md § The Ferry` \
+          **Why:** The section names the ferry and gives no time. \
+          **Depends On Steps:** none \
+          **Objectives:**
+            - **Name:** section-gives-the-first-and-last-crossing \
+              **Goals:**
+                - guide-says-when-the-ferry-runs
+
+              **Upholds Frame Outcomes:**
+                - crossing-planned-from-the-guide
+
+              **State:** The section naming the ferry gives the time of the first crossing and of the last.
+
+      ## Design Log Entries
+
+      **Records:**
+        - **Entry:** entered-1 \
+          **Timestamp:** 2026-01-01T00:00:00Z \
+          **Reason:** taken up
+
+        - **Entry:** goals-agreed-1 \
+          **Timestamp:** 2026-01-01T00:00:01Z \
+          **Design Version:** 1.0.0
+
+        - **Entry:** plan-change-1 \
+          **Timestamp:** 2026-01-01T00:00:02Z \
+          **Design Version:** 1.0.1
+
+        - **Entry:** adversarial-review-1 \
+          **Timestamp:** 2026-11-25T21:41:45Z \
+          **Design Version:** 1.0.1 \
+          **Model:** a model \
+          **Effort:** medium \
+          **Design Flaws:** 0 \
+          **Implementation Flaws:** 1 \
+          **Nits:** 0 \
+          **Dropped:** 0 \
+          **Led To:** validating
+
+        - **Entry:** handed-off-judgment-1 \
+          **Timestamp:** 2026-11-25T21:42:45Z \
+          **Design Version:** 1.0.1 \
+          **Model:** a model \
+          **Effort:** medium \
+          **Design Flaws:** 0 \
+          **Implementation Flaws:** 1 \
+          **Nits:** 0 \
+          **Dropped:** 0
+
+      ## Out of Scope
+
+      Nothing the research found is left out.
+      ```
+
+  - **Fixture:** post-apply-round-before-independent-judgment \
+    **Holds:** an earlier-form post-apply round followed by a separately logged winter judgment \
+    **Snippet:**
+
+      ```markdown
+      # Design Document
+
+      **Name:** ferry-times-in-the-guide \
+      **Version:** 1.0.1 \
+      **Status:** applying \
+      **Source:** "The guide never says when the ferry runs." \
+      **Kind:** documentation \
+      **Target:** `docs/guide.md`; `docs/notes.md` \
+      **Spawned By:** none \
+      **Depends On Designs:** none \
+      **Validated:** 2026-01-01T00:00:00Z sha256:3359fa6fb8f631f4
+
+      ## The Problem
+
+      The guide tells a visitor how to reach the island, and `docs/guide.md § The Ferry` names the ferry without saying when it runs.
+
+      ## Design Goals
+
+      **Records:**
+        - **Name:** guide-says-when-the-ferry-runs \
+          **Description:** The guide says when the ferry runs.
+
+      ## The Design Frame
+
+      ### Scope
+
+      **Cases:**
+        - **Name:** visitor-planning-a-crossing \
+          **Goals:**
+            - guide-says-when-the-ferry-runs
+
+          **Description:** A visitor reads the guide to plan a crossing. What tells it apart is that the visitor has not yet left the mainland.
+
+      The sweep read the guide whole.
+
+      ### Assessed Areas
+
+      **Records:**
+        - **Area:** `docs/guide.md § The Ferry` \
+          **Impact:**
+            - changes
+
+          **Assessment:** `.ai/tmp/design-specs/ferry-times-in-the-guide/reports/handed-off-judgment/1.md`
+
+      ### Approach
+
+      **Principles:**
+        - **Name:** times-stated-where-the-ferry-is-named \
+          **Goals:**
+            - guide-says-when-the-ferry-runs
+
+          **Description:** The times stand in the section naming the ferry, and nowhere else.
+
+      ### Frame Outcomes
+
+      **Records:**
+        - **Name:** crossing-planned-from-the-guide \
+          **Goals:**
+            - guide-says-when-the-ferry-runs
+
+          **Description:** A visitor plans a crossing from the guide alone. It is judged by reading the section naming the ferry.
+
+      ## Design Plan Steps
+
+      **Records:**
+        - **Name:** ferry-times-stated \
+          **What:** `docs/guide.md § The Ferry` \
+          **Why:** The section names the ferry and gives no time. \
+          **Depends On Steps:** none \
+          **Objectives:**
+            - **Name:** section-gives-the-first-and-last-crossing \
+              **Goals:**
+                - guide-says-when-the-ferry-runs
+
+              **Upholds Frame Outcomes:**
+                - crossing-planned-from-the-guide
+
+              **State:** The section naming the ferry gives the time of the first crossing and of the last.
+
+      ## Design Log Entries
+
+      **Records:**
+        - **Entry:** entered-1 \
+          **Timestamp:** 2026-01-01T00:00:00Z \
+          **Reason:** taken up
+
+        - **Entry:** goals-agreed-1 \
+          **Timestamp:** 2026-01-01T00:00:01Z \
+          **Design Version:** 1.0.0
+
+        - **Entry:** plan-change-1 \
+          **Timestamp:** 2026-01-01T00:00:02Z \
+          **Design Version:** 1.0.1
+
+        - **Entry:** plan-approval-1 \
+          **Timestamp:** 2026-01-01T00:00:03Z \
+          **Design Version:** 1.0.1 \
+          **Approval:** approved
+
+        - **Entry:** apply-1 \
+          **Timestamp:** 2026-01-01T00:00:04Z \
+          **Design Version:** 1.0.1
+
+        - **Entry:** post-apply-review-1 \
+          **Timestamp:** 2026-11-25T21:41:45Z \
+          **Design Version:** 1.0.1 \
+          **Model:** a model \
+          **Effort:** medium \
+          **Design Flaws:** 0 \
+          **Implementation Flaws:** 1 \
+          **Nits:** 0 \
+          **Dropped:** 0 \
+          **Led To:** validating
+
+        - **Entry:** handed-off-judgment-1 \
+          **Timestamp:** 2026-11-25T21:42:45Z \
+          **Design Version:** 1.0.1 \
+          **Model:** a model \
+          **Effort:** medium \
+          **Design Flaws:** 0 \
+          **Implementation Flaws:** 1 \
+          **Nits:** 0 \
+          **Dropped:** 0
+
+      ## Out of Scope
+
+      Nothing the research found is left out.
+      ```
+
+  - **Fixture:** review-holding-misses-for-the-judgments-cause \
+    **Holds:** the round with Misses on a Cause that only a handed-off judgment justified \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+
+      ## Findings
+
+      **Records:**
+        - **Finding:** reviewer-1-last-crossing-in-winter \
+          **Verdict:** implementation flaw \
+          **Decision:** the times the section gives \
+          **Affected Goals:**
+            - guide-says-when-the-ferry-runs
+
+          **Description:** The step's Objective gives one first and one last crossing, and the ferry keeps other hours in winter. \
+          **Evidence:**
+            - **Description:** The section names one quay and no season. \
+              **Places:**
+                - `docs/guide.md § The Ferry`
+
+          **Rationale:** A visitor in winter plans a crossing the ferry does not make. \
+          **Possible Fix:**
+            - **Kind:** revision \
+              **Delivers:** An Objective giving the first and the last crossing of each season.
+
+      ## Searches
+
+      **Records:**
+        - **Search:** reviewer-1-winter-hours \
+          **For:** every place giving the hours the ferry keeps in winter \
+          **Goals:**
+            - none
+
+          **Kind:** meaning \
+          **Query:** In winter the ferry makes fewer crossings than in summer. \
+          **Ranking Part:** 1 to 20 \
+          **Snapshot:** 0123456789abcdef \
+          **Places:**
+            - `docs/guide.md § The Ferry`
+
+      ## Hand-back
+
+      - Title: 995211494468f397e04f1afc8673dc0b73832bdfee063eae0b341f25ef92381e
+      - Reading: b3717fe41e62ad79543a93fdbdf93b42650fdb0f7fc56982b7e8eafd7fc54c2f
+      - Findings: d6abcb124a030a819207797c7e369642db26ccd7497be747687ca1a138e62475
+      - Searches: f65373ca24a6137d34ca60e8f006d7b17385ff594e8437e93baf4190dffa4068, 14 lines
+
+      ## Causes
+
+      **Records:**
+        - **Cause:** times-by-season \
+          **Decision:** the times the section gives \
+          **Misses:**
+            - **Miss:** winter-hours-not-read \
+              **Kind:** place not read \
+              **Place:** `docs/guide.md § The Ferry` \
+              **Reads:**
+                - `docs/guide.md § The Ferry`
+
+          **Proposed Change:**
+            - **Kind:** revision \
+              **Decision Rewritten:** The Objective gives the first and the last crossing of each season. \
+              **Places:**
+                - **Place:** `.ai/plans/design-specs/ferry-times-in-the-guide.md § Design Plan Steps [Name: ferry-times-stated]` \
+                  **Order:** primary \
+                  **Settles:**
+                    - reviewer-1-last-crossing-in-winter
+
+        - **Cause:** night-crossing \
+          **Decision:** the times the section gives \
+          **Misses:**
+            - **Miss:** winter-hours-not-read \
+              **Kind:** place not read \
+              **Place:** `docs/guide.md § The Ferry` \
+              **Reads:**
+                - `docs/guide.md § The Ferry`
+
+      ## Settlement
+
+      **Ending:** its own settling \
+      **Earlier Reports:**
+        - none
+
+      **Settling Reads:**
+        - `docs/guide.md § The Ferry`
+
+      **Settlements:**
+        - **Settlement:** times-by-season-kept \
+          **Settled Findings:**
+            - reviewer-1-last-crossing-in-winter
+
+          **Verdict:** implementation flaw \
+          **Required By:** the goals \
+          **Justifying Goals:**
+            - guide-says-when-the-ferry-runs
+
+          **Assessment:** The guide says when the ferry runs only where it gives each season's hours. \
+          **Order:** primary \
+          **Fix Authority:** the builder's \
+          **Cause:** times-by-season \
+          **How Settled:** The Objective was revised to give each season's first and last crossing.
+      ```
+
+  - **Fixture:** review-changing-the-guide-for-the-judgment-alone \
+    **Holds:** a round with no Findings or Settlements of its own whose primary changed place settles the winter judgment alone \
+    **Snippet:**
+
+      ```markdown
+      # Check's Report
+
+      **Design:** ferry-times-in-the-guide \
+      **Entry:** adversarial-review-1
+
+      ## Reading
+
+      **Design Version:** 1.0.1 \
+      **Reviewer Readings:**
+        - **Reviewer:** reviewer-1 \
+          **Collecting Reads:**
+            - `.ai/plans/design-specs/ferry-times-in-the-guide.md`
+            - `docs/guide.md`
+
+          **Earlier Reports:**
+            - none
+
+          **Weighing Reads:**
+            - `docs/guide.md § The Ferry`
+
+      ## Hand-back
+
+      - Title: 995211494468f397e04f1afc8673dc0b73832bdfee063eae0b341f25ef92381e
+      - Reading: b3717fe41e62ad79543a93fdbdf93b42650fdb0f7fc56982b7e8eafd7fc54c2f
+
+      ## Causes
+
+      **Records:**
+        - **Cause:** times-by-season \
+          **Decision:** the times the section gives \
+          **Misses:**
+            - **Miss:** winter-hours-not-read \
+              **Kind:** place not read \
+              **Place:** `docs/guide.md § The Ferry` \
+              **Reads:**
+                - `docs/guide.md § The Ferry`
+
+          **Proposed Change:**
+            - **Kind:** revision \
+              **Decision Rewritten:** The Objective gives the first and the last crossing of each season. \
+              **Places:**
+                - **Place:** `.ai/plans/design-specs/ferry-times-in-the-guide.md § Design Plan Steps [Name: ferry-times-stated]` \
+                  **Order:** primary \
+                  **Settles:**
+                    - winter-crossing
+
+      ## Settlement
+
+      **Ending:** its own settling \
+      **Earlier Reports:**
+        - none
+
+      **Settling Reads:**
+        - `docs/guide.md § The Ferry`
+      ```
