@@ -477,6 +477,7 @@ def log_type():
 # @canon-spec specs/methodology/working-files/main.md § Design Log Entry
 # the field an entry holds its design's version in, right after its Timestamp, stamped by --log-entry
 VERSIONED = "Design Version"
+SETTLED_JUDGMENTS = "Settled Judgments"
 
 
 def optional_entry_fields(root=None):
@@ -1207,7 +1208,7 @@ def sub_scope_problems(an, kind, field, value):
             for item in (s.strip() for s in value.split(";")) if item not in SUB_SCOPES]
 
 
-def entry_problems(kind, fields, values, counts, kinds):
+def entry_problems(kind, fields, values, counts, kinds, logged=False):
     """-> problems with one log entry's kind and its fields beside Entry and Timestamp, [(field, value)]: a kind the
     table does not give, its fields other than the kind gives, in the type's order, a `design-reassessment` entry's
     those its Cause gives it, and a value outside its field's Values, a Cause in neither of its forms, a count not a
@@ -1218,10 +1219,13 @@ def entry_problems(kind, fields, values, counts, kinds):
     given = cause_fields(dict(fields), kinds[kind]) if kind == DESIGN_REASSESSMENT else kinds[kind]
     # a field the type requires of no entry, Cuts Short among them, is held only where it is given
     optional = optional_entry_fields()
+    if logged and kind in REVIEWS and SETTLED_JUDGMENTS not in keys:
+        # Already entered under the form that did not record the round's judgments.
+        given = [key for key in given if key != SETTLED_JUDGMENTS]
     if keys != [k for k in given if k in keys or k not in optional]:
         return [constructs.block_refusal("%s %s entry" % (an, kind), keys, given, [k for k in given if k not in optional],
                                          owner="its kind")]
-    problems = []
+    problems = judgment_key_problems(recorded_judgments(dict(fields))) if SETTLED_JUDGMENTS in keys else []
     for k, v in fields:
         if not v:
             problems.append("%s %s entry's %s is empty" % (an, kind, k))
@@ -1273,7 +1277,7 @@ def check_log(body):
         # an entry's Design Version stands right after its Timestamp, held to the log's version by check_form
         rest = [(k, v.strip()) for k, v in fields[2:]]
         rest = rest[1:] if rest and rest[0][0] == VERSIONED else rest
-        problems += ["log entry %s: %s" % (entry, p) for p in entry_problems(kind, rest, values, counts, kinds)]
+        problems += ["log entry %s: %s" % (entry, p) for p in entry_problems(kind, rest, values, counts, kinds, logged=True)]
     return problems
 
 
@@ -2527,6 +2531,8 @@ def log_entry(value):
                                                       "alone: " + ", ".join(given))])
     # a design reassessment's entry states its cause, and holds what the user decided and its diagnosis where that cause is a step back, and neither for a changed foundation
     held = dict(fields)
+    if SETTLED_JUDGMENTS in held:
+        return report("log-entry, not logged", [(LOG_RULE, "Settled Judgments is derived from the checked round")])
     if kind == DESIGN_REASSESSMENT and CAUSE not in held:
         return report("log-entry, not logged", [(LOG_RULE, "a design-reassessment entry holding no Cause: it states "
                                                  "what caused the design reassessment, `%s:` and each design the design "
@@ -2565,9 +2571,13 @@ def log_entry(value):
                                                      "records, or the design's current one where it records none")])
         # the report validated apart, by its stamp, which the appending reads in place of checking the report again or
         # running a test
-        problems = stamp_problems(root, text, kind, so_far, report_path)
+        judgments = round_judgments(design, so_far) if kind in REVIEWS else None
+        problems = stamp_problems(root, text, kind, so_far, report_path, judgments)
         if problems:
             return report("log-entry, not logged", problems)
+        if judgments is not None:
+            keys = (f"{JUDGMENT}-{path.stem}" for path in judgments.reports)
+            fields.append((SETTLED_JUDGMENTS, "; ".join(keys) or "none"))
         found = load_report(design, kind, count)
         # the entry stamped at the version its report read, one the log held
         # @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: entry-at-the-version-read]
@@ -2649,6 +2659,7 @@ SETTLEMENT_FIELDS = ("Validated", "Ending", "Earlier Reports", "Settling Reads",
 # the Settlement's field holding the report's stamp, which the stamp leaves out
 REPORT_STAMPED = ("Validated",)
 STAMPED_REPORT_RULE = WF + " § Design Log Entry § Script Checks [Name: entry-names-a-stamped-report]"
+RECORDED_JUDGMENTS_RULE = WF + " § A Check's Report § Script Checks [Name: recorded-judgments-name-eligible-reports]"
 # @canon-spec specs/methodology/working-files/main.md § A Check's Report § The Reading and the Settlement
 # the endings a report's Settlement states, the first held alone and each other followed by a comma and what ended it
 OWN_SETTLING, DECIDED, CUT_SHORT = "its own settling", "decided", "cut short"
@@ -3243,7 +3254,10 @@ def form_problems(rep, ctx, types, parts):
         flaw = any(s.get("Verdict") in FLAWS for s in naming)
         unwritten = kind == REVIEWS[1] and any(s.get("Lies In") in ("the plan", "handed on") for s in naming)
         require(cond, where, c, "Outcome", "Continues" in c, "where Continues is held")
-        require(cond, where, c, "Misses", flaw, "where it settles a design flaw or an implementation flaw")
+        # Earlier rounds did not record membership. Their own Settlements can establish that Misses
+        # is required, but cannot establish that no judgment justified a Misses already present.
+        if flaw or not ctx.get("unrecorded_judgments"):
+            require(cond, where, c, "Misses", flaw, "where it settles a design flaw or an implementation flaw")
         # a Cause settling only nits may hold the change that fixes them
         if flaw or "Proposed Change" not in c:
             require(cond, where, c, "Proposed Change", flaw and not unwritten,
@@ -3280,10 +3294,14 @@ def form_problems(rep, ctx, types, parts):
             if fixed or "Places" not in s or "Cause" in s:
                 require(cond, where, s, "Places", fixed, "where its findings' fix is made and no Cause of the report carries it")
     causes = {c.get("Cause") for c in recs["Causes"]}
-    # a judgment settled with a round holding no Causes, one proposing no change, cites none
-    cond += ["a handed-off judgment's Settlement %s, settled with the round, cites no Cause of its report by the report "
-             "and the Cause's key" % s.get("Settlement", "") for s in ctx["judgment_settlements"]
-             if s.get("Verdict") in MARKS and "Causes" in held and not (place_of(s.get("Cause", "")) and cause_key(s["Cause"], ctx["report_rel"]) in causes)]
+    for settlement in ctx["judgment_settlements"]:
+        subject = "a handed-off judgment's Settlement %s, settled with the round" % settlement.get("Settlement", "")
+        citation = settlement.get("Cause", "")
+        if "Causes" not in held:
+            if "Cause" in settlement:
+                cond.append(subject + ", cites a Cause although the round holds no Causes")
+        elif settlement.get("Verdict") in MARKS and not (place_of(citation) and cause_key(citation, ctx["report_rel"]) in causes):
+            cond.append(subject + ", cites no Cause of its report by the report and the Cause's key")
     out += [(rule("Settlement"), c) for c in cond]
     return out
 
@@ -3454,7 +3472,7 @@ def is_change(place):
     return bool(place) and (place[1], (place[2] or "").split(": ", 1)[0]) in (("Causes", "Cause"), ("Settlement", "Settlement"))
 
 
-def place_order_problems(value, settles, where, rule):
+def place_order_problems(value, settles, where, rule, known_findings=None):
     """-> [(rule, message)]: a change's Changed Place stating an order other than its lineage gives, primary where it
     names in Settles the findings its change settles, and one deeper than the place of its own change it Follows."""
     recs = [r for r in value if isinstance(r, dict)] if isinstance(value, list) else []
@@ -3470,7 +3488,7 @@ def place_order_problems(value, settles, where, rule):
         if "Settles" in r:
             derived, why = ORDERS[0], "it names the findings whose fix it is"
             out += [(rule, "%s names %s in its Settles, a finding its change does not settle" % (at, k))
-                    for k in names_of_text(r["Settles"]) if k not in settles]
+                    for k in names_of_text(r["Settles"]) if k not in settles and (known_findings is None or k in known_findings)]
         else:
             followed = by_place.get(place_of(r["Follows"]))
             if followed is None or followed is r:
@@ -3520,12 +3538,13 @@ def order_problems(rep, ctx, named):
         derived, why = max(readings, key=lambda r: ORDERS.index(r[0]))
         if s["Order"] != derived:
             out.append((settling, "%s states Order %s, where its lineage gives %s: %s" % (where, s["Order"], derived, why)))
+    known_findings = {f.get("Finding") for f in rep["records"]["Findings"]} if ctx.get("unrecorded_judgments") else None
     for c in rep["records"]["Causes"]:
         settles = {k for s in rep["settlements"] + ctx["judgment_settlements"]
                    if cause_key(s.get("Cause", ""), ctx["report_rel"]) == c.get("Cause") for k in settled_findings(s)}
         for change in c.get("Proposed Change") or []:
             if isinstance(change, dict):
-                out += place_order_problems(change.get("Places"), settles, "Cause %s's Proposed Change" % c.get("Cause", ""), causing)
+                out += place_order_problems(change.get("Places"), settles, "Cause %s's Proposed Change" % c.get("Cause", ""), causing, known_findings)
     for s in rep["settlements"]:
         out += place_order_problems(s.get("Places"), set(settled_findings(s)), "Settlement %s" % s.get("Settlement", ""), settling)
     return out
@@ -4173,13 +4192,70 @@ def round_change_followed(design, entries, applied, root):
     return (rel_to(report_file(design, k, n), root), rep) if any(c.get("Proposed Change") for c in rep["records"]["Causes"]) else None
 
 
-def judgment_settlements(design, entries):
-    """-> the Settlements of each handed-off judgment settled with a round appended after these: its report standing in
-    the design's folder, no entry naming it."""
-    done = sum(1 for e in entries if e[0] == JUDGMENT)
+RoundJudgments = collections.namedtuple("RoundJudgments", "reports settlements problems")
+
+
+def recorded_judgments(entry):
+    """The keys recorded on one review entry, empty also for an entry in the earlier form."""
+    value = entry.get(SETTLED_JUDGMENTS, "none")
+    return [] if value == "none" else [key.strip() for key in value.split(";")]
+
+
+JUDGMENT_KEY = re.compile(JUDGMENT + r"-[1-9][0-9]*")
+
+
+def judgment_key_problems(keys):
+    """Validate canonical positive judgment numbers without converting unbounded input to integers."""
+    problems, seen, previous = [], set(), ""
+    for key in keys:
+        if not JUDGMENT_KEY.fullmatch(key) or key in seen:
+            problems.append(f"invalid or repeated judgment reference: {key!r}")
+            continue
+        if (len(key), key) < (len(previous), previous):
+            problems.append(f"judgment reference {key} follows {previous} out of numeric order")
+        seen.add(key)
+        previous = key
+    return problems
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: recorded-judgments-name-eligible-reports]
+def round_judgments(design, entries, recorded=None):
+    """Select once at settlement; on recheck resolve only the round's recorded keys. Keep the exact report
+    bytes whose Settlements were read so the stamp and the log writer can use the same evidence."""
+    used = {f"{JUDGMENT}-{n}" for kind, n, _ in entries if kind == JUDGMENT}
+    used.update(key for kind, _, fields in entries if kind in REVIEWS for key in recorded_judgments(fields))
     folder = report_file(design, JUDGMENT, 1).parent
-    return [s for path in (sorted(folder.glob("*.md")) if folder.is_dir() else [])
-            if path.stem.isdigit() and int(path.stem) > done for s in read_report(read(path))["settlements"]]
+    if recorded is None:
+        keys = {f"{JUDGMENT}-{p.stem}" for p in folder.glob("*.md") if re.fullmatch(r"[1-9][0-9]*", p.stem)}
+        keys = sorted(keys - used, key=lambda k: (len(k), k))
+    else:
+        keys = recorded_judgments(recorded)
+    reports, settlements = {}, []
+    problems = judgment_key_problems(keys) if recorded is not None else []
+    for key in dict.fromkeys(keys):
+        if not JUDGMENT_KEY.fullmatch(key):
+            continue
+        if key in used:
+            problems.append(f"already settled judgment reference: {key}")
+            continue
+        path = folder / (key[len(JUDGMENT) + 1:] + ".md")
+        try:
+            data = path.read_bytes()
+            rep = read_report(data.decode("utf-8"))
+        except (OSError, UnicodeError) as exc:
+            problems.append(f"cannot read judgment reference {key}: {exc}")
+            continue
+        if rep["records"]["Read Assessments"]:
+            if recorded is not None:
+                problems.append(f"judgment reference {key} names research settled on its own")
+            continue
+        title = rep["title"]
+        if title.get("Design", ("",))[0] != design.stem or title.get("Entry", ("",))[0] != key:
+            problems.append(f"judgment reference {key} does not identify this design and judgment")
+            continue
+        reports[path] = data
+        settlements.extend(rep["settlements"])
+    return RoundJudgments(reports, settlements, problems)
 
 
 def constructs_in(path, text, lines1=None):
@@ -4500,7 +4576,7 @@ def report_context(root, design, design_text, kind, n, entries, reviewer=False):
             "trace_outcome": kind == "self-review" and not applied and not approvals,
             # a pass proving the fixes: a self-review standing after a post-apply-review entry of the apply
             "proving": kind == "self-review" and applied and any(e[0] == REVIEWS[1] for e in entries[start:own]),
-            "judgment_settlements": judgment_settlements(design, entries) if kind in REVIEWS and not reviewer else [],
+            "judgment_settlements": [],
             "ground": search_ground(root, rel_to(design, root), design_text,
                                     re.findall(r"`([^`]+)`", fields.get("Target", "")), kept),
             "kept": bool(kept),
@@ -4513,7 +4589,7 @@ def report_context(root, design, design_text, kind, n, entries, reviewer=False):
             "rule": lambda part: rules.get(part, FORM_RULE)}
 
 
-def entry_report_problems(root, design, design_text, kind, n, report_text=None, compared=None):
+def entry_report_problems(root, design, design_text, kind, n, report_text=None, compared=None, judgments=None):
     """-> ([(rule, message)] refusing a check's entry, the report read): the report held to its form and its layout,
     each value holding places in its form, each Finding settled once, each key naming a record, each Search's matches
     covered, each place its Reads hold assessed where it holds Read Assessments, each marked Finding anchored in the
@@ -4531,16 +4607,24 @@ def entry_report_problems(root, design, design_text, kind, n, report_text=None, 
     path = report_file(design, kind, n)
     rep = read_report(read(path) if report_text is None else report_text)
     ctx = report_context(root, design, design_text, kind, n, entries)
+    if kind in REVIEWS:
+        ctx["unrecorded_judgments"] = own is not None and SETTLED_JUDGMENTS not in full[own][2]
+        if judgments is None:
+            judgments = round_judgments(design, entries, full[own][2] if own is not None else None)
+        ctx["judgment_settlements"] = judgments.settlements
     ctx["logged"], ctx["compared"] = own is not None, compared
     taken_up = ctx["taken_up"] = cold_lines(rep, kind)
     # a report the log holds already, settled before each field none of its Settlements holds: one holding no Order
     # read as it stands and refused for neither its assessment nor its order, and one holding no Required By refused for
     # neither indicator
-    ctx["settled_before_orders"] = own is not None and not any("Order" in s for s in rep["settlements"])
+    ctx["settled_before_orders"] = (own is not None and SETTLED_JUDGMENTS not in full[own][2]
+                                    and not any("Order" in s for s in rep["settlements"]))
     ctx["settled_before_indicators"] = own is not None and not any("Required By" in s for s in rep["settlements"])
     # and one holding no Departure Reason refused for no departure
     ctx["settled_before_departures"] = own is not None and not any(DEPARTURE_REASON in s for s in rep["settlements"])
     problems = form_problems(rep, ctx, report_types(), report_parts())
+    if judgments is not None:
+        problems.extend((RECORDED_JUDGMENTS_RULE if own is not None else LOG_RULE, msg) for msg in judgments.problems)
     if rep["in_form"]:
         named = named_reports(design, entries, root)
         problems += layout_problems(rep, root, taken_up) + places_problems(rep, report_types(), taken_up)
@@ -5665,10 +5749,12 @@ def report_stamp_files(root, design_text, kind, entries):
     return sorted(p for p in design_changes(root, design_text) if not is_working_file(p))
 
 
-def report_hash(root, report_text, files):
+def report_hash(root, report_text, files, judgments=None):
     """-> the content hash of a report's text, its stamp's own field left out, and of each file given, read as it
     stands."""
     others = [(p, (Path(root) / p).read_bytes() if (Path(root) / p).is_file() else None) for p in files]
+    if judgments is not None:
+        others.extend((rel_to(path, root), data) for path, data in judgments.reports.items())
     return content_hash(report_text, leave_out=REPORT_STAMPED, leave_out_sections=(), others=others)
 
 
@@ -5732,6 +5818,7 @@ def stamp_settled_report(value):
         sys.stderr.write("--stamp-settled-report takes a report whose entry the log does not hold yet: %s\n" % value)
         return 2
     files = report_stamp_files(root, text, kind, entries)
+    judgments = round_judgments(design, entries) if kind in REVIEWS else None
     unpassed, compared = [], None
     if kind == "self-review":
         output = self_review_output(root, design, text)
@@ -5739,7 +5826,7 @@ def stamp_settled_report(value):
             kept_output, unpassed, compared = kept_tests_run(root, set(files))
             output += "$ --check-kept-tests\n" + kept_output
         write_script_output(path, output)
-    problems, _ = entry_report_problems(root, design, text, kind, n, compared=compared)
+    problems, _ = entry_report_problems(root, design, text, kind, n, compared=compared, judgments=judgments)
     problems = [(rule, "%s: %s" % (rel_to(path, root), msg)) for rule, msg in unpassed] + problems
     if problems:
         write_report_stamp(path, None)
@@ -5748,18 +5835,19 @@ def stamp_settled_report(value):
     # the field is written before the hash is taken, so the text hashed is the text the appending reads
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     write_report_stamp(path, now + " sha256:" + "0" * 16)
-    write_report_stamp(path, now + " " + report_hash(root, path.read_text(encoding="utf-8"), files))
+    write_report_stamp(path, now + " " + report_hash(root, path.read_text(encoding="utf-8"), files, judgments))
     print("== stamp-settled-report %s\n**Validated:** %s\n" % (rel_to(path, root), report_stamp(path.read_text(encoding="utf-8"))))
     return 0
 
 
 # @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: entry-names-a-stamped-report]
-def stamp_problems(root, design_text, kind, entries, path):
-    """-> [(rule, message)] where the report a check's entry names holds no stamp, or one no longer current with the
-    report and the files it takes in, read only to hash them; [] where its stamp is current."""
+def stamp_problems(root, design_text, kind, entries, path, judgments=None):
+    """Report selection errors or a missing or stale stamp. Hash the same judgment bytes the selector read."""
     held = path.read_text(encoding="utf-8")
     stamped = report_stamp(held)
-    if stamped is not None and stamped.split(" ")[1] == report_hash(root, held, report_stamp_files(root, design_text, kind, entries)):
+    if judgments is not None and judgments.problems:
+        return [(LOG_RULE, message) for message in judgments.problems]
+    if stamped is not None and stamped.split(" ")[1] == report_hash(root, held, report_stamp_files(root, design_text, kind, entries), judgments):
         return []
     why = "holds no stamp" if stamped is None else "holds a stamp no longer current with it and the files it takes in"
     return [(STAMPED_REPORT_RULE, "%s %s: validate it by --stamp-settled-report before its entry is appended"

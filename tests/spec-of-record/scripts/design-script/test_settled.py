@@ -293,3 +293,224 @@ def test_second_round_leaving_the_first_out_or_stating_its_order_is_reported(fix
     assert acted(monkeypatch, root, dd.check_settled_report, SECOND) == 1
     out = capsys.readouterr().out
     assert "== check-settled-report " + SECOND in out and said in out and held(root) == before
+
+
+REVIEW_CASES = [
+    ("adversarial-review", "ferry-design-drafted", "review-taken-up-and-settled", "winter-judgment-adversarial-cause",
+     "adversarial-round-before-independent-judgment"),
+    ("post-apply-review", "ferry-design-applying-to-the-guide-and-the-notes", "post-apply-review-taken-up-searching-the-operative-files-alone",
+     "winter-judgment-post-apply-cause", "post-apply-round-before-independent-judgment"),
+]
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: recorded-judgments-name-eligible-reports]
+@pytest.mark.action("--check-settled-report", "--stamp-settled-report", "--log-entry")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-pages.md", "walkers-notes")
+@pytest.mark.reads("design-script-searched.md", "ferry-design-applying-to-the-guide-and-the-notes", "post-apply-review-taken-up-searching-the-operative-files-alone")
+@pytest.mark.reads("design-script-settled.md", "review-taken-up-and-settled", "winter-judgment-adversarial-cause", "winter-judgment-post-apply-cause",
+                   "winter-judgment-later-no-cause", "winter-judgment-no-cause", "adversarial-round-before-independent-judgment", "post-apply-round-before-independent-judgment")
+@pytest.mark.parametrize("kind,design,report,owned,older", REVIEW_CASES)
+@pytest.mark.parametrize("membership", ["older", "none", "owned"])
+def test_recheck_uses_only_the_judgments_recorded_by_its_round(fixtures, work, monkeypatch, capsys, kind, design, report, owned, older, membership):
+    path = REPORTS + "/" + kind + "/1.md"
+    root = settled(work, fixtures, report, at=path, design=older if membership == "older" else design,
+                   **{"walkers-notes": "docs/notes.md"})
+    if membership == "older":
+        project(work, fixtures, {"winter-judgment-no-cause": RESEARCH})
+    else:
+        if membership == "owned":
+            project(work, fixtures, {owned: RESEARCH})
+        assert acted(monkeypatch, root, dd.stamp_settled_report, path) == 0
+        assert acted(monkeypatch, root, dd.log_entry, [DESIGN, kind, *ENTRY[2:]]) == 0
+        entry = dd.log_entries((root / DESIGN).read_text(encoding="utf-8"))[-1][2]
+        assert entry["Settled Judgments"] == ("handed-off-judgment-1" if membership == "owned" else "none")
+        assert entry["Implementation Flaws"] == "1"
+        project(work, fixtures, {"winter-judgment-later-no-cause": REPORTS + "/handed-off-judgment/2.md"})
+    assert acted(monkeypatch, root, dd.check_settled_report, path) == 0
+    assert "0 problems" in capsys.readouterr().out
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
+@pytest.mark.action("--check-settled-report", "--stamp-settled-report", "--log-entry")
+@pytest.mark.reports("--check-settled-report")
+@pytest.mark.reads("design-script-settled.md", "review-settling-the-winter-judgment", "winter-judgment-adversarial-cause",
+                   "winter-judgment-no-cause", "winter-judgment-another-rounds-cause")
+@pytest.mark.parametrize("bad", ["winter-judgment-no-cause", "winter-judgment-another-rounds-cause"])
+def test_owned_judgment_must_cite_this_cause_and_justifies_its_primary_place(fixtures, work, monkeypatch, capsys, bad):
+    root = settled(work, fixtures, "review-settling-the-winter-judgment", **{bad: RESEARCH})
+    for logged in (False, True):
+        if logged:
+            project(work, fixtures, {"winter-judgment-adversarial-cause": RESEARCH})
+            assert acted(monkeypatch, root, dd.stamp_settled_report, REVIEW) == 0
+            assert acted(monkeypatch, root, dd.log_entry, ENTRY) == 0
+            project(work, fixtures, {bad: RESEARCH})
+        assert acted(monkeypatch, root, dd.check_settled_report, REVIEW) == 1
+        out = capsys.readouterr().out
+        assert "Settlement winter-hours, settled with the round, cites no Cause" in out
+        assert "names winter-crossing in its Settles, a finding its change does not settle" in out
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
+@pytest.mark.action("--check-settled-report")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-settled.md", "review-taken-up-its-finding-dropped", "winter-judgment-no-cause")
+def test_judgment_alone_makes_its_round_owe_causes(fixtures, work, monkeypatch, capsys):
+    root = settled(work, fixtures, "review-taken-up-its-finding-dropped", **{"winter-judgment-no-cause": RESEARCH})
+    assert acted(monkeypatch, root, dd.check_settled_report, REVIEW) == 1
+    assert "it holds no Causes part" in capsys.readouterr().out
+
+
+# @canon-spec specs/methodology/working-files/main.md § Design Log Entry § Script Checks [Name: entry-names-a-stamped-report]
+@pytest.mark.action("--log-entry")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-settled.md", "review-taken-up-and-settled", "winter-judgment-adversarial-cause", "winter-judgment-no-cause")
+@pytest.mark.parametrize("change", ["appears", "disappears", "contents", "caller"])
+def test_round_entry_refuses_stale_or_supplied_membership(fixtures, work, monkeypatch, capsys, change):
+    root = settled(work, fixtures, "review-taken-up-and-settled")
+    if change != "appears":
+        project(work, fixtures, {"winter-judgment-adversarial-cause": RESEARCH})
+    assert acted(monkeypatch, root, dd.stamp_settled_report, REVIEW) == 0
+    fields = ENTRY
+    if change == "appears":
+        project(work, fixtures, {"winter-judgment-adversarial-cause": RESEARCH})
+    elif change == "disappears":
+        (root / RESEARCH).unlink()
+    elif change == "contents":
+        project(work, fixtures, {"winter-judgment-no-cause": RESEARCH})
+    else:
+        fields = ENTRY + ["Settled Judgments=none"]
+    before = held(root)
+    assert acted(monkeypatch, root, dd.log_entry, fields) == 1
+    assert ("derived from the checked round" if change == "caller" else "stamp no longer current") in capsys.readouterr().out
+    assert held(root) == before
+
+
+FIRST_JUDGMENT, NEXT_JUDGMENT = "handed-off-judgment-1", "handed-off-judgment-2"
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: recorded-judgments-name-eligible-reports]
+@pytest.mark.action("--check-settled-report")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-settled.md", "winter-judgment-adversarial-cause", "winter-judgment-later-no-cause")
+@pytest.mark.parametrize("value, earlier, problem", [
+    pytest.param(FIRST_JUDGMENT + "; " + FIRST_JUDGMENT, [], "repeated judgment reference", id="duplicate"),
+    pytest.param("handed-off-judgment-3", [], "cannot read judgment reference", id="missing"),
+    pytest.param("../1", [], "invalid or repeated judgment reference", id="malformed"),
+    pytest.param(FIRST_JUDGMENT, [(dd.JUDGMENT, 1, {})], "already settled", id="logged-on-its-own"),
+    pytest.param(FIRST_JUDGMENT, [(dd.REVIEWS[0], 1, {"Settled Judgments": FIRST_JUDGMENT})], "already settled", id="claimed-by-round"),
+    pytest.param(NEXT_JUDGMENT + "; " + FIRST_JUDGMENT, [], "out of numeric order", id="reversed"),
+])
+def test_recorded_judgment_reference_diagnostics(fixtures, work, value, earlier, problem):
+    root = project(work, fixtures, {"winter-judgment-adversarial-cause": RESEARCH,
+                                    "winter-judgment-later-no-cause": REPORTS + "/handed-off-judgment/2.md"})
+    selected = dd.round_judgments(root / DESIGN, earlier, {"Settled Judgments": value})
+    assert len(selected.problems) == 1 and problem in selected.problems[0]
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: recorded-judgments-name-eligible-reports]
+@pytest.mark.reads("design-script-reports.md", "ferry-research-report")
+@pytest.mark.parametrize("recorded", [False, True], ids=["pending", "recorded"])
+def test_research_settles_on_its_own(fixtures, work, recorded):
+    root = project(work, fixtures, {"ferry-research-report": RESEARCH})
+    selected = dd.round_judgments(root / DESIGN, [], {"Settled Judgments": FIRST_JUDGMENT} if recorded else None)
+    assert selected.reports == {}
+    assert selected.problems == (["judgment reference " + FIRST_JUDGMENT + " names research settled on its own"] if recorded else [])
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
+@pytest.mark.action("--check-settled-report")
+@pytest.mark.passes
+@pytest.mark.reports
+@pytest.mark.reads("design-script-settled.md", "review-holding-misses-for-the-judgments-cause", "ferry-design-drafted-after-its-first-round")
+@pytest.mark.parametrize("logged", [True, False])
+def test_misses_that_only_an_unrecorded_judgment_explains(fixtures, work, monkeypatch, capsys, logged):
+    root = settled(work, fixtures, "review-holding-misses-for-the-judgments-cause",
+                   design="ferry-design-drafted-after-its-first-round" if logged else "ferry-design-drafted")
+    assert acted(monkeypatch, root, dd.check_settled_report, REVIEW) == (0 if logged else 1)
+    assert ("0 problems" if logged else "Cause night-crossing holds a Misses") in capsys.readouterr().out
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: orders-follow-their-lineage]
+@pytest.mark.action("--check-settled-report", "--stamp-settled-report", "--log-entry")
+@pytest.mark.reports("--check-settled-report")
+@pytest.mark.reads("design-script-settled.md", "review-changing-the-guide-for-the-judgment-alone", "winter-judgment-adversarial-cause",
+                   "winter-judgment-no-cause")
+def test_entered_round_checks_a_primary_place_justified_only_by_its_judgment(fixtures, work, monkeypatch, capsys):
+    root = settled(work, fixtures, "review-changing-the-guide-for-the-judgment-alone", **{"winter-judgment-adversarial-cause": RESEARCH})
+    assert acted(monkeypatch, root, dd.stamp_settled_report, REVIEW) == 0
+    assert acted(monkeypatch, root, dd.log_entry, ENTRY) == 0
+    assert acted(monkeypatch, root, dd.check_settled_report, REVIEW) == 0
+    project(work, fixtures, {"winter-judgment-no-cause": RESEARCH})
+    assert acted(monkeypatch, root, dd.check_settled_report, REVIEW) == 1
+    assert "names winter-crossing in its Settles, a finding its change does not settle" in capsys.readouterr().out
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: recorded-judgments-name-eligible-reports]
+@pytest.mark.action("--check-settled-report")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-settled.md", "review-taken-up-and-settled", "winter-judgment-adversarial-cause")
+def test_recorded_judgment_must_still_identify_the_report(fixtures, work, monkeypatch, capsys):
+    root = settled(work, fixtures, "review-taken-up-and-settled", **{"winter-judgment-adversarial-cause": RESEARCH})
+    assert acted(monkeypatch, root, dd.stamp_settled_report, REVIEW) == 0
+    assert acted(monkeypatch, root, dd.log_entry, ENTRY) == 0
+    project(work, fixtures, {"island-guide": RESEARCH})
+    assert acted(monkeypatch, root, dd.check_settled_report, REVIEW) == 1
+    assert "handed-off-judgment-1 does not identify this design and judgment" in capsys.readouterr().out
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
+@pytest.mark.action("--check-settled-report", "--stamp-settled-report", "--log-entry")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-taken-up.md", "ferry-design-freed-of-a-complete-design", "review-taken-up-cut-short-by-a-freeing")
+@pytest.mark.reads("design-script-once-mishandled.md", "harbor-dredged-complete")
+@pytest.mark.reads("design-script-settled.md", "winter-judgment-no-cause")
+def test_cut_short_round_owns_a_judgment_without_requiring_a_cause(fixtures, work, monkeypatch):
+    root = settled(work, fixtures, "review-taken-up-cut-short-by-a-freeing", design="ferry-design-freed-of-a-complete-design",
+                   **{"harbor-dredged-complete": ".ai/plans/design-specs/harbor-dredged.md", "winter-judgment-no-cause": RESEARCH})
+    assert acted(monkeypatch, root, dd.check_settled_report, REVIEW) == 0
+    assert acted(monkeypatch, root, dd.stamp_settled_report, REVIEW) == 0
+    assert acted(monkeypatch, root, dd.log_entry, ENTRY) == 0
+    assert dd.log_entries((root / DESIGN).read_text(encoding="utf-8"))[-1][2]["Settled Judgments"] == "handed-off-judgment-1"
+    assert acted(monkeypatch, root, dd.check_settled_report, REVIEW) == 0
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: report-in-its-form]
+@pytest.mark.action("--check-settled-report")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-taken-up.md", "ferry-design-freed-of-a-complete-design", "review-taken-up-cut-short-by-a-freeing")
+@pytest.mark.reads("design-script-once-mishandled.md", "harbor-dredged-complete")
+@pytest.mark.reads("design-script-settled.md", "winter-judgment-no-cause", "winter-judgment-adversarial-cause")
+@pytest.mark.parametrize("logged", [False, True], ids=["first-settlement", "logged"])
+def test_round_with_no_causes_refuses_a_judgments_citation(fixtures, work, monkeypatch, capsys, logged):
+    root = settled(work, fixtures, "review-taken-up-cut-short-by-a-freeing", design="ferry-design-freed-of-a-complete-design",
+                   **{"harbor-dredged-complete": ".ai/plans/design-specs/harbor-dredged.md", "winter-judgment-no-cause": RESEARCH})
+    if logged:
+        assert acted(monkeypatch, root, dd.stamp_settled_report, REVIEW) == 0
+        assert acted(monkeypatch, root, dd.log_entry, ENTRY) == 0
+    project(work, fixtures, {"winter-judgment-adversarial-cause": RESEARCH})
+    assert acted(monkeypatch, root, dd.check_settled_report, REVIEW) == 1
+    assert "Settlement winter-hours, settled with the round, cites a Cause although the round holds no Causes" in capsys.readouterr().out
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: orders-follow-their-lineage]
+@pytest.mark.action("--check-settled-report")
+@pytest.mark.passes
+@pytest.mark.reads("design-script-settled.md", "review-settling-the-winter-judgment", "ferry-design-drafted-after-its-first-round",
+                   "winter-judgment-adversarial-cause")
+@pytest.mark.parametrize("judgment_present", [True, False])
+def test_earlier_round_lacks_evidence_to_disprove_an_external_finding(fixtures, work, monkeypatch, judgment_present):
+    root = settled(work, fixtures, "review-settling-the-winter-judgment", design="ferry-design-drafted-after-its-first-round")
+    if judgment_present:
+        project(work, fixtures, {"winter-judgment-adversarial-cause": RESEARCH})
+    assert acted(monkeypatch, root, dd.check_settled_report, REVIEW) == 0
+
+
+# @canon-spec specs/methodology/working-files/main.md § A Check's Report § Script Checks [Name: orders-follow-their-lineage]
+@pytest.mark.action("--check-settled-report")
+@pytest.mark.reports
+@pytest.mark.reads("design-script-settled.md", "review-taken-up-its-settlement-naming-a-cause-not-held", "ferry-design-drafted-after-its-first-round")
+def test_earlier_round_can_disprove_its_own_finding_for_a_cause(fixtures, work, monkeypatch, capsys):
+    root = settled(work, fixtures, "review-taken-up-its-settlement-naming-a-cause-not-held", design="ferry-design-drafted-after-its-first-round")
+    assert acted(monkeypatch, root, dd.check_settled_report, REVIEW) == 1
+    assert "names " + FINDING + " in its Settles, a finding its change does not settle" in capsys.readouterr().out

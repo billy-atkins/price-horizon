@@ -707,6 +707,7 @@ A design's log sits in its record section of this type, a record type ([`specs/m
 | Nits | no | where its kind gives it | | text | the count of nits the check found, a whole number |
 | Dropped | no | where its kind gives it | | text | the count of findings its report holds dropped, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Test`](/specs/AGENTS.md#the-test) has a finding dropped and [`§ Design Log Entry § What a Check Counts`](#what-a-check-counts) has them counted, a whole number |
 | Led To | no | where its kind gives it | | text | the state the work went into as the check's settling ended, whatever took it there |
+| Settled Judgments | no | where its kind gives it | | text | the entry keys of the handed-off judgments settled with this review round ([`§ A Check's Report § A Judgment Settled with a Round`](#a-judgment-settled-with-a-round)), in numeric order, separated by semicolons, or `none` |
 | Reason | no | where its kind gives it | | text | why the design entered in-progress, one of the values of [`specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § Facts [Name: entry reason]`](/specs/methodology/design-workflow/order-of-a-designs-work.md#facts) |
 | Approval | no | where its kind gives it | | "approved", "approved and apply" | the user's approval of the plan |
 | Cause | no | where its kind gives it | | text | what caused the design reassessment, written in one of two forms. For a changed foundation it is `changed foundation:`, then each design the design was freed from, by the name its Depends On Designs held, followed by `finished` or `gone`, as [`§ A Design Document § What Blocks What`](#what-blocks-what) has a name of each read, separated by semicolons, as `changed foundation: {design} finished; {design} gone`. For one chosen at the step back it is `step back:`, then what brought the design to the step back, one of `a run of flaws`, `a run of send-backs`, `passes that did not converge` and `the user's word`, as [`specs/AGENTS.md § Design, Refactor, Refine § Converging, or Not § The Runs`](/specs/AGENTS.md#the-runs) has the step back reached. An entry appended before the entry held a Cause holds none, stands as it was written, and is read as one chosen at the step back |
@@ -730,8 +731,8 @@ The kinds of entry, each with the fields it gives beside Entry, Timestamp and De
 | `design-refactor-refine` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped | the builder's own report | as the builder's Design, Refactor, Refine pass ends |
 | `self-review` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped | the builder's own report | as the builder's self-review ends |
 | `handed-off-judgment` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped | the builder's own report | as the settling of a judgment the builder handed off ends: for research, as the builder takes its Read Assessments in; for one settled with a round, as the round's settling ends ([`§ A Check's Report § A Judgment Settled with a Round`](#a-judgment-settled-with-a-round)) |
-| `adversarial-review` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | a review's report | as the round's settling ends |
-| `post-apply-review` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | a review's report | as the round's settling ends |
+| `adversarial-review` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To, Settled Judgments | a review's report | as the round's settling ends |
+| `post-apply-review` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To, Settled Judgments | a review's report | as the round's settling ends |
 | `audit-specs` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To, Settled Sub-scopes | the builder's triage of an audit | as the settling of an `.ai/skills/audit-specs/` run ends |
 | `verify-spec-implementation` | Model, Effort, Design Flaws, Implementation Flaws, Nits, Dropped, Led To | the builder's triage of an audit | as the settling of a `.ai/skills/verify-spec-implementation/` run ends |
 | `entered` | Reason | none | as the design enters in-progress |
@@ -753,7 +754,7 @@ The kinds of entry, each with the fields it gives beside Entry, Timestamp and De
 
 Each entry is appended when [`§ Design Log Entry`](#design-log-entry)'s kinds table has it appended, at the skill's step where its event ends, never in a pass after the work. A check's entry is appended by the step running the check, as its settling ends with its report in hand. A report a cold agent wrote is taken up and settled as [`§ A Check's Report § Who Writes Each Part § The Report's Workflow`](#the-reports-workflow) has it, and every report is validated by the design script's `--stamp-settled-report` before its entry is appended ([`§ A Check's Report § A Report's Stamp`](#a-reports-stamp)). The design script's `--log-entry` refuses a check's entry whose report does not stand where [`§ Design Log Entry § The Report an Entry Names`](#the-report-an-entry-names) has it, or holds no stamp current with what the stamp was taken over.
 
-**What the appending reads.** Appending an entry reads three parts of the design: its header, its log and its steering decisions. Of the report the entry names, it reads the stamp, the counts and the version its Reading holds. To tell the stamp current, it also reads the report's text and the text of each file the stamp takes in, only to hash them. Beyond these it reads only what each refusal kept with the appending needs, as that refusal's check has it read, and no other part of the design. It makes no check of the report but those refusals and runs no test, so an entry is refused only for what bears on that entry, and a design whose other parts do not parse still takes one.
+**What the appending reads.** Appending an entry reads the design's header, log and steering decisions. From the report it takes the validated stamp, the counts and the version in the Reading. For a review round it also selects the eligible judgments under [`§ A Check's Report § A Judgment Settled with a Round`](#a-judgment-settled-with-a-round). It reads the candidate reports to identify the judgments and research. It uses the same selected contents to verify the stamp and records the corresponding keys, or `none` for an empty selection. For each other file the stamp covers, the appending reads its contents to verify the hash. The other refusals kept with the appending read only what bears on that entry, so a design whose other parts do not parse still takes one. Appending runs no test.
 
 No check's entry is appended before the `goals-agreed` entry of its major version, since no check's report stands before the agreement of the goals it is judged against ([`§ A Design Document § The Design's Version`](#the-designs-version)). Whatever moves the work on while a check runs or is settled, the user's approval, a set of steers, a send-back, the step back or a design reassessment among them, the builder settles each of the check's findings in its report before the check's entry is appended. Each Settlement says what became of its findings ([`§ A Check's Report § Settlement`](#settlement)). Where the report owes the statement, its Settlement states how the check ended ([`§ A Check's Report § Check Ending`](#check-ending)). The entry's Led To is the state the work went into. So every check that handed back a report has its entry, and no entry is appended while its report holds a finding it does not settle. Work stopped before it handed anything back takes no entry of its own: the Running Work of the set's `steer` entry or of the `step-back` entry records the call, or the cut a run's length made, so the log shows the work ran and was stopped. The `step-back` entry is appended as the step back is reached, whatever the user then decides there, so an approval given at the step back is a `plan-approval` entry after it.
 
@@ -956,7 +957,17 @@ The Reading opens with the field Design Version: the version of the design the c
 
 A report is validated by the design script's `--stamp-settled-report`, once the builder has settled it. The action makes every check `--check-settled-report` makes of the report. Where the report's entry is one at which the research binding the design is read together, it reads that research ([`§ A Check's Report § What the Design Script Checks`](#what-the-design-script-checks)). For a self-review over applied work it runs the kept tests and the checks made with their run, as [`specs/methodology/skills/authoring-a-skill.md § Authoring a Skill § Kept Tests § When the Kept Tests Are Run`](/specs/methodology/skills/authoring-a-skill.md#when-the-kept-tests-are-run) has them run, and writes what they gave into the report's Script Output. Where nothing is reported, it writes the report's stamp into the Validated field of its Settlement, in the form [`§ A Stamp`](#a-stamp) gives, a part no cold agent writes, so taking a report up and stamping it leave each part a cold agent wrote as it was handed back. Where anything is reported, it writes no stamp, and it clears a stamp the report held.
 
-The stamp leaves out its own field. A self-review's stamp over applied work takes in, beside the report's text, the text of each file the design's changes hold, read as [`§ A Design Document § Applying and Committing`](#applying-and-committing) has them read, as [`§ A Stamp`](#a-stamp) has a stamp taken over more than one file's text. So the stamp is current only while the report and those files stand as they stood when the tests were run. A report the builder changes after it is stamped, or a self-review whose changes change after it, is validated again before its entry is appended. The design script alone writes the stamp, so no builder records a check, or a run of the tests, in place of one.
+The stamp covers the report's text with its own field left out. It includes the paths and contents of any further files under [`§ A Stamp`](#a-stamp). A change to the report, the selection of files or their contents requires validation again before append. The design script alone writes the stamp.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Hit Policy:** First \
+**Conditions:** Review round?, Self-review?, Over applied work?
+
+| Review round? | Self-review? | Over applied work? | Further files covered |
+|---|---|---|---|
+| true | - | - | the judgment reports selected under [`§ A Check's Report § A Judgment Settled with a Round`](#a-judgment-settled-with-a-round) |
+| false | true | true | the durable files in the design's changes under [`§ A Design Document § Applying and Committing`](#applying-and-committing) |
+| false | - | - | none |
 
 `--check-settled-report` makes the same checks of the report, writes nothing and runs no test, so the builder may check its settling as often as it likes before it validates.
 
@@ -1034,7 +1045,11 @@ A phase's record is the reports binding the design whose entries stand in the ph
 
 ### A Judgment Settled with a Round
 
-A judgment the builder hands off is settled with a round where its report stands in the design's folder and no entry names it as the round's entry is appended. So a judgment handed off after the phase's last round is settled alone ([`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § After the Last Round`](/specs/AGENTS.md#after-the-last-round)). Where the round holds Causes, each Settlement of its report whose Verdict is a mark cites the round's Cause it lies in, by the round's report and the Cause's key. Where the round proposes no change and holds none, the judgment is settled without citing a Cause, its findings going where the round's go. Its entry is appended as the round's settling ends, as [`§ Design Log Entry`](#design-log-entry)'s kinds table has it. A judgment doing research is never settled with a round, since its entry is appended once the builder takes its Read Assessments in, as that table has it.
+At first settlement a round takes the nonresearch judgments whose reports identify this design and judgment and whose keys no earlier judgment entry or review's Settled Judgments has recorded. A research judgment settles on its own when the builder takes in its Read Assessments. A judgment handed off after the last round also settles on its own ([`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § After the Last Round`](/specs/AGENTS.md#after-the-last-round)). The log records each judgment's entry when [`§ Design Log Entry`](#design-log-entry) requires it.
+
+Rechecking an entered round reads the keys on its entry, each naming a distinct report eligible at the time of that round. An entry of the earlier form supplies no recorded keys. A primary Changed Place must name findings its change settles. Where ownership was unrecorded, a key outside the round's own Findings cannot by itself establish that the change failed this check.
+
+Where the round holds Causes, each marked Settlement of a judgment it owns cites its Cause by the round's report and the Cause's key. A judgment settled with a round that holds no Causes omits the Cause citation.
 
 ### What the Design Script Checks
 
@@ -1390,8 +1405,22 @@ A Cause holding no Proposed Change, its nits left or a Settlement naming it plac
 | Continues | no | no | none | text | the earlier round's cause it continues |
 | Outcome | no | where Continues is held | | [`§ A Check's Report § Mechanism Outcomes`](#mechanism-outcomes) | the outcome [`specs/AGENTS.md § Design, Refactor, Refine § The Goals and the Frame § Whether a Changed Mechanism Serves a Goal`](/specs/AGENTS.md#whether-a-changed-mechanism-serves-a-goal) gives it |
 | Conflicting Steers | no | no | none | text | each steer it presses on, as [`specs/AGENTS.md § Design, Refactor, Refine § Settling a Round § The Round at Its Causes § Weigh the Steers`](/specs/AGENTS.md#weigh-the-steers) has it weighed, a list as [`§ A Check's Report § A Value Holding Places`](#a-value-holding-places) has a value holding places written |
-| Misses | no | where it settles a design flaw or an implementation flaw | | a list of [`§ A Check's Report § Miss`](#miss) | why the builder's pass and self-review let each flaw through |
+| Misses | no | where it settles a design flaw or an implementation flaw | | a list of [`§ A Check's Report § Miss`](#miss) | why the builder's pass and self-review let each flaw through, checked under [`§ A Check's Report § Cause § When a Cause Holds Misses`](#when-a-cause-holds-misses) |
 | Proposed Change | no | where it settles a flaw, no Settlement naming it giving Lies In the plan or handed on in a post-apply round | | [`§ A Check's Report § Proposed Change`](#proposed-change) | the change the round proposes at it, a Cause settling only nits holding one where the round fixes them |
+
+#### When a Cause Holds Misses
+
+The Settlements available to check a Cause are the round's own and those of its selected judgments under [`§ A Check's Report § A Judgment Settled with a Round`](#a-judgment-settled-with-a-round). Ownership is known at first settlement and on recheck of an entry with Settled Judgments. A flaw in this decision is a design flaw or an implementation flaw.
+
+**Construct:** `specs/methodology/modeling-constructs.md § Constructs § Decision Table` \
+**Hit Policy:** First \
+**Conditions:** A flaw cites this Cause?, Ownership known?
+
+| A flaw cites this Cause? | Ownership known? | Misses on this Cause |
+|---|---|---|
+| true | - | required |
+| false | true | absent |
+| false | false | optional |
 
 ### Miss
 
@@ -1685,6 +1714,15 @@ The checks only the builder makes, held by a Builder Check, each with the self-r
 
   - **Name:** orders-follow-their-lineage \
     **Tests:** each Settlement and each Changed Place of a report a check's entry names states the order its lineage gives, as [`§ A Check's Report § What the Design Script Checks`](#what-the-design-script-checks) works it out, each Settles naming findings its change settles, and each Follows naming a place of its own change \
+    **Reads:**
+      - `working-files`
+
+    **Carried Out By:**
+      - `.ai/skills/design-specs/` `--check-settled-report`
+      - `.ai/skills/implement-specs/` `--check-settled-report`
+
+  - **Name:** recorded-judgments-name-eligible-reports \
+    **Tests:** on recheck of an entered review, its recorded judgment keys have the order given by [`§ Design Log Entry`](#design-log-entry) and each identifies a distinct eligible report under [`§ A Check's Report § A Judgment Settled with a Round`](#a-judgment-settled-with-a-round) \
     **Reads:**
       - `working-files`
 
