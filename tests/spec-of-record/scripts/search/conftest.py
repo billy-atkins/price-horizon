@@ -27,15 +27,15 @@ SCRIPT_FILES = (".ai/skills/lib/search.py", ".ai/skills/lib/reading.py", ".ai/sk
 FORM_FILES = ()
 ACTIONS_IN = ".ai/skills/lib/search.py"
 
-CHECKOUT = Path(__file__).resolve().parents[4]
-LIB = CHECKOUT / ".ai" / "skills" / "lib"
+PROJECT_FILES = Path(__file__).resolve().parents[4]
+LIB = PROJECT_FILES / ".ai" / "skills" / "lib"
 if str(LIB) not in sys.path:
     sys.path.insert(0, str(LIB))
 import reading  # noqa: E402
 import search  # noqa: E402
 import spec_text  # noqa: E402
 
-ENTRY = CHECKOUT / ".ai" / "skills" / search.SKILL / "scripts" / (search.SKILL + ".py")
+ENTRY = PROJECT_FILES / ".ai" / "skills" / search.SKILL / "scripts" / (search.SKILL + ".py")
 SKILL_FOLDER = ".ai/skills/" + search.SKILL
 
 # where each fixture of a project stands in it: the corpus of forms, the small project about a heron, and the
@@ -104,7 +104,7 @@ def ask(root, *argv):
 
 def run_entry(root, *argv, env=None):
     """-> (the exit code, what was printed) of the entry script run as a process in a project. The project is given
-    the skill's folder, empty, by which a run there takes the project for the checkout it answers over and writes in."""
+    the skill's folder, empty, by which a run there takes the project for the files it answers over and writes in."""
     (Path(root) / SKILL_FOLDER).mkdir(parents=True, exist_ok=True)
     done = subprocess.run([sys.executable, "-B", str(ENTRY)] + [str(a) for a in argv], cwd=root, capture_output=True, env=dict(os.environ, **(env or {})))
     return done.returncode, (done.stdout + done.stderr).decode("utf-8", "replace").replace("\r\n", "\n")

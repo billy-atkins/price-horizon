@@ -73,6 +73,7 @@ This file holds the terms Spec of Record gives a meaning of its own. Each is def
 | Potemkin village |  | A front built to look complete with nothing behind it, as the painted village facades of the legend: a guarantee, rule or enforcement mechanism relied on as real that is stated but not specified or not checked. |
 | Product module |  | A capability domain as the product architecture names it, a folder or a single file, bounding the scope of a change to the code that carries it out. Not a Python module, and not a module of the code. |
 | Progressive disclosure |  | A way of reading in which what a step needs is loaded at the step that needs it, rather than everything at once. |
+| Project root |  | The one folder holding everything of a project: its specifications, its code, and its working files. Not a copy of the project's files, wherever one stands, nor the folder holding version control's store, which may stand above it. |
 | Reasoning effort |  | A setting of the model an agent runs on: how far it reasons before it answers. Not how far a review reaches, nor how many reviewers run it. |
 | Record |  | An entry of a record type, written in the Record Form: an entry written repeatedly, or a member of a closed set a spec defines. Not data the product stores and changes while it runs. |
 | Record section |  | A section holding the records of one record type. |

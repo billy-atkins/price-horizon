@@ -150,7 +150,7 @@ class CommitTree:
 
 class FileTree(CommitTree):
     """Files held in memory by their paths from the tree's root, a path of the tree as CommitTree gives one: what the
-    audit reads a checkout into once, and what a test hands a check in place of a checkout. `files` maps each path to
+    audit reads a folder's files into once, and what a test hands a check in place of a folder. `files` maps each path to
     its text or its bytes; `tracked`, the files version control tracks, is every file where none is given."""
 
     def __init__(self, files, tracked=None):
@@ -164,8 +164,8 @@ class FileTree(CommitTree):
                       "tracked": set(data) if tracked is None else set(tracked)}
 
     @classmethod
-    def of_checkout(cls, root):
-        """-> a checkout's files read once: every file version control tracks and every untracked file it does not
+    def of_folder(cls, root):
+        """-> a folder's files read once: every file version control tracks and every untracked file it does not
         ignore, or, under no version control, every file but the working files' scratch spaces."""
         root = Path(root)
         held, listed = tracked(root), tracked(root, others=True)
@@ -343,27 +343,27 @@ def durable_kind(path):
     return FIXTURE if path == FIXTURES or path.startswith(FIXTURES + "/") else OPERATIVE
 
 
-def checkout():
-    """-> the checkout whose canon each form is read from: the one the skills' shared code stands in, the folder holding
+def own_files():
+    """-> the files whose canon each form is read from: those the skills' shared code stands in, the folder holding
     its lib folder, whatever folder the script is run in and whatever root it is given; for the shared code as a
-    commit held it, read from that commit, the commit's own tree. A second checkout's script, a worktree's among
-    them, reads its own checkout's canon."""
+    commit held it, read from that commit, the commit's own tree. A script standing in a copy of the project's
+    files reads the copy's canon."""
     commit, sep, _ = __file__.partition(":.ai/skills/lib/")
     if sep:
-        if commit not in checkout.trees:
-            checkout.trees[commit] = CommitTree(Path.cwd(), commit)
-        return checkout.trees[commit]
+        if commit not in own_files.trees:
+            own_files.trees[commit] = CommitTree(Path.cwd(), commit)
+        return own_files.trees[commit]
     return Path(__file__).resolve().parents[3]
 
 
-checkout.trees = {}
+own_files.trees = {}
 
 
 def canon_texts():
-    """-> {path: text, citations' links stripped} of each Markdown file of the canon in the checkout, the kept tests'
+    """-> {path: text, citations' links stripped} of each Markdown file of the canon beside the script's own code, the kept tests'
     files aside, read once, for a check taking its setup from the canon apart from the texts it checks."""
     if not canon_texts.held:
-        base = checkout()
+        base = own_files()
         canon = {p for p in canon_files(base) if not p.startswith(KEPT_TESTS + "/")}
         canon_texts.held.update((p, t) for p, t in spec_texts(base).items() if p in canon)
     return canon_texts.held

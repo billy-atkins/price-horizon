@@ -3,7 +3,7 @@
 A test calls one of the audit's check units with the input the unit's kind takes, written from the test's fixtures:
 a file's path and its text, those with a scope, or a scope alone. A scope is read from a project of fixtures held in
 memory, each fixture placed at the path the test gives it, so no test writes a project to audit and none audits the
-checkout's own files. The audit reads its forms from the canon of the checkout its code stands in, as it does when it
+project's own files. The audit reads its forms from the canon of the files its code stands in, as it does when it
 is run by hand. A test file takes these names by `from audit_set import ...`, the name this file is registered under
 as the runner reads it.
 """
@@ -28,8 +28,8 @@ FORM_FILES = (".ai/skills/audit-specs/SKILL.md", ".ai/skills/search-spec-of-reco
               "specs/methodology/working-files/main.md")
 ACTIONS_IN = ".ai/skills/audit-specs/scripts/audit-specs.py"
 
-CHECKOUT = Path(__file__).resolve().parents[4]
-LIB = CHECKOUT / ".ai" / "skills" / "lib"
+PROJECT_FILES = Path(__file__).resolve().parents[4]
+LIB = PROJECT_FILES / ".ai" / "skills" / "lib"
 if str(LIB) not in sys.path:
     sys.path.insert(0, str(LIB))
 import citation_links  # noqa: E402
@@ -40,7 +40,7 @@ import record_types  # noqa: E402
 import spec_checks  # noqa: E402
 import spec_text  # noqa: E402
 
-ENTRY = CHECKOUT / ".ai" / "skills" / "audit-specs" / "scripts" / "audit-specs.py"
+ENTRY = PROJECT_FILES / ".ai" / "skills" / "audit-specs" / "scripts" / "audit-specs.py"
 
 
 def entry_script():

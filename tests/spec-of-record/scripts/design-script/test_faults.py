@@ -1,6 +1,6 @@
 """The faults the design script was once found with, each held by the input it mishandled: the unit given that input
 answers rightly. A fault whose input a test of another file already gives is held there: the citations of an applying
-design read at the last commit, with the tests of the checkout a design is worked in; and a taken-up report's cold
+design read at the last commit, with the tests of the project a design is worked in; and a taken-up report's cold
 parts read again, a report returned for the builder's own fault, a check cut short by a freeing refused, and a review
 settled with Causes refused, with the tests of a report once taken up."""
 import pytest
@@ -61,13 +61,13 @@ def test_research_of_an_approved_design_is_not_read_again(fixtures, work, monkey
     assert "== check-design %s\n0 problems" % NAME in capsys.readouterr().out
 
 
-# a path once judged by the place of its checkout, so no shorthand citation resolved in one kept under the working files
+# a path once judged by where its files stand, so no shorthand citation resolved in a copy kept under the working files
 @pytest.mark.action("--check-cited-headings")
 @pytest.mark.passes
 @pytest.mark.reads("design-script-designs.md", "ferry-design-citing-the-guide-in-shorthand")
 @pytest.mark.reads("design-script-pages.md", "guide-draft")
 @pytest.mark.parametrize("under", ["", ".ai/tmp/worktrees/elsewhere/"])
-def test_shorthand_citation_resolves_in_a_checkout_standing_anywhere(fixtures, work, monkeypatch, capsys, under):
+def test_shorthand_citation_resolves_in_the_project_root_and_in_a_copy_beneath_it(fixtures, work, monkeypatch, capsys, under):
     root = project(work, fixtures, {"island-guide": under + "docs/guide.md", "ferry-design-citing-the-guide-in-shorthand": under + DESIGN,
                                     "guide-draft": under + ".ai/tmp/design-specs/scratch/guide.md"})
     assert acted(monkeypatch, root / under, dd.check_cited_headings, DESIGN) == 0

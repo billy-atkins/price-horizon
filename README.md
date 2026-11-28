@@ -89,7 +89,7 @@ Its product specifications reach across the product, from the answer engine to i
 
 ## Finding your way around
 
-The canon is the part of the repository that states and applies the methodology's rules. It holds the methodology specifications, the specifications' entry point, main file and overview, and the skills the methodology registers to apply its rules. With the skills come the code they share and the kept tests of their scripts, the fixture files those tests read among them. The application specifications, PriceHorizon's product and technical specifications, are written under the canon, and the canon is written under its own rules, as a self-hosting compiler compiles itself.
+The canon is the part of the project that states and applies the methodology's rules. It holds the methodology specifications, the specifications' entry point, main file and overview, and the skills the methodology registers to apply its rules. With the skills come the code they share and the kept tests of their scripts, the fixture files those tests read among them. The application specifications, PriceHorizon's product and technical specifications, are written under the canon, and the canon is written under its own rules, as a self-hosting compiler compiles itself.
 
 ```
 AGENTS.md                   the project's instructions for any AI agent
@@ -137,7 +137,7 @@ For the methodology, start with [`specs/AGENTS.md`](/specs/AGENTS.md), then [`sp
 
 Some of the methodology only shows in use, so the best test is to take a change through it with your own AI agent. The skills' scripts run on Python 3. The search also needs a few Python packages and a small model kept on your machine, and the first time a script lacks one it stops and prints what is missing, why it is needed and the command that installs it. A Claude Code user can link the skills beforehand, as [Set up AI skills for Claude Code](#set-up-ai-skills-for-claude-code) describes. Have the agent run `configure-spec-of-record` first, so it is set up for what Spec of Record leaves to the agent in use. Then have it read [`specs/AGENTS.md`](/specs/AGENTS.md), which sends each change to the skill that carries it out, and ask it for a change to one PriceHorizon capability, such as a new guarantee an answer makes. The agent starts by agreeing on the change's design goals with you.
 
-You can also run the methodology's own tests. They need Python 3 and pytest, at the release [`specs/methodology/external-references.md § External References [Name: pytest]`](/specs/methodology/external-references.md#external-references) names. The tests of the search need what the search needs too, which the `search-spec-of-record-scope` skill lists under what the search requires. Run them from the repository's root:
+You can also run the methodology's own tests. They need Python 3 and pytest, at the release [`specs/methodology/external-references.md § External References [Name: pytest]`](/specs/methodology/external-references.md#external-references) names. The tests of the search need what the search needs too, which the `search-spec-of-record-scope` skill lists under what the search requires. Run them from the project root:
 
 ```
 python -B -m pytest tests/spec-of-record

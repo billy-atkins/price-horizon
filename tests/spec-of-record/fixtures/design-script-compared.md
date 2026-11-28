@@ -4,7 +4,7 @@
     **Snippet:**
 
       ```python
-      """A stand-in for a design script: one action reading a design, by a word its tree's own form gives."""
+      """A stand-in for a design script: one action reading a design, by a word the form beside its own code gives."""
       from pathlib import Path
 
 
@@ -31,7 +31,7 @@
     **Snippet:**
 
       ```python
-      """A stand-in for a design script: one action reading a design, by a word its tree's own form gives."""
+      """A stand-in for a design script: one action reading a design, by a word the form beside its own code gives."""
       from pathlib import Path
 
 

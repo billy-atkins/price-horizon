@@ -1,6 +1,6 @@
 """The check that code names the canon by a spec annotation alone: the unit reading a Python file's comments and
 docstrings, given the canon's files as a list, and the checks of the tests' folder carrying it over the kept tests'
-code. The canon is the tide tables' two files the fixtures give, so no test reads the checkout's own.
+code. The canon is the tide tables' two files the fixtures give, so no test reads the project's own.
 """
 import pytest
 

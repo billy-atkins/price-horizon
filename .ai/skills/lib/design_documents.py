@@ -140,11 +140,11 @@ IMPACTS_HOME = ("specs/methodology/working-files/main.md", "A Check's Report § 
 def declaration(home):
     """-> (the text of the section declaring a type, or None, and the file's path): a level-two section whole, or a
     section beneath one, named by its lineage, its own text, to its next heading. It is read from the canon of the
-    checkout the script stands in, whatever project the script is run in or root it is given, so a form is read from
+    files the script's own code stands in, whatever project the script is run in or root it is given, so a form is read from
     the canon as it stands, and what the script checks is read from that project or root."""
-    from spec_text import checkout
+    from spec_text import own_files
     path, title = home
-    base = checkout()
+    base = own_files()
     if not (base / path).exists():
         return None, path
     text = read((base / path)).replace("\r\n", "\n")
@@ -1720,7 +1720,7 @@ def resolve(path, root, target=""):
 
     An exact path wins. Otherwise the path is treated as a suffix, which is how a
     proposal refers back to a file whose full path it gave earlier. A suffix
-    matching more than one file is not resolved: in a tree with several
+    matching more than one file is not resolved: in a project with several
     files of one name, a bare name names nothing in particular, and saying so
     is more useful than guessing which was meant.
     """
@@ -1731,7 +1731,7 @@ def resolve(path, root, target=""):
     # a shorthand is resolved over the operative files, as the scripts' one listing gives them: the specifications' files
     # as the index walk finds them and each other operative Markdown file, never a fixture file, which may end in a
     # spec's path, and never a file outside the scope. Each is judged by its place within the root, so the root's own
-    # place decides nothing, a checkout kept beneath another's working files resolving as any other does
+    # place decides nothing, a copy of the project's files kept beneath its working files resolving as the project root does
     hits = sorted(p for p in md_files(root) if ("/" + p.relative_to(root).as_posix()).endswith(tail))
     if len(hits) == 1:
         return hits[0], ""
@@ -2343,10 +2343,10 @@ def design_folder(design):
 
 # @canon-spec specs/methodology/design-workflow/order-of-a-designs-work.md § The Order of a Design's Work § Facts
 def fact_values(name):
-    """-> the quoted Values of a Fact the design's work states declare, a form, read from the canon of the checkout the
-    script stands in and from no project's copy."""
-    from spec_text import checkout
-    body = read(checkout() / "specs/methodology/design-workflow/order-of-a-designs-work.md")
+    """-> the quoted Values of a Fact the design's work states declare, a form, read from the canon of the files the
+    script's own code stands in and from no file of the project it is run over."""
+    from spec_text import own_files
+    body = read(own_files() / "specs/methodology/design-workflow/order-of-a-designs-work.md")
     m = re.search(r"- \*\*Name:\*\* %s \\\n(?:\s+\*\*[A-Za-z ]+:\*\*[^\n]*\n)*?\s+\*\*Values:\*\* ([^\n]*)" % re.escape(name), body)
     return tuple(re.findall(r'"([^"]+)"', m.group(1))) if m else ()
 
@@ -2772,14 +2772,14 @@ def canon_rule(rule, root=None):
     """-> a rule the shared readers name by its file's name alone, cited with its path: a document laid out as a folder
     named by its bare file name resolves to the file of its folder holding the section named, its main file first
     where it holds one, and a main file's bare name, which every folder's main file shares, names no one document and is left
-    as written. The folder is read from the root given, or from the canon of the checkout the script stands in."""
+    as written. The folder is read from the root given, or from the canon of the files the script's own code stands in."""
     if rule.startswith("specs/"):
         return rule
     name, sep, rest = rule.partition(" § ")
     if name == "main.md":
         return rule
-    from spec_text import checkout
-    base = Path(root) if root is not None else checkout()
+    from spec_text import own_files
+    base = Path(root) if root is not None else own_files()
     folder = base / "specs/methodology" / name[:-3]
     if not (base / "specs/methodology" / name).is_file() and folder.is_dir():
         found = folder_file(folder, rest)
@@ -2789,7 +2789,7 @@ def canon_rule(rule, root=None):
 
 
 def report_types():
-    """-> the record types the checkout's canon declares, by their Plural Names, read through the one reader once, and
+    """-> the record types the canon beside the script's own code declares, by their Plural Names, read through the one reader once, and
     read again where a check of another project's texts left its own setup in place."""
     canon = canon_texts()
     if record_types.SET_UP_FROM[0] is not canon:
@@ -3807,7 +3807,7 @@ def earlier_targets(root):
 
 earlier_targets.held = {}
 # where a question names nothing to ask of, as the search tells its caller, by what each refusal of a research's report
-# turns on: the Query alone, or what the checkout holds
+# turns on: the Query alone, or what the files worked over hold
 NAMES_NO_WORD = "a term or a passage reducing to no word"
 NAMES_NO_PLACE = "a citation naming no place among the files the search reads"
 NAMES_NO_FILE = "a path under which no file of the target stands"
@@ -3830,8 +3830,8 @@ def search_target(s):
     a name it held before is given as the canon's table of earlier names reads it, so each reader of a Search runs it
     and measures it over the files that target reads as they stand."""
     commit, target = unquoted(s.get("Commit", "")), unquoted(s.get("Target", "")) or CURRENT_FILES
-    from spec_text import checkout
-    return (earlier_targets(checkout()).get(target, target), commit if commit and commit != "none" else None,
+    from spec_text import own_files
+    return (earlier_targets(own_files()).get(target, target), commit if commit and commit != "none" else None,
             [n for n in names_of_text(s.get("Narrowed To", "")) if n != "the whole"])
 
 
@@ -5192,7 +5192,7 @@ def kept_run_folder(root):
 
 
 def run_pytest(root, folder, args, threads=None):
-    """Runs the registered runner over the kept tests, as a process of its own, from the checkout's root, told the
+    """Runs the registered runner over the kept tests, as a process of its own, from the root of the files worked over, told the
     folder it writes within, to compile no module to a file and, where threads is given, the threads the search's
     model works on -> the completed process."""
     from spec_text import KEPT_RUN_NAMED
@@ -5367,7 +5367,7 @@ def kept_tests_run(root, changed):
 def check_kept_tests(value):
     """--check-kept-tests [FILE ...]: the kept tests of each script whose files the changed files given hold, and each
     kept comparison whose script's files they hold, run by the registered runner, with what the run's report holds of
-    each and the checks made with a run; given no file, the files the checkout holds changed against the last commit,
+    each and the checks made with a run; given no file, the files the project holds changed against the last commit,
     the working files aside. It names no design, so a direct edit outside a design runs it; -> 1 where a test fails,
     a set cannot be run or a check reports, else 0, whatever a comparison lists."""
     root = repo_root()
@@ -6171,14 +6171,14 @@ def is_applying(design_text):
 
 
 def uncommitted_changes(root):
-    """-> the paths the checkout holds changed against the last commit, a new untracked one among them."""
+    """-> the paths the project holds changed against the last commit, a new untracked one among them."""
     changed = subprocess.run(["git", "diff", "--name-only", "HEAD"], capture_output=True, text=True, cwd=root)
     added = subprocess.run(["git", "ls-files", "--others", "--exclude-standard"], capture_output=True, text=True, cwd=root)
     return [p for run in (changed, added) if run.returncode == 0 for p in run.stdout.split()]
 
 
 def kept_changes(root, design_text):
-    """-> the paths the checkout holds changed against the last commit, where the design is not applying, so its
+    """-> the paths the project holds changed against the last commit, where the design is not applying, so its
     reading is the last commit's, as the canon has a send-back's reading made while kept changes stand; else none. While a design is applying, the changes are its apply's
     own writing: a reading of the files takes them as they stand, and a reading of the plan's citations alone takes the
     last commit, which check_cited_headings asks for itself."""
@@ -6263,8 +6263,8 @@ def last_commit(root):
 
 def checks_over(root, commit):
     """-> the shared checks' findings, candidates and code candidates over the working tree, commit None, or over a
-    commit, each tree by the checks as they stood in it: the working tree by the modules the checkout the script is run
-    in holds, and a commit by its own, or, where either holds none of the modules, by the ones beside this file."""
+    commit, each tree by the checks as they stood in it: the working tree by the modules the files the script is run
+    in hold, and a commit by its own, or, where either holds none of the modules, by the ones beside this file."""
     lib = Path(root) / ".ai" / "skills" / "lib"
     lib = str(lib if all((lib / (m + ".py")).is_file() for m in WORK_MODULES) else Path(__file__).resolve().parent)
     if commit:
@@ -6559,7 +6559,7 @@ FLAGS = (
     ("--check-work", "DESIGN", check_work,
      "run the specs' and the code's script checks over the design's work, the files changed against the last commit, whatever they touch: each finding the scope holds now that it did not hold then, each tree by the checks as they stood in it, matched by its rule, its file and its message, its repeats counted, a matched finding on a line the change added reported too; then, apart, each candidate in the reach the builder zooms out to from what the change wrote, the places citing it found by the search the skills share; with no version control, every finding the scope holds; writes no file; the builder runs it at its self-review, and the post-apply review runs it"),
     ("--check-kept-tests", "[FILE ...]", check_kept_tests,
-     "run, by the registered runner, the kept tests of each script whose files the changed files given hold, a script's files being its code, each file of the canon it reads a form from as it runs, its set of kept tests under tests/spec-of-record/scripts/ and each fixture file its tests read a fixture from, and each kept comparison whose script's files they hold; read each result from the run's report, .ai/tmp/kept-tests/report.xml, naming each test that failed; check with each set run that each action its script states and each Script Check it carries out is held by a test where it passes and by one where it reports; check the kept tests' folder as a whole where a set is run or the changed files hold a file under the tests; given no file, read the files the checkout holds changed against the last commit, the working files aside; names no design, so a direct edit of such a file runs it before the user approves the edit; fails where a test fails, a set cannot be run or a check reports, and never for what a comparison lists; --stamp-settled-report runs it as it validates the report of a self-review over applied work, over the design's changes"),
+     "run, by the registered runner, the kept tests of each script whose files the changed files given hold, a script's files being its code, each file of the canon it reads a form from as it runs, its set of kept tests under tests/spec-of-record/scripts/ and each fixture file its tests read a fixture from, and each kept comparison whose script's files they hold; read each result from the run's report, .ai/tmp/kept-tests/report.xml, naming each test that failed; check with each set run that each action its script states and each Script Check it carries out is held by a test where it passes and by one where it reports; check the kept tests' folder as a whole where a set is run or the changed files hold a file under the tests; given no file, read the files the project holds changed against the last commit, the working files aside; names no design, so a direct edit of such a file runs it before the user approves the edit; fails where a test fails, a set cannot be run or a check reports, and never for what a comparison lists; --stamp-settled-report runs it as it validates the report of a self-review over applied work, over the design's changes"),
     ("--show-test-coverage", "", show_test_coverage,
      "show, for every script of the skills, each action it states and each Script Check it carries out that no kept test holds where it passes, or none where it reports, a script holding no kept tests among them, and say of a script stating no actions in the form the kept tests' rule gives that its actions cannot be read; runs no test and fails nothing for what it shows"),
     ("--show-kept-test-times", "", show_kept_test_times,

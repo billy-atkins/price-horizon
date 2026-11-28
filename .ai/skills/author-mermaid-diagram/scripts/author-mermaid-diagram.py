@@ -19,7 +19,7 @@ Usage, the arguments given the script:
   --render-diagrams FILE --output-directory path/  # default: .ai/tmp/author-mermaid-diagram
 
 Paths are resolved against the current working directory, so run it from the
-repository root (or pass --output-directory) if the default output location matters.
+project root (or pass --output-directory) if the default output location matters.
 
 Markdown blockquote prefixes ("> ") are stripped, so a diagram quoted inside a
 design note renders the same as one checked into a spec.
@@ -48,7 +48,7 @@ import tempfile
 import zlib
 from pathlib import Path
 
-sys.dont_write_bytecode = True  # no cache beside the shared code, untracked in the checkout
+sys.dont_write_bytecode = True  # no cache beside the shared code, untracked in the project
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "lib"))
 import reading  # noqa: E402  the one reading of a text's fenced blocks and headings, standard library only
 
