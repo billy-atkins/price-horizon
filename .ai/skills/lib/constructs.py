@@ -3959,7 +3959,7 @@ def run_checks(text_of):
 
     # no form template is authored with the constructs, a skill's or the core canon's
     text_of = {r: body for r, body in text_of.items() if not record_types.is_form_template(r)}
-    # the setup read from the checkout's canon, with what the texts checked declare of their own joined to it: a text
+    # the setup read from the canon beside the script's own code, with what the texts checked declare of their own joined to it: a text
     # checked declaring a construct takes the place of the canon's file at its path, and one declaring none, as a
     # table of the project's data does, leaves the canon's declarations there in place; every text checked is read by
     # its path as the project holds it. A finding of the setup is kept only of a text checked

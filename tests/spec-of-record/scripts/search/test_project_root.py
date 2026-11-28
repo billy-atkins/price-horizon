@@ -1,19 +1,19 @@
-"""The checkout: which one a search naming no project runs over, where the model is found, and how long a result's path
-grows."""
+"""The project root and the files worked over: which files a search naming no project works over, where the model is
+found, and how long a result's path grows."""
 import re
 
 import pytest
 
-from search_set import CHECKOUT, HERON, READS_HERON, SKILL_FOLDER, git, project, run_entry, search
+from search_set import HERON, PROJECT_FILES, READS_HERON, SKILL_FOLDER, git, project, run_entry, search
 
 DEEP = 205  # the length of the path of the folder standing deep, which leaves a result's name room for some of the words asked
 ASKED = "the lighthouse keeper trims the lamp wick each evening before dark and the ferry crosses the estuary at the turn of the tide " * 3
 
 
 @pytest.fixture
-def checkouts(fixtures, work):
-    """-> (a project's main checkout under git, a second checkout of it, a worktree kept among its working files, and
-    a folder under no version control)."""
+def folders(fixtures, work):
+    """-> (a project's root under git, a copy of its files version control made among its working files, and the
+    root of a project under no version control)."""
     root = project(work / "main", fixtures, HERON)
     git(root, "init", "-q")
     git(root, "add", "-A")
@@ -24,35 +24,35 @@ def checkouts(fixtures, work):
 
 
 @READS_HERON[0]
-@pytest.mark.parametrize("which, main", [(0, 0), (1, 0), (2, 2)], ids=["main-checkout", "worktree", "under-no-version-control"])
-def test_the_main_checkout_of_a_checkout_is_the_one_holding_its_repository_or_the_checkout_itself(checkouts, which, main):
-    assert search.main_checkout(checkouts[which]) == checkouts[main].resolve()
+@pytest.mark.parametrize("which, main", [(0, 0), (1, 0), (2, 2)], ids=["the-project-root", "a-copy-version-control-made", "under-no-version-control"])
+def test_the_project_root_of_a_folder_is_the_one_holding_its_repository_or_the_folder_itself(folders, which, main):
+    assert search.project_root_of(folders[which]) == folders[main].resolve()
 
 
-def test_the_model_is_found_in_the_scratch_space_of_the_main_checkout_of_the_search_s_own_code():
-    assert search.model_folder() == search.main_checkout(CHECKOUT) / search.SCRATCH / "model"
+def test_the_model_is_found_in_the_scratch_space_of_the_project_root_of_the_search_s_own_code():
+    assert search.model_folder() == search.project_root_of(PROJECT_FILES) / search.SCRATCH / "model"
 
 
 @READS_HERON[0]
 @pytest.mark.parametrize("under", ["", "specs"], ids=["at-its-root", "in-a-folder-of-it"])
-def test_a_search_naming_no_project_runs_over_the_checkout_holding_the_working_directory(fixtures, work, monkeypatch, under):
+def test_a_search_naming_no_project_works_over_the_files_holding_the_working_directory(fixtures, work, monkeypatch, under):
     root = project(work / "heron", fixtures, HERON)
     (root / SKILL_FOLDER).mkdir(parents=True)
     monkeypatch.chdir(root / under)
-    assert search.checkout_run_in() == root.resolve()
+    assert search.files_worked_over() == root.resolve()
 
 
-def test_a_search_run_in_no_checkout_runs_over_the_one_its_own_code_stands_in(work, monkeypatch):
+def test_a_search_run_outside_every_project_works_over_the_files_its_own_code_stands_in(work, monkeypatch):
     work.mkdir(parents=True, exist_ok=True)
     monkeypatch.chdir(work)
-    assert search.checkout_run_in() == CHECKOUT
+    assert search.files_worked_over() == PROJECT_FILES
 
 
 @pytest.mark.action("--show-term-uses")
 @pytest.mark.passes
 @READS_HERON[0]
-def test_the_entry_script_run_in_a_checkout_writes_its_result_there_and_none_in_the_checkout_holding_it(fixtures, work):
-    own = lambda: sorted(p.name for p in (CHECKOUT / search.SCRATCH / "results").glob("terms-heron-*.md"))
+def test_the_entry_script_run_in_a_project_writes_its_result_there_and_none_in_the_project_holding_it(fixtures, work):
+    own = lambda: sorted(p.name for p in (PROJECT_FILES / search.SCRATCH / "results").glob("terms-heron-*.md"))
     before, root = own(), project(work / "heron", fixtures, HERON)
     ran, printed = run_entry(root, "--show-term-uses", "heron")
     assert ran == 0 and len(list((root / search.SCRATCH / "results").glob("terms-heron-*.md"))) == 1 and own() == before

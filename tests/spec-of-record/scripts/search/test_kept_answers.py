@@ -150,7 +150,7 @@ def test_an_answer_kept_for_the_committed_files_stands_while_no_commit_changed_t
 def test_once_the_search_s_own_code_changed_a_kept_answer_is_not_given(fixtures, opened, work, monkeypatch):
     s = opened(heron(work, fixtures), scratch=work / "index")
     s.terms("heron")
-    monkeypatch.setattr(search, "_OWN_READING", "0" * 16)   # the search's own code as another checkout holds it
+    monkeypatch.setattr(search, "_OWN_READING", "0" * 16)   # the search's own code as another copy of it holds it
     assert not s.terms("heron").kept
 
 
@@ -158,8 +158,8 @@ def test_once_the_search_s_own_code_changed_a_kept_answer_is_not_given(fixtures,
 @pytest.mark.passes
 def test_an_answer_another_code_of_the_search_computed_is_not_given_by_this_code_which_computes_its_own_and_keeps_it(fixtures, opened, work, monkeypatch):
     s = opened(heron(work, fixtures), scratch=work / "index")
-    with monkeypatch.context() as another_checkout:
-        another_checkout.setattr(search, "_OWN_READING", "0" * 16)
+    with monkeypatch.context() as another_copy:
+        another_copy.setattr(search, "_OWN_READING", "0" * 16)
         s.terms("heron")
     assert not s.terms("heron").kept and s.terms("heron").kept
 

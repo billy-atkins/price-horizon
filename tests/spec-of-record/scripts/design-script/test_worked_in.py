@@ -1,4 +1,4 @@
-"""The checkout a design is worked in: its last commit, the files it holds changed, the audits its design owes, what
+"""The project a design is worked in: its last commit, the files it holds changed, the audits its design owes, what
 a Refactor and Refine cycle changed in it, its citations' links and its constructs, each action called in a project
 of fixtures, under version control where the action reads its last commit."""
 import pytest

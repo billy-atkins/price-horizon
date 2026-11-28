@@ -120,7 +120,7 @@ _OWN_READING = None
 
 def own_reading():
     """-> the code of the search's own reading: built from what this script and each module of the shared code it
-    imports hold, as the checkout running it has them, with the form of its index and the name of its model. An answer
+    imports hold, as the files running it have them, with the form of its index and the name of its model. An answer
     the search kept is given again only under the reading that computed it."""
     global _OWN_READING
     if _OWN_READING is None:
@@ -236,35 +236,35 @@ def _module(name):
     return lambda root: importlib.util.find_spec(name) is not None
 
 
-def main_checkout(checkout):
-    """-> the main checkout of the project a checkout is of, told from the files alone and asked of no version
-    control: where the checkout is a worktree, its `.git` a file naming its own folder in the main checkout's
-    repository, and that folder naming the repository all the project's checkouts share, the checkout holding that
-    repository; else the checkout itself, the main checkout, one under no version control and a submodule among them."""
-    checkout = Path(checkout).resolve()
-    named = checkout / ".git"
+def project_root_of(folder):
+    """-> the project root of the project whose files a folder holds, told from the files alone and asked of no
+    version control: where the folder holds a copy version control made as a worktree, its `.git` a file naming its
+    own folder in the project's repository, and that folder naming the repository the copy shares, the folder holding
+    that repository; else the folder itself, the project root, one under no version control and a submodule among them."""
+    folder = Path(folder).resolve()
+    named = folder / ".git"
     try:
         words = named.read_text(encoding="utf-8").strip() if named.is_file() else ""
         if words.startswith("gitdir:"):
-            own = (checkout / words[len("gitdir:"):].strip()).resolve()
+            own = (folder / words[len("gitdir:"):].strip()).resolve()
             shared = (own / (own / "commondir").read_text(encoding="utf-8").strip()).resolve()
             if shared.name == ".git" and shared.parent.is_dir():
                 return shared.parent
     except (OSError, UnicodeDecodeError):
         pass
-    return checkout
+    return folder
 
 
 _HOME = None
 
 
 def home():
-    """-> the project that keeps what the search needs beside the files it reads, the model's files: the main checkout
-    of the project the search's own skill stands in. Every checkout of the project gives the same one, a worktree
-    wherever it sits among them, so what was set up once on the machine is found from each."""
+    """-> the project that keeps what the search needs beside the files it reads, the model's files: the project root
+    of the project the search's own skill stands in. A copy of the project's files gives the same one, wherever the
+    copy stands, so what was set up once on the machine is found from each."""
     global _HOME
     if _HOME is None:
-        _HOME = main_checkout(Path(__file__).resolve().parents[3])
+        _HOME = project_root_of(Path(__file__).resolve().parents[3])
     return _HOME
 
 
@@ -360,7 +360,7 @@ def check_requirements(root):
 
 
 def install_model(root):
-    """Download the model's files into the skill's scratch space in `home()`, where every checkout of the project finds
+    """Download the model's files into the skill's scratch space in `home()`, where every search of the project finds
     them: the one action that reaches the network, run by the user's own command and never by a search."""
     if not _module("fastembed")(root):
         raise MissingRequirements(f"{SKILL}: fastembed is missing, and it downloads the model's files.\n  install it with: python -m pip install fastembed")
@@ -1155,8 +1155,8 @@ class Result:
     def write(self, folder):
         """Name the result from the kind of search, what was asked and its content, and write it. The name tells the
         result apart by its two hashes, and holds as many of the words asked as fit: no more than MAX_NAME, and no
-        more than leaves the file's whole path within MAX_PATH, so a folder standing deep, as one of a checkout kept
-        beneath another's working files does, shortens the words and never makes a path too long to open. An earlier
+        more than leaves the file's whole path within MAX_PATH, so a folder standing deep, as one of a copy of the project's files kept
+        beneath its working files does, shortens the words and never makes a path too long to open. An earlier
         result of the same question under another name is cleared, another part of the same ranking being another
         question. A run that finds a file changed clears every result before it answers, so no result outlives the
         files it answered for."""
@@ -1716,7 +1716,7 @@ class Search:
         """-> the answer the search kept for this question, or None where it kept none that still stands: the same kind of
         search, Query, asking for exact or by default, Target, with the Commit, and paths, kept under the snapshot code the Target's files now take and under
         the code of the search's own reading, built from what this script and each module of the shared code it imports hold
-        as the checkout running it has them, with the index's form and the model's name. An answer is kept only of a kind
+        as the files running it have them, with the index's form and the model's name. An answer is kept only of a kind
         resting on its Target's files alone: none of a search by meaning, and none of a search of the structure `constructs`.
         Each other answer the search computes is kept so, with the index."""
         if not self._keeps(kind, query):
@@ -2332,11 +2332,11 @@ def snapshot(root, target=CURRENT_OPERATIVE, paths=None, commit=None, cover=None
 # ---------------------------------------------------------------------------------------------------------------------
 # The entry script's actions
 
-def checkout_run_in():
-    """-> the checkout a search naming no project is run in: the nearest folder at or above the working directory that
-    holds the search's own skill, as every checkout of the project does, whichever checkout holds the script being
-    run. It is told from the files. Where the working directory lies in no checkout, the search answers over the one
-    its own script stands in."""
+def files_worked_over():
+    """-> the folder holding the files a search naming no project works over: the nearest folder at or above the
+    working directory that holds the search's own skill, as the project root and each copy of the project's files do,
+    whichever holds the script being run. It is told from the files. Where the working directory lies in no such
+    folder, the search answers over the one its own script stands in."""
     here = Path.cwd().resolve()
     return next((p for p in (here, *here.parents) if (p / ".ai" / "skills" / SKILL).is_dir()), Path(__file__).resolve().parents[3])
 
@@ -2447,7 +2447,7 @@ def run_check_result(asked):
 
 @stopping
 def run_install_model(asked):
-    print(f"{SKILL}: the model's files are in {install_model(asked.root).as_posix()}, where every checkout of the project finds them")
+    print(f"{SKILL}: the model's files are in {install_model(asked.root).as_posix()}, where every search of the project finds them")
     return 0
 
 
@@ -2505,7 +2505,7 @@ USAGE = usage()
 
 
 def main(argv, root=None):
-    root = Path(root).resolve() if root else checkout_run_in()
+    root = Path(root).resolve() if root else files_worked_over()
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8")

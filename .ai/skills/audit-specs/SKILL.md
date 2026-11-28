@@ -11,7 +11,7 @@ A script decides whether a citation resolves, whether a front matter list is sor
 
 The audits are the substance. The script is a pre-pass.
 
-    python .ai/skills/audit-specs/scripts/audit-specs.py --check-scope                 # from the repo root
+    python .ai/skills/audit-specs/scripts/audit-specs.py --check-scope                 # from the project root
     python .ai/skills/audit-specs/scripts/audit-specs.py --check-scope --root <path>   # an explicit root
     python .ai/skills/audit-specs/scripts/audit-specs.py --check-scope --sub-scope core-canon documentation  # only the findings in those sub-scopes' files
     python .ai/skills/audit-specs/scripts/audit-specs.py --list-candidates             # places for the reading audits that use them
@@ -95,7 +95,7 @@ This audit's reading is made as `specs/methodology/semantic-check-methods/whethe
 
 Of `specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation`, `specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation § Referring to Other Text` is Ordinals and counts' to read, and the paragraph on where a citation sits is Finished style's. This audit reads the rest. Of `specs/methodology/sourcing-and-citation/one-home-per-fact.md § One Home Per Fact`, this audit reads only the sentences on when a citing place states a rule's application and its reason, and on when a bare citation is enough. An audit's Enforces cell is the citation the audit runs from, and never one that only routes or lists.
 
-On a tree with no uncommitted change, this audit chooses its targets by how heavily each is cited. On a tree holding one, it starts from the sections those changes altered, read in the diff against the last commit.
+In a project with no uncommitted change, this audit chooses its targets by how heavily each is cited. In a project holding one, it starts from the sections those changes altered, read in the diff against the last commit.
 
 ### Ordinals and counts
 
@@ -103,7 +103,7 @@ Run the script with `--list-candidates`. The reading is made as `specs/methodolo
 
 ### Markup
 
-The script decides where bold and italic may appear, a field's form and key, a block of fields' line endings and its lists' indentation, where a blank line falls, a run of backticks, and a heading's form. Run the script with `--list-candidates`. It lists each backtick span holding a capital letter and no punctuation that matches no heading, field key, or text a fenced example in the tree holds. It also lists each italic span of more than a few words. The reading of what the script cannot judge is made as `specs/methodology/semantic-check-methods/markup.md § Markup` has it.
+The script decides where bold and italic may appear, a field's form and key, a block of fields' line endings and its lists' indentation, where a blank line falls, a run of backticks, and a heading's form. Run the script with `--list-candidates`. It lists each backtick span holding a capital letter and no punctuation that matches no heading, field key, or text a fenced example in the project holds. It also lists each italic span of more than a few words. The reading of what the script cannot judge is made as `specs/methodology/semantic-check-methods/markup.md § Markup` has it.
 
 ### Glossary terms
 
@@ -288,7 +288,7 @@ Each row describes, in the script's own terms, what the script checks for the se
 
 ## Traps worth knowing
 
-**Lineages start below the file's title.** `specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation` states this. Building lineages from level 1 down was the script's earliest defect. It made every same-file citation in the repo fail at once, and it looked like a wall of broken citations rather than one bad assumption.
+**Lineages start below the file's title.** `specs/methodology/sourcing-and-citation/writing-a-citation.md § Writing a Citation` states this. Building lineages from level 1 down was the script's earliest defect. It made every same-file citation in the project fail at once, and it looked like a wall of broken citations rather than one bad assumption.
 
 **Not every backtick span containing a section token is a citation.** A rule that discusses the token, or shows a forbidden heading form as an example, mentions the token rather than using it. The script treats only a span in one of the citation shapes as a citation:
 
@@ -303,4 +303,4 @@ The script leaves every other span alone. Before it looks for a token outside a 
 
 **A fenced block's content is set aside unless a check's row says it reads the block.** A citation shown inside a fenced block is an illustration, and the citation checks do not read it. A check reads inside a fence only where its row in `§ What the script checks` says so: the rows on a `gherkin` block, a `mermaid` block, the scope's tree and a `markdown` block, which is read as a file of its own, as `specs/methodology/spec-style/markdown.md § Markdown` has it.
 
-**A mermaid block does not begin with `flowchart`.** Every diagram in this repo opens with a `config` front matter block inside the fence, so a check reading the first line fails on correct content. Match anywhere before the first node.
+**A mermaid block does not begin with `flowchart`.** Every diagram in this project opens with a `config` front matter block inside the fence, so a check reading the first line fails on correct content. Match anywhere before the first node.

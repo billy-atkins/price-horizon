@@ -711,7 +711,7 @@ def example_pointer_findings(scope):
 
 
 class Scope:
-    """The scope a run of the audit reads once, and what a test hands a check in place of a checkout: `root`, the
+    """The scope a run of the audit reads once, and what a test hands a check in place of a folder of files: `root`, the
     files as a tree held in memory; `text_of`, each Markdown file in scope by its path, its citations' links stripped;
     `known`, those paths; `lineage`, each one's headings by their lineage; `standards`, the registered standards'
     Names; and `blank_lines`, the Decision Table the blank-line check reads. Reading it runs the construct checks,
@@ -734,9 +734,9 @@ class Scope:
 
     @classmethod
     def read_from(cls, root):
-        """-> the scope of a checkout read into memory once, or of a commit's tree as it is given."""
+        """-> the scope of a folder's files read into memory once, or of a commit's tree as it is given."""
         root = spec_text.as_root(root)
-        return cls(root if isinstance(root, spec_text.CommitTree) else spec_text.FileTree.of_checkout(root))
+        return cls(root if isinstance(root, spec_text.CommitTree) else spec_text.FileTree.of_folder(root))
 
 
 # The checks of one file: each takes a file's path and its text, its citations' links stripped, and gives
@@ -1110,7 +1110,7 @@ def image_findings(path, text):
 
 def in_place(root, path):
     """-> where a table of the project's data a check reads stands: in the scope it checks, and nowhere else, so a
-    scope holding no such table has its check report the table missing, never read the checkout's in its place."""
+    scope holding no such table has its check report the table missing, never read the one beside the script's own code in its place."""
     return root / path
 
 
@@ -2201,7 +2201,7 @@ def literal_candidates(root):
     """-> list of (path, line, kind, context), for the Markup audit.
 
     A backtick span naming no heading, field key, path, citation, identifier or markup
-    the tree holds may be a name; an italic span of more than a few words may be stress
+    the project holds may be a name; an italic span of more than a few words may be stress
     that needs structure instead. Places to read, never findings.
     """
     known, out, fenced = set(FIELD_KEYS), [], []
@@ -2209,7 +2209,7 @@ def literal_candidates(root):
         text = read(f)
         known.update(title for _, title in headings(text))
         # a span written verbatim in a fenced example, a Gherkin keyword or a Mermaid
-        # directive, is literal text the tree itself shows
+        # directive, is literal text the project itself shows
         fenced += [b.content + "\n" for b in reading.blocks(text) if b.closed]
     fenced_words = set(" ".join(fenced).split())
     fenced_text = "\n".join(fenced)

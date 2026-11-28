@@ -6,7 +6,7 @@ check_form, run the check through this one copy. A fenced block whose info strin
 Markdown style has it, one code block toward what stands outside it and a file of its own within."""
 import constructs
 import reading
-from spec_text import checkout, sections, strip_fences
+from spec_text import own_files, sections, strip_fences
 
 # @canon-spec specs/methodology/spec-style/markdown.md § Blank Lines
 RULE = "spec-style/markdown.md § Blank Lines"
@@ -94,10 +94,10 @@ _RULES = {}
 
 def rules(text=None):
     """-> (the rows of the canon's Decision Table of blank lines, each {column: cell}, its conditions and its outcome
-    column, or None, and the problems with reading it), read from the canon of the checkout once, whatever root a
+    column, or None, and the problems with reading it), read from the canon beside the script's own code once, whatever root a
     check is given; or, given the text of the table's file as a scope holds it, read from that text, citations' links
     stripped, so the module's copy of the table's names is held against the file a check is handed."""
-    root = checkout()
+    root = own_files()
     if text is None and root in _RULES:
         return _RULES[root]
     home = root / HOME

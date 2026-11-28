@@ -3,7 +3,7 @@
 A test calls a unit of the design script with a small input written from its fixtures, or calls an action as the
 entry scripts call it, in a project of fixtures written within the test's own folder, each fixture at the path the
 test gives it. A few tests run an entry script as a process, each holding one part of its wiring. No project holds a
-file of the canon or a copy of the skills' code: the script reads each form from the canon of the checkout its code
+file of the canon or a copy of the skills' code: the script reads each form from the canon of the files its code
 stands in, and what it checks from the project. A test file takes these names by `from design_script_set import ...`,
 the name this file is registered under as the runner reads it.
 """
@@ -33,14 +33,14 @@ FORM_FILES = (".ai/skills/audit-specs/SKILL.md", ".ai/skills/search-spec-of-reco
               "specs/methodology/working-files/main.md")
 ACTIONS_IN = ".ai/skills/lib/design_documents.py"
 
-CHECKOUT = Path(__file__).resolve().parents[4]
-LIB = CHECKOUT / ".ai" / "skills" / "lib"
+PROJECT_FILES = Path(__file__).resolve().parents[4]
+LIB = PROJECT_FILES / ".ai" / "skills" / "lib"
 if str(LIB) not in sys.path:
     sys.path.insert(0, str(LIB))
 import design_documents  # noqa: E402
 import spec_text  # noqa: E402
 
-ENTRY = {skill: CHECKOUT / ".ai" / "skills" / skill / "scripts" / (skill + ".py") for skill in ("design-specs", "implement-specs")}
+ENTRY = {skill: PROJECT_FILES / ".ai" / "skills" / skill / "scripts" / (skill + ".py") for skill in ("design-specs", "implement-specs")}
 # where a design of the fixtures stands in a project, and its reports, by the name its fixtures give it
 NAME = "ferry-times-in-the-guide"
 DESIGN = ".ai/plans/design-specs/%s.md" % NAME
@@ -99,7 +99,7 @@ def committed(root):
 sys.modules["design_script_set"] = sys.modules[__name__]
 
 # the kept tests' group: a project's own runner and its set of kept tests, written as fixtures, which the design script
-# runs in that project in place of the checkout's
+# runs in that project in place of the project's own
 KEPT = "tests/spec-of-record"
 KEPT_RUN = ".ai/tmp/kept-tests"
 GUIDE_SET = KEPT + "/scripts/guide"

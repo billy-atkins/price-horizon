@@ -72,7 +72,7 @@ The Record Form gives the form of an open question, which [`specs/methodology/sp
 - how a design changing a working file's form keeps its own files in the form in force until its apply lands the new form;
 - how a design changing the process runs under the process it writes;
 - how a finding after the approval is settled: a tactical fix made in place and proved by the builder's passes, and every other fix sending the design back;
-- what becomes of each change uncommitted in a design's checkout at each event of its work;
+- what becomes of each uncommitted change in a design's project, at each event of the design's work;
 - how a design sent back keeps its changes, and how a design applies meanwhile, those changes stashed.
 
 A stamp records when a check passed. A follow-up holds work not yet done. Before each adversarial round and before the user's approval, the validation review, which the design script makes, checks the design document's structure, and stamps it on the way to the approval. It reads the design and the reports of the handed-off judgments of its current major version that its log names, so it checks the lineage from their research through the Assessed Areas to the steps. It holds that research against the files only until the plan is approved, since the files then come to hold the apply's writing. A design's plan cites the files as they stood before its apply, so while the design is applying its citations are read against the last commit. No spec but the working-files document's files names a working file ([`specs/methodology/sourcing-and-citation/which-citations-are-allowed.md § Which Citations Are Allowed`](/specs/methodology/sourcing-and-citation/which-citations-are-allowed.md#which-citations-are-allowed)).

@@ -1,13 +1,13 @@
 """What every kept test of Spec of Record's scripts is given.
 
-A run writes only within its one folder among the working files, .ai/tmp/kept-tests/ of the checkout, or, for a run
+A run writes only within its one folder among the working files, .ai/tmp/kept-tests/ of the project, or, for a run
 another run started, the folder that run names for it. The same clean-up runs before and after each test, over the
 test's own folder, and before and after the run, after which the folder holds the run's report alone.
 
 A test is handed:
   work       its own folder within the run's folder, empty as the test starts and removed as it ends
   fixtures   the snippets of the fixtures its `reads` marker names, by key
-  checkout   the root of the checkout the tests are run in
+  project_files   the folder holding the files the tests are run from: the project root, or a copy's folder
   run_folder the run's folder
 
 A run runs every test it finds. It takes --action FLAG and --script-check NAME, each choosing the tests naming it, and
@@ -21,12 +21,12 @@ from pathlib import Path
 
 import pytest
 
-CHECKOUT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(CHECKOUT / ".ai" / "skills" / "lib"))
+PROJECT_FILES = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(PROJECT_FILES / ".ai" / "skills" / "lib"))
 import spec_text  # noqa: E402  the reading the skills' scripts share: the form of a fixture file, and the one clean-up
 
-RUN = Path(os.environ.get(spec_text.KEPT_RUN_NAMED) or CHECKOUT / spec_text.KEPT_RUN).resolve()
-FIXTURES = CHECKOUT / spec_text.FIXTURES
+RUN = Path(os.environ.get(spec_text.KEPT_RUN_NAMED) or PROJECT_FILES / spec_text.KEPT_RUN).resolve()
+FIXTURES = PROJECT_FILES / spec_text.FIXTURES
 WAYS = ("passes", "reports")
 HELD = {}  # a fixture file's name -> {key: snippet}, read once in a run
 
@@ -99,7 +99,7 @@ def pytest_collection_modifyitems(config, items):
     if links:
         # every test found, the ones a choice by action or by Script Check leaves out among them: what the tests hold
         # is read of them all
-        rows = [{"test": item.nodeid, "file": Path(str(item.path)).resolve().relative_to(CHECKOUT).as_posix(),
+        rows = [{"test": item.nodeid, "file": Path(str(item.path)).resolve().relative_to(PROJECT_FILES).as_posix(),
                  "actions": names(item, "action"), "script_checks": script_checks(item),
                  "ways": {way: names(item, way) for way in WAYS if item.get_closest_marker(way) is not None},
                  "reads": read_fixtures(item)} for item in items]
@@ -111,8 +111,8 @@ def pytest_collection_modifyitems(config, items):
 
 
 @pytest.fixture(scope="session")
-def checkout():
-    return CHECKOUT
+def project_files():
+    return PROJECT_FILES
 
 
 @pytest.fixture(scope="session")

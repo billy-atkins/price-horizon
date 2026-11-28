@@ -373,7 +373,7 @@ BLOCK_TYPES = {}
 
 _TEXT_OF = {}
 
-# the texts the types in place were declared from, so a reader of the checkout's forms alone can tell a setup another
+# the texts the types in place were declared from, so a reader of the forms beside the script's own code alone can tell a setup another
 # run left of a project's own texts from the canon's
 SET_UP_FROM = [None]
 

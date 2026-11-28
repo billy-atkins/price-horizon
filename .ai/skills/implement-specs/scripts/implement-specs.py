@@ -8,7 +8,7 @@ over the code a design changing it writes."""
 import sys
 from pathlib import Path
 
-sys.dont_write_bytecode = True  # no cache beside the shared code, untracked in the checkout
+sys.dont_write_bytecode = True  # no cache beside the shared code, untracked in the project
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "lib"))
 from design_documents import main  # noqa: E402
 

@@ -69,7 +69,7 @@ def test_install_model_where_the_model_s_files_stand_finds_them_fetches_none_and
     before = held_files(held)
     assert ask(root, "--install-model") == 0
     printed = capsys.readouterr().out
-    assert "the model's files are in " + held.as_posix() in printed and "where every checkout of the project finds them" in printed
+    assert "the model's files are in " + held.as_posix() in printed and "where every search of the project finds them" in printed
     assert before and held_files(held) == before and not (root / search.SCRATCH).exists()
 
 

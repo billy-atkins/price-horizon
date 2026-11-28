@@ -1,5 +1,5 @@
 """The design script's kept comparison: which designs the script of the last commit and the script as it stands read
-differently, each side reading its own tree's form, held over a project of fixtures whose script at the design
+differently, each side reading the form of its own copy of the project's files, held over a project of fixtures whose script at the design
 script's place is a stand-in, under version control."""
 import subprocess
 import sys
